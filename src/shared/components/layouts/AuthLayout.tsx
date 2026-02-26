@@ -14,8 +14,8 @@ export function AuthLayout({ children }: Props) {
       </div>
 
       {/* Lado derecho (Formulario) */}
-      <div className="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
-        <div className="mx-auto w-full max-w-sm lg:w-96">{children}</div>
+      <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 sm:px-8">
+        <div className="w-full max-w-sm">{children}</div>
       </div>
     </div>
   );
