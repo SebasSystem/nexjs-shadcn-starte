@@ -1,0 +1,7 @@
+{
+  "greeting": "¡Hola, mundo!",
+  "auth": {
+    "login": "Iniciar Sesión",
+    "register": "Registrarse"
+  }
+}
