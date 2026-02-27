@@ -1,9 +1,5 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-
 import {
   Form,
   FormControl,
@@ -20,31 +16,17 @@ import { FormHead } from '../components/form-head';
 import { FormDivider } from '../components/form-divider';
 import { FormSocials } from '../components/form-socials';
 import { FormReturnLink } from '../components/form-return-link';
-
-// Schema de validación
-const signInSchema = z.object({
-  email: z.string().email('Ingresa un email válido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-});
-
-type SignInFormValues = z.infer<typeof signInSchema>;
+import { useSignIn } from '../hooks/use-sign-in';
 
 export function JwtSignInView() {
-  const form = useForm<SignInFormValues>({
-    resolver: zodResolver(signInSchema),
-    defaultValues: { email: '', password: '' },
-  });
-
-  const onSubmit = (_values: SignInFormValues) => {
-    // TODO: conectar con auth service
-  };
+  const { form, onSubmit, isSubmitting } = useSignIn();
 
   return (
     <div className="flex flex-col gap-4">
       <FormHead title="Iniciar Sesión" description="Ingresa tus credenciales para continuar" />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <FormField
             control={form.control}
             name="email"
@@ -52,7 +34,12 @@ export function JwtSignInView() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="admin@demo.com" {...field} />
+                  <Input
+                    type="email"
+                    placeholder="admin@demo.com"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -66,14 +53,19 @@ export function JwtSignInView() {
               <FormItem>
                 <FormLabel>Contraseña</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="••••••••" {...field} />
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    disabled={isSubmitting}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <Button type="submit" className="w-full mt-2">
+          <Button type="submit" className="w-full mt-2" loading={isSubmitting}>
             Entrar
           </Button>
         </form>

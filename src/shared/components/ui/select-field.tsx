@@ -56,29 +56,37 @@ export function SelectField({
   const id = generatedId;
   const listboxId = `${generatedId}-listbox`;
   const [open, setOpen] = useState(false);
+  const [internalValue, setInternalValue] = useState<string | string[]>(multiple ? [] : '');
+
+  const actualValue = value !== undefined ? value : internalValue;
 
   // Normalizar valor a array internamente
   const selected: string[] = multiple
-    ? Array.isArray(value)
-      ? value
+    ? Array.isArray(actualValue)
+      ? actualValue
       : []
-    : typeof value === 'string' && value !== ''
-      ? [value]
+    : typeof actualValue === 'string' && actualValue !== ''
+      ? [actualValue]
       : [];
+
+  const handleValueChange = (newVal: string | string[]) => {
+    setInternalValue(newVal);
+    onChange?.(newVal);
+  };
 
   const toggle = (val: string) => {
     if (multiple) {
       const next = selected.includes(val) ? selected.filter((v) => v !== val) : [...selected, val];
-      onChange?.(next);
+      handleValueChange(next);
     } else {
-      onChange?.(selected[0] === val ? '' : val);
+      handleValueChange(selected[0] === val ? '' : val);
       setOpen(false);
     }
   };
 
   const clear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange?.(multiple ? [] : '');
+    handleValueChange(multiple ? [] : '');
   };
 
   const getLabel = (val: string) => options.find((o) => o.value === val)?.label ?? val;
@@ -102,22 +110,22 @@ export function SelectField({
             aria-controls={listboxId}
             aria-invalid={!!error}
             className={cn(
-              'flex min-h-10 w-full items-center justify-between rounded-md border bg-transparent px-3 py-2',
-              'text-sm shadow-sm transition-colors',
-              'focus-visible:outline-none focus-visible:ring-1',
-              'disabled:cursor-not-allowed disabled:opacity-50',
+              'flex min-h-10 w-full items-center justify-between rounded-lg border bg-background px-3 py-2',
+              'text-sm transition-all duration-200 cursor-pointer',
+              'disabled:cursor-not-allowed disabled:opacity-50 select-none',
+              'hover:border-foreground',
               error
-                ? 'border-destructive focus-visible:ring-destructive text-destructive'
+                ? 'border-destructive/80 focus-visible:outline-none focus-visible:border-destructive focus-visible:ring-[0.5px] focus-visible:ring-destructive/30 text-foreground'
                 : open
-                  ? 'border-primary ring-1 ring-primary'
-                  : 'border-input hover:border-primary/50 focus-visible:border-primary focus-visible:ring-primary/20'
+                  ? 'border-foreground ring-[0.5px] ring-foreground outline-none'
+                  : 'border-border focus-visible:outline-none focus-visible:border-foreground focus-visible:ring-[0.5px] focus-visible:ring-foreground'
             )}
           >
             {/* Valores seleccionados */}
             <div className="flex flex-1 flex-wrap gap-1 text-left min-w-0 pr-2 overflow-hidden items-center">
               {multiple && selected.length > 0 ? (
                 selected.map((val) => (
-                  <Badge key={val} variant="secondary" className="gap-1 pr-1 truncate max-w-full">
+                  <Badge key={val} color="secondary" className="gap-1 pr-1 truncate max-w-full">
                     <span className="truncate">{getLabel(val)}</span>
                     <div
                       role="button"
@@ -156,7 +164,10 @@ export function SelectField({
           </button>
         </PopoverTrigger>
 
-        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <PopoverContent
+          className="w-[var(--radix-popover-trigger-width)] min-w-[var(--radix-popover-trigger-width)] p-0"
+          align="start"
+        >
           <Command>
             {searchable && <CommandInput placeholder="Buscar..." className="h-9" />}
             <CommandList id={listboxId}>

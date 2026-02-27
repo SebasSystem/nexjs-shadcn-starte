@@ -4,7 +4,7 @@ export function FormReturnLink({ href, label }: { href: string; label: string })
   return (
     <RouterLink
       href={href}
-      className="text-sm text-primary hover:underline flex items-center justify-center mt-6"
+      className="text-sm hover:underline flex items-center justify-center mt-6"
     >
       &larr; {label}
     </RouterLink>
