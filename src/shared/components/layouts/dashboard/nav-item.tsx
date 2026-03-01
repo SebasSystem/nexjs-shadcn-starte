@@ -67,8 +67,8 @@ export function NavItem({
       isActive && !hasChildren
         ? 'bg-primary text-primary-foreground shadow-sm'
         : isActive && hasChildren
-          ? 'bg-accent/50 text-accent-foreground'
-          : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+          ? 'bg-sidebar-accent/50 text-sidebar-accent-foreground'
+          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
     }
     ${isSubItem && !isMini ? 'pl-9 h-9 text-[13px] py-1.5' : ''}
   `;
@@ -82,7 +82,7 @@ export function NavItem({
       >
         {icon && (
           <span
-            className={`size-5 ${isActive && !hasChildren ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-accent-foreground'}`}
+            className={`size-5 ${isActive && !hasChildren ? 'text-primary-foreground' : 'text-sidebar-foreground/70 group-hover:text-sidebar-accent-foreground'}`}
           >
             {icon}
           </span>
@@ -91,7 +91,7 @@ export function NavItem({
         {/* Si es subitem pero no pasaron icono, mostramos un dot */}
         {isSubItem && !icon && !isMini && (
           <span
-            className={`h-1.5 w-1.5 rounded-full shrink-0 mr-1 ${isActive ? 'bg-primary' : 'bg-muted-foreground group-hover:bg-accent-foreground'}`}
+            className={`h-1.5 w-1.5 rounded-full shrink-0 mr-1 ${isActive ? 'bg-primary' : 'bg-sidebar-foreground/70 group-hover:bg-sidebar-accent-foreground'}`}
           />
         )}
 
@@ -101,7 +101,7 @@ export function NavItem({
             name="ChevronRight"
             size={12}
             strokeWidth={3}
-            className={`absolute -right-5 top-1/2 -translate-y-1/2 transition-colors ${isActive ? 'text-accent-foreground' : 'text-muted-foreground/60 group-hover:text-accent-foreground'}`}
+            className={`absolute -right-5 top-1/2 -translate-y-1/2 transition-colors ${isActive ? 'text-sidebar-accent-foreground' : 'text-sidebar-foreground/50 group-hover:text-sidebar-accent-foreground'}`}
           />
         )}
       </div>

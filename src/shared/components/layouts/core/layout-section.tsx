@@ -10,19 +10,21 @@ type Props = {
 };
 
 export function LayoutSection({ children, headerSection, sidebarSection, footerSection }: Props) {
-  const { navLayout } = useUiStore();
+  const { navLayout, navColor } = useUiStore();
 
   const isNavMini = navLayout === 'mini';
 
   return (
     <div
-      className={`flex h-screen overflow-hidden bg-background text-foreground ${layoutClasses.root}`}
+      className={`fixed inset-0 flex w-full h-[100dvh] overflow-hidden bg-background text-foreground ${layoutClasses.root}`}
     >
       {/* Sidebar Area */}
       {sidebarSection && (
         <aside
           className={`
-            bg-card border-r transition-all duration-300 hidden md:flex flex-col z-20
+            transition-all duration-300 hidden md:flex flex-col z-20 border-r
+            bg-sidebar text-sidebar-foreground border-sidebar-border
+            ${navColor === 'dark' ? 'sidebar-dark' : ''}
             ${isNavMini ? 'w-[88px]' : 'w-[280px]'}
             ${layoutClasses.nav.root}
           `}
@@ -36,7 +38,7 @@ export function LayoutSection({ children, headerSection, sidebarSection, footerS
         {/* Header Area */}
         {headerSection && (
           <header
-            className={`h-[72px] bg-background/80 backdrop-blur-md border-b flex items-center px-4 z-10 sticky top-0 w-full ${layoutClasses.header}`}
+            className={`h-[64px] bg-background/80 backdrop-blur-md border-b border-border/50 flex items-center px-4 z-10 sticky top-0 w-full ${layoutClasses.header}`}
           >
             {headerSection}
           </header>

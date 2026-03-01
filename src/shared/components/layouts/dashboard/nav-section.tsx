@@ -32,7 +32,7 @@ function CollapsibleSection({ section, isMini }: { section: NavSectionData; isMi
             'flex items-center justify-start gap-1 w-full min-w-0',
             'px-2 pt-4 pb-1',
             'text-[11px] font-semibold uppercase tracking-widest',
-            'text-muted-foreground/60 hover:text-muted-foreground',
+            'text-sidebar-foreground/60 hover:text-sidebar-foreground',
             'transition-colors duration-150 select-none group focus:outline-none'
           )}
         >
@@ -51,7 +51,7 @@ function CollapsibleSection({ section, isMini }: { section: NavSectionData; isMi
       )}
 
       {/* Separador en modo mini */}
-      {isMini && <div className="mx-auto w-6 border-t border-border/60 my-2" />}
+      {isMini && <div className="mx-auto w-6 border-t border-sidebar-border/60 my-2" />}
 
       {/* Items — con animación de altura */}
       <div

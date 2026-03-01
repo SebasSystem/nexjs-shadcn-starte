@@ -11,6 +11,7 @@ import { HeaderSection } from './dashboard/header-section';
 import { LayoutSection } from './core/layout-section';
 import { NavMobile } from './dashboard/nav-mobile';
 import { HeaderUserButton } from './dashboard/header-user-button';
+import { SettingsDrawer } from '../settings';
 
 type Props = {
   children: ReactNode;
@@ -37,7 +38,12 @@ export function AppLayout({ children }: Props) {
         <HeaderSection
           slots={{
             left: null,
-            right: <HeaderUserButton user={user} />,
+            right: (
+              <div className="flex items-center gap-2">
+                <SettingsDrawer />
+                <HeaderUserButton user={user} />
+              </div>
+            ),
           }}
         />
       }

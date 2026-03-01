@@ -1,15 +1,34 @@
 'use client';
 
 import { Icon } from 'src/shared/components/ui';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from 'src/shared/components/ui';
 import { signOut } from 'src/features/auth/services/auth.service';
 import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
 import { useRouter } from 'next/navigation';
 import { paths } from 'src/routes/paths';
 import type { AuthUser } from 'src/shared/auth/types';
+import { cn } from 'src/lib/utils';
 
 type Props = {
   user: AuthUser | null;
 };
+
+// Genera iniciales a partir del nombre
+function getInitials(name?: string | null): string {
+  if (!name) return 'U';
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase() ?? '')
+    .join('');
+}
 
 export function HeaderUserButton({ user }: Props) {
   const router = useRouter();
@@ -21,29 +40,58 @@ export function HeaderUserButton({ user }: Props) {
     router.push(paths.auth.jwt.signIn);
   };
 
+  const displayName = user?.displayName || user?.names || 'Usuario';
+  const email = user?.email ?? '';
+  const initials = getInitials(displayName);
+
   return (
-    <div className="flex items-center gap-3">
-      {/* Avatar + name */}
-      <div className="hidden sm:flex flex-col items-end">
-        <span className="text-sm font-semibold leading-none">
-          {user?.displayName || user?.names || 'Usuario'}
-        </span>
-        <span className="text-[11px] text-muted-foreground mt-0.5">{user?.email}</span>
-      </div>
-
-      <div className="flex items-center gap-1">
-        <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <Icon name="User" size={16} className="text-primary" />
-        </div>
-
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <button
-          onClick={handleSignOut}
-          className="p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-          title="Cerrar sesión"
+          className={cn(
+            'flex items-center gap-2.5 px-2 py-1.5 rounded-xl',
+            'hover:bg-accent transition-colors duration-200 outline-none',
+            'focus-visible:ring-2 focus-visible:ring-ring'
+          )}
         >
-          <Icon name="LogOut" size={16} />
+          {/* Info text (solo sm+) */}
+          <div className="hidden sm:flex flex-col items-end">
+            <span className="text-sm font-semibold leading-none text-foreground">
+              {displayName}
+            </span>
+            <span className="text-[11px] text-muted-foreground mt-0.5 leading-none">{email}</span>
+          </div>
+
+          {/* Avatar */}
+          <div className="size-8 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-primary/20 shadow-sm">
+            <span className="text-[12px] font-bold text-primary-foreground">{initials}</span>
+          </div>
         </button>
-      </div>
-    </div>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" sideOffset={8} className="w-52 shadow-dialog">
+        <DropdownMenuLabel className="font-normal pb-2">
+          <p className="text-sm font-semibold text-foreground">{displayName}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 truncate">{email}</p>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className="gap-2 cursor-pointer text-muted-foreground">
+          <Icon name="User" size={15} />
+          Mi perfil
+        </DropdownMenuItem>
+        <DropdownMenuItem className="gap-2 cursor-pointer text-muted-foreground">
+          <Icon name="Settings" size={15} />
+          Configuración
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={handleSignOut}
+          className="gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+        >
+          <Icon name="LogOut" size={15} />
+          Cerrar sesión
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

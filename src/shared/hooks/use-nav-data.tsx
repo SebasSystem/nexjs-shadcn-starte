@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Icon, type IconName, type LucideIcon } from 'src/shared/components/ui';
+import { Icon, type IconName } from 'src/shared/components/ui';
 import type { NavSectionData } from '../components/layouts/dashboard/nav-section';
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -24,15 +24,15 @@ export function AuthProvider({ children }: Props) {
         const profileData = response?.data || response;
 
         if (profileData && Object.keys(profileData).length > 0) {
-          const dataAny = profileData as any;
+          const dataRecord = profileData as Record<string, unknown>;
           setState({
             user: {
-              ...dataAny,
+              ...dataRecord,
               accessToken,
-              displayName: dataAny.names || dataAny.name || dataAny.firstName,
-              roles: dataAny.roles || [],
-              modules: dataAny.modules || [],
-            } as AuthState['user'],
+              displayName: (dataRecord.names || dataRecord.name || dataRecord.firstName) as string,
+              roles: (dataRecord.roles as object[]) || [],
+              modules: (dataRecord.modules as object[]) || [],
+            } as unknown as AuthState['user'],
             loading: false,
           });
         } else {

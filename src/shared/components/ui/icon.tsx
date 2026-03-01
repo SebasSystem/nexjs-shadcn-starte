@@ -1,12 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Icon — Componente centralizado de iconos
-//
-// Todos los iconos de la app se registran aquí.
-// El resto del proyecto importa desde este archivo (o via barrel ui/index.ts),
-// nunca directamente desde 'lucide-react'.
-//
-// ¿Por qué? Tree-shaking preservado + un solo punto de control.
-// Si el día de mañana se cambia la librería de iconos, solo se edita este archivo.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
@@ -17,6 +10,15 @@ import {
   ChevronDown,
   Menu,
   X,
+  SlidersHorizontal,
+  Sun,
+  Moon,
+  Monitor,
+  Check,
+  PanelLeft,
+  PanelBottom,
+  StretchHorizontal,
+  ALargeSmall,
 
   // ── Auth / Seguridad ────────────────────────────────────────────────────────
   Eye,
@@ -42,8 +44,12 @@ import {
   DollarSign,
   FileText,
   TrendingUp,
+  TrendingDown,
   Settings,
   AlertTriangle,
+  Shirt,
+  Footprints,
+  SunSnow,
 
   // ── UI / Feedback ───────────────────────────────────────────────────────────
   Cloud,
@@ -64,6 +70,15 @@ const icons = {
   ChevronDown,
   Menu,
   X,
+  SlidersHorizontal,
+  Sun,
+  Moon,
+  Monitor,
+  Check,
+  PanelLeft,
+  PanelBottom,
+  StretchHorizontal,
+  ALargeSmall,
 
   // Auth
   Eye,
@@ -89,8 +104,12 @@ const icons = {
   DollarSign,
   FileText,
   TrendingUp,
+  TrendingDown,
   Settings,
   AlertTriangle,
+  Shirt,
+  Footprints,
+  SunSnow,
 
   // UI
   Cloud,

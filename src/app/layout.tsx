@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 import { AuthProvider } from 'src/shared/auth/context/jwt';
 import { detectLanguage } from 'src/locales/server';
 import { I18nProvider } from 'src/locales/i18n-provider';
+import { ThemeProvider } from 'src/shared/components/ThemeProvider';
 
 export default async function RootLayout({
   children,
@@ -31,9 +32,11 @@ export default async function RootLayout({
   return (
     <html lang={lang} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <I18nProvider lang={lang}>
-          <AuthProvider>{children}</AuthProvider>
-        </I18nProvider>
+        <ThemeProvider>
+          <I18nProvider lang={lang}>
+            <AuthProvider>{children}</AuthProvider>
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

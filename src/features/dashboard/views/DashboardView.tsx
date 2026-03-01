@@ -1,277 +1,385 @@
 'use client';
 
-import { Icon, type IconName } from 'src/shared/components/ui';
+import {
+  Icon,
+  type IconName,
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+} from 'src/shared/components/ui';
+import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
+import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import { Chart, useChart } from 'src/shared/components/chart';
+
 import { cn } from 'src/lib/utils';
+import {
+  PageContainer,
+  PageHeader,
+  SectionCard,
+  SectionCardHeader,
+} from 'src/shared/components/layouts/page';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 const KPIS: {
   label: string;
   value: string;
-  badge: string;
-  badgeColor: string;
-  icon: IconName;
-  iconBg: string;
+  trendPercent: string;
+  trendUp: boolean;
+  chartData: number[];
 }[] = [
   {
     label: 'Unidades totales',
     value: '2,847',
-    badge: '+12%',
-    badgeColor: 'text-emerald-600 bg-emerald-50',
-    icon: 'Package',
-    iconBg: 'bg-blue-50 text-blue-500',
+    trendPercent: '+2.6% este mes',
+    trendUp: true,
+    chartData: [5, 18, 12, 51, 68, 11, 39, 37, 27, 20],
   },
   {
-    label: 'Stock disponible venta',
+    label: 'Stock disponible',
     value: '2,412',
-    badge: 'Disponible',
-    badgeColor: 'text-emerald-600 bg-emerald-50',
-    icon: 'ShieldCheck',
-    iconBg: 'bg-emerald-50 text-emerald-500',
+    trendPercent: '+5.2% este mes',
+    trendUp: true,
+    chartData: [20, 41, 63, 33, 28, 90, 50, 42, 109, 38],
   },
   {
     label: 'Stock reservado',
     value: '435',
-    badge: 'B2B',
-    badgeColor: 'text-blue-600 bg-blue-50',
-    icon: 'BarChart2',
-    iconBg: 'bg-purple-50 text-purple-500',
+    trendPercent: '+15.3% canales',
+    trendUp: true,
+    chartData: [8, 9, 31, 8, 16, 21, 4, 11, 15, 36],
   },
   {
-    label: 'Productos stock bajo',
+    label: 'Stock crítico',
     value: '8',
-    badge: 'ALERTA',
-    badgeColor: 'text-amber-600 bg-amber-50',
-    icon: 'AlertTriangle',
-    iconBg: 'bg-amber-50 text-amber-500',
+    trendPercent: '-2.1% requieren acción',
+    trendUp: false,
+    chartData: [20, 24, 18, 15, 16, 12, 10, 8, 5, 2],
   },
 ];
 
 const BODEGAS = [
-  { name: 'Bodega Principal', units: '1,892 unidades', pct: 66, color: 'bg-indigo-500' },
-  { name: 'Tienda', units: '955 unidades', pct: 34, color: 'bg-emerald-500' },
+  { name: 'Bodega Principal', units: 1892 },
+  { name: 'Tienda Física', units: 955 },
 ];
 
 const RESERVAS = [
   {
     initials: 'DM',
-    color: 'bg-blue-100 text-blue-700',
+    avatarBg: 'bg-blue-500',
     name: 'Distribuidora Mayorista',
     cod: 'COT-2024-0166',
     uds: '150 uds',
     time: 'Hace 2h',
+    status: 'Pendiente',
+    statusColor: 'bg-amber-500/10 text-amber-600',
   },
   {
     initials: 'RC',
-    color: 'bg-rose-100 text-rose-700',
+    avatarBg: 'bg-rose-500',
     name: 'Retail Corp',
     cod: 'COT-2024-0165',
     uds: '85 uds',
     time: 'Hace 5h',
+    status: 'Confirmado',
+    statusColor: 'bg-emerald-500/10 text-emerald-600',
   },
   {
     initials: 'SN',
-    color: 'bg-amber-100 text-amber-700',
+    avatarBg: 'bg-violet-500',
     name: 'Super Norte',
     cod: 'COT-2024-0164',
     uds: '200 uds',
     time: 'Hace 1d',
+    status: 'En proceso',
+    statusColor: 'bg-blue-500/10 text-blue-600',
   },
 ];
 
 const STOCK_BAJO = [
   {
-    emoji: '👕',
+    icon: 'Shirt' as IconName,
     name: 'Camiseta Básica XL',
     sku: 'SKU-001-XL',
     actual: 3,
     minimo: 25,
-    estado: 'CRÍTICO',
-    estadoColor: 'bg-red-100 text-red-600',
+    estado: 'Crítico',
+    estadoColor: 'bg-red-500/10 text-red-600',
   },
   {
-    emoji: '👟',
+    icon: 'Footprints' as IconName,
     name: 'Zapatilla Running 42',
     sku: 'SKU-045-42',
     actual: 8,
     minimo: 20,
-    estado: 'BAJO',
-    estadoColor: 'bg-amber-100 text-amber-600',
+    estado: 'Bajo',
+    estadoColor: 'bg-amber-500/10 text-amber-600',
   },
   {
-    emoji: '🧢',
+    icon: 'SunSnow' as IconName,
     name: 'Gorra Deportiva Negra',
     sku: 'SKU-089-BK',
     actual: 12,
     minimo: 30,
-    estado: 'BAJO',
-    estadoColor: 'bg-amber-100 text-amber-600',
+    estado: 'Bajo',
+    estadoColor: 'bg-amber-500/10 text-amber-600',
   },
+];
+
+type StockItem = (typeof STOCK_BAJO)[0];
+const columnHelper = createColumnHelper<StockItem>();
+
+const COLUMNS = [
+  columnHelper.accessor('name', {
+    header: 'Producto',
+    cell: (info) => (
+      <div className="flex items-center gap-2.5">
+        <Icon name={info.row.original.icon} size={18} className="text-muted-foreground" />
+        <span className="font-medium text-foreground">{info.getValue()}</span>
+      </div>
+    ),
+  }),
+  columnHelper.accessor('sku', {
+    header: 'SKU',
+    cell: (info) => (
+      <span className="font-mono text-xs text-muted-foreground">{info.getValue()}</span>
+    ),
+  }),
+  columnHelper.accessor('actual', {
+    header: () => <div className="text-right w-full">Actual</div>,
+    cell: (info) => (
+      <div className="text-right font-semibold text-foreground">{info.getValue()}</div>
+    ),
+  }),
+  columnHelper.accessor('minimo', {
+    header: () => <div className="text-right w-full">Mínimo</div>,
+    cell: (info) => <div className="text-right font-semibold text-primary">{info.getValue()}</div>,
+  }),
+  columnHelper.accessor('estado', {
+    header: () => <div className="text-right w-full">Estado</div>,
+    cell: (info) => (
+      <div className="text-right">
+        <span
+          className={cn(
+            'text-[11px] font-semibold px-2.5 py-1 rounded-full',
+            info.row.original.estadoColor
+          )}
+        >
+          {info.getValue()}
+        </span>
+      </div>
+    ),
+  }),
 ];
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export function DashboardView() {
+  const { table, dense, onChangeDense } = useTable({
+    data: STOCK_BAJO,
+    columns: COLUMNS,
+    defaultRowsPerPage: 5,
+  });
+
+  const chartOptions = useChart({
+    labels: BODEGAS.map((b) => b.name),
+    stroke: { show: false },
+    legend: { position: 'bottom', horizontalAlign: 'center' },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '70%',
+        },
+      },
+    },
+    tooltip: {
+      y: { formatter: (val: number) => `${val} uds` },
+    },
+  });
+
+  const sparklineOptions = useChart({
+    chart: { sparkline: { enabled: true } },
+    stroke: { width: 0 },
+    plotOptions: {
+      bar: {
+        columnWidth: '75%',
+        borderRadius: 2,
+        borderRadiusApplication: 'end',
+      },
+    },
+    tooltip: {
+      x: { show: false },
+      y: { formatter: (val: number) => `${val}` },
+      marker: { show: false },
+    },
+  });
+
   return (
-    <div className="p-6 md:p-8 max-w-[1400px] mx-auto space-y-6">
-      {/* Header */}
-      <div className="mb-2">
-        <h1 className="text-xl font-bold text-slate-800 tracking-tight">Dashboard de Inventario</h1>
-        <p className="text-sm text-slate-500 mt-0.5">Vista general del stock disponible</p>
-      </div>
+    <PageContainer>
+      {/* ── Page Header ──────────────────────────────────────────────── */}
+      <PageHeader
+        title="Dashboard de Inventario"
+        subtitle="Vista general consolidada del stock y operaciones activas"
+      />
 
-      {/* KPI Cards */}
+      {/* ── KPI Cards ────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {KPIS.map((kpi) => {
-          return (
-            <div
-              key={kpi.label}
-              className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className={cn('p-2 rounded-lg', kpi.iconBg)}>
-                  <Icon name={kpi.icon} size={18} />
-                </div>
-                <span
-                  className={cn(
-                    'text-[11px] font-semibold px-2 py-0.5 rounded-full',
-                    kpi.badgeColor
-                  )}
-                >
-                  {kpi.badge}
-                </span>
+        {KPIS.map((kpi) => (
+          <div
+            key={kpi.label}
+            className="group bg-card rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-shadow duration-300 flex flex-col justify-between"
+          >
+            <p className="text-sm font-semibold text-foreground mb-4">{kpi.label}</p>
+
+            <div className="flex items-center justify-between">
+              <p className="text-3xl font-bold text-foreground tracking-tight">{kpi.value}</p>
+
+              <div className="w-[84px] h-[48px] shrink-0">
+                <Chart
+                  type="bar"
+                  series={[{ data: kpi.chartData }]}
+                  options={{
+                    ...sparklineOptions,
+                    colors: [kpi.trendUp ? '#10B981' : '#EF4444'], // success o error hex
+                  }}
+                  height={48}
+                  width="100%"
+                />
               </div>
-              <p className="text-2xl font-bold text-slate-800">{kpi.value}</p>
-              <p className="text-xs text-slate-500 mt-1">{kpi.label}</p>
             </div>
-          );
-        })}
+
+            <div className="flex items-center gap-1.5 mt-4">
+              <Icon
+                name={kpi.trendUp ? 'TrendingUp' : 'TrendingDown'}
+                size={16}
+                className={kpi.trendUp ? 'text-success' : 'text-error'}
+              />
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                <span className="text-foreground font-semibold mr-1">
+                  {kpi.trendPercent.split(' ')[0]}
+                </span>
+                {kpi.trendPercent.split(' ').slice(1).join(' ')}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Middle row: Stock por Bodega + Reservas B2B */}
+      {/* ── Stock por Bodega + Reservas B2B ──────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Stock por Bodega */}
-        <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-slate-700">Stock por Bodega</h2>
-            <button className="text-xs text-indigo-600 font-medium hover:underline">
-              Ver detalle
-            </button>
+        <SectionCard>
+          <SectionCardHeader
+            title="Stock por Bodega"
+            subtitle="Distribución actual"
+            action={
+              <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                Ver detalle →
+              </button>
+            }
+          />
+          <div className="flex justify-center items-center mt-2 -mb-2">
+            <Chart
+              type="donut"
+              series={BODEGAS.map((b) => b.units)}
+              options={chartOptions}
+              height={260}
+            />
           </div>
-          <div className="space-y-4">
-            {BODEGAS.map((b) => (
-              <div key={b.name}>
-                <div className="flex items-center justify-between mb-1">
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">{b.name}</p>
-                    <p className="text-xs text-slate-400">{b.units}</p>
-                  </div>
-                  <span className="text-sm font-semibold text-slate-600">{b.pct}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div
-                    className={cn('h-full rounded-full transition-all duration-500', b.color)}
-                    style={{ width: `${b.pct}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        </SectionCard>
 
         {/* Reservas B2B Recientes */}
-        <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-slate-700">Reservas B2B Recientes</h2>
-            <button className="text-xs text-indigo-600 font-medium hover:underline">
-              Ver todas
-            </button>
-          </div>
-          <div className="space-y-3">
+        <SectionCard>
+          <SectionCardHeader
+            title="Reservas B2B Recientes"
+            subtitle={`${RESERVAS.length} operaciones activas`}
+            action={
+              <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                Ver todas →
+              </button>
+            }
+          />
+          <div className="space-y-1">
             {RESERVAS.map((r) => (
               <div
                 key={r.cod}
-                className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0"
+                className="flex items-center justify-between py-2.5 px-3 -mx-3 rounded-xl hover:bg-muted/50 transition-colors group cursor-default"
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={cn(
-                      'size-8 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0',
-                      r.color
+                      'size-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0',
+                      r.avatarBg
                     )}
                   >
                     {r.initials}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-700">{r.name}</p>
-                    <p className="text-xs text-slate-400">{r.cod}</p>
+                    <p className="text-sm font-medium text-foreground leading-none">{r.name}</p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">{r.cod}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-slate-700">{r.uds}</p>
-                  <p className="text-xs text-slate-400">{r.time}</p>
+                <div className="text-right flex flex-col items-end gap-1">
+                  <p className="text-sm font-semibold text-foreground">{r.uds}</p>
+                  <span
+                    className={cn(
+                      'text-[10px] font-semibold px-2 py-0.5 rounded-full',
+                      r.statusColor
+                    )}
+                  >
+                    {r.status}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </SectionCard>
       </div>
 
-      {/* Productos con Stock Bajo */}
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between p-5 border-b border-slate-50">
-          <div className="flex items-center gap-2">
-            <Icon name="AlertTriangle" size={16} className="text-amber-500" />
+      {/* ── Productos con Stock Bajo ──────────────────────────────────── */}
+      <SectionCard noPadding>
+        {/* Table header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-amber-500/10">
+              <Icon name="AlertTriangle" size={15} className="text-amber-500" />
+            </div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-700">Productos con Stock Bajo</h2>
-              <p className="text-xs text-slate-400">Requieren atención inmediata</p>
+              <h2 className="text-sm font-semibold text-foreground">Productos con Stock Bajo</h2>
+              <p className="text-xs text-muted-foreground">Requieren atención inmediata</p>
             </div>
           </div>
-          <button className="text-xs px-3 py-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-colors font-medium">
+          <button className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border/60 text-muted-foreground hover:border-primary hover:text-primary transition-colors">
             Exportar CSV
           </button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
-                <th className="text-left px-5 py-3">Producto</th>
-                <th className="text-left px-5 py-3">SKU</th>
-                <th className="text-right px-5 py-3">Stock actual</th>
-                <th className="text-right px-5 py-3">Mínimo</th>
-                <th className="text-right px-5 py-3">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {STOCK_BAJO.map((p) => (
-                <tr key={p.sku} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">{p.emoji}</span>
-                      <span className="font-medium text-slate-700">{p.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3.5 text-slate-500 font-mono text-xs">{p.sku}</td>
-                  <td className="px-5 py-3.5 text-right font-semibold text-slate-700">
-                    {p.actual}
-                  </td>
-                  <td className="px-5 py-3.5 text-right text-indigo-600 font-semibold">
-                    {p.minimo}
-                  </td>
-                  <td className="px-5 py-3.5 text-right">
-                    <span
-                      className={cn(
-                        'text-[11px] font-bold px-2.5 py-1 rounded-full',
-                        p.estadoColor
-                      )}
-                    >
-                      {p.estado}
-                    </span>
-                  </td>
-                </tr>
+
+        {/* Table con TanStack */}
+        <div className="overflow-x-auto relative">
+          <Table>
+            <TableHeadCustom table={table} />
+            <TableBody>
+              {table.getRowModel().rows.map((row, i) => (
+                <TableRow
+                  key={row.id}
+                  className={cn(
+                    'transition-colors',
+                    i < STOCK_BAJO.length - 1 && 'border-border/40' // keep consistent separators
+                  )}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className={cn('px-5', dense ? 'py-2' : 'py-3.5')}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
-      </div>
-    </div>
+        <div className="border-t border-border/40">
+          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        </div>
+      </SectionCard>
+    </PageContainer>
   );
 }

@@ -199,6 +199,65 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Smooth scrolling global */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Mejora el rendering de textos */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   TYPOGRAPHY SCALE — Clases utilitarias de diseño semántico
+   Usar estas en lugar de clases ad-hoc para coherencia visual.
+   ══════════════════════════════════════════════════════════════════════════════ */
+@layer utilities {
+
+  /* ── Títulos de página ────────────────────────────────────────────────────── */
+  .text-page-title {
+    @apply text-2xl font-bold tracking-tight text-foreground leading-none;
+  }
+
+  .text-page-subtitle {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* ── Títulos de sección / Card ────────────────────────────────────────────── */
+  .text-section-title {
+    @apply text-sm font-semibold text-foreground leading-none;
+  }
+
+  .text-section-subtitle {
+    @apply text-xs text-muted-foreground;
+  }
+
+  /* ── Labels de formulario / columnas ─────────────────────────────────────── */
+  .text-label {
+    @apply text-sm font-medium text-foreground leading-none;
+  }
+
+  .text-caption {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .text-overline {
+    @apply text-[11px] font-semibold uppercase tracking-widest text-muted-foreground;
+  }
+
+  /* ── Body copy ───────────────────────────────────────────────────────────── */
+  .text-body {
+    @apply text-sm text-foreground;
+  }
+
+  .text-body-muted {
+    @apply text-sm text-muted-foreground;
+  }
 }
 
 /* === Auth background === */
@@ -297,5 +356,265 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: oklch(0.75 0 0);
     /* grey-400 */
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SETTINGS SYSTEM — Color presets, bg variants, font-size, contrast
+   Todas las opciones se aplican como clases CSS en <html>.
+   El hook useSettings las gestiona; no hay colores inline en JS.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Color Presets ────────────────────────────────────────────────────────── */
+/* Indigo es el default — ya definido en :root, no necesita clase extra */
+
+.preset-cyan {
+  --primary: oklch(0.52 0.15 204);
+  --primary-foreground: oklch(0.98 0 0);
+  --ring: oklch(0.62 0.13 204);
+  --secondary: oklch(0.93 0.03 200);
+  --secondary-foreground: oklch(0.20 0.04 200);
+}
+
+.preset-teal {
+  --primary: oklch(0.53 0.14 173);
+  --primary-foreground: oklch(0.98 0 0);
+  --ring: oklch(0.63 0.12 173);
+  --secondary: oklch(0.93 0.03 170);
+  --secondary-foreground: oklch(0.20 0.04 170);
+}
+
+.preset-purple {
+  --primary: oklch(0.50 0.26 296);
+  --primary-foreground: oklch(0.98 0 0);
+  --ring: oklch(0.60 0.23 296);
+  --secondary: oklch(0.92 0.04 290);
+  --secondary-foreground: oklch(0.20 0.05 290);
+}
+
+.preset-rose {
+  --primary: oklch(0.58 0.22 10);
+  --primary-foreground: oklch(0.98 0 0);
+  --ring: oklch(0.66 0.19 10);
+  --secondary: oklch(0.93 0.03 10);
+  --secondary-foreground: oklch(0.20 0.04 10);
+}
+
+.preset-orange {
+  --primary: oklch(0.63 0.19 50);
+  --primary-foreground: oklch(0.98 0 0);
+  --ring: oklch(0.70 0.17 50);
+  --secondary: oklch(0.93 0.04 55);
+  --secondary-foreground: oklch(0.20 0.05 55);
+}
+
+/* Dark mode overrides para presets — el primary se aclara en dark */
+.dark.preset-cyan {
+  --primary: oklch(0.68 0.13 204);
+  --ring: oklch(0.68 0.13 204);
+}
+
+.dark.preset-teal {
+  --primary: oklch(0.68 0.12 173);
+  --ring: oklch(0.68 0.12 173);
+}
+
+.dark.preset-purple {
+  --primary: oklch(0.68 0.20 296);
+  --ring: oklch(0.68 0.20 296);
+}
+
+.dark.preset-rose {
+  --primary: oklch(0.72 0.18 10);
+  --ring: oklch(0.72 0.18 10);
+}
+
+.dark.preset-orange {
+  --primary: oklch(0.74 0.15 50);
+  --ring: oklch(0.74 0.15 50);
+}
+
+/* ── Background Variants ──────────────────────────────────────────────────── */
+/* default = blanco puro (ya es el :root) */
+.bg-subtle {
+  --background: oklch(0.974 0 0);
+  --card: oklch(1 0 0);
+}
+
+.bg-canvas {
+  --background: oklch(0.960 0.004 240);
+  --card: oklch(1 0 0);
+}
+
+.dark.bg-subtle {
+  --background: oklch(0.128 0 0);
+  --card: oklch(0.185 0 0);
+}
+
+.dark.bg-canvas {
+  --background: oklch(0.110 0.004 240);
+  --card: oklch(0.180 0.002 240);
+}
+
+/* ── Font Size ────────────────────────────────────────────────────────────── */
+/* Se aplica en <html>; todos los rem del app escalan automáticamente */
+.text-size-sm {
+  font-size: 13px;
+}
+
+.text-size-md {
+  font-size: 14px;
+}
+
+/* default */
+.text-size-lg {
+  font-size: 15px;
+}
+
+/* ── Contrast ─────────────────────────────────────────────────────────────── */
+.contrast-bold {
+  --border: oklch(0.80 0 0);
+  --muted-foreground: oklch(0.42 0 0);
+}
+
+.dark.contrast-bold {
+  --border: oklch(1 0 0 / 28%);
+  --muted-foreground: oklch(0.76 0 0);
+}
+
+/* ── Sidebar dark mode independiente ─────────────────────────────────────── */
+/* Se aplica como clase en el <aside> del sidebar, no en <html> */
+/*  Permite sidebar oscuro con app en modo claro (como Minimal template) */
+.sidebar-dark {
+  --sidebar: oklch(0.145 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.985 0 0);
+  --sidebar-primary-foreground: oklch(0.145 0 0);
+  --sidebar-accent: oklch(1 0 0 / 10%);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+  /* Forzar clases de Tailwind a usar las vars del sidebar */
+  color-scheme: dark;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SHADOW SYSTEM — Fórmula idéntica a Minimal template
+   
+   El canal de color base (light) es grey-500 ≈ rgba(145, 158, 171, ...)
+   El canal de color (dark)  es black ≈ rgba(0, 0, 0, ...)
+   
+   La magia del .shadow-card:
+     → 0 0 2px 0  crea un "outline" suave (reemplaza el border CSS)
+     → 0 12px 24px -4px da profundidad sin ser agresivo
+   Por eso las cards NO necesitan border.
+   ══════════════════════════════════════════════════════════════════════════════ */
+@layer utilities {
+
+  /* ── Escala de elevación Z ────────────────────────────────────────────────── */
+  .shadow-z1 {
+    box-shadow: 0 1px 2px 0 rgba(145, 158, 171, 0.16);
+  }
+
+  .shadow-z4 {
+    box-shadow: 0 4px 8px 0 rgba(145, 158, 171, 0.16);
+  }
+
+  .shadow-z8 {
+    box-shadow: 0 8px 16px 0 rgba(145, 158, 171, 0.16);
+  }
+
+  .shadow-z12 {
+    box-shadow: 0 12px 24px -4px rgba(145, 158, 171, 0.16);
+  }
+
+  .shadow-z16 {
+    box-shadow: 0 16px 32px -4px rgba(145, 158, 171, 0.16);
+  }
+
+  .shadow-z20 {
+    box-shadow: 0 20px 40px -4px rgba(145, 158, 171, 0.16);
+  }
+
+  .shadow-z24 {
+    box-shadow: 0 24px 48px 0 rgba(145, 158, 171, 0.16);
+  }
+
+  /* ── Card (la más importante) — outline suave + profundidad ──────────────── */
+  /*    = 0 border + esta sombra → el look Minimal exacto                       */
+  .shadow-card {
+    box-shadow:
+      0 0 2px 0 rgba(145, 158, 171, 0.20),
+      0 12px 24px -4px rgba(145, 158, 171, 0.12);
+  }
+
+  .shadow-card-hover {
+    box-shadow:
+      0 0 2px 0 rgba(145, 158, 171, 0.24),
+      0 16px 32px -4px rgba(145, 158, 171, 0.20);
+  }
+
+  /* ── Dialog / Modal ───────────────────────────────────────────────────────── */
+  .shadow-dialog {
+    box-shadow: -40px 40px 80px -8px rgba(0, 0, 0, 0.24);
+  }
+
+  /* ── Dropdown / Popover ───────────────────────────────────────────────────── */
+  .shadow-dropdown {
+    box-shadow:
+      0 0 2px 0 rgba(145, 158, 171, 0.24),
+      -20px 20px 40px -4px rgba(145, 158, 171, 0.24);
+  }
+
+  /* ── CTA / botón primary — sombra con el color del preset ────────────────── */
+  .shadow-primary {
+    box-shadow: 0 8px 16px 0 color-mix(in srgb, var(--primary) 24%, transparent);
+  }
+
+  /* ── Dark mode — canal negro ─────────────────────────────────────────────── */
+  .dark .shadow-z1 {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.16);
+  }
+
+  .dark .shadow-z4 {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.16);
+  }
+
+  .dark .shadow-z8 {
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.16);
+  }
+
+  .dark .shadow-z12 {
+    box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.16);
+  }
+
+  .dark .shadow-z16 {
+    box-shadow: 0 16px 32px -4px rgba(0, 0, 0, 0.16);
+  }
+
+  .dark .shadow-z20 {
+    box-shadow: 0 20px 40px -4px rgba(0, 0, 0, 0.16);
+  }
+
+  .dark .shadow-z24 {
+    box-shadow: 0 24px 48px 0 rgba(0, 0, 0, 0.16);
+  }
+
+  .dark .shadow-card {
+    box-shadow:
+      0 0 2px 0 rgba(0, 0, 0, 0.20),
+      0 12px 24px -4px rgba(0, 0, 0, 0.12);
+  }
+
+  .dark .shadow-card-hover {
+    box-shadow:
+      0 0 2px 0 rgba(0, 0, 0, 0.24),
+      0 16px 32px -4px rgba(0, 0, 0, 0.24);
+  }
+
+  .dark .shadow-dropdown {
+    box-shadow:
+      0 0 2px 0 rgba(0, 0, 0, 0.24),
+      -20px 20px 40px -4px rgba(0, 0, 0, 0.24);
   }
 }
