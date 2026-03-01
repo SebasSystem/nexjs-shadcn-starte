@@ -1,27 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import {
-  LayoutDashboard,
-  Package,
-  List,
-  Tag,
-  Warehouse,
-  BarChart2,
-  ArrowLeftRight,
-  LogIn,
-  LogOut,
-  RefreshCcw,
-  CalendarDays,
-  Users,
-  ShoppingCart,
-  DollarSign,
-  FileText,
-  TrendingUp,
-  Settings,
-  Menu,
-  type LucideIcon,
-} from 'lucide-react';
+import { Icon, type IconName, type LucideIcon } from 'src/shared/components/ui';
 import type { NavSectionData } from '../components/layouts/dashboard/nav-section';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -47,35 +27,35 @@ export type BackendModule = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mapa de íconos: string del backend → componente Lucide
+// Mapa de íconos: string del backend → nombre de icono registrado
 // ─────────────────────────────────────────────────────────────────────────────
-const ICON_MAP: Record<string, LucideIcon> = {
-  dashboard: LayoutDashboard,
-  products: Package,
-  table: List,
-  category: Tag,
-  warehouse: Warehouse,
-  inventory: BarChart2,
-  movements: ArrowLeftRight,
-  entry: LogIn,
-  exit: LogOut,
-  transfer: RefreshCcw,
-  reservations: CalendarDays,
-  calendar: CalendarDays,
-  b2b: Users,
-  clients: Users,
-  orders: ShoppingCart,
-  pricelist: DollarSign,
-  reports: FileText,
-  sales: TrendingUp,
-  Settings: Settings,
+const ICON_MAP: Record<string, IconName> = {
+  dashboard: 'LayoutDashboard',
+  products: 'Package',
+  table: 'List',
+  category: 'Tag',
+  warehouse: 'Warehouse',
+  inventory: 'BarChart2',
+  movements: 'ArrowLeftRight',
+  entry: 'LogIn',
+  exit: 'LogOut',
+  transfer: 'RefreshCcw',
+  reservations: 'CalendarDays',
+  calendar: 'CalendarDays',
+  b2b: 'Users',
+  clients: 'Users',
+  orders: 'ShoppingCart',
+  pricelist: 'DollarSign',
+  reports: 'FileText',
+  sales: 'TrendingUp',
+  Settings: 'Settings',
 };
 
-const DEFAULT_ICON = Menu;
+const DEFAULT_ICON_NAME = 'Menu' as const;
 
 function resolveIcon(iconName?: string | null): React.ReactNode {
-  const Icon = iconName && ICON_MAP[iconName] ? ICON_MAP[iconName] : DEFAULT_ICON;
-  return <Icon size={18} />;
+  const name = iconName && ICON_MAP[iconName] ? ICON_MAP[iconName] : DEFAULT_ICON_NAME;
+  return <Icon name={name} size={18} />;
 }
 
 import type { NavItemProps } from '../components/layouts/dashboard/nav-item';

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronRight } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui';
 import {
   Tooltip,
   TooltipContent,
@@ -97,7 +97,8 @@ export function NavItem({
 
         {/* Mini flecha al lado del ícono SOLO en modo mini si tiene hijos */}
         {hasChildren && isMini && (
-          <ChevronRight
+          <Icon
+            name="ChevronRight"
             size={12}
             strokeWidth={3}
             className={`absolute -right-5 top-1/2 -translate-y-1/2 transition-colors ${isActive ? 'text-accent-foreground' : 'text-muted-foreground/60 group-hover:text-accent-foreground'}`}
@@ -114,7 +115,8 @@ export function NavItem({
 
       {/* Chevron de hijos (solo en modo full) */}
       {hasChildren && !isMini && (
-        <ChevronRight
+        <Icon
+          name="ChevronRight"
           size={16}
           className={`shrink-0 transition-transform duration-200 ${open ? 'rotate-90' : 'rotate-0'}`}
         />

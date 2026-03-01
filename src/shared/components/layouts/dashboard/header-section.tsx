@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react';
 import { useUiStore } from 'src/store/ui.store';
-import { Menu } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui';
 
 type Props = {
   children?: ReactNode;
@@ -25,7 +25,7 @@ export function HeaderSection({ slots }: Props) {
           className="md:hidden p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Abrir menú"
         >
-          <Menu size={20} />
+          <Icon name="Menu" size={20} />
         </button>
         {slots?.left}
       </div>

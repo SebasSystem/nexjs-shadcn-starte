@@ -2,7 +2,7 @@
 
 import { useUiStore } from 'src/store/ui.store';
 import { NavSection, NavSectionData } from './nav-section';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui';
 import { ScrollArea } from 'src/shared/components/ui';
 
 type Props = {
@@ -28,9 +28,9 @@ export function NavVertical({ navData }: Props) {
         title={isMini ? 'Expandir menú' : 'Contraer menú'}
       >
         {isMini ? (
-          <ChevronRight size={14} strokeWidth={2.5} />
+          <Icon name="ChevronRight" size={14} strokeWidth={2.5} />
         ) : (
-          <ChevronLeft size={14} strokeWidth={2.5} />
+          <Icon name="ChevronLeft" size={14} strokeWidth={2.5} />
         )}
       </button>
 

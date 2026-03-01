@@ -1,5 +1,5 @@
 import { Table } from '@tanstack/react-table';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui';
 
 import { Switch } from 'src/shared/components/ui/switch';
 import { Button } from 'src/shared/components/ui/button';
@@ -69,7 +69,7 @@ export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Pr
             disabled={!table.getCanPreviousPage()}
           >
             <span className="sr-only">Go to previous page</span>
-            <ChevronLeft className="h-4 w-4" />
+            <Icon name="ChevronLeft" className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -78,7 +78,7 @@ export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Pr
             disabled={!table.getCanNextPage()}
           >
             <span className="sr-only">Go to next page</span>
-            <ChevronRight className="h-4 w-4" />
+            <Icon name="ChevronRight" className="h-4 w-4" />
           </Button>
         </div>
       </div>

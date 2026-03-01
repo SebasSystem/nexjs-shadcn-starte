@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Eye, EyeOff, ShieldCheck, Cloud, Globe, Mail, Lock } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui';
 import { useState } from 'react';
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from 'src/shared/components/ui';
@@ -74,7 +74,7 @@ function AuthInput({
             tabIndex={-1}
             aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
           >
-            {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+            {showPass ? <Icon name="EyeOff" size={15} /> : <Icon name="Eye" size={15} />}
           </button>
         )}
       </div>
@@ -168,7 +168,7 @@ export function JwtSignInView() {
                       label="Correo electrónico"
                       type="email"
                       placeholder="admin@empresa.com"
-                      icon={<Mail size={16} />}
+                      icon={<Icon name="Mail" size={16} />}
                       disabled={isSubmitting}
                       {...field}
                     />
@@ -189,7 +189,7 @@ export function JwtSignInView() {
                       label="Contraseña"
                       type="password"
                       placeholder="••••••••"
-                      icon={<Lock size={16} />}
+                      icon={<Icon name="Lock" size={16} />}
                       disabled={isSubmitting}
                       {...field}
                     />
@@ -255,17 +255,29 @@ export function JwtSignInView() {
         {/* Divider visual */}
         <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-center gap-6">
           <div className="flex items-center gap-1.5 text-slate-400 group cursor-default">
-            <ShieldCheck size={13} className="group-hover:text-indigo-500 transition-colors" />
+            <Icon
+              name="ShieldCheck"
+              size={13}
+              className="group-hover:text-indigo-500 transition-colors"
+            />
             <span className="text-[11px] font-medium">Seguridad SSL</span>
           </div>
           <div className="w-px h-3 bg-slate-200" />
           <div className="flex items-center gap-1.5 text-slate-400 group cursor-default">
-            <Globe size={13} className="group-hover:text-indigo-500 transition-colors" />
+            <Icon
+              name="Globe"
+              size={13}
+              className="group-hover:text-indigo-500 transition-colors"
+            />
             <span className="text-[11px] font-medium">Red Empresarial</span>
           </div>
           <div className="w-px h-3 bg-slate-200" />
           <div className="flex items-center gap-1.5 text-slate-400 group cursor-default">
-            <Cloud size={13} className="group-hover:text-indigo-500 transition-colors" />
+            <Icon
+              name="Cloud"
+              size={13}
+              className="group-hover:text-indigo-500 transition-colors"
+            />
             <span className="text-[11px] font-medium">Nube</span>
           </div>
         </div>

@@ -50,7 +50,7 @@ import {
   TabsContent,
   Label,
 } from 'src/shared/components/ui';
-import { Mail, ShieldCheck, Info } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui';
 import {
   useTable,
   TableHeadCustom,
@@ -171,7 +171,7 @@ export function ComponentsExampleView() {
           <Button size="default">Default</Button>
           <Button size="lg">Large</Button>
           <Button size="icon">
-            <Mail className="w-4 h-4" />
+            <Icon name="Mail" className="w-4 h-4" />
           </Button>
           <Button disabled>Disabled</Button>
         </div>
@@ -190,12 +190,12 @@ export function ComponentsExampleView() {
           />
           <Input
             label="With Left Icon"
-            leftIcon={<Mail className="w-4 h-4" />}
+            leftIcon={<Icon name="Mail" className="w-4 h-4" />}
             placeholder="john@example.com"
           />
           <Input
             label="With Right Icon"
-            rightIcon={<ShieldCheck className="w-4 h-4 text-muted-foreground" />}
+            rightIcon={<Icon name="ShieldCheck" className="w-4 h-4 text-muted-foreground" />}
             placeholder="Security code"
           />
           <Input label="Success State" success placeholder="Correct value" />
@@ -210,7 +210,7 @@ export function ComponentsExampleView() {
           />
           <Input
             label="Floating Label (With Icon)"
-            leftIcon={<Mail className="w-5 h-5 text-muted-foreground" />}
+            leftIcon={<Icon name="Mail" className="w-5 h-5 text-muted-foreground" />}
             floatingLabel
             size="lg"
             placeholder="Will be hidden"
@@ -566,7 +566,7 @@ export function ComponentsExampleView() {
                 <Progress value={66} className="h-2" />
               </div>
               <Alert variant="default" className="mt-6">
-                <Info className="h-4 w-4" />
+                <Icon name="Info" className="h-4 w-4" />
                 <AlertTitle>Información</AlertTitle>
                 <AlertDescription>
                   Nuevos componentes agregados satisfactoriamente.

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui';
 import { cn } from 'src/lib/utils';
 import { NavItem, NavItemProps } from './nav-item';
 
@@ -36,7 +36,8 @@ function CollapsibleSection({ section, isMini }: { section: NavSectionData; isMi
             'transition-colors duration-150 select-none group focus:outline-none'
           )}
         >
-          <ChevronDown
+          <Icon
+            name="ChevronDown"
             size={14}
             className={cn(
               'shrink-0 transition-all duration-200 opacity-0 group-hover:opacity-100 -ml-4 group-hover:ml-0',

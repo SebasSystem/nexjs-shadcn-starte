@@ -1,16 +1,23 @@
 'use client';
 
-import { AlertTriangle, Package, ShieldCheck, BarChart2 } from 'lucide-react';
+import { Icon, type IconName } from 'src/shared/components/ui';
 import { cn } from 'src/lib/utils';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
-const KPIS = [
+const KPIS: {
+  label: string;
+  value: string;
+  badge: string;
+  badgeColor: string;
+  icon: IconName;
+  iconBg: string;
+}[] = [
   {
     label: 'Unidades totales',
     value: '2,847',
     badge: '+12%',
     badgeColor: 'text-emerald-600 bg-emerald-50',
-    icon: Package,
+    icon: 'Package',
     iconBg: 'bg-blue-50 text-blue-500',
   },
   {
@@ -18,7 +25,7 @@ const KPIS = [
     value: '2,412',
     badge: 'Disponible',
     badgeColor: 'text-emerald-600 bg-emerald-50',
-    icon: ShieldCheck,
+    icon: 'ShieldCheck',
     iconBg: 'bg-emerald-50 text-emerald-500',
   },
   {
@@ -26,7 +33,7 @@ const KPIS = [
     value: '435',
     badge: 'B2B',
     badgeColor: 'text-blue-600 bg-blue-50',
-    icon: BarChart2,
+    icon: 'BarChart2',
     iconBg: 'bg-purple-50 text-purple-500',
   },
   {
@@ -34,7 +41,7 @@ const KPIS = [
     value: '8',
     badge: 'ALERTA',
     badgeColor: 'text-amber-600 bg-amber-50',
-    icon: AlertTriangle,
+    icon: 'AlertTriangle',
     iconBg: 'bg-amber-50 text-amber-500',
   },
 ];
@@ -114,7 +121,6 @@ export function DashboardView() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {KPIS.map((kpi) => {
-          const Icon = kpi.icon;
           return (
             <div
               key={kpi.label}
@@ -122,7 +128,7 @@ export function DashboardView() {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className={cn('p-2 rounded-lg', kpi.iconBg)}>
-                  <Icon size={18} />
+                  <Icon name={kpi.icon} size={18} />
                 </div>
                 <span
                   className={cn(
@@ -213,7 +219,7 @@ export function DashboardView() {
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between p-5 border-b border-slate-50">
           <div className="flex items-center gap-2">
-            <AlertTriangle size={16} className="text-amber-500" />
+            <Icon name="AlertTriangle" size={16} className="text-amber-500" />
             <div>
               <h2 className="text-sm font-semibold text-slate-700">Productos con Stock Bajo</h2>
               <p className="text-xs text-slate-400">Requieren atención inmediata</p>

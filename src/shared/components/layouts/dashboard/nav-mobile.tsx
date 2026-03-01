@@ -1,6 +1,6 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui';
 import { NavSection, NavSectionData } from './nav-section';
 
 type Props = {
@@ -36,7 +36,7 @@ export function NavMobile({ open, onClose, navData }: Props) {
             className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Cerrar menú"
           >
-            <X size={18} />
+            <Icon name="X" size={18} />
           </button>
         </div>
 

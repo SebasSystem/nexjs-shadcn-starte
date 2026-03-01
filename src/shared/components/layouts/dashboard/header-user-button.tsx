@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, User } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui';
 import { signOut } from 'src/features/auth/services/auth.service';
 import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
 import { useRouter } from 'next/navigation';
@@ -33,7 +33,7 @@ export function HeaderUserButton({ user }: Props) {
 
       <div className="flex items-center gap-1">
         <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <User size={16} className="text-primary" />
+          <Icon name="User" size={16} className="text-primary" />
         </div>
 
         <button
@@ -41,7 +41,7 @@ export function HeaderUserButton({ user }: Props) {
           className="p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
           title="Cerrar sesión"
         >
-          <LogOut size={16} />
+          <Icon name="LogOut" size={16} />
         </button>
       </div>
     </div>
