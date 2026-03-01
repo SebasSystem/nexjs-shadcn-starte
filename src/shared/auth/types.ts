@@ -34,6 +34,7 @@ export type UserType = {
   modules?: UserModule[];
 } | null;
 
+export type AuthUser = UserType;
 export type AuthState = { user: UserType; loading: boolean };
 
 export type AuthContextValue = {

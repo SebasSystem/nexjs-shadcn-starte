@@ -2,17 +2,23 @@ import { create } from 'zustand';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
+type NavLayout = 'vertical' | 'mini' | 'horizontal';
+
 interface UiState {
-  isSidebarOpen: boolean;
+  navLayout: NavLayout;
+  isMobileNavOpen: boolean;
   theme: ThemeMode;
-  toggleSidebar: () => void;
+  setNavLayout: (layout: NavLayout) => void;
+  toggleMobileNav: () => void;
   setTheme: (theme: ThemeMode) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
-  isSidebarOpen: true,
+  navLayout: 'vertical',
+  isMobileNavOpen: false,
   theme: 'system',
 
-  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+  setNavLayout: (layout) => set({ navLayout: layout }),
+  toggleMobileNav: () => set((state) => ({ isMobileNavOpen: !state.isMobileNavOpen })),
   setTheme: (theme) => set({ theme }),
 }));

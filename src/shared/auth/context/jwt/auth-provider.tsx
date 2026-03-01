@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useState, useMemo, useCallback } from 'react';
 import { AuthContext } from '../auth-context';
 import { isValidToken, setSession } from './utils';
 import { AuthState } from 'src/shared/auth/types';
+import { getInitData } from 'src/features/auth/services/auth.service';
 
 type Props = { children: ReactNode };
 
@@ -18,10 +19,26 @@ export function AuthProvider({ children }: Props) {
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken);
 
-        // Simulación temporal porque no hay backend real, según MOCK_USER
-        const { MOCK_USER } = await import('src/_mock');
+        // Llamar al endpoint /auth/init-data
+        const response = await getInitData();
+        const profileData = response?.data || response;
 
-        setState({ user: MOCK_USER as AuthState['user'], loading: false });
+        if (profileData && Object.keys(profileData).length > 0) {
+          const dataAny = profileData as any;
+          setState({
+            user: {
+              ...dataAny,
+              accessToken,
+              displayName: dataAny.names || dataAny.name || dataAny.firstName,
+              roles: dataAny.roles || [],
+              modules: dataAny.modules || [],
+            } as AuthState['user'],
+            loading: false,
+          });
+        } else {
+          // Si el endpoint responde pero no hay datos válidos (raro si es 200)
+          setState({ user: null, loading: false });
+        }
       } else {
         setState({ user: null, loading: false });
       }
@@ -32,7 +49,10 @@ export function AuthProvider({ children }: Props) {
   }, []);
 
   useEffect(() => {
-    checkUserSession();
+    const init = async () => {
+      await checkUserSession();
+    };
+    init();
   }, [checkUserSession]);
 
   const memoizedValue = useMemo(
