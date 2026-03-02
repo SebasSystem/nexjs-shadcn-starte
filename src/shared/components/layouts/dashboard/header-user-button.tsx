@@ -50,7 +50,7 @@ export function HeaderUserButton({ user }: Props) {
         <button
           className={cn(
             'flex items-center gap-2.5 px-2 py-1.5 rounded-xl',
-            'hover:bg-accent transition-colors duration-200 outline-none',
+            'hover:bg-accent transition-colors duration-200 outline-none cursor-pointer',
             'focus-visible:ring-2 focus-visible:ring-ring'
           )}
         >
@@ -69,7 +69,7 @@ export function HeaderUserButton({ user }: Props) {
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" sideOffset={8} className="w-52 shadow-dialog">
+      <DropdownMenuContent align="end" sideOffset={8} className="w-52 shadow-8">
         <DropdownMenuLabel className="font-normal pb-2">
           <p className="text-sm font-semibold text-foreground">{displayName}</p>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">{email}</p>

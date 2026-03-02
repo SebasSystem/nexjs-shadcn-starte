@@ -206,6 +206,10 @@ export function DashboardView() {
         borderRadiusApplication: 'end',
       },
     },
+    yaxis: {
+      show: false,
+      labels: { show: false },
+    },
     tooltip: {
       x: { show: false },
       y: { formatter: (val: number) => `${val}` },

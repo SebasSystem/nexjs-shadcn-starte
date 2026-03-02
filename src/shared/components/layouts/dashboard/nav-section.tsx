@@ -29,11 +29,11 @@ function CollapsibleSection({ section, isMini }: { section: NavSectionData; isMi
           type="button"
           onClick={() => setOpen((v) => !v)}
           className={cn(
-            'flex items-center justify-start gap-1 w-full min-w-0',
+            'flex items-center justify-start gap-1 w-fit max-w-full',
             'px-2 pt-4 pb-1',
             'text-[11px] font-semibold uppercase tracking-widest',
             'text-sidebar-foreground/60 hover:text-sidebar-foreground',
-            'transition-colors duration-150 select-none group focus:outline-none'
+            'transition-colors duration-150 select-none group focus:outline-none cursor-pointer'
           )}
         >
           <Icon
@@ -44,7 +44,7 @@ function CollapsibleSection({ section, isMini }: { section: NavSectionData; isMi
               !open && '-rotate-90'
             )}
           />
-          <span className="min-w-0 flex-1 line-clamp-1 break-words text-left">
+          <span className="min-w-0 shrink line-clamp-1 break-words text-left">
             {section.subheader}
           </span>
         </button>

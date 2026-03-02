@@ -64,7 +64,7 @@ export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Pr
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 cursor-pointer"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
@@ -73,7 +73,7 @@ export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Pr
           </Button>
           <Button
             variant="outline"
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 cursor-pointer"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >

@@ -57,7 +57,7 @@ export function NavItem({
 
   // Estilos base compartidos
   const baseClasses = `
-    transition-all duration-200 group relative w-full min-w-0 outline-none
+    transition-all duration-200 group relative w-full min-w-0 outline-none cursor-pointer
     ${
       isMini
         ? 'flex flex-col items-center justify-center gap-1.5 h-[68px] rounded-xl px-1 text-[10px] font-medium leading-tight' // Estilo M3-like para sidebar colapsado

@@ -139,7 +139,7 @@ export function SettingsDrawer() {
                     key={t.value}
                     onClick={() => handleThemeChange(t.value)}
                     className={cn(
-                      'flex flex-col items-center justify-center gap-2 py-3 rounded-lg text-xs font-medium transition-all',
+                      'flex flex-col items-center justify-center gap-2 py-3 rounded-lg text-xs font-medium cursor-pointer transition-all',
                       theme === t.value
                         ? 'bg-background shadow-card text-primary'
                         : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
@@ -163,7 +163,7 @@ export function SettingsDrawer() {
                         <button
                           onClick={() => setColorPreset(p.value)}
                           className={cn(
-                            'w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110 relative',
+                            'w-10 h-10 rounded-full flex items-center cursor-pointer justify-center transition-transform hover:scale-110 relative',
                             colorPreset === p.value ? 'shadow-md scale-110' : ''
                           )}
                           style={{ backgroundColor: p.hex }}
@@ -193,7 +193,7 @@ export function SettingsDrawer() {
                     key={nl.value}
                     onClick={() => setNavLayout(nl.value)}
                     className={cn(
-                      'flex flex-col items-center justify-center gap-2 h-20 rounded-xl border transition-all',
+                      'flex flex-col items-center justify-center gap-2 h-20 rounded-xl border cursor-pointer transition-all',
                       navLayout === nl.value
                         ? 'border-primary bg-primary/5 text-primary shadow-card-hover'
                         : 'border-border/50 bg-background text-muted-foreground hover:border-primary/50 hover:bg-muted/30'
@@ -215,7 +215,7 @@ export function SettingsDrawer() {
                     key={nc.value}
                     onClick={() => setNavColor(nc.value)}
                     className={cn(
-                      'flex items-center justify-center py-2.5 rounded-xl border text-sm font-medium transition-all',
+                      'flex items-center justify-center py-2.5 rounded-xl border text-sm font-medium cursor-pointer transition-all',
                       navColor === nc.value
                         ? 'border-primary bg-primary/5 text-primary shadow-card-hover'
                         : 'border-border/50 bg-background text-muted-foreground hover:border-primary/50'
@@ -238,7 +238,7 @@ export function SettingsDrawer() {
                     key={bg.value}
                     onClick={() => setBgVariant(bg.value)}
                     className={cn(
-                      'flex items-center justify-center py-2.5 rounded-xl border text-sm font-medium transition-all',
+                      'flex items-center justify-center py-2.5 rounded-xl border text-sm font-medium cursor-pointer transition-all',
                       bgVariant === bg.value
                         ? 'border-primary bg-primary/5 text-primary shadow-card-hover'
                         : 'border-border/50 bg-background text-muted-foreground hover:border-primary/50'
@@ -257,7 +257,7 @@ export function SettingsDrawer() {
                 <button
                   onClick={() => setContrast('default')}
                   className={cn(
-                    'flex items-center justify-center py-2.5 rounded-xl border text-sm font-medium transition-all',
+                    'flex items-center justify-center py-2.5 rounded-xl border text-sm font-medium cursor-pointer transition-all',
                     contrast === 'default'
                       ? 'border-primary bg-primary/5 text-primary shadow-card-hover'
                       : 'border-border/50 bg-background text-muted-foreground hover:border-primary/50'
@@ -268,7 +268,7 @@ export function SettingsDrawer() {
                 <button
                   onClick={() => setContrast('bold')}
                   className={cn(
-                    'flex items-center justify-center py-2.5 rounded-xl border text-sm font-medium transition-all',
+                    'flex items-center justify-center py-2.5 rounded-xl border text-sm font-medium cursor-pointer transition-all',
                     contrast === 'bold'
                       ? 'border-primary bg-primary/5 text-primary shadow-card-hover'
                       : 'border-border/50 bg-background text-muted-foreground hover:border-primary/50'
@@ -288,7 +288,7 @@ export function SettingsDrawer() {
                     key={fs.value}
                     onClick={() => setFontSize(fs.value)}
                     className={cn(
-                      'flex-1 flex items-center justify-center h-10 rounded-lg text-sm font-medium transition-all',
+                      'flex-1 flex items-center justify-center h-10 rounded-lg text-sm font-medium cursor-pointer transition-all',
                       fontSize === fs.value
                         ? 'bg-background shadow-card text-primary'
                         : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
