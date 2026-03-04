@@ -31,8 +31,8 @@ function CollapsibleSection({ section, isMini }: { section: NavSectionData; isMi
           className={cn(
             'flex items-center justify-start gap-1 w-fit max-w-full',
             'px-2 pt-4 pb-1',
-            'text-[11px] font-semibold uppercase tracking-widest',
-            'text-sidebar-foreground/60 hover:text-sidebar-foreground',
+            'text-[0.6875rem] font-semibold uppercase tracking-widest',
+            'text-sidebar-foreground hover:text-sidebar-foreground/80',
             'transition-colors duration-150 select-none group focus:outline-none cursor-pointer'
           )}
         >

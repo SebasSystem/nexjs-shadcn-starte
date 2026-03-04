@@ -7,6 +7,8 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  Avatar,
+  AvatarFallback,
 } from 'src/shared/components/ui';
 import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
@@ -65,7 +67,7 @@ const BODEGAS = [
 
 const RESERVAS = [
   {
-    initials: 'DM',
+    initials: 'D',
     avatarBg: 'bg-blue-500',
     name: 'Distribuidora Mayorista',
     cod: 'COT-2024-0166',
@@ -75,7 +77,7 @@ const RESERVAS = [
     statusColor: 'bg-amber-500/10 text-amber-600',
   },
   {
-    initials: 'RC',
+    initials: 'R',
     avatarBg: 'bg-rose-500',
     name: 'Retail Corp',
     cod: 'COT-2024-0165',
@@ -85,7 +87,7 @@ const RESERVAS = [
     statusColor: 'bg-emerald-500/10 text-emerald-600',
   },
   {
-    initials: 'SN',
+    initials: 'S',
     avatarBg: 'bg-violet-500',
     name: 'Super Norte',
     cod: 'COT-2024-0164',
@@ -309,21 +311,18 @@ export function DashboardView() {
                 className="flex items-center justify-between py-2.5 px-3 -mx-3 rounded-xl hover:bg-muted/50 transition-colors group cursor-default"
               >
                 <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      'size-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0',
-                      r.avatarBg
-                    )}
-                  >
-                    {r.initials}
-                  </div>
+                  <Avatar size={40}>
+                    <AvatarFallback className={cn('text-white', r.avatarBg)}>
+                      {r.initials}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
-                    <p className="text-sm font-medium text-foreground leading-none">{r.name}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{r.cod}</p>
+                    <p className="text-subtitle2 text-foreground">{r.name}</p>
+                    <p className="text-caption text-muted-foreground mt-0.5">{r.cod}</p>
                   </div>
                 </div>
                 <div className="text-right flex flex-col items-end gap-1">
-                  <p className="text-sm font-semibold text-foreground">{r.uds}</p>
+                  <p className="text-subtitle2 text-foreground">{r.uds}</p>
                   <span
                     className={cn(
                       'text-[10px] font-semibold px-2 py-0.5 rounded-full',
@@ -348,8 +347,8 @@ export function DashboardView() {
               <Icon name="AlertTriangle" size={15} className="text-amber-500" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-foreground">Productos con Stock Bajo</h2>
-              <p className="text-xs text-muted-foreground">Requieren atención inmediata</p>
+              <h2 className="text-h6 font-semibold text-foreground">Productos con Stock Bajo</h2>
+              <p className="text-body2 text-muted-foreground">Requieren atención inmediata</p>
             </div>
           </div>
           <button className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border/60 text-muted-foreground hover:border-primary hover:text-primary transition-colors">

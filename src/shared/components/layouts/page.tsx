@@ -46,8 +46,8 @@ export function PageHeader({ title, subtitle, action, className }: PageHeaderPro
   return (
     <div className={cn('flex items-start justify-between gap-4', className)}>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground leading-none">{title}</h1>
-        {subtitle && <p className="text-sm text-muted-foreground mt-1.5">{subtitle}</p>}
+        <h1 className="text-h4 text-foreground mb-1">{title}</h1>
+        {subtitle && <p className="text-body2 text-muted-foreground">{subtitle}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>
@@ -100,8 +100,8 @@ export function SectionCardHeader({ title, subtitle, action, className }: Sectio
   return (
     <div className={cn('flex items-center justify-between mb-5', className)}>
       <div>
-        <h2 className="text-sm font-semibold text-foreground leading-none">{title}</h2>
-        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+        <h2 className="text-h6 text-foreground mb-1">{title}</h2>
+        {subtitle && <p className="text-body2 text-muted-foreground">{subtitle}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>
@@ -160,10 +160,10 @@ export function StatsCard({
           </span>
         )}
       </div>
-      <p className="text-2xl font-bold text-foreground tracking-tight">{value}</p>
-      <p className="text-xs font-medium text-muted-foreground mt-0.5">{title}</p>
+      <p className="text-h3 text-foreground mb-1">{value}</p>
+      <p className="text-body2 font-medium text-muted-foreground">{title}</p>
       {trend && (
-        <p className="text-[11px] text-muted-foreground/70 mt-2 pt-2 border-t border-border/40">
+        <p className="text-caption text-muted-foreground/70 mt-3 pt-3 border-t border-border/40">
           {trend}
         </p>
       )}

@@ -1,44 +1,42 @@
 import { cn } from 'src/lib/utils';
 
+// Importamos ambas versiones del logo desde assets
+import logoImg from 'src/assets/logos/logo.webp';
+import logoFullImg from 'src/assets/logos/logo-full.webp';
+
+type LogoVariant = 'logo' | 'full';
+
 type LogoProps = {
-  className?: string;
-  width?: number;
+  /** "logo" → solo isotipo | "full" → logo con nombre */
+  variant?: LogoVariant;
+  /** Altura de la imagen. El ancho se ajusta de forma proporcional (auto). */
   height?: number;
-  showText?: boolean;
+  className?: string;
 };
 
 /**
  * Logo global de la aplicación.
- * Ajusta el SVG o imagen según el branding del proyecto.
+ *
+ * - variant="logo"  → muestra únicamente el isotipo  (logo.webp)
+ * - variant="full"  → muestra el logo con el nombre  (logo-full.webp)
+ *
+ * El tamaño base es height=40px; se puede sobreescribir desde el padre.
  */
-export function Logo({ className, width = 40, height = 40, showText = true }: LogoProps) {
-  return (
-    <div className={cn('flex items-center gap-2', className)}>
-      {/* Icono / SVG del logo */}
-      <svg
-        width={width}
-        height={height}
-        viewBox="0 0 40 40"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-label="Logo"
-      >
-        <rect width="40" height="40" rx="10" className="fill-primary" />
-        <path
-          d="M10 20C10 14.477 14.477 10 20 10s10 4.477 10 10-4.477 10-10 10S10 25.523 10 20Z"
-          className="fill-primary-foreground"
-          opacity="0.9"
-        />
-        <path
-          d="M16 20l3 3 6-6"
-          stroke="white"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+export function Logo({ variant = 'logo', height = 80, className }: LogoProps) {
+  const src = variant === 'full' ? logoFullImg : logoImg;
+  const alt = variant === 'full' ? 'CRM Logo' : 'CRM Isotipo';
 
-      {showText && <span className="text-lg font-bold tracking-tight">CRM</span>}
+  return (
+    <div className={cn('flex items-center', className)}>
+      <img
+        src={src.src}
+        alt={alt}
+        height={height}
+        style={{ height: `${height}px`, width: 'auto' }}
+        draggable={false}
+      />
+      {/* Texto comentado: el nombre ya viene incluido en logo-full.webp */}
+      {/* {variant === 'full' && <span className="text-lg font-bold tracking-tight">CRM</span>} */}
     </div>
   );
 }

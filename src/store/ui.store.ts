@@ -8,9 +8,10 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export type NavLayout = 'vertical' | 'mini' | 'horizontal';
 export type ColorPreset = 'indigo' | 'cyan' | 'teal' | 'purple' | 'rose' | 'orange';
 export type BgVariant = 'default' | 'subtle' | 'canvas';
-export type FontSize = 'sm' | 'md' | 'lg';
+export type FontSize = number; // px exactos, rango 12-20, default 16
 export type NavColor = 'default' | 'dark';
 export type Contrast = 'default' | 'bold';
+export type FontFamily = 'public-sans' | 'inter' | 'dm-sans' | 'nunito-sans';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Estado + acciones
@@ -27,6 +28,7 @@ interface UiState {
   bgVariant: BgVariant;
   fontSize: FontSize;
   contrast: Contrast;
+  fontFamily: FontFamily;
 
   // ── Acciones ──────────────────────────────────────────────────────────────
   setNavLayout: (layout: NavLayout) => void;
@@ -37,6 +39,7 @@ interface UiState {
   setBgVariant: (bg: BgVariant) => void;
   setFontSize: (size: FontSize) => void;
   setContrast: (contrast: Contrast) => void;
+  setFontFamily: (font: FontFamily) => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,8 +55,9 @@ export const useUiStore = create<UiState>()(
       navColor: 'default',
       colorPreset: 'indigo',
       bgVariant: 'default',
-      fontSize: 'md',
+      fontSize: 16,
       contrast: 'default',
+      fontFamily: 'public-sans',
 
       // acciones
       setNavLayout: (navLayout) => set({ navLayout }),
@@ -64,6 +68,7 @@ export const useUiStore = create<UiState>()(
       setBgVariant: (bgVariant) => set({ bgVariant }),
       setFontSize: (fontSize) => set({ fontSize }),
       setContrast: (contrast) => set({ contrast }),
+      setFontFamily: (fontFamily) => set({ fontFamily }),
     }),
     {
       name: 'crm-ui-settings', // clave en localStorage
@@ -76,6 +81,7 @@ export const useUiStore = create<UiState>()(
         bgVariant: state.bgVariant,
         fontSize: state.fontSize,
         contrast: state.contrast,
+        fontFamily: state.fontFamily,
       }),
     }
   )

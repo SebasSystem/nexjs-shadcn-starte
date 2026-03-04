@@ -19,6 +19,12 @@ import {
   PanelBottom,
   StretchHorizontal,
   ALargeSmall,
+  Circle,
+  Contrast,
+  Box,
+  Layers,
+  LayoutGrid,
+  LayoutTemplate,
 
   // ── Auth / Seguridad ────────────────────────────────────────────────────────
   Eye,
@@ -79,6 +85,12 @@ const icons = {
   PanelBottom,
   StretchHorizontal,
   ALargeSmall,
+  Circle,
+  Contrast,
+  Box,
+  Layers,
+  LayoutGrid,
+  LayoutTemplate,
 
   // Auth
   Eye,

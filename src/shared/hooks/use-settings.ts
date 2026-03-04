@@ -17,10 +17,10 @@ import { useUiStore } from 'src/store/ui.store';
 
 const COLOR_PRESETS = ['indigo', 'cyan', 'teal', 'purple', 'rose', 'orange'] as const;
 const BG_VARIANTS = ['default', 'subtle', 'canvas'] as const;
-const FONT_SIZES = ['sm', 'md', 'lg'] as const;
+const FONT_FAMILIES = ['public-sans', 'inter', 'dm-sans', 'nunito-sans'] as const;
 
 export function useSettings() {
-  const { colorPreset, bgVariant, fontSize, contrast, theme } = useUiStore();
+  const { colorPreset, bgVariant, fontSize, contrast, theme, fontFamily } = useUiStore();
   const { setTheme } = useTheme();
 
   // ── Sincronizar theme con next-themes ──────────────────────────────────────
@@ -48,11 +48,9 @@ export function useSettings() {
     }
   }, [bgVariant]);
 
-  // ── Aplicar font size ──────────────────────────────────────────────────────
+  // ── Aplicar font size (px exactos, escalado via font-size en html) ──────────
   useEffect(() => {
-    const html = document.documentElement;
-    FONT_SIZES.forEach((s) => html.classList.remove(`text-size-${s}`));
-    html.classList.add(`text-size-${fontSize}`);
+    document.documentElement.style.fontSize = `${fontSize}px`;
   }, [fontSize]);
 
   // ── Aplicar contrast ───────────────────────────────────────────────────────
@@ -64,4 +62,15 @@ export function useSettings() {
       html.classList.remove('contrast-bold');
     }
   }, [contrast]);
+
+  // ── Aplicar font family ─────────────────────────────────────────
+  useEffect(() => {
+    const html = document.documentElement;
+    // Quitar todas las clases de fuente previas
+    FONT_FAMILIES.forEach((f) => html.classList.remove(`font-${f}`));
+    // Aplicar la seleccionada (public-sans es el default de :root, no necesita clase)
+    if (fontFamily !== 'public-sans') {
+      html.classList.add(`font-${fontFamily}`);
+    }
+  }, [fontFamily]);
 }

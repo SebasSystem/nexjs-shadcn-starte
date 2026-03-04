@@ -60,7 +60,7 @@ export function NavItem({
     transition-all duration-200 group relative w-full min-w-0 outline-none cursor-pointer
     ${
       isMini
-        ? 'flex flex-col items-center justify-center gap-1.5 h-[68px] rounded-xl px-1 text-[10px] font-medium leading-tight' // Estilo M3-like para sidebar colapsado
+        ? 'flex flex-col items-center justify-center gap-1.5 h-[68px] rounded-xl px-1 text-[0.625rem] font-medium leading-tight' // Estilo M3-like para sidebar colapsado
         : 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium' // Estilo estándar list item
     }
     ${
@@ -68,9 +68,9 @@ export function NavItem({
         ? 'bg-primary text-primary-foreground shadow-sm'
         : isActive && hasChildren
           ? 'bg-sidebar-accent/50 text-sidebar-accent-foreground'
-          : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+          : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
     }
-    ${isSubItem && !isMini ? 'pl-9 h-9 text-[13px] py-1.5' : ''}
+    ${isSubItem && !isMini ? 'pl-9 h-9 text-[0.8125rem] py-1.5' : ''}
   `;
 
   // Contenido interno del item (con ícono, título y dot/chevron)
@@ -82,7 +82,7 @@ export function NavItem({
       >
         {icon && (
           <span
-            className={`size-5 ${isActive && !hasChildren ? 'text-primary-foreground' : 'text-sidebar-foreground/70 group-hover:text-sidebar-accent-foreground'}`}
+            className={`size-5 ${isActive && !hasChildren ? 'text-primary-foreground' : 'text-sidebar-foreground group-hover:text-sidebar-accent-foreground'}`}
           >
             {icon}
           </span>
@@ -91,7 +91,7 @@ export function NavItem({
         {/* Si es subitem pero no pasaron icono, mostramos un dot */}
         {isSubItem && !icon && !isMini && (
           <span
-            className={`h-1.5 w-1.5 rounded-full shrink-0 mr-1 ${isActive ? 'bg-primary' : 'bg-sidebar-foreground/70 group-hover:bg-sidebar-accent-foreground'}`}
+            className={`h-1.5 w-1.5 rounded-full shrink-0 mr-1 ${isActive ? 'bg-primary' : 'bg-sidebar-foreground group-hover:bg-sidebar-accent-foreground'}`}
           />
         )}
 
@@ -101,7 +101,7 @@ export function NavItem({
             name="ChevronRight"
             size={12}
             strokeWidth={3}
-            className={`absolute -right-5 top-1/2 -translate-y-1/2 transition-colors ${isActive ? 'text-sidebar-accent-foreground' : 'text-sidebar-foreground/50 group-hover:text-sidebar-accent-foreground'}`}
+            className={`absolute -right-5 top-1/2 -translate-y-1/2 transition-colors ${isActive ? 'text-sidebar-accent-foreground' : 'text-sidebar-foreground group-hover:text-sidebar-accent-foreground'}`}
           />
         )}
       </div>
@@ -173,7 +173,7 @@ export function NavItem({
                 <DropdownMenuItem key={child.path} asChild className="cursor-pointer">
                   <Link
                     href={child.path}
-                    className={`flex items-center gap-3 w-full min-w-0 rounded-md px-2 py-2 text-[13px] font-medium transition-colors ${
+                    className={`flex items-center gap-3 w-full min-w-0 rounded-md px-2 py-2 text-[0.8125rem] font-medium transition-colors ${
                       isChildItemActive
                         ? 'bg-accent text-accent-foreground'
                         : 'text-muted-foreground hover:text-foreground'

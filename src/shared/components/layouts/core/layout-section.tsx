@@ -1,4 +1,6 @@
-import { ReactNode } from 'react';
+'use client';
+
+import { ReactNode, useRef, useState } from 'react';
 import { useUiStore } from 'src/store/ui.store';
 import { layoutClasses } from './classes';
 
@@ -13,6 +15,13 @@ export function LayoutSection({ children, headerSection, sidebarSection, footerS
   const { navLayout, navColor } = useUiStore();
 
   const isNavMini = navLayout === 'mini';
+  const [isScrolled, setIsScrolled] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+
+  const handleScroll = () => {
+    if (!mainRef.current) return;
+    setIsScrolled(mainRef.current.scrollTop > 10);
+  };
 
   return (
     <div
@@ -33,19 +42,31 @@ export function LayoutSection({ children, headerSection, sidebarSection, footerS
         </aside>
       )}
 
-      {/* Main Container Area */}
-      <div className={`flex flex-1 flex-col overflow-hidden w-full ${layoutClasses.content}`}>
-        {/* Header Area */}
-        {headerSection && (
-          <header
-            className={`h-[64px] bg-background/80 backdrop-blur-md border-b border-border/50 flex items-center px-4 z-10 sticky top-0 w-full ${layoutClasses.header}`}
-          >
-            {headerSection}
-          </header>
-        )}
+      {/* Main Container Area: flex column, fills remaining space */}
+      <div className={`flex flex-1 flex-col min-h-0 w-full ${layoutClasses.content}`}>
+        {/* Content Area — the ONLY scroll container */}
+        <main
+          ref={mainRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-x-hidden overflow-y-auto w-full min-h-0"
+        >
+          {/* Header floats over content using sticky inside the scroll container */}
+          {headerSection && (
+            <header
+              className={`
+                h-[72px] sticky top-0 z-10 flex items-center px-4 w-full
+                transition-all duration-300
+                ${isScrolled ? 'bg-background/80 backdrop-blur-xs' : 'bg-transparent'}
+                ${layoutClasses.header}
+              `}
+            >
+              {headerSection}
+            </header>
+          )}
 
-        {/* Content Area */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto w-full">{children}</main>
+          {/* Page content */}
+          {children}
+        </main>
 
         {/* Footer Area */}
         {footerSection}

@@ -4,6 +4,7 @@ import { useUiStore } from 'src/store/ui.store';
 import { NavSection, NavSectionData } from './nav-section';
 import { Icon } from 'src/shared/components/ui';
 import { ScrollArea } from 'src/shared/components/ui';
+import { Logo } from 'src/shared/components/Logo';
 
 type Props = {
   navData: NavSectionData[];
@@ -21,8 +22,8 @@ export function NavVertical({ navData }: Props) {
         className={`
           absolute -right-3.5 top-[88px] z-50
           flex items-center justify-center cursor-pointer
-          size-7 rounded-full border border-sidebar-border bg-sidebar
-          text-sidebar-foreground/70 hover:text-primary hover:border-primary/50
+          size-7 rounded-full border border-border bg-background
+          text-muted-foreground hover:text-primary hover:border-primary/50
           shadow-sm transition-all duration-300 opacity-100
         `}
         title={isMini ? 'Expandir menú' : 'Contraer menú'}
@@ -36,20 +37,9 @@ export function NavVertical({ navData }: Props) {
 
       {/* Logo Area */}
       <div
-        className={`h-[72px] flex items-center shrink-0 ${isMini ? 'justify-center px-2' : 'justify-between px-4'}`}
+        className={`h-[72px] flex items-center justify-center shrink-0 pt-4 ${isMini ? 'justify-center px-2' : 'px-4'}`}
       >
-        <div className="flex items-center gap-2">
-          {/* Logo icon (siempre visible) */}
-          <div className="size-7 rounded-lg bg-primary flex items-center justify-center shrink-0 shadow-sm">
-            <span className="text-primary-foreground font-black text-sm">C</span>
-          </div>
-          {/* Texto del logo (solo en modo full) */}
-          {!isMini && (
-            <span className="font-semibold text-sm tracking-tight text-sidebar-foreground">
-              CRM System
-            </span>
-          )}
-        </div>
+        <Logo variant={isMini ? 'logo' : 'full'} height={isMini ? 80 : 110} />
       </div>
 
       {/* Nav Links */}
@@ -69,14 +59,16 @@ export function NavVertical({ navData }: Props) {
         className={`h-14 border-t border-sidebar-border flex items-center px-3 shrink-0 ${isMini ? 'justify-center' : 'gap-3'}`}
       >
         <div className="size-8 rounded-full bg-sidebar-accent text-sidebar-foreground flex items-center justify-center shrink-0 shadow-inner">
-          <span className="text-[12px] font-bold">A</span>
+          <span className="text-[0.75rem] font-bold">A</span>
         </div>
         {!isMini && (
           <div className="flex flex-col min-w-0">
             <span className="text-xs font-semibold text-sidebar-foreground truncate leading-tight">
               Admin System
             </span>
-            <span className="text-[11px] text-sidebar-foreground/60 truncate">admin@gmail.com</span>
+            <span className="text-[0.6875rem] text-sidebar-foreground/60 truncate">
+              admin@gmail.com
+            </span>
           </div>
         )}
       </div>
