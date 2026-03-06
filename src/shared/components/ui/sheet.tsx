@@ -69,8 +69,8 @@ function SheetContent({
       >
         {children}
         {showCloseButton && (
-          <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
-            <XIcon className="size-4" />
+          <SheetPrimitive.Close className="absolute right-4 top-4 rounded-md p-1.5 opacity-70 ring-offset-background transition-opacity hover:opacity-100 hover:bg-muted focus:outline-none focus:ring-[3px] focus:ring-primary/20 cursor-pointer disabled:pointer-events-none data-[state=open]:bg-secondary">
+            <XIcon className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
         )}
@@ -93,7 +93,10 @@ function SheetFooter({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="sheet-footer"
-      className={cn('mt-auto flex flex-col gap-2 p-4', className)}
+      className={cn(
+        'mt-auto flex flex-row justify-end gap-3 p-4 border-t border-border/40',
+        className
+      )}
       {...props}
     />
   );

@@ -81,7 +81,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             placeholder={isFloating ? ' ' : props.placeholder}
             aria-invalid={hasError ? 'true' : 'false'}
             className={cn(
-              'flex w-full rounded-lg border bg-background text-foreground',
+              'flex w-full rounded-lg border bg-background text-foreground shadow-sm',
               'placeholder:text-muted-foreground/70',
               'file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground',
               'disabled:cursor-not-allowed disabled:opacity-50',
@@ -93,18 +93,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               hasError
                 ? [
                     'border-destructive/80',
-                    'focus-visible:outline-none focus-visible:border-destructive focus-visible:ring-[0.5px] focus-visible:ring-destructive',
+                    'focus-visible:outline-none focus-visible:border-destructive focus-visible:ring-[3px] focus-visible:ring-destructive/20',
                     'text-foreground placeholder:text-muted-foreground/50',
                   ]
                 : success
                   ? [
                       'border-success/80',
-                      'focus-visible:outline-none focus-visible:border-success focus-visible:ring-[0.5px] focus-visible:ring-success',
+                      'focus-visible:outline-none focus-visible:border-success focus-visible:ring-[3px] focus-visible:ring-success/20',
                     ]
                   : [
-                      'border-border',
-                      'hover:border-foreground',
-                      'focus-visible:outline-none focus-visible:border-foreground focus-visible:ring-[0.5px] focus-visible:ring-foreground',
+                      'border-border hover:border-border/80',
+                      'focus-visible:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/20',
                     ]
             )}
             {...props}
@@ -132,7 +131,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 // Color: base is label-gray, turns dark only on focus
                 hasError
                   ? 'text-destructive peer-focus:text-destructive'
-                  : ['text-grey-600', 'peer-focus:text-foreground']
+                  : ['text-muted-foreground', 'peer-focus:text-primary']
               )}
             >
               {label}

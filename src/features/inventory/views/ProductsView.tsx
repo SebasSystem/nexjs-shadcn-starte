@@ -264,11 +264,11 @@ function ProductDrawer({ open, mode, product, onClose }: ProductDrawerProps) {
           )}
         </div>
 
-        <SheetFooter className="border-t border-border/60 pt-4 px-4 pb-4 flex gap-2">
-          <Button variant="outline" onClick={onClose} className="flex-1">
+        <SheetFooter className="border-t border-border/60 pt-4 px-4 pb-4">
+          <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button color="primary" onClick={handleSave} className="flex-1">
+          <Button color="primary" onClick={handleSave}>
             Guardar
           </Button>
         </SheetFooter>

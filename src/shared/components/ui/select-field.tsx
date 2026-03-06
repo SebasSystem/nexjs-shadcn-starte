@@ -110,15 +110,14 @@ export function SelectField({
             aria-controls={listboxId}
             aria-invalid={!!error}
             className={cn(
-              'flex min-h-10 w-full items-center justify-between rounded-lg border bg-background px-3 py-2',
+              'flex min-h-10 w-full items-center justify-between rounded-lg border bg-background px-3 py-2 shadow-sm',
               'text-sm transition-all duration-200 cursor-pointer',
               'disabled:cursor-not-allowed disabled:opacity-50 select-none',
-              'hover:border-foreground',
               error
-                ? 'border-destructive/80 focus-visible:outline-none focus-visible:border-destructive focus-visible:ring-[0.5px] focus-visible:ring-destructive/30 text-foreground'
+                ? 'border-destructive/80 focus-visible:outline-none focus-visible:border-destructive focus-visible:ring-[3px] focus-visible:ring-destructive/20 text-foreground'
                 : open
-                  ? 'border-foreground ring-[0.5px] ring-foreground outline-none'
-                  : 'border-border focus-visible:outline-none focus-visible:border-foreground focus-visible:ring-[0.5px] focus-visible:ring-foreground'
+                  ? 'border-primary ring-[3px] ring-primary/20 outline-none'
+                  : 'border-border focus-visible:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/20 hover:border-border/80'
             )}
           >
             {/* Valores seleccionados */}
