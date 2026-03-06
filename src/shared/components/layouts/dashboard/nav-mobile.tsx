@@ -16,13 +16,13 @@ export function NavMobile({ open, onClose, navData }: Props) {
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50 z-40 min-[1200px]:hidden backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Drawer */}
-      <aside className="fixed left-0 top-0 bottom-0 w-[280px] bg-card border-r z-50 md:hidden flex flex-col shadow-2xl">
+      <aside className="fixed left-0 top-0 bottom-0 w-[280px] bg-card border-r z-50 min-[1200px]:hidden flex flex-col shadow-2xl">
         {/* Header */}
         <div className="h-[72px] flex items-center justify-between px-4 border-b shrink-0">
           <div className="flex items-center gap-2">

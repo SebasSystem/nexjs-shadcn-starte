@@ -48,7 +48,7 @@ export function NavVertical({ navData }: Props) {
         <ScrollArea
           className={`h-full w-full ${isMini ? '[&_[data-slot=scroll-area-scrollbar]]:hidden' : ''}`}
         >
-          <div className={`w-full overflow-hidden pb-6 pt-3 ${isMini ? 'px-2' : 'px-4'}`}>
+          <div className={`w-full overflow-hidden pb-6 pt-0 ${isMini ? 'px-2' : 'px-4'}`}>
             <NavSection data={navData} isMini={isMini} />
           </div>
         </ScrollArea>

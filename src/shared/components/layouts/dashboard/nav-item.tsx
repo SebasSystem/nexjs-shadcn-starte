@@ -36,13 +36,17 @@ export function NavItem({
 }: NavItemProps) {
   const pathname = usePathname();
 
-  // Revisamos si la ruta o alguna de las rutas hijas está activa
-  const isDirectActive = pathname === path || pathname.startsWith(`${path}/`);
+  const hasChildren = !!children?.length;
+
+  // Para items sin hijos usamos exact match — evita que rutas padre queden
+  // activas cuando se navega a un hijo (ej: /inventory activo en /inventory/products).
+  // Para items con hijos también consideramos si el pathname desciende del path.
+  const isDirectActive = hasChildren
+    ? pathname === path || pathname.startsWith(`${path}/`)
+    : pathname === path;
   const isChildActive =
     children?.some((c) => pathname === c.path || pathname.startsWith(`${c.path}/`)) ?? false;
   const isActive = isDirectActive || isChildActive;
-
-  const hasChildren = !!children?.length;
 
   // Si tiene hijos y alguno está activo, expandimos por defecto
   const [open, setOpen] = useState(isChildActive);

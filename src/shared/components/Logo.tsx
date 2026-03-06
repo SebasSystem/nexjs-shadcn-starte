@@ -28,6 +28,7 @@ export function Logo({ variant = 'logo', height = 80, className }: LogoProps) {
 
   return (
     <div className={cn('flex items-center', className)}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src.src}
         alt={alt}

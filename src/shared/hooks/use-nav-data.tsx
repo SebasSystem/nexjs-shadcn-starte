@@ -33,6 +33,8 @@ const ICON_MAP: Record<string, IconName> = {
   dashboard: 'LayoutDashboard',
   products: 'Package',
   table: 'List',
+  stock: 'Layers',
+  overview: 'LayoutGrid',
   category: 'Tag',
   warehouse: 'Warehouse',
   inventory: 'BarChart2',

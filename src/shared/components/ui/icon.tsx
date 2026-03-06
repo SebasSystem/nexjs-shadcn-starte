@@ -57,6 +57,20 @@ import {
   Footprints,
   SunSnow,
 
+  // ── Acciones ──────────────────────────────────────────────────────────────
+  Search,
+  Plus,
+  Pencil,
+  SquarePen,
+  Trash2,
+  Download,
+  ChevronUp,
+  ArrowRight,
+  ArrowLeft,
+  Store,
+  CheckCircle,
+  XCircle,
+
   // ── UI / Feedback ───────────────────────────────────────────────────────────
   Cloud,
   Globe,
@@ -122,6 +136,20 @@ const icons = {
   Shirt,
   Footprints,
   SunSnow,
+
+  // Acciones
+  Search,
+  Plus,
+  Pencil,
+  SquarePen,
+  Trash2,
+  Download,
+  ChevronUp,
+  ArrowRight,
+  ArrowLeft,
+  Store,
+  CheckCircle,
+  XCircle,
 
   // UI
   Cloud,

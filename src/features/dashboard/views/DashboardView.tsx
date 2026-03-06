@@ -9,6 +9,7 @@ import {
   TableCell,
   Avatar,
   AvatarFallback,
+  Badge,
 } from 'src/shared/components/ui';
 import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
@@ -128,6 +129,49 @@ const STOCK_BAJO = [
   },
 ];
 
+const ULTIMAS_COTIZACIONES = [
+  {
+    id: 'COT-2024-0089',
+    cliente: 'TechMex Solutions',
+    initials: 'T',
+    avatarBg: 'bg-blue-500',
+    monto: '$45,200',
+    estado: 'Pendiente',
+    estadoColor: 'bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-500',
+    fecha: '15 Ene 2024',
+  },
+  {
+    id: 'COT-2024-0088',
+    cliente: 'Global Industries SA',
+    initials: 'G',
+    avatarBg: 'bg-fuchsia-400',
+    monto: '$128,750',
+    estado: 'Aprobada',
+    estadoColor: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500',
+    fecha: '14 Ene 2024',
+  },
+  {
+    id: 'COT-2024-0087',
+    cliente: 'Alimentos del Sur',
+    initials: 'A',
+    avatarBg: 'bg-red-400',
+    monto: '$23,400',
+    estado: 'Rechazada',
+    estadoColor: 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-500',
+    fecha: '12 Ene 2024',
+  },
+  {
+    id: 'COT-2024-0086',
+    cliente: 'Constructora López',
+    initials: 'C',
+    avatarBg: 'bg-emerald-400',
+    monto: '$87,300',
+    estado: 'En revisión',
+    estadoColor: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400',
+    fecha: '10 Ene 2024',
+  },
+];
+
 type StockItem = (typeof STOCK_BAJO)[0];
 const columnHelper = createColumnHelper<StockItem>();
 
@@ -161,24 +205,96 @@ const COLUMNS = [
     header: () => <div className="text-right w-full">Estado</div>,
     cell: (info) => (
       <div className="text-right">
-        <span
+        <Badge
+          variant="soft"
           className={cn(
-            'text-[11px] font-semibold px-2.5 py-1 rounded-full',
+            'px-3 py-1 font-semibold rounded-full border-none',
             info.row.original.estadoColor
           )}
         >
           {info.getValue()}
-        </span>
+        </Badge>
       </div>
     ),
   }),
 ];
+
+import { ACTION_ICONS } from 'src/shared/constants/app-icons';
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export function DashboardView() {
   const { table, dense, onChangeDense } = useTable({
     data: STOCK_BAJO,
     columns: COLUMNS,
+    defaultRowsPerPage: 5,
+  });
+
+  type CotizacionItem = (typeof ULTIMAS_COTIZACIONES)[0];
+  const colHelperCotizaciones = createColumnHelper<CotizacionItem>();
+
+  const COLUMNS_COTIZACIONES = [
+    colHelperCotizaciones.accessor('id', {
+      header: 'N° Cotización',
+      cell: (info) => <span className="font-medium text-muted-foreground">{info.getValue()}</span>,
+    }),
+    colHelperCotizaciones.accessor('cliente', {
+      header: 'Cliente',
+      cell: (info) => (
+        <div className="flex items-center gap-3">
+          <Avatar size={32}>
+            <AvatarFallback className={cn('text-white text-xs', info.row.original.avatarBg)}>
+              {info.row.original.initials}
+            </AvatarFallback>
+          </Avatar>
+          <span className="font-medium text-foreground">{info.getValue()}</span>
+        </div>
+      ),
+    }),
+    colHelperCotizaciones.accessor('monto', {
+      header: 'Monto',
+      cell: (info) => <span className="font-bold text-foreground">{info.getValue()}</span>,
+    }),
+    colHelperCotizaciones.accessor('estado', {
+      header: 'Estado',
+      cell: (info) => (
+        <Badge
+          variant="soft"
+          className={cn(
+            'px-3 py-1 font-semibold rounded-full border-none',
+            info.row.original.estadoColor
+          )}
+        >
+          {info.getValue()}
+        </Badge>
+      ),
+    }),
+    colHelperCotizaciones.accessor('fecha', {
+      header: 'Fecha',
+      cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
+    }),
+    colHelperCotizaciones.display({
+      id: 'acciones',
+      header: 'Acciones',
+      cell: () => (
+        <div className="flex items-center gap-3">
+          <button className="text-muted-foreground hover:text-primary transition-colors">
+            <Icon name={ACTION_ICONS.VIEW} size={16} />
+          </button>
+          <button className="text-muted-foreground hover:text-primary transition-colors">
+            <Icon name={ACTION_ICONS.EDIT} size={16} />
+          </button>
+        </div>
+      ),
+    }),
+  ];
+
+  const {
+    table: cotizacionesTable,
+    dense: cotizacionesDense,
+    onChangeDense: onCotizacionesChangeDense,
+  } = useTable({
+    data: ULTIMAS_COTIZACIONES,
+    columns: COLUMNS_COTIZACIONES,
     defaultRowsPerPage: 5,
   });
 
@@ -222,10 +338,7 @@ export function DashboardView() {
   return (
     <PageContainer>
       {/* ── Page Header ──────────────────────────────────────────────── */}
-      <PageHeader
-        title="Dashboard de Inventario"
-        subtitle="Vista general consolidada del stock y operaciones activas"
-      />
+      <PageHeader title="Dashboard" subtitle="Descripción general del sistema" />
 
       {/* ── KPI Cards ────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -323,14 +436,15 @@ export function DashboardView() {
                 </div>
                 <div className="text-right flex flex-col items-end gap-1">
                   <p className="text-subtitle2 text-foreground">{r.uds}</p>
-                  <span
+                  <Badge
+                    variant="soft"
                     className={cn(
-                      'text-[10px] font-semibold px-2 py-0.5 rounded-full',
+                      'text-[10px] font-semibold px-2 py-0.5 rounded-full border-none',
                       r.statusColor
                     )}
                   >
                     {r.status}
-                  </span>
+                  </Badge>
                 </div>
               </div>
             ))}
@@ -381,6 +495,54 @@ export function DashboardView() {
         </div>
         <div className="border-t border-border/40">
           <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        </div>
+      </SectionCard>
+
+      {/* ── Últimas Cotizaciones ─────────────────────────────────────── */}
+      <SectionCard noPadding>
+        {/* Table header */}
+        <div className="flex items-center justify-between px-5 py-5 border-b border-border/60">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg font-bold text-foreground">Últimas Cotizaciones</h2>
+            <p className="text-sm text-muted-foreground">Cotizaciones creadas recientemente</p>
+          </div>
+          <button className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+            Ver todas <Icon name="ChevronRight" size={16} />
+          </button>
+        </div>
+
+        {/* Table con TanStack */}
+        <div className="overflow-x-auto relative">
+          <Table>
+            <TableHeadCustom table={cotizacionesTable} />
+            <TableBody>
+              {cotizacionesTable.getRowModel().rows.map((row, i) => (
+                <TableRow
+                  key={row.id}
+                  className={cn(
+                    'transition-colors',
+                    i < ULTIMAS_COTIZACIONES.length - 1 && 'border-b border-border/40'
+                  )}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className={cn('px-5', cotizacionesDense ? 'py-3' : 'py-4')}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="border-t border-border/40">
+          <TablePaginationCustom
+            table={cotizacionesTable}
+            dense={cotizacionesDense}
+            onChangeDense={onCotizacionesChangeDense}
+          />
         </div>
       </SectionCard>
     </PageContainer>

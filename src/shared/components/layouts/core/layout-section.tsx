@@ -31,7 +31,7 @@ export function LayoutSection({ children, headerSection, sidebarSection, footerS
       {sidebarSection && (
         <aside
           className={`
-            transition-all duration-300 hidden md:flex flex-col z-20 border-r
+            transition-all duration-300 flex max-[1199px]:hidden shrink-0 flex-col z-20 border-r
             bg-sidebar text-sidebar-foreground border-sidebar-border
             ${navColor === 'dark' ? 'sidebar-dark' : ''}
             ${isNavMini ? 'w-[88px]' : 'w-[280px]'}

@@ -1,6 +1,7 @@
 const ROOTS = {
   AUTH: '/auth',
   DASHBOARD: '/dashboard',
+  INVENTORY: '/inventory',
 };
 
 export const paths = {
@@ -12,6 +13,18 @@ export const paths = {
       signIn: `${ROOTS.AUTH}/login`,
       signUp: `${ROOTS.AUTH}/register`,
     },
+  },
+
+  // INVENTORY
+  inventory: {
+    root: ROOTS.INVENTORY,
+    products: `${ROOTS.INVENTORY}/products`,
+    warehouses: {
+      root: `${ROOTS.INVENTORY}/warehouses`,
+      movements: `${ROOTS.INVENTORY}/warehouses/movements`,
+    },
+    stock: `${ROOTS.INVENTORY}/stock`,
+    reports: `${ROOTS.INVENTORY}/reports`,
   },
 
   // DASHBOARD
