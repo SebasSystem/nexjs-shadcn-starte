@@ -43,12 +43,12 @@ export function LayoutSection({ children, headerSection, sidebarSection, footerS
       )}
 
       {/* Main Container Area: flex column, fills remaining space */}
-      <div className={`flex flex-1 flex-col min-h-0 w-full ${layoutClasses.content}`}>
+      <div className={`flex flex-1 flex-col min-h-0 min-w-0 ${layoutClasses.content}`}>
         {/* Content Area — the ONLY scroll container */}
         <main
           ref={mainRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-x-hidden overflow-y-auto w-full min-h-0"
+          className="flex-1 overflow-x-hidden overflow-y-auto min-h-0 min-w-0"
         >
           {/* Header floats over content using sticky inside the scroll container */}
           {headerSection && (

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {
   Icon,
   type IconName,
@@ -11,9 +12,11 @@ import {
   AvatarFallback,
   Badge,
 } from 'src/shared/components/ui';
+import { Button } from 'src/shared/components/ui/button';
 import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { Chart, useChart } from 'src/shared/components/chart';
+import { paths } from 'src/routes/paths';
 
 import { cn } from 'src/lib/utils';
 import {
@@ -338,7 +341,18 @@ export function DashboardView() {
   return (
     <PageContainer>
       {/* ── Page Header ──────────────────────────────────────────────── */}
-      <PageHeader title="Dashboard" subtitle="Descripción general del sistema" />
+      <PageHeader
+        title="Dashboard"
+        subtitle="Descripción general del sistema"
+        action={
+          <Link href={paths.sales.pipeline}>
+            <Button color="primary" size="sm">
+              <Icon name="TrendingUp" size={15} />
+              Ir al Pipeline Comercial
+            </Button>
+          </Link>
+        }
+      />
 
       {/* ── KPI Cards ────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

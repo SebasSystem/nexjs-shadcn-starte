@@ -1,12 +1,12 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 /* ── Google Fonts (variable) — se cargan localmet via @fontsource ── */
-@import "@fontsource-variable/public-sans";
-@import "@fontsource-variable/inter";
-@import "@fontsource-variable/dm-sans";
-@import "@fontsource-variable/nunito-sans";
+@import '@fontsource-variable/public-sans';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/dm-sans';
+@import '@fontsource-variable/nunito-sans';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -90,10 +90,10 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.50 0.25 272);
+  --primary: oklch(0.5 0.25 272);
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.92 0.03 260);
-  --secondary-foreground: oklch(0.20 0.04 260);
+  --secondary-foreground: oklch(0.2 0.04 260);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
@@ -159,7 +159,7 @@
 
   /* ── primary ─────────────────────────────────────────── */
   --primary: oklch(0.72 0.18 272);
-  --primary-foreground: oklch(0.10 0 0);
+  --primary-foreground: oklch(0.1 0 0);
 
   /* ── secondary / muted / accent (un paso sobre card) ─── */
   --secondary: oklch(0.305 0.024 258);
@@ -183,7 +183,7 @@
   /* ── sidebar (superficie) ───────────────────────────── */
   --sidebar: oklch(0.233 0.022 261);
   /* #141a21 - igual que el fondo */
-  --sidebar-foreground: oklch(0.670 0.032 258);
+  --sidebar-foreground: oklch(0.67 0.032 258);
   /* #919eab */
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -203,15 +203,15 @@
   --error-foreground: oklch(0.15 0 0);
 
   /* === Grey scale dark === */
-  --grey-50: oklch(0.30 0.018 260);
+  --grey-50: oklch(0.3 0.018 260);
   --grey-100: oklch(0.34 0.015 260);
   --grey-200: oklch(0.39 0.012 258);
   --grey-300: oklch(0.45 0.009 258);
   --grey-400: oklch(0.52 0.006 258);
-  --grey-500: oklch(0.60 0 0);
-  --grey-600: oklch(0.70 0 0);
-  --grey-700: oklch(0.80 0 0);
-  --grey-800: oklch(0.90 0 0);
+  --grey-500: oklch(0.6 0 0);
+  --grey-600: oklch(0.7 0 0);
+  --grey-700: oklch(0.8 0 0);
+  --grey-800: oklch(0.9 0 0);
   --grey-900: oklch(0.97 0 0);
 
   /* === Base color for Material Shadows (Dark) === */
@@ -219,7 +219,6 @@
 }
 
 @layer base {
-
   /* Fuente por defecto de la app (antes de que useSettings la sobreescriba) */
   :root {
     --font-app: 'Public Sans Variable', system-ui, sans-serif;
@@ -252,7 +251,6 @@
    Usar estas en lugar de clases ad-hoc para coherencia visual.
    ══════════════════════════════════════════════════════════════════════════════ */
 @layer utilities {
-
   /* ── Títulos de página ────────────────────────────────────────────────────── */
   .text-page-title {
     @apply text-2xl font-bold tracking-tight text-foreground leading-none;
@@ -309,12 +307,10 @@
     box-shadow:
       /* Borde: casi invisible arriba y lados */
       0 1px 3px rgba(0, 0, 0, 0.04),
-      /* Capa 1: sombra corta diagonal — arranca en borde inferior-derecho */
-      16px 20px 30px rgba(0, 0, 0, 0.09),
-      /* Capa 2: se expande más hacia abajo-derecha */
-      32px 50px 70px rgba(0, 0, 0, 0.08),
-      /* Capa 3: cono largo y difuso que se pierde */
-      55px 80px 120px rgba(0, 0, 0, 0.05);
+      /* Capa 1: sombra corta diagonal — arranca en borde inferior-derecho */ 16px 20px 30px
+        rgba(0, 0, 0, 0.09),
+      /* Capa 2: se expande más hacia abajo-derecha */ 32px 50px 70px rgba(0, 0, 0, 0.08),
+      /* Capa 3: cono largo y difuso que se pierde */ 55px 80px 120px rgba(0, 0, 0, 0.05);
   }
 }
 
@@ -407,7 +403,7 @@
   --primary-foreground: oklch(0.98 0 0);
   --ring: oklch(0.62 0.13 204);
   --secondary: oklch(0.93 0.03 200);
-  --secondary-foreground: oklch(0.20 0.04 200);
+  --secondary-foreground: oklch(0.2 0.04 200);
 }
 
 .preset-teal {
@@ -415,15 +411,15 @@
   --primary-foreground: oklch(0.98 0 0);
   --ring: oklch(0.63 0.12 173);
   --secondary: oklch(0.93 0.03 170);
-  --secondary-foreground: oklch(0.20 0.04 170);
+  --secondary-foreground: oklch(0.2 0.04 170);
 }
 
 .preset-purple {
-  --primary: oklch(0.50 0.26 296);
+  --primary: oklch(0.5 0.26 296);
   --primary-foreground: oklch(0.98 0 0);
-  --ring: oklch(0.60 0.23 296);
+  --ring: oklch(0.6 0.23 296);
   --secondary: oklch(0.92 0.04 290);
-  --secondary-foreground: oklch(0.20 0.05 290);
+  --secondary-foreground: oklch(0.2 0.05 290);
 }
 
 .preset-rose {
@@ -431,15 +427,15 @@
   --primary-foreground: oklch(0.98 0 0);
   --ring: oklch(0.66 0.19 10);
   --secondary: oklch(0.93 0.03 10);
-  --secondary-foreground: oklch(0.20 0.04 10);
+  --secondary-foreground: oklch(0.2 0.04 10);
 }
 
 .preset-orange {
   --primary: oklch(0.63 0.19 50);
   --primary-foreground: oklch(0.98 0 0);
-  --ring: oklch(0.70 0.17 50);
+  --ring: oklch(0.7 0.17 50);
   --secondary: oklch(0.93 0.04 55);
-  --secondary-foreground: oklch(0.20 0.05 55);
+  --secondary-foreground: oklch(0.2 0.05 55);
 }
 
 /* Dark mode overrides para presets — el primary se aclara en dark */
@@ -454,8 +450,8 @@
 }
 
 .dark.preset-purple {
-  --primary: oklch(0.68 0.20 296);
-  --ring: oklch(0.68 0.20 296);
+  --primary: oklch(0.68 0.2 296);
+  --ring: oklch(0.68 0.2 296);
 }
 
 .dark.preset-rose {
@@ -476,7 +472,7 @@
 }
 
 .bg-canvas {
-  --background: oklch(0.960 0.004 240);
+  --background: oklch(0.96 0.004 240);
   --card: oklch(1 0 0);
 }
 
@@ -486,8 +482,8 @@
 }
 
 .dark.bg-canvas {
-  --background: oklch(0.110 0.004 240);
-  --card: oklch(0.180 0.002 240);
+  --background: oklch(0.11 0.004 240);
+  --card: oklch(0.18 0.002 240);
 }
 
 /* ── Font Family ──────────────────────────────────────────────────────────── */
@@ -514,7 +510,7 @@
 
 /* ── Contrast ─────────────────────────────────────────────────────────────── */
 .contrast-bold {
-  --border: oklch(0.80 0 0);
+  --border: oklch(0.8 0 0);
   --muted-foreground: oklch(0.42 0 0);
 }
 
@@ -529,7 +525,7 @@
 .sidebar-dark {
   /* Mismo background que el dark mode: #141a21 */
   --sidebar: oklch(0.233 0.022 261);
-  --sidebar-foreground: oklch(0.670 0.032 258);
+  --sidebar-foreground: oklch(0.67 0.032 258);
   /* #919eab */
   --sidebar-primary: oklch(0.985 0 0);
   --sidebar-primary-foreground: oklch(0.233 0.022 261);
@@ -557,102 +553,173 @@
    Por eso las cards NO necesitan border.
    ══════════════════════════════════════════════════════════════════════════════ */
 @layer utilities {
-
   /* ── Material Elevation Shadows (1-24) ────────────────────────────────────── */
   .shadow-1 {
-    box-shadow: 0px 2px 1px -1px rgb(var(--shadow-color) / 20%), 0px 1px 1px 0px rgb(var(--shadow-color) / 14%), 0px 1px 3px 0px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 2px 1px -1px rgb(var(--shadow-color) / 20%),
+      0px 1px 1px 0px rgb(var(--shadow-color) / 14%),
+      0px 1px 3px 0px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-2 {
-    box-shadow: 0px 3px 1px -2px rgb(var(--shadow-color) / 20%), 0px 2px 2px 0px rgb(var(--shadow-color) / 14%), 0px 1px 5px 0px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 3px 1px -2px rgb(var(--shadow-color) / 20%),
+      0px 2px 2px 0px rgb(var(--shadow-color) / 14%),
+      0px 1px 5px 0px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-3 {
-    box-shadow: 0px 3px 3px -2px rgb(var(--shadow-color) / 20%), 0px 3px 4px 0px rgb(var(--shadow-color) / 14%), 0px 1px 8px 0px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 3px 3px -2px rgb(var(--shadow-color) / 20%),
+      0px 3px 4px 0px rgb(var(--shadow-color) / 14%),
+      0px 1px 8px 0px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-4 {
-    box-shadow: 0px 2px 4px -1px rgb(var(--shadow-color) / 20%), 0px 4px 5px 0px rgb(var(--shadow-color) / 14%), 0px 1px 10px 0px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 2px 4px -1px rgb(var(--shadow-color) / 20%),
+      0px 4px 5px 0px rgb(var(--shadow-color) / 14%),
+      0px 1px 10px 0px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-5 {
-    box-shadow: 0px 3px 5px -1px rgb(var(--shadow-color) / 20%), 0px 5px 8px 0px rgb(var(--shadow-color) / 14%), 0px 1px 14px 0px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 3px 5px -1px rgb(var(--shadow-color) / 20%),
+      0px 5px 8px 0px rgb(var(--shadow-color) / 14%),
+      0px 1px 14px 0px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-6 {
-    box-shadow: 0px 3px 5px -1px rgb(var(--shadow-color) / 20%), 0px 6px 10px 0px rgb(var(--shadow-color) / 14%), 0px 1px 18px 0px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 3px 5px -1px rgb(var(--shadow-color) / 20%),
+      0px 6px 10px 0px rgb(var(--shadow-color) / 14%),
+      0px 1px 18px 0px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-7 {
-    box-shadow: 0px 4px 5px -2px rgb(var(--shadow-color) / 20%), 0px 7px 10px 1px rgb(var(--shadow-color) / 14%), 0px 2px 16px 1px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 4px 5px -2px rgb(var(--shadow-color) / 20%),
+      0px 7px 10px 1px rgb(var(--shadow-color) / 14%),
+      0px 2px 16px 1px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-8 {
-    box-shadow: 0px 5px 5px -3px rgb(var(--shadow-color) / 20%), 0px 8px 10px 1px rgb(var(--shadow-color) / 14%), 0px 3px 14px 2px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 5px 5px -3px rgb(var(--shadow-color) / 20%),
+      0px 8px 10px 1px rgb(var(--shadow-color) / 14%),
+      0px 3px 14px 2px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-9 {
-    box-shadow: 0px 5px 6px -3px rgb(var(--shadow-color) / 20%), 0px 9px 12px 1px rgb(var(--shadow-color) / 14%), 0px 3px 16px 2px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 5px 6px -3px rgb(var(--shadow-color) / 20%),
+      0px 9px 12px 1px rgb(var(--shadow-color) / 14%),
+      0px 3px 16px 2px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-10 {
-    box-shadow: 0px 6px 6px -3px rgb(var(--shadow-color) / 20%), 0px 10px 14px 1px rgb(var(--shadow-color) / 14%), 0px 4px 18px 3px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 6px 6px -3px rgb(var(--shadow-color) / 20%),
+      0px 10px 14px 1px rgb(var(--shadow-color) / 14%),
+      0px 4px 18px 3px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-11 {
-    box-shadow: 0px 6px 7px -4px rgb(var(--shadow-color) / 20%), 0px 11px 15px 1px rgb(var(--shadow-color) / 14%), 0px 4px 20px 3px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 6px 7px -4px rgb(var(--shadow-color) / 20%),
+      0px 11px 15px 1px rgb(var(--shadow-color) / 14%),
+      0px 4px 20px 3px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-12 {
-    box-shadow: 0px 7px 8px -4px rgb(var(--shadow-color) / 20%), 0px 12px 17px 2px rgb(var(--shadow-color) / 14%), 0px 5px 22px 4px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 7px 8px -4px rgb(var(--shadow-color) / 20%),
+      0px 12px 17px 2px rgb(var(--shadow-color) / 14%),
+      0px 5px 22px 4px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-13 {
-    box-shadow: 0px 7px 8px -4px rgb(var(--shadow-color) / 20%), 0px 13px 19px 2px rgb(var(--shadow-color) / 14%), 0px 5px 24px 4px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 7px 8px -4px rgb(var(--shadow-color) / 20%),
+      0px 13px 19px 2px rgb(var(--shadow-color) / 14%),
+      0px 5px 24px 4px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-14 {
-    box-shadow: 0px 7px 9px -4px rgb(var(--shadow-color) / 20%), 0px 14px 21px 2px rgb(var(--shadow-color) / 14%), 0px 5px 26px 4px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 7px 9px -4px rgb(var(--shadow-color) / 20%),
+      0px 14px 21px 2px rgb(var(--shadow-color) / 14%),
+      0px 5px 26px 4px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-15 {
-    box-shadow: 0px 8px 9px -5px rgb(var(--shadow-color) / 20%), 0px 15px 22px 2px rgb(var(--shadow-color) / 14%), 0px 6px 28px 5px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 8px 9px -5px rgb(var(--shadow-color) / 20%),
+      0px 15px 22px 2px rgb(var(--shadow-color) / 14%),
+      0px 6px 28px 5px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-16 {
-    box-shadow: 0px 8px 10px -5px rgb(var(--shadow-color) / 20%), 0px 16px 24px 2px rgb(var(--shadow-color) / 14%), 0px 6px 30px 5px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 8px 10px -5px rgb(var(--shadow-color) / 20%),
+      0px 16px 24px 2px rgb(var(--shadow-color) / 14%),
+      0px 6px 30px 5px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-17 {
-    box-shadow: 0px 8px 11px -5px rgb(var(--shadow-color) / 20%), 0px 17px 26px 2px rgb(var(--shadow-color) / 14%), 0px 6px 32px 5px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 8px 11px -5px rgb(var(--shadow-color) / 20%),
+      0px 17px 26px 2px rgb(var(--shadow-color) / 14%),
+      0px 6px 32px 5px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-18 {
-    box-shadow: 0px 9px 11px -5px rgb(var(--shadow-color) / 20%), 0px 18px 28px 2px rgb(var(--shadow-color) / 14%), 0px 7px 34px 6px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 9px 11px -5px rgb(var(--shadow-color) / 20%),
+      0px 18px 28px 2px rgb(var(--shadow-color) / 14%),
+      0px 7px 34px 6px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-19 {
-    box-shadow: 0px 9px 12px -6px rgb(var(--shadow-color) / 20%), 0px 19px 29px 2px rgb(var(--shadow-color) / 14%), 0px 7px 36px 6px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 9px 12px -6px rgb(var(--shadow-color) / 20%),
+      0px 19px 29px 2px rgb(var(--shadow-color) / 14%),
+      0px 7px 36px 6px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-20 {
-    box-shadow: 0px 10px 13px -6px rgb(var(--shadow-color) / 20%), 0px 20px 31px 3px rgb(var(--shadow-color) / 14%), 0px 8px 38px 7px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 10px 13px -6px rgb(var(--shadow-color) / 20%),
+      0px 20px 31px 3px rgb(var(--shadow-color) / 14%),
+      0px 8px 38px 7px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-21 {
-    box-shadow: 0px 10px 13px -6px rgb(var(--shadow-color) / 20%), 0px 21px 33px 3px rgb(var(--shadow-color) / 14%), 0px 8px 40px 7px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 10px 13px -6px rgb(var(--shadow-color) / 20%),
+      0px 21px 33px 3px rgb(var(--shadow-color) / 14%),
+      0px 8px 40px 7px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-22 {
-    box-shadow: 0px 10px 14px -6px rgb(var(--shadow-color) / 20%), 0px 22px 35px 3px rgb(var(--shadow-color) / 14%), 0px 8px 42px 7px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 10px 14px -6px rgb(var(--shadow-color) / 20%),
+      0px 22px 35px 3px rgb(var(--shadow-color) / 14%),
+      0px 8px 42px 7px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-23 {
-    box-shadow: 0px 11px 14px -7px rgb(var(--shadow-color) / 20%), 0px 23px 36px 3px rgb(var(--shadow-color) / 14%), 0px 9px 44px 8px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 11px 14px -7px rgb(var(--shadow-color) / 20%),
+      0px 23px 36px 3px rgb(var(--shadow-color) / 14%),
+      0px 9px 44px 8px rgb(var(--shadow-color) / 12%);
   }
 
   .shadow-24 {
-    box-shadow: 0px 11px 15px -7px rgb(var(--shadow-color) / 20%), 0px 24px 38px 3px rgb(var(--shadow-color) / 14%), 0px 9px 46px 8px rgb(var(--shadow-color) / 12%);
+    box-shadow:
+      0px 11px 15px -7px rgb(var(--shadow-color) / 20%),
+      0px 24px 38px 3px rgb(var(--shadow-color) / 14%),
+      0px 9px 46px 8px rgb(var(--shadow-color) / 12%);
   }
 
   /* ── Escala de elevación Z ────────────────────────────────────────────────── */
@@ -688,14 +755,14 @@
   /*    = 0 border + esta sombra → el look Minimal exacto                       */
   .shadow-card {
     box-shadow:
-      0 0 2px 0 rgba(145, 158, 171, 0.20),
+      0 0 2px 0 rgba(145, 158, 171, 0.2),
       0 12px 24px -4px rgba(145, 158, 171, 0.12);
   }
 
   .shadow-card-hover {
     box-shadow:
       0 0 2px 0 rgba(145, 158, 171, 0.24),
-      0 16px 32px -4px rgba(145, 158, 171, 0.20);
+      0 16px 32px -4px rgba(145, 158, 171, 0.2);
   }
 
   /* ── Dialog / Modal ───────────────────────────────────────────────────────── */
@@ -746,7 +813,7 @@
 
   .dark .shadow-card {
     box-shadow:
-      0 0 2px 0 rgba(0, 0, 0, 0.20),
+      0 0 2px 0 rgba(0, 0, 0, 0.2),
       0 12px 24px -4px rgba(0, 0, 0, 0.12);
   }
 

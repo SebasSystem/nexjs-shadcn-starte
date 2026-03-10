@@ -2,6 +2,7 @@ const ROOTS = {
   AUTH: '/auth',
   DASHBOARD: '/dashboard',
   INVENTORY: '/inventory',
+  SALES: '/sales',
 };
 
 export const paths = {
@@ -38,5 +39,13 @@ export const paths = {
     roles: {
       root: `${ROOTS.DASHBOARD}/roles`,
     },
+  },
+
+  // SALES
+  sales: {
+    root: ROOTS.SALES,
+    pipeline: `${ROOTS.SALES}/pipeline`,
+    quotation: (id: string) => `${ROOTS.SALES}/quotation/${id}`,
+    invoice: (id: string) => `${ROOTS.SALES}/invoice/${id}`,
   },
 };
