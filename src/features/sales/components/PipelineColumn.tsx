@@ -85,11 +85,7 @@ export function PipelineColumn({ stage, opportunities }: PipelineColumnProps) {
           </div>
         ) : (
           opportunities.map((opp) => (
-            <OpportunityCard
-              key={opp.id}
-              opportunity={opp}
-              stageColor={stage.color}
-            />
+            <OpportunityCard key={opp.id} opportunity={opp} stageColor={stage.color} />
           ))
         )}
       </div>

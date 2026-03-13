@@ -49,6 +49,29 @@ export const tokenExpired = (exp: number) => {
   const timeLeft = exp * 1000 - currentTime;
 
   clearTimeout(expiredTimer);
+  //////////// Validacion temporal //////////////////////
+  // JavaScript setTimeout tiene un límite de 2,147,483,647 ms (aproximadamente 24.8 días).
+  // Si el token expira después de eso (como los de mock que duran años), el timer desborda y se ejecuta de inmediato.
+  const MAX_TIMEOUT = 2147483647;
+
+  if (timeLeft > MAX_TIMEOUT) {
+    // eslint-disable-next-line no-console
+    console.info(
+      '[Auth] Token expiration is too far in the future (> 24 days). Timer will not be set.'
+    );
+    return;
+  }
+
+  if (timeLeft <= 0) {
+    console.warn('[Auth] Token already expired.');
+    // Si ya expiró, ejecutamos la lógica de limpieza
+    sessionStorage.removeItem(JWT_STORAGE_KEY);
+    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    window.location.href = paths.auth.jwt.signIn;
+    return;
+  }
+  ///////////////////////////////////////////////////////
   expiredTimer = setTimeout(() => {
     alert('Session expired!');
 

@@ -187,8 +187,9 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             <h1 className="text-h4 text-foreground">{quotation.id}</h1>
             <Badge
               variant="soft"
-              className={`px-3 py-1 text-xs font-semibold rounded-full border-none ${STATUS_COLORS[quotation.status]
-                }`}
+              className={`px-3 py-1 text-xs font-semibold rounded-full border-none ${
+                STATUS_COLORS[quotation.status]
+              }`}
             >
               {STATUS_LABELS[quotation.status]}
             </Badge>
@@ -330,8 +331,9 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                     quotation.products.map((line, i) => (
                       <tr
                         key={line.id}
-                        className={`group hover:bg-muted/10 transition-colors ${i < quotation.products.length - 1 && 'border-b border-border/40'
-                          }`}
+                        className={`group hover:bg-muted/10 transition-colors ${
+                          i < quotation.products.length - 1 && 'border-b border-border/40'
+                        }`}
                       >
                         <td className="px-6 py-4">
                           <input

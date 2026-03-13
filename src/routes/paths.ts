@@ -47,5 +47,12 @@ export const paths = {
     pipeline: `${ROOTS.SALES}/pipeline`,
     quotation: (id: string) => `${ROOTS.SALES}/quotation/${id}`,
     invoice: (id: string) => `${ROOTS.SALES}/invoice/${id}`,
+    finance: {
+      root: `${ROOTS.SALES}/finance`,
+      quotation: `${ROOTS.SALES}/finance/quotation`,
+      invoice: `${ROOTS.SALES}/finance/invoice`,
+      creditRules: `${ROOTS.SALES}/finance/credit-rules`,
+      multiCurrency: `${ROOTS.SALES}/finance/multi-currency`,
+    },
   },
 };
