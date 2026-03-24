@@ -16,7 +16,7 @@ const STATUS_CONFIG: Record<
 };
 
 export function StockBadge({ status }: StockBadgeProps) {
-  const { label, color } = STATUS_CONFIG[status];
+  const { label, color } = STATUS_CONFIG[status] || STATUS_CONFIG['available'];
   return (
     <Badge variant="soft" color={color}>
       {label}

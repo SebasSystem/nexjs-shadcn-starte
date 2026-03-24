@@ -56,9 +56,9 @@ const PAYMENT_METHOD_OPTIONS = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatMXN(amount: number): string {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('es-CO', {
     style: 'currency',
-    currency: 'MXN',
+    currency: 'COP',
     minimumFractionDigits: 2,
   }).format(amount);
 }

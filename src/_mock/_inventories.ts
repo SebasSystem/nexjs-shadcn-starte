@@ -2,6 +2,10 @@
 
 export type StockStatus = 'available' | 'low_stock' | 'out_of_stock' | 'reserved';
 
+export type MovementType = 'transfer' | 'receipt' | 'adjustment_add' | 'adjustment_sub' | 'reservation';
+
+export type AdjustmentReason = 'physical_count' | 'damage' | 'loss' | 'entry_error' | 'other';
+
 export type ProductCategory = {
   id: string;
   name: string;
@@ -16,32 +20,32 @@ export type Product = {
   minStock: number;
   stockMain: number;
   stockStore: number;
-  reserved: number;
   status: 'active' | 'inactive';
 };
 
 export type WarehouseMovement = {
   id: string;
   date: string;
-  productId: string;
-  productName: string;
-  productSku: string;
-  from: 'main' | 'store';
-  to: 'main' | 'store';
-  quantity: number;
+  type: MovementType;
+  // Transfer fields
+  productId?: string;
+  productName?: string;
+  productSku?: string;
+  from?: 'main' | 'store' | 'external';
+  to?: 'main' | 'store' | 'external';
+  quantity?: number;
   comment: string;
   registeredBy: string;
-};
-
-export type B2BReservation = {
-  id: string;
-  quoteNumber: string;
-  client: string;
-  productId: string;
-  productName: string;
-  reserved: number;
-  approvedAt: string;
-  status: 'approved' | 'in_process' | 'pending';
+  // Receipt fields
+  receiptOrderRef?: string;
+  receiptItems?: { productId: string; productName: string; productSku: string; quantity: number }[];
+  // Adjustment fields
+  adjustmentReason?: AdjustmentReason;
+  adjustmentReasonOther?: string;
+  adjustmentWarehouse?: 'main' | 'store';
+  // Reservation fields
+  quoteId?: string;
+  clientName?: string;
 };
 
 // ─── Categories ──────────────────────────────────────────────────────────────
@@ -55,6 +59,9 @@ export const MOCK_CATEGORIES: ProductCategory[] = [
 ];
 
 // ─── Products ─────────────────────────────────────────────────────────────────
+// NOTA: el campo `reserved` fue eliminado del modelo de producto.
+// Ahora se calcula dinámicamente desde MOCK_QUOTES (cotizaciones aprobadas).
+// Usar siempre getReservedForProduct(productId) y getProductAvailable(product).
 
 export const MOCK_PRODUCTS: Product[] = [
   {
@@ -66,7 +73,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 25,
     stockMain: 2,
     stockStore: 1,
-    reserved: 0,
     status: 'active',
   },
   {
@@ -78,7 +84,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 20,
     stockMain: 5,
     stockStore: 3,
-    reserved: 2,
     status: 'active',
   },
   {
@@ -90,7 +95,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 30,
     stockMain: 10,
     stockStore: 2,
-    reserved: 5,
     status: 'active',
   },
   {
@@ -102,7 +106,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 15,
     stockMain: 40,
     stockStore: 18,
-    reserved: 10,
     status: 'active',
   },
   {
@@ -114,7 +117,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 10,
     stockMain: 0,
     stockStore: 0,
-    reserved: 0,
     status: 'active',
   },
   {
@@ -126,7 +128,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 8,
     stockMain: 22,
     stockStore: 10,
-    reserved: 8,
     status: 'active',
   },
   {
@@ -138,7 +139,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 50,
     stockMain: 120,
     stockStore: 60,
-    reserved: 30,
     status: 'active',
   },
   {
@@ -150,7 +150,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 12,
     stockMain: 15,
     stockStore: 7,
-    reserved: 4,
     status: 'active',
   },
   {
@@ -162,7 +161,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 20,
     stockMain: 0,
     stockStore: 0,
-    reserved: 0,
     status: 'active',
   },
   {
@@ -174,7 +172,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 20,
     stockMain: 35,
     stockStore: 15,
-    reserved: 12,
     status: 'active',
   },
   {
@@ -186,7 +183,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 15,
     stockMain: 0,
     stockStore: 2,
-    reserved: 0,
     status: 'active',
   },
   {
@@ -198,7 +194,6 @@ export const MOCK_PRODUCTS: Product[] = [
     minStock: 5,
     stockMain: 8,
     stockStore: 3,
-    reserved: 2,
     status: 'active',
   },
 ];
@@ -209,6 +204,7 @@ export const MOCK_MOVEMENTS: WarehouseMovement[] = [
   {
     id: 'mov-001',
     date: '2026-03-04T10:23:00Z',
+    type: 'transfer',
     productId: 'prod-004',
     productName: 'Pantalón Cargo Verde M',
     productSku: 'SKU-012-M',
@@ -221,6 +217,7 @@ export const MOCK_MOVEMENTS: WarehouseMovement[] = [
   {
     id: 'mov-002',
     date: '2026-03-04T09:10:00Z',
+    type: 'transfer',
     productId: 'prod-006',
     productName: 'Auriculares BT Pro',
     productSku: 'SKU-201-BT',
@@ -233,6 +230,7 @@ export const MOCK_MOVEMENTS: WarehouseMovement[] = [
   {
     id: 'mov-003',
     date: '2026-03-03T16:45:00Z',
+    type: 'transfer',
     productId: 'prod-007',
     productName: 'Calcetines Deportivos Pack x3',
     productSku: 'SKU-055-P3',
@@ -245,6 +243,7 @@ export const MOCK_MOVEMENTS: WarehouseMovement[] = [
   {
     id: 'mov-004',
     date: '2026-03-03T14:00:00Z',
+    type: 'transfer',
     productId: 'prod-010',
     productName: 'Camiseta Polo L',
     productSku: 'SKU-002-L',
@@ -257,6 +256,7 @@ export const MOCK_MOVEMENTS: WarehouseMovement[] = [
   {
     id: 'mov-005',
     date: '2026-03-02T11:30:00Z',
+    type: 'transfer',
     productId: 'prod-008',
     productName: 'Mochila Trail 30L',
     productSku: 'SKU-077-30',
@@ -269,6 +269,7 @@ export const MOCK_MOVEMENTS: WarehouseMovement[] = [
   {
     id: 'mov-006',
     date: '2026-03-01T09:00:00Z',
+    type: 'transfer',
     productId: 'prod-012',
     productName: 'Reloj GPS Sport',
     productSku: 'SKU-300-GPS',
@@ -281,6 +282,7 @@ export const MOCK_MOVEMENTS: WarehouseMovement[] = [
   {
     id: 'mov-007',
     date: '2026-02-28T15:20:00Z',
+    type: 'transfer',
     productId: 'prod-002',
     productName: 'Zapatilla Running 42',
     productSku: 'SKU-045-42',
@@ -293,6 +295,7 @@ export const MOCK_MOVEMENTS: WarehouseMovement[] = [
   {
     id: 'mov-008',
     date: '2026-02-27T13:00:00Z',
+    type: 'transfer',
     productId: 'prod-003',
     productName: 'Gorra Deportiva Negra',
     productSku: 'SKU-089-BK',
@@ -302,74 +305,85 @@ export const MOCK_MOVEMENTS: WarehouseMovement[] = [
     comment: '',
     registeredBy: 'Admin',
   },
-];
-
-// ─── B2B Reservations ─────────────────────────────────────────────────────────
-
-export const MOCK_B2B_RESERVATIONS: B2BReservation[] = [
+  // ─── Receipts (entradas de mercancía) ─────────────────────────────────────
   {
-    id: 'res-001',
-    quoteNumber: 'COT-2024-0166',
-    client: 'Distribuidora Mayorista',
-    productId: 'prod-004',
-    productName: 'Pantalón Cargo Verde M',
-    reserved: 10,
-    approvedAt: '2026-03-03T10:00:00Z',
-    status: 'approved',
+    id: 'mov-009',
+    date: '2026-03-10T08:30:00Z',
+    type: 'receipt',
+    from: 'external',
+    to: 'main',
+    comment: '',
+    registeredBy: 'Admin',
+    receiptOrderRef: 'OC-2026-042',
+    receiptItems: [
+      { productId: 'prod-005', productName: 'Chaqueta Impermeable S', productSku: 'SKU-033-S', quantity: 25 },
+      { productId: 'prod-009', productName: 'Botella Térmica 750ml', productSku: 'SKU-099-75', quantity: 30 },
+    ],
   },
+  // ─── Adjustments (ajustes manuales) ───────────────────────────────────────
   {
-    id: 'res-002',
-    quoteNumber: 'COT-2024-0165',
-    client: 'Retail Corp',
-    productId: 'prod-007',
-    productName: 'Calcetines Deportivos Pack x3',
-    reserved: 30,
-    approvedAt: '2026-03-02T14:00:00Z',
-    status: 'approved',
-  },
-  {
-    id: 'res-003',
-    quoteNumber: 'COT-2024-0164',
-    client: 'Super Norte',
-    productId: 'prod-010',
-    productName: 'Camiseta Polo L',
-    reserved: 12,
-    approvedAt: '2026-03-01T09:00:00Z',
-    status: 'in_process',
-  },
-  {
-    id: 'res-004',
-    quoteNumber: 'COT-2024-0163',
-    client: 'Almacenes del Sur',
-    productId: 'prod-006',
-    productName: 'Auriculares BT Pro',
-    reserved: 8,
-    approvedAt: '2026-02-28T11:00:00Z',
-    status: 'approved',
-  },
-  {
-    id: 'res-005',
-    quoteNumber: 'COT-2024-0162',
-    client: 'Cadena Sport MX',
-    productId: 'prod-002',
-    productName: 'Zapatilla Running 42',
-    reserved: 2,
-    approvedAt: '2026-02-27T16:00:00Z',
-    status: 'pending',
+    id: 'mov-010',
+    date: '2026-03-08T14:00:00Z',
+    type: 'adjustment_sub',
+    productId: 'prod-001',
+    productName: 'Camiseta Básica XL',
+    productSku: 'SKU-001-XL',
+    from: 'main',
+    quantity: 3,
+    comment: 'Unidades dañadas en traslado',
+    registeredBy: 'Admin',
+    adjustmentReason: 'damage',
+    adjustmentWarehouse: 'main',
   },
 ];
 
 // ─── Derived helpers ──────────────────────────────────────────────────────────
 
-export function getProductStockStatus(product: Product): StockStatus {
+/**
+ * Calcula el stock reservado de un producto a partir de las cotizaciones aprobadas.
+ * IMPORTANTE: importar MOCK_QUOTES desde _quotes para no crear dependencia circular.
+ * Esta function es la fuente de verdad para "reservado".
+ */
+export function getReservedForProduct(productId: string, approvedQuotes: { items: { productId: string; quantity: number }[] }[]): number {
+  return approvedQuotes
+    .flatMap((q) => q.items)
+    .filter((item) => item.productId === productId)
+    .reduce((sum, item) => sum + item.quantity, 0);
+}
+
+export function getProductStockStatus(
+  product: Product,
+  reserved: number
+): StockStatus {
   const total = product.stockMain + product.stockStore;
-  const available = total - product.reserved;
+  const available = total - reserved;
   if (total === 0) return 'out_of_stock';
   if (available <= 0) return 'reserved';
   if (total <= product.minStock) return 'low_stock';
   return 'available';
 }
 
-export function getProductAvailable(product: Product): number {
-  return product.stockMain + product.stockStore - product.reserved;
+export function getProductAvailable(product: Product, reserved: number): number {
+  return product.stockMain + product.stockStore - reserved;
 }
+
+// ─── Movement type config ─────────────────────────────────────────────────────
+
+export const MOVEMENT_TYPE_CONFIG: Record<
+  MovementType,
+  { label: string; color: 'info' | 'success' | 'warning' | 'error' | 'secondary' }
+> = {
+  transfer: { label: 'Traslado', color: 'info' },
+  receipt: { label: 'Entrada de mercancía', color: 'success' },
+  adjustment_add: { label: 'Ajuste positivo', color: 'success' },
+  adjustment_sub: { label: 'Ajuste negativo', color: 'warning' },
+  reservation: { label: 'Reserva B2B', color: 'secondary' },
+};
+
+export const ADJUSTMENT_REASON_LABELS: Record<AdjustmentReason, string> = {
+  physical_count: 'Conteo físico',
+  damage: 'Merma / daño',
+  loss: 'Pérdida / robo',
+  entry_error: 'Error de registro',
+  other: 'Otro',
+};

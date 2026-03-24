@@ -27,58 +27,15 @@ import {
 import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { cn } from 'src/lib/utils';
-import {
-  MOCK_PRODUCTS,
-  MOCK_CATEGORIES,
-  getProductStockStatus,
-  getProductAvailable,
-  type Product,
-} from 'src/_mock/_inventories';
+import { MOCK_CATEGORIES } from 'src/_mock/_inventories';
 import { StockBadge } from '../components/StockBadge';
 import { ACTION_ICONS } from 'src/shared/constants/app-icons';
-
-// ─── Stats ────────────────────────────────────────────────────────────────────
-
-const total = MOCK_PRODUCTS.length;
-const active = MOCK_PRODUCTS.filter((p) => p.stockMain + p.stockStore > 0).length;
-const outOfStock = MOCK_PRODUCTS.filter((p) => p.stockMain + p.stockStore === 0).length;
-const pctActive = total > 0 ? Math.round((active / total) * 100) : 0;
-const pctOutOfStock = total > 0 ? Math.round((outOfStock / total) * 100) : 0;
-
-const statsCards = [
-  {
-    title: 'Total productos',
-    value: total,
-    icon: <Icon name="Package" size={18} />,
-    iconClassName: 'bg-primary/10 text-primary',
-  },
-  {
-    title: 'Productos activos',
-    value: active,
-    badge: `${pctActive}% del total`,
-    badgeClass: 'bg-success/10 text-success',
-    icon: <Icon name="CheckCircle" size={18} />,
-    iconClassName: 'bg-success/10 text-success',
-  },
-  {
-    title: 'Productos sin stock',
-    value: outOfStock,
-    badge: `${pctOutOfStock}% del total`,
-    badgeClass: 'bg-error/10 text-error',
-    icon: <Icon name="XCircle" size={18} />,
-    iconClassName: 'bg-error/10 text-error',
-  },
-  {
-    title: 'Categorías',
-    value: MOCK_CATEGORIES.length,
-    icon: <Icon name="Tag" size={18} />,
-    iconClassName: 'bg-info/10 text-info',
-  },
-];
+import { useInventory, type RichProduct } from '../hooks/useInventory';
+import { toast } from 'sonner';
 
 // ─── Column helper ────────────────────────────────────────────────────────────
 
-const columnHelper = createColumnHelper<Product>();
+const columnHelper = createColumnHelper<RichProduct>();
 
 // ─── Drawer ───────────────────────────────────────────────────────────────────
 
@@ -87,11 +44,16 @@ type DrawerMode = 'create' | 'edit';
 interface ProductDrawerProps {
   open: boolean;
   mode: DrawerMode;
-  product?: Product | null;
+  product?: RichProduct | null;
   onClose: () => void;
+  onCreate: (data: {
+    name: string; sku: string; category: string; unit: string; minStock: number;
+    status: 'active' | 'inactive'; stockMainInit: number; stockStoreInit: number;
+  }) => void;
+  onUpdate: (productId: string, changes: Partial<RichProduct>) => void;
 }
 
-function ProductDrawer({ open, mode, product, onClose }: ProductDrawerProps) {
+function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: ProductDrawerProps) {
   const [name, setName] = useState(product?.name ?? '');
   const [sku, setSku] = useState(product?.sku ?? '');
   const [category, setCategory] = useState(product?.category ?? '');
@@ -101,6 +63,7 @@ function ProductDrawer({ open, mode, product, onClose }: ProductDrawerProps) {
   const [stockMain, setStockMain] = useState('0');
   const [stockStore, setStockStore] = useState('0');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -112,8 +75,24 @@ function ProductDrawer({ open, mode, product, onClose }: ProductDrawerProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 500));
+
+    if (mode === 'create') {
+      onCreate({
+        name, sku, category: category || MOCK_CATEGORIES[0].name, unit,
+        minStock: Number(minStock), status: active ? 'active' : 'inactive',
+        stockMainInit: Number(stockMain), stockStoreInit: Number(stockStore),
+      });
+      toast.success('Producto creado correctamente');
+    } else if (product) {
+      onUpdate(product.id, { name, sku, category, unit, minStock: Number(minStock), status: active ? 'active' : 'inactive' });
+      toast.success('Producto actualizado');
+    }
+
+    setLoading(false);
     onClose();
   };
 
@@ -162,9 +141,7 @@ function ProductDrawer({ open, mode, product, onClose }: ProductDrawerProps) {
               </SelectTrigger>
               <SelectContent>
                 {MOCK_CATEGORIES.map((c) => (
-                  <SelectItem key={c.id} value={c.name}>
-                    {c.name}
-                  </SelectItem>
+                  <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -179,9 +156,7 @@ function ProductDrawer({ open, mode, product, onClose }: ProductDrawerProps) {
               </SelectTrigger>
               <SelectContent>
                 {['Unidad', 'Caja', 'Par', 'Pack', 'Kg', 'L'].map((u) => (
-                  <SelectItem key={u} value={u}>
-                    {u}
-                  </SelectItem>
+                  <SelectItem key={u} value={u}>{u}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -225,9 +200,7 @@ function ProductDrawer({ open, mode, product, onClose }: ProductDrawerProps) {
                     onChange={(e) => setStockMain(e.target.value)}
                     className={cn(errors.stockMain && 'border-error')}
                   />
-                  {errors.stockMain && (
-                    <p className="text-caption text-error">{errors.stockMain}</p>
-                  )}
+                  {errors.stockMain && <p className="text-caption text-error">{errors.stockMain}</p>}
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="stock-store">Tienda</Label>
@@ -239,9 +212,7 @@ function ProductDrawer({ open, mode, product, onClose }: ProductDrawerProps) {
                     onChange={(e) => setStockStore(e.target.value)}
                     className={cn(errors.stockStore && 'border-error')}
                   />
-                  {errors.stockStore && (
-                    <p className="text-caption text-error">{errors.stockStore}</p>
-                  )}
+                  {errors.stockStore && <p className="text-caption text-error">{errors.stockStore}</p>}
                 </div>
               </div>
               <p className="text-caption text-muted-foreground">
@@ -250,14 +221,23 @@ function ProductDrawer({ open, mode, product, onClose }: ProductDrawerProps) {
             </div>
           )}
 
-          {/* Inactivar (solo edit) */}
+          {/* Zona de peligro (solo edit) */}
           {isEdit && (
             <div className="rounded-xl border border-error/20 p-4 bg-error/5">
               <p className="text-subtitle2 text-error font-medium mb-1">Zona de peligro</p>
               <p className="text-caption text-muted-foreground mb-3">
                 Inactivar el producto lo ocultará de los flujos de venta.
               </p>
-              <Button variant="outline" color="error" size="sm">
+              <Button
+                variant="outline"
+                color="error"
+                size="sm"
+                onClick={() => {
+                  onUpdate(product!.id, { status: 'inactive' });
+                  toast.success('Producto inactivado');
+                  onClose();
+                }}
+              >
                 Inactivar producto
               </Button>
             </div>
@@ -265,11 +245,13 @@ function ProductDrawer({ open, mode, product, onClose }: ProductDrawerProps) {
         </div>
 
         <SheetFooter className="border-t border-border/60 pt-4 px-4 pb-4">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
-          <Button color="primary" onClick={handleSave}>
-            Guardar
+          <Button color="primary" onClick={handleSave} disabled={loading}>
+            {loading ? (
+              <><Icon name="Loader2" size={15} className="animate-spin" /> Guardando...</>
+            ) : 'Guardar'}
           </Button>
         </SheetFooter>
       </SheetContent>
@@ -280,39 +262,67 @@ function ProductDrawer({ open, mode, product, onClose }: ProductDrawerProps) {
 // ─── Main View ────────────────────────────────────────────────────────────────
 
 export function ProductsView() {
+  const { products, stats, createProduct, updateProduct } = useInventory();
+
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterWarehouse, setFilterWarehouse] = useState('all');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>('create');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<RichProduct | null>(null);
+
+  const statsCards = [
+    {
+      title: 'Total productos',
+      value: stats.totalProducts,
+      icon: <Icon name="Package" size={18} />,
+      iconClassName: 'bg-primary/10 text-primary',
+    },
+    {
+      title: 'Productos activos',
+      value: stats.activeProducts,
+      badge: `${stats.totalProducts > 0 ? Math.round((stats.activeProducts / stats.totalProducts) * 100) : 0}% del total`,
+      badgeClass: 'bg-success/10 text-success',
+      icon: <Icon name="CheckCircle" size={18} />,
+      iconClassName: 'bg-success/10 text-success',
+    },
+    {
+      title: 'Productos sin stock',
+      value: stats.outOfStock,
+      badge: `${stats.totalProducts > 0 ? Math.round((stats.outOfStock / stats.totalProducts) * 100) : 0}% del total`,
+      badgeClass: 'bg-error/10 text-error',
+      icon: <Icon name="XCircle" size={18} />,
+      iconClassName: 'bg-error/10 text-error',
+    },
+    {
+      title: 'Categorías',
+      value: MOCK_CATEGORIES.length,
+      icon: <Icon name="Tag" size={18} />,
+      iconClassName: 'bg-info/10 text-info',
+    },
+  ];
 
   const filtered = useMemo(() => {
-    return MOCK_PRODUCTS.filter((p) => {
+    return products.filter((p) => {
       const matchSearch =
         !search ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         p.sku.toLowerCase().includes(search.toLowerCase());
-
       const matchCategory = filterCategory === 'all' || p.category === filterCategory;
-
-      const status = getProductStockStatus(p);
       const matchStatus =
         filterStatus === 'all' ||
-        (filterStatus === 'available' && status === 'available') ||
-        (filterStatus === 'out_of_stock' && status === 'out_of_stock') ||
-        (filterStatus === 'low_stock' && status === 'low_stock') ||
+        (filterStatus === 'available' && p.stockStatus === 'available') ||
+        (filterStatus === 'out_of_stock' && p.stockStatus === 'out_of_stock') ||
+        (filterStatus === 'low_stock' && p.stockStatus === 'low_stock') ||
         (filterStatus === 'inactive' && p.status === 'inactive');
-
       const matchWarehouse =
         filterWarehouse === 'all' ||
         (filterWarehouse === 'main' && p.stockMain > 0) ||
         (filterWarehouse === 'store' && p.stockStore > 0);
-
       return matchSearch && matchCategory && matchStatus && matchWarehouse;
     });
-  }, [search, filterCategory, filterStatus, filterWarehouse]);
+  }, [products, search, filterCategory, filterStatus, filterWarehouse]);
 
   const COLUMNS = useMemo(
     () => [
@@ -327,18 +337,11 @@ export function ProductsView() {
       }),
       columnHelper.accessor('category', {
         header: 'Categoría',
-        cell: (info) => (
-          <Badge variant="soft" color="secondary">
-            {info.getValue()}
-          </Badge>
-        ),
+        cell: (info) => <Badge variant="soft" color="secondary">{info.getValue()}</Badge>,
       }),
-      columnHelper.accessor((row) => row.stockMain + row.stockStore, {
-        id: 'totalStock',
+      columnHelper.accessor('physical', {
         header: () => <div className="text-right w-full">Stock total</div>,
-        cell: (info) => (
-          <div className="text-right font-semibold text-foreground">{info.getValue()}</div>
-        ),
+        cell: (info) => <div className="text-right font-semibold text-foreground">{info.getValue()}</div>,
       }),
       columnHelper.accessor('stockMain', {
         header: () => <div className="text-right w-full">B. Principal</div>,
@@ -352,8 +355,7 @@ export function ProductsView() {
         header: () => <div className="text-right w-full">Reservado</div>,
         cell: (info) => <div className="text-right text-muted-foreground">{info.getValue()}</div>,
       }),
-      columnHelper.accessor((row) => getProductAvailable(row), {
-        id: 'available',
+      columnHelper.accessor('available', {
         header: () => <div className="text-right w-full font-semibold">Disponible real</div>,
         cell: (info) => {
           const val = info.getValue();
@@ -364,8 +366,7 @@ export function ProductsView() {
           );
         },
       }),
-      columnHelper.accessor((row) => getProductStockStatus(row), {
-        id: 'status',
+      columnHelper.accessor('stockStatus', {
         header: 'Estado',
         cell: (info) => <StockBadge status={info.getValue()} />,
       }),
@@ -433,12 +434,7 @@ export function ProductsView() {
                 </p>
               </div>
               {card.badge && (
-                <span
-                  className={cn(
-                    'text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap mt-0.5',
-                    card.badgeClass
-                  )}
-                >
+                <span className={cn('text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap mt-0.5', card.badgeClass)}>
                   {card.badge}
                 </span>
               )}
@@ -450,14 +446,9 @@ export function ProductsView() {
 
       {/* Filters + Table */}
       <SectionCard noPadding>
-        {/* Filters */}
         <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-border/60">
           <div className="relative flex-1 min-w-48">
-            <Icon
-              name="Search"
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
+            <Icon name="Search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar por nombre o SKU..."
               value={search}
@@ -473,9 +464,7 @@ export function ProductsView() {
             <SelectContent>
               <SelectItem value="all">Todas las categorías</SelectItem>
               {MOCK_CATEGORIES.map((c) => (
-                <SelectItem key={c.id} value={c.name}>
-                  {c.name}
-                </SelectItem>
+                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -531,6 +520,8 @@ export function ProductsView() {
         mode={drawerMode}
         product={selectedProduct}
         onClose={() => setDrawerOpen(false)}
+        onCreate={createProduct}
+        onUpdate={updateProduct}
       />
     </PageContainer>
   );

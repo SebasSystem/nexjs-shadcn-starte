@@ -62,8 +62,8 @@ const CLIENT_TYPE_OPTIONS = [
 ];
 
 const CURRENCY_OPTIONS = [
-  { value: 'MXN', label: 'MXN' },
-  { value: 'USD', label: 'USD' },
+  { value: 'COP', label: 'COP' },
+  { value: 'COP', label: 'COP' },
   { value: 'EUR', label: 'EUR' },
   { value: 'COP', label: 'COP' },
 ];
@@ -77,9 +77,9 @@ const PRICE_LIST_OPTIONS = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatMXN(amount: number): string {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('es-CO', {
     style: 'currency',
-    currency: 'MXN',
+    currency: 'COP',
     minimumFractionDigits: 2,
   }).format(amount);
 }
@@ -104,7 +104,7 @@ function InvoicePreviewDrawer({ open, onClose, lines }: InvoicePreviewDrawerProp
   const subtotal = lines.reduce((s, l) => s + lineTotal(l), 0);
   const iva = subtotal * 0.16;
   const total = subtotal + iva;
-  const today = new Date().toLocaleDateString('es-MX', {
+  const today = new Date().toLocaleDateString('es-CO', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -113,12 +113,13 @@ function InvoicePreviewDrawer({ open, onClose, lines }: InvoicePreviewDrawerProp
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[600px] flex flex-col">
-        <SheetHeader className="px-6 pt-6 pb-0">
+        <SheetHeader className="px-6 py-4 border-b border-border/40">
           <SheetTitle className="text-h6">Factura Generada</SheetTitle>
           <SheetDescription>Vista previa de la factura</SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+        <div className="flex-1 overflow-y-auto px-6">
+          <div className="py-6 space-y-6">
           {/* Company header */}
           <div className="flex items-center justify-between pb-4 border-b border-border/50">
             <div className="flex items-center gap-3">
@@ -217,6 +218,7 @@ function InvoicePreviewDrawer({ open, onClose, lines }: InvoicePreviewDrawerProp
               <span className="text-xl font-bold text-blue-600">{formatMXN(total)}</span>
             </div>
           </div>
+          </div>
         </div>
 
         <SheetFooter className="px-6 pb-6 gap-3">
@@ -238,7 +240,7 @@ export function FinanceCPQView() {
   const [lines, setLines] = useState<LineItem[]>(INITIAL_LINES);
   const [client, setClient] = useState('');
   const [clientType, setClientType] = useState('B2B');
-  const [currency, setCurrency] = useState('MXN');
+  const [currency, setCurrency] = useState('COP');
   const [priceList, setPriceList] = useState('standard');
   const [validUntil, setValidUntil] = useState('');
   const [notes, setNotes] = useState('');
@@ -384,7 +386,7 @@ export function FinanceCPQView() {
         subtitle="Genera cotizaciones profesionales con control de márgenes"
       />
 
-      <div className="flex gap-6 items-start">
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* ── Main Content ──────────────────────────────────────────────── */}
         <div className="flex-1 min-w-0 space-y-6">
           {/* Header form */}
@@ -480,7 +482,7 @@ export function FinanceCPQView() {
         </div>
 
         {/* ── Sticky Sidebar ───────────────────────────────────────────── */}
-        <div className="w-72 shrink-0 sticky top-6">
+        <div className="w-full lg:w-72 shrink-0 lg:sticky lg:top-6">
           <Card className="border-none shadow-card">
             <CardContent className="p-5 space-y-3">
               <h3 className="text-h6 text-foreground mb-2">Resumen</h3>

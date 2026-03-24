@@ -30,12 +30,12 @@ const INITIAL_CURRENCIES: CurrencyRow[] = [
     lastUpdate: '2024-01-15',
     status: 'active',
   },
-  { code: 'MXN', name: 'Peso mexicano', rate: '17.15', lastUpdate: '2024-01-15', status: 'active' },
+  { code: 'COP', name: 'Peso mexicano', rate: '17.15', lastUpdate: '2024-01-15', status: 'active' },
 ];
 
 const BASE_CURRENCY_OPTIONS = [
-  { value: 'USD', label: 'USD — Dólar estadounidense' },
-  { value: 'MXN', label: 'MXN — Peso mexicano' },
+  { value: 'COP', label: 'USD — Dólar estadounidense' },
+  { value: 'COP', label: 'MXN — Peso mexicano' },
   { value: 'EUR', label: 'EUR — Euro' },
   { value: 'COP', label: 'COP — Peso colombiano' },
 ];
@@ -47,7 +47,7 @@ const columnHelper = createColumnHelper<CurrencyRow>();
 // ─── View ─────────────────────────────────────────────────────────────────────
 
 export function MultiCurrencyView() {
-  const [baseCurrency, setBaseCurrency] = useState('USD');
+  const [baseCurrency, setBaseCurrency] = useState('COP');
   const [currencies, setCurrencies] = useState<CurrencyRow[]>(INITIAL_CURRENCIES);
 
   const updateRate = useCallback((code: string, value: string) => {
@@ -204,7 +204,7 @@ export function MultiCurrencyView() {
                 </Badge>
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">USD 1,000.00</p>
+                <p className="text-2xl font-bold text-foreground">COP 1,000.00</p>
                 <p className="text-xs text-muted-foreground mt-0.5">Moneda base</p>
               </div>
               <div className="pt-2 border-t border-border/40">

@@ -13,7 +13,9 @@ import {
   Receipt,
   TrendingUp,
   CheckCircle2,
+  Eye
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { Badge } from 'src/shared/components/ui/badge';
@@ -27,9 +29,9 @@ import type { Quotation, ProductLine } from 'src/types/sales';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('es-CO', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'COP',
     minimumFractionDigits: 2,
   }).format(amount);
 }
@@ -93,7 +95,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
 
   const [quotation, setQuotation] = useState<Quotation>(
     existing ?? {
-      id: `COT-${crypto.randomUUID()}`,
+      id: `COT-${Math.random().toString(36).substring(2, 9)}`,
       opportunityId: actualOppId ?? opp?.id ?? '',
       client: opp?.clientName ?? '',
       priceList: 'B2C - Consumidor Final',
@@ -116,7 +118,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
       products: [
         ...prev.products,
         {
-          id: `line-${crypto.randomUUID()}`,
+          id: `line-${Math.random().toString(36).substring(2, 9)}`,
           name: '',
           sku: '',
           qty: 1,
@@ -165,16 +167,16 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   };
 
   const invoice = getInvoiceByQuotation(quotation.id);
-  // Mostrar "Ver Factura" solo si ya existe una factura generada.
-  // Si no existe, siempre mostrar "Convertir a Factura" (incluso en cerrado-ganado).
-  const showVerFactura = !!invoice;
+
+  const isCerradoGanado = opp?.stage === 'cerrado_ganado';
+  const isCotizacionGenerada = opp?.stage === 'cotizacion_enviada' || opp?.stage === 'negociacion';
 
   const totals = calcTotals(quotation.products);
 
   return (
     <PageContainer fluid className="pb-10">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
         <div>
           <button
             onClick={() => router.push(paths.sales.pipeline)}
@@ -194,27 +196,35 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
               {STATUS_LABELS[quotation.status]}
             </Badge>
           </div>
-          <p className="text-body2 text-muted-foreground mt-1">Detalle de cotización</p>
+          <p className="text-body2 text-muted-foreground mt-1">Detalle de oportunidad y cotización</p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center justify-end gap-2 w-full md:w-auto shrink-0 mt-2 md:mt-0">
           <Button
             variant="ghost"
-            className="text-muted-foreground mr-2 hover:bg-muted/10 transition-colors"
+            className="text-muted-foreground mr-1 hover:bg-muted/10 transition-colors"
             onClick={() => router.push(paths.sales.pipeline)}
           >
             Cancelar
           </Button>
 
-          <Button variant="outline" onClick={handleSave} loading={isSaving}>
-            <Save size={16} />
-            Guardar Cotización
-          </Button>
+          {isCerradoGanado || isCotizacionGenerada ? (
+            <Button variant="outline" onClick={() => toast.info('Abriendo vista previa de cotización...')}>
+              <Eye size={16} />
+              Ver Cotización
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={handleSave} loading={isSaving}>
+              <Save size={16} />
+              Guardar Cotización
+            </Button>
+          )}
 
-          {showVerFactura ? (
+          {isCerradoGanado ? (
             <Button
               className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-2"
               onClick={() => invoice && router.push(paths.sales.invoice(invoice.id))}
+              disabled={!invoice}
             >
               <FileText size={16} />
               Ver Factura

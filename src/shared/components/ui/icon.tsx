@@ -56,6 +56,9 @@ import {
   Shirt,
   Footprints,
   SunSnow,
+  PieChart,
+  PackageOpen,
+  Briefcase,
 
   // ── Acciones ──────────────────────────────────────────────────────────────
   Search,
@@ -75,6 +78,10 @@ import {
   Cloud,
   Globe,
   Info,
+  Loader2,
+  Minus,
+  PackagePlus,
+  BarChart3,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -136,6 +143,9 @@ const icons = {
   Shirt,
   Footprints,
   SunSnow,
+  PieChart,
+  PackageOpen,
+  Briefcase,
 
   // Acciones
   Search,
@@ -155,6 +165,10 @@ const icons = {
   Cloud,
   Globe,
   Info,
+  Loader2,
+  Minus,
+  PackagePlus,
+  BarChart3,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────

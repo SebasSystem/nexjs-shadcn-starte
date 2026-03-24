@@ -89,7 +89,7 @@ export function NewOpportunityDrawer({ open, onClose, onSave }: NewOpportunityDr
       notes: form.notes
         ? [
             {
-              id: `note-${crypto.randomUUID()}`,
+              id: `note-${Math.random().toString(36).substring(2, 9)}`,
               content: form.notes,
               author: 'Administrador',
               createdAt: new Date().toISOString(),
@@ -128,8 +128,9 @@ export function NewOpportunityDrawer({ open, onClose, onSave }: NewOpportunityDr
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-          {/* Cliente */}
+        <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
+          <div className="py-6 space-y-8">
+            {/* Cliente */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">
@@ -219,6 +220,7 @@ export function NewOpportunityDrawer({ open, onClose, onSave }: NewOpportunityDr
                 className="bg-muted/30 focus:bg-background transition-colors"
               />
             </div>
+          </div>
           </div>
         </div>
 

@@ -31,9 +31,9 @@ import { es } from 'date-fns/locale';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('es-CO', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'COP',
     minimumFractionDigits: 2,
   }).format(amount);
 }

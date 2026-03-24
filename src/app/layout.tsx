@@ -18,6 +18,7 @@ import { AuthProvider } from 'src/shared/auth/context/jwt';
 import { detectLanguage } from 'src/locales/server';
 import { I18nProvider } from 'src/locales/i18n-provider';
 import { ThemeProvider } from 'src/shared/components/ThemeProvider';
+import { ProgressBar } from 'src/shared/components/ProgressBar';
 
 export default async function RootLayout({
   children,
@@ -26,10 +27,39 @@ export default async function RootLayout({
 }>) {
   const lang = await detectLanguage();
 
+const SETTINGS_SCRIPT = `
+  try {
+    var stored = localStorage.getItem('crm-ui-settings');
+    if (stored) {
+      var state = JSON.parse(stored).state;
+      var html = document.documentElement;
+      if (state.bgVariant && state.bgVariant !== 'default') {
+        html.classList.add('bg-' + state.bgVariant);
+      }
+      if (state.colorPreset && state.colorPreset !== 'indigo') {
+        html.classList.add('preset-' + state.colorPreset);
+      }
+      if (state.fontFamily && state.fontFamily !== 'public-sans') {
+        html.classList.add('font-' + state.fontFamily);
+      }
+      if (state.contrast === 'bold') {
+        html.classList.add('contrast-bold');
+      }
+      if (state.fontSize) {
+        html.style.fontSize = state.fontSize + 'px';
+      }
+    }
+  } catch(e) {}
+`;
+
   return (
     <html lang={lang} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SETTINGS_SCRIPT }} />
+      </head>
       <body className={`${geistMono.variable} antialiased`}>
         <ThemeProvider>
+          <ProgressBar />
           <I18nProvider lang={lang}>
             <AuthProvider>{children}</AuthProvider>
           </I18nProvider>

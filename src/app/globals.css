@@ -233,10 +233,10 @@
     font-family: var(--font-app);
   }
 
-  /* Smooth scrolling global */
-  html {
-    scroll-behavior: smooth;
-  }
+  /* Scroll behavior: no se aplica en html porque el scroll
+     ocurre dentro del <main> del layout (overflow-y-auto).
+     Aplicar scroll-behavior: smooth en html causaba lag visual
+     y el warning de Next.js sobre rutas de transición. */
 
   /* Mejora el rendering de textos */
   body {

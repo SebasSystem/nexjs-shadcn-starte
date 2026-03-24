@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useRef, useState } from 'react';
+import { ReactNode, useRef, useState, useCallback } from 'react';
 import { useUiStore } from 'src/store/ui.store';
 import { layoutClasses } from './classes';
 
@@ -17,11 +17,20 @@ export function LayoutSection({ children, headerSection, sidebarSection, footerS
   const isNavMini = navLayout === 'mini';
   const [isScrolled, setIsScrolled] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const rafRef = useRef<number | null>(null);
 
-  const handleScroll = () => {
-    if (!mainRef.current) return;
-    setIsScrolled(mainRef.current.scrollTop > 10);
-  };
+  // Throttle con rAF: evita "forced reflow" al leer scrollTop síncronamente
+  // en cada evento de scroll. El browser lee scrollTop en el próximo frame,
+  // cuando el layout ya está calculado, eliminando el reflow forzado.
+  const handleScroll = useCallback(() => {
+    if (rafRef.current !== null) return; // ya hay un frame pendiente, skip
+    rafRef.current = requestAnimationFrame(() => {
+      if (mainRef.current) {
+        setIsScrolled(mainRef.current.scrollTop > 10);
+      }
+      rafRef.current = null;
+    });
+  }, []);
 
   return (
     <div
@@ -55,7 +64,7 @@ export function LayoutSection({ children, headerSection, sidebarSection, footerS
             <header
               className={`
                 h-[72px] sticky top-0 z-10 flex items-center px-4 w-full
-                transition-all duration-300
+                transition-[background-color,backdrop-filter] duration-200
                 ${isScrolled ? 'bg-background/80 backdrop-blur-xs' : 'bg-transparent'}
                 ${layoutClasses.header}
               `}

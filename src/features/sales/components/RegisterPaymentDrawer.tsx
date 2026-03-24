@@ -30,9 +30,9 @@ const PAYMENT_METHOD_OPTIONS = [
 ];
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('es-CO', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'COP',
     minimumFractionDigits: 2,
   }).format(amount);
 }

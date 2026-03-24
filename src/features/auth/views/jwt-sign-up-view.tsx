@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Form, FormControl, FormField, FormItem, FormMessage } from 'src/shared/components/ui';
 import { paths } from 'src/routes/paths';
 import { useSignUp } from '../hooks/use-sign-up';
+import { Logo } from 'src/shared/components/Logo';
 
 // ─── Input reutilizable (mismo diseño que login) ──────────────────────────────
 function AuthInput({
@@ -113,24 +114,13 @@ export function JwtSignUpView() {
       <div className="relative z-10 w-full max-w-[440px] bg-white rounded-2xl px-8 py-10 sm:px-10 auth-floating-shadow animate-auth-form-drop">
         {/* Logo + Headline */}
         <div className="flex flex-col items-center mb-8">
-          <div className="mb-4 size-12 rounded-full bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/30">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+          <div className="mb-6">
+            <Logo variant="full" height={120} />
           </div>
-          <p className="text-[11px] font-semibold tracking-[0.2em] uppercase text-indigo-600/70 mb-2">
-            CRM Enterprise
-          </p>
-          <h1 className="text-[26px] font-bold text-slate-800 tracking-tight leading-tight">
+          <h1 className="text-[26px] font-bold text-slate-800 tracking-tight leading-tight text-center">
             Crear cuenta
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Completa tus datos para comenzar</p>
+          <p className="text-sm text-slate-500 mt-1 text-center">Completa tus datos para comenzar</p>
         </div>
 
         {/* Error global */}
@@ -314,32 +304,32 @@ export function JwtSignUpView() {
         </div>
 
         {/* Divider trust */}
-        <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-center gap-6">
-          <div className="flex items-center gap-1.5 text-slate-400 group cursor-default">
+        <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-center gap-3 sm:gap-6 whitespace-nowrap">
+          <div className="flex items-center gap-1 sm:gap-1.5 text-slate-400 group cursor-default">
             <Icon
               name="ShieldCheck"
               size={13}
               className="group-hover:text-indigo-500 transition-colors"
             />
-            <span className="text-[11px] font-medium">Seguridad SSL</span>
+            <span className="text-[10px] sm:text-[11px] font-medium">Seguridad SSL</span>
           </div>
           <div className="w-px h-3 bg-slate-200" />
-          <div className="flex items-center gap-1.5 text-slate-400 group cursor-default">
+          <div className="flex items-center gap-1 sm:gap-1.5 text-slate-400 group cursor-default">
             <Icon
               name="Globe"
               size={13}
               className="group-hover:text-indigo-500 transition-colors"
             />
-            <span className="text-[11px] font-medium">Red Empresarial</span>
+            <span className="text-[10px] sm:text-[11px] font-medium">Red Empresarial</span>
           </div>
           <div className="w-px h-3 bg-slate-200" />
-          <div className="flex items-center gap-1.5 text-slate-400 group cursor-default">
+          <div className="flex items-center gap-1 sm:gap-1.5 text-slate-400 group cursor-default">
             <Icon
               name="Cloud"
               size={13}
               className="group-hover:text-indigo-500 transition-colors"
             />
-            <span className="text-[11px] font-medium">Nube</span>
+            <span className="text-[10px] sm:text-[11px] font-medium">Nube</span>
           </div>
         </div>
       </div>

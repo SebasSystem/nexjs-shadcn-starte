@@ -74,9 +74,9 @@ const DATE_FILTERS = ['Esta semana', 'Este mes', 'Último trimestre'];
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatMXN(amount: number): string {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('es-CO', {
     style: 'currency',
-    currency: 'MXN',
+    currency: 'COP',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
@@ -122,7 +122,7 @@ const chartOptions: ApexCharts.ApexOptions = {
   tooltip: {
     y: {
       formatter: (val: number) =>
-        new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(val),
+        new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(val),
     },
   },
   theme: { mode: 'dark' },

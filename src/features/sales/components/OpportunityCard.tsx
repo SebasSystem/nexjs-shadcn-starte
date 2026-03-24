@@ -30,9 +30,9 @@ function getActivityStatus(lastActivityAt?: string, createdAt?: string) {
 }
 
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-MX', {
+  return new Intl.NumberFormat('es-CO', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'COP',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
