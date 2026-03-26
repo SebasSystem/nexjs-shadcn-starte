@@ -30,7 +30,11 @@ interface StockAdjustmentDrawerProps {
   preselectedProduct?: RichProduct | null;
 }
 
-export function StockAdjustmentDrawer({ open, onClose, preselectedProduct }: StockAdjustmentDrawerProps) {
+export function StockAdjustmentDrawer({
+  open,
+  onClose,
+  preselectedProduct,
+}: StockAdjustmentDrawerProps) {
   const { products, adjustStock } = useInventory();
 
   const [productId, setProductId] = useState(preselectedProduct?.id ?? '');
@@ -44,6 +48,7 @@ export function StockAdjustmentDrawer({ open, onClose, preselectedProduct }: Sto
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (preselectedProduct) setProductId(preselectedProduct.id);
   }, [preselectedProduct]);
 
@@ -130,11 +135,13 @@ export function StockAdjustmentDrawer({ open, onClose, preselectedProduct }: Sto
                     <SelectValue placeholder="Seleccionar producto..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {products.filter((p) => p.status === 'active').map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name} — {p.sku}
-                      </SelectItem>
-                    ))}
+                    {products
+                      .filter((p) => p.status === 'active')
+                      .map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name} — {p.sku}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 {errors.product && <p className="text-caption text-error">{errors.product}</p>}
@@ -209,7 +216,11 @@ export function StockAdjustmentDrawer({ open, onClose, preselectedProduct }: Sto
               value={quantity}
               onChange={(e) => {
                 setQuantity(e.target.value);
-                setErrors((prev) => { const n = { ...prev }; delete n.quantity; return n; });
+                setErrors((prev) => {
+                  const n = { ...prev };
+                  delete n.quantity;
+                  return n;
+                });
               }}
               className={cn(errors.quantity && 'border-error')}
             />
@@ -227,9 +238,11 @@ export function StockAdjustmentDrawer({ open, onClose, preselectedProduct }: Sto
               >
                 <p className="text-caption text-muted-foreground">
                   Stock actual:{' '}
-                  <span className="font-semibold text-foreground">{currentInWarehouse}</span>{' '}
-                  → Nuevo stock:{' '}
-                  <span className={cn('font-bold', type === 'add' ? 'text-success' : 'text-warning')}>
+                  <span className="font-semibold text-foreground">{currentInWarehouse}</span> →
+                  Nuevo stock:{' '}
+                  <span
+                    className={cn('font-bold', type === 'add' ? 'text-success' : 'text-warning')}
+                  >
                     {newStock}
                   </span>{' '}
                   uds
@@ -241,7 +254,17 @@ export function StockAdjustmentDrawer({ open, onClose, preselectedProduct }: Sto
           {/* Motivo (obligatorio) */}
           <div className="space-y-1.5">
             <Label>Motivo del ajuste *</Label>
-            <Select value={reason} onValueChange={(v) => { setReason(v as AdjustmentReason); setErrors((p) => { const n = { ...p }; delete n.reason; return n; }); }}>
+            <Select
+              value={reason}
+              onValueChange={(v) => {
+                setReason(v as AdjustmentReason);
+                setErrors((p) => {
+                  const n = { ...p };
+                  delete n.reason;
+                  return n;
+                });
+              }}
+            >
               <SelectTrigger className={cn(errors.reason && 'border-error')}>
                 <SelectValue placeholder="Seleccionar motivo..." />
               </SelectTrigger>
@@ -290,7 +313,8 @@ export function StockAdjustmentDrawer({ open, onClose, preselectedProduct }: Sto
               <p className="text-caption text-muted-foreground">
                 Ajuste de{' '}
                 <span className={cn('font-bold', type === 'add' ? 'text-success' : 'text-warning')}>
-                  {type === 'add' ? '+' : '-'}{qty} uds
+                  {type === 'add' ? '+' : '-'}
+                  {qty} uds
                 </span>{' '}
                 en {warehouse === 'main' ? 'Bodega Principal' : 'Tienda'} por{' '}
                 <span className="text-foreground font-medium">

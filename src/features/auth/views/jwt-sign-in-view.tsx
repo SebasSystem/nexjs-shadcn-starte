@@ -125,7 +125,9 @@ export function JwtSignInView() {
           <h1 className="text-[28px] font-bold text-slate-800 tracking-tight leading-tight text-center">
             Bienvenido de nuevo
           </h1>
-          <p className="text-sm text-slate-500 mt-1 text-center">Ingresa tus credenciales para continuar</p>
+          <p className="text-sm text-slate-500 mt-1 text-center">
+            Ingresa tus credenciales para continuar
+          </p>
         </div>
 
         {/* Error global */}

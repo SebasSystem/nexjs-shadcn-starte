@@ -120,104 +120,104 @@ function InvoicePreviewDrawer({ open, onClose, lines }: InvoicePreviewDrawerProp
 
         <div className="flex-1 overflow-y-auto px-6">
           <div className="py-6 space-y-6">
-          {/* Company header */}
-          <div className="flex items-center justify-between pb-4 border-b border-border/50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <FileText size={20} className="text-primary" />
+            {/* Company header */}
+            <div className="flex items-center justify-between pb-4 border-b border-border/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <FileText size={20} className="text-primary" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground text-lg">FinOps CRM</p>
+                  <p className="text-xs text-muted-foreground">RFC: FOP230415XYZ</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-foreground">FAC-2024-0423</p>
+                <p className="text-xs text-muted-foreground">{today}</p>
+              </div>
+            </div>
+
+            {/* Bill to */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                  Facturar a
+                </p>
+                <p className="font-semibold text-foreground">Tecnología Global S.A. de C.V.</p>
+                <p className="text-sm text-muted-foreground">B2B</p>
               </div>
               <div>
-                <p className="font-bold text-foreground text-lg">FinOps CRM</p>
-                <p className="text-xs text-muted-foreground">RFC: FOP230415XYZ</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                  Detalles
+                </p>
+                <p className="text-sm text-foreground">
+                  Moneda: <span className="font-medium">MXN</span>
+                </p>
+                <p className="text-sm text-foreground">
+                  Método: <span className="font-medium">Transferencia</span>
+                </p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="font-bold text-foreground">FAC-2024-0423</p>
-              <p className="text-xs text-muted-foreground">{today}</p>
-            </div>
-          </div>
 
-          {/* Bill to */}
-          <div className="grid grid-cols-2 gap-4">
+            {/* Products */}
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
-                Facturar a
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                Productos
               </p>
-              <p className="font-semibold text-foreground">Tecnología Global S.A. de C.V.</p>
-              <p className="text-sm text-muted-foreground">B2B</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
-                Detalles
-              </p>
-              <p className="text-sm text-foreground">
-                Moneda: <span className="font-medium">MXN</span>
-              </p>
-              <p className="text-sm text-foreground">
-                Método: <span className="font-medium">Transferencia</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Products */}
-          <div>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
-              Productos
-            </p>
-            <div className="overflow-x-auto rounded-xl border border-border/50">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-muted/20 border-b border-border/50">
-                    <th className="px-4 py-2.5 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                      Producto
-                    </th>
-                    <th className="px-4 py-2.5 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                      Cant.
-                    </th>
-                    <th className="px-4 py-2.5 text-right text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                      Precio
-                    </th>
-                    <th className="px-4 py-2.5 text-right text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                      Total
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lines.map((line) => (
-                    <tr
-                      key={line.id}
-                      className="border-b border-border/30 hover:bg-muted/10 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-foreground">{line.product}</td>
-                      <td className="px-4 py-3 text-center text-muted-foreground">{line.qty}</td>
-                      <td className="px-4 py-3 text-right text-muted-foreground">
-                        {formatMXN(line.unitPrice)}
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold text-foreground">
-                        {formatMXN(lineTotal(line))}
-                      </td>
+              <div className="overflow-x-auto rounded-xl border border-border/50">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/20 border-b border-border/50">
+                      <th className="px-4 py-2.5 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Producto
+                      </th>
+                      <th className="px-4 py-2.5 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Cant.
+                      </th>
+                      <th className="px-4 py-2.5 text-right text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Precio
+                      </th>
+                      <th className="px-4 py-2.5 text-right text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Total
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {lines.map((line) => (
+                      <tr
+                        key={line.id}
+                        className="border-b border-border/30 hover:bg-muted/10 transition-colors"
+                      >
+                        <td className="px-4 py-3 text-foreground">{line.product}</td>
+                        <td className="px-4 py-3 text-center text-muted-foreground">{line.qty}</td>
+                        <td className="px-4 py-3 text-right text-muted-foreground">
+                          {formatMXN(line.unitPrice)}
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-foreground">
+                          {formatMXN(lineTotal(line))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
 
-          {/* Totals */}
-          <div className="space-y-2 pt-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-medium text-foreground">{formatMXN(subtotal)}</span>
+            {/* Totals */}
+            <div className="space-y-2 pt-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-medium text-foreground">{formatMXN(subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">IVA (16%)</span>
+                <span className="font-medium text-foreground">{formatMXN(iva)}</span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-border/50">
+                <span className="font-bold text-foreground">Total</span>
+                <span className="text-xl font-bold text-blue-600">{formatMXN(total)}</span>
+              </div>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">IVA (16%)</span>
-              <span className="font-medium text-foreground">{formatMXN(iva)}</span>
-            </div>
-            <div className="flex justify-between pt-2 border-t border-border/50">
-              <span className="font-bold text-foreground">Total</span>
-              <span className="text-xl font-bold text-blue-600">{formatMXN(total)}</span>
-            </div>
-          </div>
           </div>
         </div>
 

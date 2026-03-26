@@ -11,13 +11,20 @@ interface ExportBarProps {
   hasData: boolean;
 }
 
-export function ExportBar({ columns = [], onExportExcel, onExportPdf, loading, hasData }: ExportBarProps) {
+export function ExportBar({
+  columns = [],
+  onExportExcel,
+  onExportPdf,
+  loading,
+  hasData,
+}: ExportBarProps) {
   const [selectedFields, setSelectedFields] = useState<Set<string>>(
     new Set(columns.map((c) => c.id))
   );
 
   useEffect(() => {
-    setSelectedFields(new Set(columns.map(c => c.id)));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedFields(new Set(columns.map((c) => c.id)));
   }, [columns]);
 
   const toggleField = (id: string, checked: boolean) => {
@@ -40,18 +47,20 @@ export function ExportBar({ columns = [], onExportExcel, onExportPdf, loading, h
     <div className="flex flex-col md:flex-row items-center justify-between bg-muted/10 border border-border/50 rounded-xl px-4 py-3 gap-4 mb-6">
       <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
         <span className="text-body2 text-muted-foreground font-medium">Campos a exportar:</span>
-        <FieldSelector 
-          columns={columns} 
-          selectedFields={selectedFields} 
-          onToggleField={toggleField} 
-          disabled={!hasData || loading !== null} 
+        <FieldSelector
+          columns={columns}
+          selectedFields={selectedFields}
+          onToggleField={toggleField}
+          disabled={!hasData || loading !== null}
           onApply={() => toast.success('Campos aplicados')}
         />
       </div>
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto sm:justify-end">
         {!hasData && (
-          <span className="text-caption text-muted-foreground mr-2 hidden sm:inline">No hay datos para exportar</span>
+          <span className="text-caption text-muted-foreground mr-2 hidden sm:inline">
+            No hay datos para exportar
+          </span>
         )}
         <Button
           variant="outline"
@@ -60,9 +69,13 @@ export function ExportBar({ columns = [], onExportExcel, onExportPdf, loading, h
           className="bg-card w-full md:w-auto"
         >
           {loading === 'excel' ? (
-            <><Icon name="Loader2" size={16} className="animate-spin" /> Generando...</>
+            <>
+              <Icon name="Loader2" size={16} className="animate-spin" /> Generando...
+            </>
           ) : (
-            <><Icon name="FileText" size={16} className="text-success" /> Exportar Excel</>
+            <>
+              <Icon name="FileText" size={16} className="text-success" /> Exportar Excel
+            </>
           )}
         </Button>
         <Button
@@ -72,9 +85,13 @@ export function ExportBar({ columns = [], onExportExcel, onExportPdf, loading, h
           className="bg-card w-full md:w-auto"
         >
           {loading === 'pdf' ? (
-            <><Icon name="Loader2" size={16} className="animate-spin" /> Generando...</>
+            <>
+              <Icon name="Loader2" size={16} className="animate-spin" /> Generando...
+            </>
           ) : (
-            <><Icon name="FileText" size={16} className="text-error" /> Exportar PDF</>
+            <>
+              <Icon name="FileText" size={16} className="text-error" /> Exportar PDF
+            </>
           )}
         </Button>
       </div>

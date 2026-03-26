@@ -47,8 +47,14 @@ interface ProductDrawerProps {
   product?: RichProduct | null;
   onClose: () => void;
   onCreate: (data: {
-    name: string; sku: string; category: string; unit: string; minStock: number;
-    status: 'active' | 'inactive'; stockMainInit: number; stockStoreInit: number;
+    name: string;
+    sku: string;
+    category: string;
+    unit: string;
+    minStock: number;
+    status: 'active' | 'inactive';
+    stockMainInit: number;
+    stockStoreInit: number;
   }) => void;
   onUpdate: (productId: string, changes: Partial<RichProduct>) => void;
 }
@@ -82,13 +88,25 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
 
     if (mode === 'create') {
       onCreate({
-        name, sku, category: category || MOCK_CATEGORIES[0].name, unit,
-        minStock: Number(minStock), status: active ? 'active' : 'inactive',
-        stockMainInit: Number(stockMain), stockStoreInit: Number(stockStore),
+        name,
+        sku,
+        category: category || MOCK_CATEGORIES[0].name,
+        unit,
+        minStock: Number(minStock),
+        status: active ? 'active' : 'inactive',
+        stockMainInit: Number(stockMain),
+        stockStoreInit: Number(stockStore),
       });
       toast.success('Producto creado correctamente');
     } else if (product) {
-      onUpdate(product.id, { name, sku, category, unit, minStock: Number(minStock), status: active ? 'active' : 'inactive' });
+      onUpdate(product.id, {
+        name,
+        sku,
+        category,
+        unit,
+        minStock: Number(minStock),
+        status: active ? 'active' : 'inactive',
+      });
       toast.success('Producto actualizado');
     }
 
@@ -141,7 +159,9 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
               </SelectTrigger>
               <SelectContent>
                 {MOCK_CATEGORIES.map((c) => (
-                  <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                  <SelectItem key={c.id} value={c.name}>
+                    {c.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -156,7 +176,9 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
               </SelectTrigger>
               <SelectContent>
                 {['Unidad', 'Caja', 'Par', 'Pack', 'Kg', 'L'].map((u) => (
-                  <SelectItem key={u} value={u}>{u}</SelectItem>
+                  <SelectItem key={u} value={u}>
+                    {u}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -200,7 +222,9 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
                     onChange={(e) => setStockMain(e.target.value)}
                     className={cn(errors.stockMain && 'border-error')}
                   />
-                  {errors.stockMain && <p className="text-caption text-error">{errors.stockMain}</p>}
+                  {errors.stockMain && (
+                    <p className="text-caption text-error">{errors.stockMain}</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="stock-store">Tienda</Label>
@@ -212,7 +236,9 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
                     onChange={(e) => setStockStore(e.target.value)}
                     className={cn(errors.stockStore && 'border-error')}
                   />
-                  {errors.stockStore && <p className="text-caption text-error">{errors.stockStore}</p>}
+                  {errors.stockStore && (
+                    <p className="text-caption text-error">{errors.stockStore}</p>
+                  )}
                 </div>
               </div>
               <p className="text-caption text-muted-foreground">
@@ -250,8 +276,12 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
           </Button>
           <Button color="primary" onClick={handleSave} disabled={loading}>
             {loading ? (
-              <><Icon name="Loader2" size={15} className="animate-spin" /> Guardando...</>
-            ) : 'Guardar'}
+              <>
+                <Icon name="Loader2" size={15} className="animate-spin" /> Guardando...
+              </>
+            ) : (
+              'Guardar'
+            )}
           </Button>
         </SheetFooter>
       </SheetContent>
@@ -337,11 +367,17 @@ export function ProductsView() {
       }),
       columnHelper.accessor('category', {
         header: 'Categoría',
-        cell: (info) => <Badge variant="soft" color="secondary">{info.getValue()}</Badge>,
+        cell: (info) => (
+          <Badge variant="soft" color="secondary">
+            {info.getValue()}
+          </Badge>
+        ),
       }),
       columnHelper.accessor('physical', {
         header: () => <div className="text-right w-full">Stock total</div>,
-        cell: (info) => <div className="text-right font-semibold text-foreground">{info.getValue()}</div>,
+        cell: (info) => (
+          <div className="text-right font-semibold text-foreground">{info.getValue()}</div>
+        ),
       }),
       columnHelper.accessor('stockMain', {
         header: () => <div className="text-right w-full">B. Principal</div>,
@@ -434,7 +470,12 @@ export function ProductsView() {
                 </p>
               </div>
               {card.badge && (
-                <span className={cn('text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap mt-0.5', card.badgeClass)}>
+                <span
+                  className={cn(
+                    'text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap mt-0.5',
+                    card.badgeClass
+                  )}
+                >
                   {card.badge}
                 </span>
               )}
@@ -448,7 +489,11 @@ export function ProductsView() {
       <SectionCard noPadding>
         <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-border/60">
           <div className="relative flex-1 min-w-48">
-            <Icon name="Search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Icon
+              name="Search"
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
               placeholder="Buscar por nombre o SKU..."
               value={search}
@@ -464,7 +509,9 @@ export function ProductsView() {
             <SelectContent>
               <SelectItem value="all">Todas las categorías</SelectItem>
               {MOCK_CATEGORIES.map((c) => (
-                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                <SelectItem key={c.id} value={c.name}>
+                  {c.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

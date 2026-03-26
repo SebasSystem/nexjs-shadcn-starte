@@ -30,7 +30,9 @@ interface ReserveStockDrawerProps {
 
 export function ReserveStockDrawer({ open, quote, onClose }: ReserveStockDrawerProps) {
   const { products, approveQuote } = useInventory();
-  const [warehouseOverrides, setWarehouseOverrides] = useState<Record<string, 'main' | 'store'>>({});
+  const [warehouseOverrides, setWarehouseOverrides] = useState<Record<string, 'main' | 'store'>>(
+    {}
+  );
   const [loading, setLoading] = useState(false);
 
   if (!quote) return null;
@@ -95,117 +97,113 @@ export function ReserveStockDrawer({ open, quote, onClose }: ReserveStockDrawerP
 
         {/* Tabla de productos */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-          {itemsWithStatus.map(({ item, product, stockInWarehouse, afterReserve, status, selectedWarehouse }) => {
-            const statusIcon =
-              status === 'ok' ? (
-                <Icon name="CheckCircle" size={15} className="text-success" />
-              ) : status === 'low' ? (
-                <Icon name="AlertTriangle" size={15} className="text-warning" />
-              ) : (
-                <Icon name="XCircle" size={15} className="text-error" />
+          {itemsWithStatus.map(
+            ({ item, product, stockInWarehouse, afterReserve, status, selectedWarehouse }) => {
+              const statusIcon =
+                status === 'ok' ? (
+                  <Icon name="CheckCircle" size={15} className="text-success" />
+                ) : status === 'low' ? (
+                  <Icon name="AlertTriangle" size={15} className="text-warning" />
+                ) : (
+                  <Icon name="XCircle" size={15} className="text-error" />
+                );
+
+              const rowBg =
+                status === 'insufficient'
+                  ? 'bg-error/5 border-error/20'
+                  : status === 'low'
+                    ? 'bg-warning/5 border-warning/20'
+                    : 'bg-muted/10 border-border/40';
+
+              return (
+                <div key={item.productId} className={cn('rounded-xl border p-3 space-y-2', rowBg)}>
+                  {/* Producto */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-subtitle2 text-foreground font-medium truncate">
+                        {item.productName}
+                      </p>
+                      <p className="text-caption text-muted-foreground font-mono">{item.sku}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">{statusIcon}</div>
+                  </div>
+
+                  {/* Columnas de datos */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {/* Bodega */}
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                        Bodega
+                      </Label>
+                      <Select
+                        value={selectedWarehouse}
+                        onValueChange={(v) =>
+                          setWarehouseOverrides((prev) => ({
+                            ...prev,
+                            [item.productId]: v as 'main' | 'store',
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="h-7 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="main">
+                            B. Principal ({product?.stockMain ?? 0})
+                          </SelectItem>
+                          <SelectItem value="store">Tienda ({product?.stockStore ?? 0})</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Solicitado */}
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                        Solicitado
+                      </p>
+                      <p className="text-subtitle2 font-bold text-foreground">
+                        {item.quantity} uds
+                      </p>
+                    </div>
+
+                    {/* Disponible actual */}
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                        Disponible
+                      </p>
+                      <p
+                        className={cn(
+                          'text-subtitle2 font-bold',
+                          stockInWarehouse < item.quantity ? 'text-error' : 'text-foreground'
+                        )}
+                      >
+                        {stockInWarehouse} uds
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Resultado */}
+                  <div
+                    className={cn(
+                      'text-caption px-2 py-1 rounded-md',
+                      status === 'ok' && 'text-success',
+                      status === 'low' && 'text-warning',
+                      status === 'insufficient' && 'text-error'
+                    )}
+                  >
+                    {status === 'insufficient' ? (
+                      <>⚠ Sin stock suficiente — faltan {Math.abs(afterReserve)} uds</>
+                    ) : (
+                      <>
+                        Quedarán <span className="font-semibold">{afterReserve} uds</span>{' '}
+                        disponibles tras reservar
+                      </>
+                    )}
+                  </div>
+                </div>
               );
-
-            const rowBg =
-              status === 'insufficient'
-                ? 'bg-error/5 border-error/20'
-                : status === 'low'
-                ? 'bg-warning/5 border-warning/20'
-                : 'bg-muted/10 border-border/40';
-
-            return (
-              <div
-                key={item.productId}
-                className={cn('rounded-xl border p-3 space-y-2', rowBg)}
-              >
-                {/* Producto */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-subtitle2 text-foreground font-medium truncate">
-                      {item.productName}
-                    </p>
-                    <p className="text-caption text-muted-foreground font-mono">{item.sku}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">{statusIcon}</div>
-                </div>
-
-                {/* Columnas de datos */}
-                <div className="grid grid-cols-3 gap-2">
-                  {/* Bodega */}
-                  <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                      Bodega
-                    </Label>
-                    <Select
-                      value={selectedWarehouse}
-                      onValueChange={(v) =>
-                        setWarehouseOverrides((prev) => ({
-                          ...prev,
-                          [item.productId]: v as 'main' | 'store',
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="h-7 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="main">
-                          B. Principal ({product?.stockMain ?? 0})
-                        </SelectItem>
-                        <SelectItem value="store">
-                          Tienda ({product?.stockStore ?? 0})
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Solicitado */}
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                      Solicitado
-                    </p>
-                    <p className="text-subtitle2 font-bold text-foreground">{item.quantity} uds</p>
-                  </div>
-
-                  {/* Disponible actual */}
-                  <div className="space-y-1">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                      Disponible
-                    </p>
-                    <p
-                      className={cn(
-                        'text-subtitle2 font-bold',
-                        stockInWarehouse < item.quantity ? 'text-error' : 'text-foreground'
-                      )}
-                    >
-                      {stockInWarehouse} uds
-                    </p>
-                  </div>
-                </div>
-
-                {/* Resultado */}
-                <div
-                  className={cn(
-                    'text-caption px-2 py-1 rounded-md',
-                    status === 'ok' && 'text-success',
-                    status === 'low' && 'text-warning',
-                    status === 'insufficient' && 'text-error'
-                  )}
-                >
-                  {status === 'insufficient' ? (
-                    <>⚠ Sin stock suficiente — faltan {Math.abs(afterReserve)} uds</>
-                  ) : (
-                    <>
-                      Quedarán{' '}
-                      <span className="font-semibold">
-                        {afterReserve} uds
-                      </span>{' '}
-                      disponibles tras reservar
-                    </>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+            }
+          )}
         </div>
 
         {/* Resumen fijo */}
@@ -230,11 +228,7 @@ export function ReserveStockDrawer({ open, quote, onClose }: ReserveStockDrawerP
           <Button variant="outline" onClick={onClose} disabled={loading}>
             Cancelar
           </Button>
-          <Button
-            color="primary"
-            onClick={handleConfirm}
-            disabled={loading || allInsufficient}
-          >
+          <Button color="primary" onClick={handleConfirm} disabled={loading || allInsufficient}>
             {loading ? (
               <>
                 <Icon name="Loader2" size={15} className="animate-spin" />

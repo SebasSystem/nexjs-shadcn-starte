@@ -53,9 +53,7 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
   };
 
   const updateItem = (index: number, field: keyof ReceiptItem, value: string | number) => {
-    setItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
-    );
+    setItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
     setErrors((prev) => {
       const next = { ...prev };
       delete next[`item-${index}-${field}`];
@@ -72,7 +70,8 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
       if (!item.productId) {
         newErrors[`item-${i}-productId`] = 'Selecciona un producto';
       } else if (seenProducts.has(item.productId)) {
-        newErrors[`item-${i}-dup`] = 'Este producto ya está en la lista. Ajusta la cantidad directamente.';
+        newErrors[`item-${i}-dup`] =
+          'Este producto ya está en la lista. Ajusta la cantidad directamente.';
       } else {
         seenProducts.add(item.productId);
       }
@@ -95,10 +94,12 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
       orderRef,
       notes,
       registeredBy: 'Admin',
-      items: items.filter((i) => i.productId).map((i) => ({
-        productId: i.productId,
-        quantity: Number(i.quantity),
-      })),
+      items: items
+        .filter((i) => i.productId)
+        .map((i) => ({
+          productId: i.productId,
+          quantity: Number(i.quantity),
+        })),
     });
     setLoading(false);
     toast.success('Entrada registrada correctamente');
@@ -163,9 +164,7 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
 
           {/* Lista de productos */}
           <div>
-            <p className="text-subtitle2 font-semibold text-foreground mb-3">
-              Productos recibidos
-            </p>
+            <p className="text-subtitle2 font-semibold text-foreground mb-3">Productos recibidos</p>
             {errors.items && <p className="text-caption text-error mb-2">{errors.items}</p>}
 
             <div className="space-y-3">
@@ -176,9 +175,10 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
                     ? selectedProduct.stockMain
                     : selectedProduct.stockStore
                   : null;
-                const newStock = currentInWarehouse !== null
-                  ? currentInWarehouse + (Number(item.quantity) || 0)
-                  : null;
+                const newStock =
+                  currentInWarehouse !== null
+                    ? currentInWarehouse + (Number(item.quantity) || 0)
+                    : null;
 
                 return (
                   <div
@@ -209,9 +209,7 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
                           </SelectContent>
                         </Select>
                         {errors[`item-${index}-dup`] && (
-                          <p className="text-caption text-warning">
-                            {errors[`item-${index}-dup`]}
-                          </p>
+                          <p className="text-caption text-warning">{errors[`item-${index}-dup`]}</p>
                         )}
                         {errors[`item-${index}-productId`] && (
                           <p className="text-caption text-error">

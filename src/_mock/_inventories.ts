@@ -2,7 +2,12 @@
 
 export type StockStatus = 'available' | 'low_stock' | 'out_of_stock' | 'reserved';
 
-export type MovementType = 'transfer' | 'receipt' | 'adjustment_add' | 'adjustment_sub' | 'reservation';
+export type MovementType =
+  | 'transfer'
+  | 'receipt'
+  | 'adjustment_add'
+  | 'adjustment_sub'
+  | 'reservation';
 
 export type AdjustmentReason = 'physical_count' | 'damage' | 'loss' | 'entry_error' | 'other';
 
@@ -316,8 +321,18 @@ export const MOCK_MOVEMENTS: WarehouseMovement[] = [
     registeredBy: 'Admin',
     receiptOrderRef: 'OC-2026-042',
     receiptItems: [
-      { productId: 'prod-005', productName: 'Chaqueta Impermeable S', productSku: 'SKU-033-S', quantity: 25 },
-      { productId: 'prod-009', productName: 'Botella Térmica 750ml', productSku: 'SKU-099-75', quantity: 30 },
+      {
+        productId: 'prod-005',
+        productName: 'Chaqueta Impermeable S',
+        productSku: 'SKU-033-S',
+        quantity: 25,
+      },
+      {
+        productId: 'prod-009',
+        productName: 'Botella Térmica 750ml',
+        productSku: 'SKU-099-75',
+        quantity: 30,
+      },
     ],
   },
   // ─── Adjustments (ajustes manuales) ───────────────────────────────────────
@@ -344,17 +359,17 @@ export const MOCK_MOVEMENTS: WarehouseMovement[] = [
  * IMPORTANTE: importar MOCK_QUOTES desde _quotes para no crear dependencia circular.
  * Esta function es la fuente de verdad para "reservado".
  */
-export function getReservedForProduct(productId: string, approvedQuotes: { items: { productId: string; quantity: number }[] }[]): number {
+export function getReservedForProduct(
+  productId: string,
+  approvedQuotes: { items: { productId: string; quantity: number }[] }[]
+): number {
   return approvedQuotes
     .flatMap((q) => q.items)
     .filter((item) => item.productId === productId)
     .reduce((sum, item) => sum + item.quantity, 0);
 }
 
-export function getProductStockStatus(
-  product: Product,
-  reserved: number
-): StockStatus {
+export function getProductStockStatus(product: Product, reserved: number): StockStatus {
   const total = product.stockMain + product.stockStore;
   const available = total - reserved;
   if (total === 0) return 'out_of_stock';

@@ -17,13 +17,27 @@ export function BarChart({
   stacked?: boolean;
 }) {
   const options: ApexCharts.ApexOptions = {
-    chart: { type: 'bar', toolbar: { show: false }, fontFamily: 'inherit', stacked, parentHeightOffset: 0 },
-    plotOptions: { bar: { horizontal, borderRadius: 2, dataLabels: { position: 'top' }, columnWidth: '65%', barHeight: '75%' } },
+    chart: {
+      type: 'bar',
+      toolbar: { show: false },
+      fontFamily: 'inherit',
+      stacked,
+      parentHeightOffset: 0,
+    },
+    plotOptions: {
+      bar: {
+        horizontal,
+        borderRadius: 2,
+        dataLabels: { position: 'top' },
+        columnWidth: '65%',
+        barHeight: '75%',
+      },
+    },
     colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
     dataLabels: { enabled: false },
     xaxis: { categories },
     legend: { position: 'top', horizontalAlign: 'left' },
-    grid: { padding: { left: 0, right: 0, bottom: -10, top: 0 } }
+    grid: { padding: { left: 0, right: 0, bottom: -10, top: 0 } },
   };
   return <Chart options={options} series={series} type="bar" height="100%" width="100%" />;
 }
@@ -73,7 +87,7 @@ export function LineChart({
     stroke: { curve: 'smooth', width: 3 },
     xaxis: { categories },
     legend: { position: 'top' },
-    grid: { padding: { left: 5, right: 5, bottom: -10, top: 0 } }
+    grid: { padding: { left: 5, right: 5, bottom: -10, top: 0 } },
   };
   return <Chart options={options} series={series} type="line" height="100%" width="100%" />;
 }
@@ -93,7 +107,7 @@ export function AreaChart({
     xaxis: { categories },
     legend: { position: 'top' },
     fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.1 } },
-    grid: { padding: { left: 0, right: 0, bottom: -10, top: 0 } }
+    grid: { padding: { left: 0, right: 0, bottom: -10, top: 0 } },
   };
   return <Chart options={options} series={series} type="area" height="100%" width="100%" />;
 }

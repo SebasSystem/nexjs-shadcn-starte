@@ -20,7 +20,11 @@ import {
 import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { cn } from 'src/lib/utils';
-import { MOVEMENT_TYPE_CONFIG, ADJUSTMENT_REASON_LABELS, type WarehouseMovement } from 'src/_mock/_inventories';
+import {
+  MOVEMENT_TYPE_CONFIG,
+  ADJUSTMENT_REASON_LABELS,
+  type WarehouseMovement,
+} from 'src/_mock/_inventories';
 import { TransferDrawer } from '../components/TransferDrawer';
 import { GoodsReceiptDrawer } from '../components/GoodsReceiptDrawer';
 import { useInventory } from '../hooks/useInventory';
@@ -39,7 +43,10 @@ function MovementExpandedRow({ movement }: { movement: WarehouseMovement }) {
           Productos recibidos
         </p>
         {movement.receiptItems.map((item) => (
-          <div key={item.productId} className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-muted/30">
+          <div
+            key={item.productId}
+            className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-muted/30"
+          >
             <div>
               <p className="text-subtitle2 text-foreground">{item.productName}</p>
               <p className="text-caption text-muted-foreground font-mono">{item.productSku}</p>
@@ -49,7 +56,8 @@ function MovementExpandedRow({ movement }: { movement: WarehouseMovement }) {
         ))}
         {movement.receiptOrderRef && (
           <p className="text-caption text-muted-foreground mt-1">
-            Orden de compra: <span className="font-medium text-foreground">{movement.receiptOrderRef}</span>
+            Orden de compra:{' '}
+            <span className="font-medium text-foreground">{movement.receiptOrderRef}</span>
           </p>
         )}
       </div>
@@ -68,9 +76,7 @@ function MovementExpandedRow({ movement }: { movement: WarehouseMovement }) {
         <p>
           Motivo:{' '}
           <span className="text-foreground font-medium">
-            {movement.adjustmentReason
-              ? ADJUSTMENT_REASON_LABELS[movement.adjustmentReason]
-              : '—'}
+            {movement.adjustmentReason ? ADJUSTMENT_REASON_LABELS[movement.adjustmentReason] : '—'}
           </span>
           {movement.adjustmentReasonOther && ` — ${movement.adjustmentReasonOther}`}
         </p>
@@ -87,8 +93,7 @@ function MovementExpandedRow({ movement }: { movement: WarehouseMovement }) {
     return (
       <div className="text-caption text-muted-foreground">
         Reserva vinculada a cotización:{' '}
-        <span className="text-primary font-medium">{movement.quoteId}</span>{' '}
-        — {movement.clientName}
+        <span className="text-primary font-medium">{movement.quoteId}</span> — {movement.clientName}
       </div>
     );
   }
@@ -152,7 +157,8 @@ export function MovementsView() {
 
   const filtered = useMemo(() => {
     return movements.filter((m) => {
-      const searchStr = (m.productName ?? '') + (m.productSku ?? '') + (m.quoteId ?? '') + (m.clientName ?? '');
+      const searchStr =
+        (m.productName ?? '') + (m.productSku ?? '') + (m.quoteId ?? '') + (m.clientName ?? '');
       const matchSearch = !search || searchStr.toLowerCase().includes(search.toLowerCase());
       const matchType = filterType === 'all' || m.type === filterType;
       const matchFrom = filterFrom === 'all' || m.from === filterFrom;
@@ -183,8 +189,11 @@ export function MovementsView() {
         cell: (info) => (
           <span className="text-caption text-muted-foreground whitespace-nowrap">
             {new Date(info.getValue()).toLocaleString('es-CL', {
-              day: '2-digit', month: 'short', year: 'numeric',
-              hour: '2-digit', minute: '2-digit',
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </span>
         ),
@@ -193,7 +202,11 @@ export function MovementsView() {
         header: 'Tipo',
         cell: (info) => {
           const config = MOVEMENT_TYPE_CONFIG[info.getValue()];
-          return <Badge variant="soft" color={config.color}>{config.label}</Badge>;
+          return (
+            <Badge variant="soft" color={config.color}>
+              {config.label}
+            </Badge>
+          );
         },
       }),
       columnHelper.display({
@@ -260,7 +273,9 @@ export function MovementsView() {
           if (m.type === 'receipt') {
             return (
               <div className="flex items-center gap-1.5">
-                <Badge variant="soft" color="secondary">Externo</Badge>
+                <Badge variant="soft" color="secondary">
+                  Externo
+                </Badge>
                 <Icon name="ArrowRight" size={12} className="text-muted-foreground" />
                 <Badge variant="soft" color="success">
                   {m.to === 'main' ? 'B. Principal' : 'Tienda'}
@@ -285,8 +300,14 @@ export function MovementsView() {
           const qty = info.getValue() ?? 0;
           const isNegative = m.type === 'adjustment_sub';
           return (
-            <div className={cn('text-right font-semibold', isNegative ? 'text-warning' : 'text-foreground')}>
-              {isNegative ? '-' : m.type === 'adjustment_add' ? '+' : ''}{qty}
+            <div
+              className={cn(
+                'text-right font-semibold',
+                isNegative ? 'text-warning' : 'text-foreground'
+              )}
+            >
+              {isNegative ? '-' : m.type === 'adjustment_add' ? '+' : ''}
+              {qty}
             </div>
           );
         },
@@ -345,7 +366,11 @@ export function MovementsView() {
       <SectionCard noPadding>
         <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-border/60">
           <div className="relative flex-1 min-w-48">
-            <Icon name="Search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Icon
+              name="Search"
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
               placeholder="Buscar por producto, cotización..."
               value={search}

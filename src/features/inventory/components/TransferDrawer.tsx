@@ -100,11 +100,13 @@ export function TransferDrawer({ open, onClose }: TransferDrawerProps) {
                 <SelectValue placeholder="Buscar producto..." />
               </SelectTrigger>
               <SelectContent>
-                {products.filter((p) => p.status === 'active').map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name} — {p.sku}
-                  </SelectItem>
-                ))}
+                {products
+                  .filter((p) => p.status === 'active')
+                  .map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} — {p.sku}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
             {errors.product && <p className="text-caption text-error">{errors.product}</p>}

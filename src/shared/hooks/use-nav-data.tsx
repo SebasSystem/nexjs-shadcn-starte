@@ -51,6 +51,11 @@ const ICON_MAP: Record<string, IconName> = {
   reports: 'FileText',
   sales: 'TrendingUp',
   Settings: 'Settings',
+  tenants: 'Building2',
+  plans: 'CreditCard',
+  billing: 'Activity',
+  telemetry: 'BarChart3',
+  shieldCheck: 'ShieldCheck',
 };
 
 const DEFAULT_ICON_NAME = 'Menu' as const;

@@ -7,7 +7,12 @@ import {
   type Product,
   type StockStatus,
 } from 'src/_mock/_inventories';
-import { QUOTE_STATUS_CONFIG, MOCK_QUOTES, getQuotesByProduct, type QuoteMock } from 'src/_mock/_quotes';
+import {
+  QUOTE_STATUS_CONFIG,
+  MOCK_QUOTES,
+  getQuotesByProduct,
+  type QuoteMock,
+} from 'src/_mock/_quotes';
 import { toast } from 'sonner';
 
 export type RichProduct = Product & {
@@ -23,15 +28,15 @@ export function useInventory() {
   const movements = MOCK_MOVEMENTS;
   const quotes = MOCK_QUOTES;
 
-  const getReserved = (productId: string) => {
-    return quotes
-      .filter((q) => q.status === 'approved')
-      .flatMap((q) => q.items)
-      .filter((item) => item.productId === productId)
-      .reduce((sum, item) => sum + item.quantity, 0);
-  };
-
   const richProducts: RichProduct[] = useMemo(() => {
+    const getReserved = (productId: string) => {
+      return quotes
+        .filter((q) => q.status === 'approved')
+        .flatMap((q) => q.items)
+        .filter((item) => item.productId === productId)
+        .reduce((sum, item) => sum + item.quantity, 0);
+    };
+
     return products.map((p) => {
       const reserved = getReserved(p.id);
       const available = getProductAvailable(p, reserved);
@@ -50,7 +55,9 @@ export function useInventory() {
     const totalAvailable = richProducts.reduce((sum, p) => sum + p.available, 0);
     const outOfStock = richProducts.filter((p) => p.stockStatus === 'out_of_stock').length;
     const lowStock = richProducts.filter((p) => p.stockStatus === 'low_stock').length;
-    const activeQuotes = quotes.filter((q) => q.status === 'approved' || q.status === 'sent').length;
+    const activeQuotes = quotes.filter(
+      (q) => q.status === 'approved' || q.status === 'sent'
+    ).length;
     const approvedQuotes = quotes.filter((q) => q.status === 'approved').length;
     const criticalProducts = richProducts.filter((p) => p.available <= 0).length;
     return {
@@ -77,9 +84,7 @@ export function useInventory() {
 
   const movementStats = useMemo(() => {
     const currentMonth = new Date().getMonth();
-    const thisMonth = movements.filter(
-      (m) => new Date(m.date).getMonth() === currentMonth
-    );
+    const thisMonth = movements.filter((m) => new Date(m.date).getMonth() === currentMonth);
     const transfers = thisMonth.filter((m) => m.type === 'transfer');
     const receipts = thisMonth.filter((m) => m.type === 'receipt');
     const adjustments = thisMonth.filter(
@@ -101,14 +106,32 @@ export function useInventory() {
     };
   }, [movements]);
 
-  // Mock estático: las acciones muestran un mensaje pero no mutan nada. 
+  // Mock estático: las acciones muestran un mensaje pero no mutan nada.
   // Esto mantiene limpios los componentes hasta que haya servicio real.
-  const transferStock = (...args: any[]) => { toast.success('Traslado simulado correctamente (modo estático)'); };
-  const receiveGoods = (...args: any[]) => { toast.success('Entrada simulada correctamente (modo estático)'); };
-  const adjustStock = (...args: any[]) => { toast.success('Ajuste simulado correctamente (modo estático)'); };
-  const approveQuote = (...args: any[]) => { toast.success('Cotización reserva aprobada (modo estático)'); };
-  const createProduct = (...args: any[]) => { toast.success('Producto guardado (modo estático)'); };
-  const updateProduct = (...args: any[]) => { toast.success('Producto actualizado (modo estático)'); };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  const transferStock = (...args: any[]) => {
+    toast.success('Traslado simulado correctamente (modo estático)');
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  const receiveGoods = (...args: any[]) => {
+    toast.success('Entrada simulada correctamente (modo estático)');
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  const adjustStock = (...args: any[]) => {
+    toast.success('Ajuste simulado correctamente (modo estático)');
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  const approveQuote = (...args: any[]) => {
+    toast.success('Cotización reserva aprobada (modo estático)');
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  const createProduct = (...args: any[]) => {
+    toast.success('Producto guardado (modo estático)');
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+  const updateProduct = (...args: any[]) => {
+    toast.success('Producto actualizado (modo estático)');
+  };
 
   return {
     products: richProducts,

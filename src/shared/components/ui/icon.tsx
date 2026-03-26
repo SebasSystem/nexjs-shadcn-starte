@@ -82,6 +82,12 @@ import {
   Minus,
   PackagePlus,
   BarChart3,
+
+  // ── Admin ──────────────────────────────────────────────────────────────
+  Building2,
+  CreditCard,
+  Activity,
+  Shield,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -169,6 +175,12 @@ const icons = {
   Minus,
   PackagePlus,
   BarChart3,
+
+  // Admin
+  Building2,
+  CreditCard,
+  Activity,
+  Shield,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────

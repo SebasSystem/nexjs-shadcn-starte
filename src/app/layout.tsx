@@ -27,7 +27,7 @@ export default async function RootLayout({
 }>) {
   const lang = await detectLanguage();
 
-const SETTINGS_SCRIPT = `
+  const SETTINGS_SCRIPT = `
   try {
     var stored = localStorage.getItem('crm-ui-settings');
     if (stored) {

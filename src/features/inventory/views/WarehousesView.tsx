@@ -20,7 +20,6 @@ import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/com
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { cn } from 'src/lib/utils';
 import { MOCK_CATEGORIES, type Product } from 'src/_mock/_inventories';
-import { StockBadge } from '../components/StockBadge';
 import { TransferDrawer } from '../components/TransferDrawer';
 import { GoodsReceiptDrawer } from '../components/GoodsReceiptDrawer';
 import { useInventory } from '../hooks/useInventory';
@@ -100,9 +99,7 @@ export function WarehousesView() {
       }),
       columnHelper.accessor('category', {
         header: 'Categoría',
-        cell: (info) => (
-          <span className="text-body2 text-muted-foreground">{info.getValue()}</span>
-        ),
+        cell: (info) => <span className="text-body2 text-muted-foreground">{info.getValue()}</span>,
       }),
       columnHelper.accessor('stockMain', {
         header: () => <div className="text-right w-full">B. Principal</div>,
@@ -169,7 +166,12 @@ export function WarehousesView() {
                 </p>
               </div>
               {card.badge && (
-                <span className={cn('text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap mt-0.5', card.badgeClass)}>
+                <span
+                  className={cn(
+                    'text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap mt-0.5',
+                    card.badgeClass
+                  )}
+                >
                   {card.badge}
                 </span>
               )}
@@ -224,7 +226,8 @@ export function WarehousesView() {
               />
             </div>
             <p className="text-caption text-muted-foreground mt-2">
-              {maxUnits > 0 ? Math.round((bodega.units / maxUnits) * 100) : 0}% de la capacidad relativa
+              {maxUnits > 0 ? Math.round((bodega.units / maxUnits) * 100) : 0}% de la capacidad
+              relativa
             </p>
           </SectionCard>
         ))}
@@ -234,7 +237,11 @@ export function WarehousesView() {
       <SectionCard noPadding>
         <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-border/60">
           <div className="relative flex-1 min-w-48">
-            <Icon name="Search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Icon
+              name="Search"
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
               placeholder="Buscar por nombre o SKU..."
               value={search}
@@ -250,7 +257,9 @@ export function WarehousesView() {
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
               {MOCK_CATEGORIES.map((c) => (
-                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                <SelectItem key={c.id} value={c.name}>
+                  {c.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

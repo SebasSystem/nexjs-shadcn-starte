@@ -120,7 +120,9 @@ export function JwtSignUpView() {
           <h1 className="text-[26px] font-bold text-slate-800 tracking-tight leading-tight text-center">
             Crear cuenta
           </h1>
-          <p className="text-sm text-slate-500 mt-1 text-center">Completa tus datos para comenzar</p>
+          <p className="text-sm text-slate-500 mt-1 text-center">
+            Completa tus datos para comenzar
+          </p>
         </div>
 
         {/* Error global */}

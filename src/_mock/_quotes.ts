@@ -27,8 +27,20 @@ export const MOCK_QUOTES: QuoteMock[] = [
     status: 'approved',
     createdAt: '2026-03-10T10:00:00Z',
     items: [
-      { productId: 'prod-004', productName: 'Pantalón Cargo Verde M', sku: 'SKU-012-M', quantity: 10, warehouse: 'main' },
-      { productId: 'prod-007', productName: 'Calcetines Deportivos Pack x3', sku: 'SKU-055-P3', quantity: 30, warehouse: 'main' },
+      {
+        productId: 'prod-004',
+        productName: 'Pantalón Cargo Verde M',
+        sku: 'SKU-012-M',
+        quantity: 10,
+        warehouse: 'main',
+      },
+      {
+        productId: 'prod-007',
+        productName: 'Calcetines Deportivos Pack x3',
+        sku: 'SKU-055-P3',
+        quantity: 30,
+        warehouse: 'main',
+      },
     ],
   },
   {
@@ -37,9 +49,27 @@ export const MOCK_QUOTES: QuoteMock[] = [
     status: 'approved',
     createdAt: '2026-03-11T14:00:00Z',
     items: [
-      { productId: 'prod-006', productName: 'Auriculares BT Pro', sku: 'SKU-201-BT', quantity: 8, warehouse: 'main' },
-      { productId: 'prod-010', productName: 'Camiseta Polo L', sku: 'SKU-002-L', quantity: 12, warehouse: 'main' },
-      { productId: 'prod-002', productName: 'Zapatilla Running 42', sku: 'SKU-045-42', quantity: 2, warehouse: 'main' },
+      {
+        productId: 'prod-006',
+        productName: 'Auriculares BT Pro',
+        sku: 'SKU-201-BT',
+        quantity: 8,
+        warehouse: 'main',
+      },
+      {
+        productId: 'prod-010',
+        productName: 'Camiseta Polo L',
+        sku: 'SKU-002-L',
+        quantity: 12,
+        warehouse: 'main',
+      },
+      {
+        productId: 'prod-002',
+        productName: 'Zapatilla Running 42',
+        sku: 'SKU-045-42',
+        quantity: 2,
+        warehouse: 'main',
+      },
     ],
   },
   {
@@ -48,8 +78,20 @@ export const MOCK_QUOTES: QuoteMock[] = [
     status: 'sent',
     createdAt: '2026-03-12T09:00:00Z',
     items: [
-      { productId: 'prod-008', productName: 'Mochila Trail 30L', sku: 'SKU-077-30', quantity: 5, warehouse: 'main' },
-      { productId: 'prod-012', productName: 'Reloj GPS Sport', sku: 'SKU-300-GPS', quantity: 3, warehouse: 'main' },
+      {
+        productId: 'prod-008',
+        productName: 'Mochila Trail 30L',
+        sku: 'SKU-077-30',
+        quantity: 5,
+        warehouse: 'main',
+      },
+      {
+        productId: 'prod-012',
+        productName: 'Reloj GPS Sport',
+        sku: 'SKU-300-GPS',
+        quantity: 3,
+        warehouse: 'main',
+      },
     ],
   },
   {
@@ -58,8 +100,20 @@ export const MOCK_QUOTES: QuoteMock[] = [
     status: 'sent',
     createdAt: '2026-03-13T11:00:00Z',
     items: [
-      { productId: 'prod-003', productName: 'Gorra Deportiva Negra', sku: 'SKU-089-BK', quantity: 20, warehouse: 'store' },
-      { productId: 'prod-001', productName: 'Camiseta Básica XL', sku: 'SKU-001-XL', quantity: 15, warehouse: 'main' },
+      {
+        productId: 'prod-003',
+        productName: 'Gorra Deportiva Negra',
+        sku: 'SKU-089-BK',
+        quantity: 20,
+        warehouse: 'store',
+      },
+      {
+        productId: 'prod-001',
+        productName: 'Camiseta Básica XL',
+        sku: 'SKU-001-XL',
+        quantity: 15,
+        warehouse: 'main',
+      },
     ],
   },
   {
@@ -68,8 +122,20 @@ export const MOCK_QUOTES: QuoteMock[] = [
     status: 'draft',
     createdAt: '2026-03-15T16:30:00Z',
     items: [
-      { productId: 'prod-004', productName: 'Pantalón Cargo Verde M', sku: 'SKU-012-M', quantity: 5, warehouse: 'main' },
-      { productId: 'prod-006', productName: 'Auriculares BT Pro', sku: 'SKU-201-BT', quantity: 4, warehouse: 'main' },
+      {
+        productId: 'prod-004',
+        productName: 'Pantalón Cargo Verde M',
+        sku: 'SKU-012-M',
+        quantity: 5,
+        warehouse: 'main',
+      },
+      {
+        productId: 'prod-006',
+        productName: 'Auriculares BT Pro',
+        sku: 'SKU-201-BT',
+        quantity: 4,
+        warehouse: 'main',
+      },
     ],
   },
   {
@@ -78,7 +144,13 @@ export const MOCK_QUOTES: QuoteMock[] = [
     status: 'rejected',
     createdAt: '2026-03-08T08:00:00Z',
     items: [
-      { productId: 'prod-001', productName: 'Camiseta Básica XL', sku: 'SKU-001-XL', quantity: 50, warehouse: 'main' },
+      {
+        productId: 'prod-001',
+        productName: 'Camiseta Básica XL',
+        sku: 'SKU-001-XL',
+        quantity: 50,
+        warehouse: 'main',
+      },
     ],
   },
 ];

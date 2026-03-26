@@ -77,7 +77,9 @@ function B2BExpandedRow({ product }: { product: RichProduct }) {
                 </div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                <p className="text-subtitle2 font-bold text-foreground">{item?.quantity ?? 0} uds</p>
+                <p className="text-subtitle2 font-bold text-foreground">
+                  {item?.quantity ?? 0} uds
+                </p>
                 <Badge variant="soft" color={qConfig.color}>
                   {qConfig.label}
                 </Badge>
@@ -213,7 +215,11 @@ export function StockView() {
       }),
       columnHelper.accessor('category', {
         header: 'Categoría',
-        cell: (info) => <Badge variant="soft" color="secondary">{info.getValue()}</Badge>,
+        cell: (info) => (
+          <Badge variant="soft" color="secondary">
+            {info.getValue()}
+          </Badge>
+        ),
       }),
       columnHelper.accessor('physical', {
         header: () => <div className="text-right w-full">Stock físico</div>,
@@ -232,11 +238,18 @@ export function StockView() {
         cell: (info) => <div className="text-right text-info font-medium">{info.getValue()}</div>,
       }),
       columnHelper.accessor('available', {
-        header: () => <div className="text-right w-full font-bold text-foreground">Disponible real</div>,
+        header: () => (
+          <div className="text-right w-full font-bold text-foreground">Disponible real</div>
+        ),
         cell: (info) => {
           const val = info.getValue();
           return (
-            <div className={cn('text-right font-bold text-base', val <= 0 ? 'text-error' : 'text-success')}>
+            <div
+              className={cn(
+                'text-right font-bold text-base',
+                val <= 0 ? 'text-error' : 'text-success'
+              )}
+            >
               {val}
             </div>
           );
@@ -295,23 +308,25 @@ export function StockView() {
       />
 
       {/* Banner de alerta global */}
-      {criticalProducts.length > 0 && filterStatus !== 'out_of_stock' && filterStatus !== 'reserved' && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-error/30 bg-error/5 px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            <Icon name="AlertTriangle" size={16} className="text-error shrink-0" />
-            <p className="text-caption text-error font-medium">
-              <span className="font-bold">{criticalProducts.length}</span> producto(s) sin stock
-              disponible para nuevas ventas
-            </p>
+      {criticalProducts.length > 0 &&
+        filterStatus !== 'out_of_stock' &&
+        filterStatus !== 'reserved' && (
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-error/30 bg-error/5 px-4 py-3">
+            <div className="flex items-center gap-2.5">
+              <Icon name="AlertTriangle" size={16} className="text-error shrink-0" />
+              <p className="text-caption text-error font-medium">
+                <span className="font-bold">{criticalProducts.length}</span> producto(s) sin stock
+                disponible para nuevas ventas
+              </p>
+            </div>
+            <button
+              onClick={() => setFilterStatus('out_of_stock')}
+              className="text-caption text-error font-semibold hover:underline whitespace-nowrap shrink-0"
+            >
+              Ver productos críticos
+            </button>
           </div>
-          <button
-            onClick={() => setFilterStatus('out_of_stock')}
-            className="text-caption text-error font-semibold hover:underline whitespace-nowrap shrink-0"
-          >
-            Ver productos críticos
-          </button>
-        </div>
-      )}
+        )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -322,13 +337,20 @@ export function StockView() {
           >
             <div className="flex items-start justify-between gap-3 mb-4">
               <div className="flex items-center gap-3 min-w-0">
-                <div className={cn('p-2.5 rounded-xl shrink-0', card.iconClassName)}>{card.icon}</div>
+                <div className={cn('p-2.5 rounded-xl shrink-0', card.iconClassName)}>
+                  {card.icon}
+                </div>
                 <p className="text-3xl font-bold text-foreground leading-none tabular-nums tracking-tight">
                   {card.value}
                 </p>
               </div>
               {card.badge && (
-                <span className={cn('text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap mt-0.5', card.badgeClass)}>
+                <span
+                  className={cn(
+                    'text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap mt-0.5',
+                    card.badgeClass
+                  )}
+                >
                   {card.badge}
                 </span>
               )}
@@ -344,7 +366,9 @@ export function StockView() {
           <div key={item.label} className="flex items-center gap-2">
             <span className={cn('w-2.5 h-2.5 rounded-full shrink-0', item.dot)} />
             <span className="text-caption text-foreground font-medium">{item.label}</span>
-            <span className="text-caption text-muted-foreground hidden sm:inline">— {item.desc}</span>
+            <span className="text-caption text-muted-foreground hidden sm:inline">
+              — {item.desc}
+            </span>
           </div>
         ))}
       </div>
@@ -353,7 +377,11 @@ export function StockView() {
       <SectionCard noPadding>
         <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-border/60">
           <div className="relative flex-1 min-w-48">
-            <Icon name="Search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Icon
+              name="Search"
+              size={15}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
             <Input
               placeholder="Buscar por nombre o SKU..."
               value={search}
@@ -369,7 +397,9 @@ export function StockView() {
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
               {MOCK_CATEGORIES.map((c) => (
-                <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                <SelectItem key={c.id} value={c.name}>
+                  {c.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

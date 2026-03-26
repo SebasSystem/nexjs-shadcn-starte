@@ -89,7 +89,7 @@ export function NewOpportunityDrawer({ open, onClose, onSave }: NewOpportunityDr
       notes: form.notes
         ? [
             {
-              id: `note-${Math.random().toString(36).substring(2, 9)}`,
+              id: `note-${crypto.randomUUID().split('-')[0]}`,
               content: form.notes,
               author: 'Administrador',
               createdAt: new Date().toISOString(),
@@ -131,96 +131,96 @@ export function NewOpportunityDrawer({ open, onClose, onSave }: NewOpportunityDr
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <div className="py-6 space-y-8">
             {/* Cliente */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">
-                1
-              </span>
-              Información del Lead
-            </h3>
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">
+                  1
+                </span>
+                Información del Lead
+              </h3>
 
-            <Input
-              label="Nombre del Cliente o Empresa"
-              required
-              placeholder="Ej: John Doe / TechNova S.A."
-              value={form.clientName}
-              onChange={(e) => setForm((p) => ({ ...p, clientName: e.target.value }))}
-              error={errors.clientName}
-              autoFocus
-            />
-
-            <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Teléfono (Opcional)"
-                placeholder="+34 600..."
-                value={form.contactPhone}
-                onChange={(e) => setForm((p) => ({ ...p, contactPhone: e.target.value }))}
-              />
-              <Input
-                label="Email (Opcional)"
-                type="email"
-                placeholder="ejemplo@correo.com"
-                value={form.contactEmail}
-                onChange={(e) => setForm((p) => ({ ...p, contactEmail: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          <hr className="border-border/40" />
-
-          {/* Oportunidad */}
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">
-                2
-              </span>
-              Interés y Contexto
-            </h3>
-
-            <div className="grid grid-cols-2 gap-4">
-              <SelectField
-                label="Producto de Interés"
-                options={[{ value: '', label: 'Sin especificar' }, ...MAIN_PRODUCTS]}
-                value={form.mainProduct}
-                onChange={(v) => setForm((p) => ({ ...p, mainProduct: v as string }))}
-              />
-              <SelectField
-                label="Origen del Lead"
-                options={ORIGIN_OPTIONS}
-                value={form.source}
-                onChange={(v) => setForm((p) => ({ ...p, source: v as LeadSource }))}
-              />
-              <SelectField
-                label="Etapa Inicial"
+                label="Nombre del Cliente o Empresa"
                 required
-                options={STAGE_OPTIONS}
-                value={form.stage}
-                onChange={(v) => setForm((p) => ({ ...p, stage: v as StageId }))}
+                placeholder="Ej: John Doe / TechNova S.A."
+                value={form.clientName}
+                onChange={(e) => setForm((p) => ({ ...p, clientName: e.target.value }))}
+                error={errors.clientName}
+                autoFocus
               />
-              <Input
-                label="Monto Estimado (Opcional)"
-                type="number"
-                min={0}
-                placeholder="0.00"
-                value={form.estimatedAmount}
-                onChange={(e) => setForm((p) => ({ ...p, estimatedAmount: e.target.value }))}
-                leftIcon={<span className="text-sm text-muted-foreground">$</span>}
-              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Teléfono (Opcional)"
+                  placeholder="+34 600..."
+                  value={form.contactPhone}
+                  onChange={(e) => setForm((p) => ({ ...p, contactPhone: e.target.value }))}
+                />
+                <Input
+                  label="Email (Opcional)"
+                  type="email"
+                  placeholder="ejemplo@correo.com"
+                  value={form.contactEmail}
+                  onChange={(e) => setForm((p) => ({ ...p, contactEmail: e.target.value }))}
+                />
+              </div>
             </div>
 
-            <div className="flex flex-col gap-1.5 pt-2">
-              <label className="text-sm font-medium text-foreground">
-                Notas Iniciales (Opcional)
-              </label>
-              <Textarea
-                placeholder="Ej: Nos escribió por Instagram preguntando por licencias..."
-                rows={3}
-                value={form.notes}
-                onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-                className="bg-muted/30 focus:bg-background transition-colors"
-              />
+            <hr className="border-border/40" />
+
+            {/* Oportunidad */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">
+                  2
+                </span>
+                Interés y Contexto
+              </h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <SelectField
+                  label="Producto de Interés"
+                  options={[{ value: '', label: 'Sin especificar' }, ...MAIN_PRODUCTS]}
+                  value={form.mainProduct}
+                  onChange={(v) => setForm((p) => ({ ...p, mainProduct: v as string }))}
+                />
+                <SelectField
+                  label="Origen del Lead"
+                  options={ORIGIN_OPTIONS}
+                  value={form.source}
+                  onChange={(v) => setForm((p) => ({ ...p, source: v as LeadSource }))}
+                />
+                <SelectField
+                  label="Etapa Inicial"
+                  required
+                  options={STAGE_OPTIONS}
+                  value={form.stage}
+                  onChange={(v) => setForm((p) => ({ ...p, stage: v as StageId }))}
+                />
+                <Input
+                  label="Monto Estimado (Opcional)"
+                  type="number"
+                  min={0}
+                  placeholder="0.00"
+                  value={form.estimatedAmount}
+                  onChange={(e) => setForm((p) => ({ ...p, estimatedAmount: e.target.value }))}
+                  leftIcon={<span className="text-sm text-muted-foreground">$</span>}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5 pt-2">
+                <label className="text-sm font-medium text-foreground">
+                  Notas Iniciales (Opcional)
+                </label>
+                <Textarea
+                  placeholder="Ej: Nos escribió por Instagram preguntando por licencias..."
+                  rows={3}
+                  value={form.notes}
+                  onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
+                  className="bg-muted/30 focus:bg-background transition-colors"
+                />
+              </div>
             </div>
-          </div>
           </div>
         </div>
 

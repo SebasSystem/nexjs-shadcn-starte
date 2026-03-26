@@ -1,5 +1,12 @@
 import React from 'react';
-import { Popover, PopoverContent, PopoverTrigger, Button, Checkbox, Icon } from 'src/shared/components/ui';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Button,
+  Checkbox,
+  Icon,
+} from 'src/shared/components/ui';
 
 export interface ExportColumn {
   id: string;
@@ -14,7 +21,13 @@ interface FieldSelectorProps {
   onApply: () => void;
 }
 
-export function FieldSelector({ columns, selectedFields, onToggleField, disabled, onApply }: FieldSelectorProps) {
+export function FieldSelector({
+  columns,
+  selectedFields,
+  onToggleField,
+  disabled,
+  onApply,
+}: FieldSelectorProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -29,11 +42,11 @@ export function FieldSelector({ columns, selectedFields, onToggleField, disabled
           {columns.map((col) => {
             const checked = selectedFields.has(col.id);
             return (
-              <label key={col.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-muted/30 p-1.5 rounded-md transition-colors">
-                <Checkbox
-                  checked={checked}
-                  onCheckedChange={(c) => onToggleField(col.id, !!c)}
-                />
+              <label
+                key={col.id}
+                className="flex items-center gap-2.5 cursor-pointer hover:bg-muted/30 p-1.5 rounded-md transition-colors"
+              >
+                <Checkbox checked={checked} onCheckedChange={(c) => onToggleField(col.id, !!c)} />
                 <span className="text-body2 text-foreground font-medium">{col.label}</span>
               </label>
             );

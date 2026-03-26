@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { Icon, Button, Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from 'src/shared/components/ui';
+import {
+  Icon,
+  Button,
+  Input,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from 'src/shared/components/ui';
 import { cn } from 'src/lib/utils';
 import { MOCK_CATEGORIES } from 'src/_mock/_inventories';
 
@@ -36,18 +45,27 @@ export function ReportFilters() {
         </p>
         <div className="flex items-center gap-2">
           {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={handleClear} className="text-muted-foreground hover:text-error h-8 px-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClear}
+              className="text-muted-foreground hover:text-error h-8 px-2"
+            >
               <Icon name="RefreshCcw" size={14} className="mr-1.5" /> Limpiar
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={() => setExpanded(false)} className="h-8 w-8 p-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setExpanded(false)}
+            className="h-8 w-8 p-0"
+          >
             <Icon name="ChevronUp" size={16} />
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-        
         {/* Período */}
         <div className="md:col-span-6 flex flex-col gap-2">
           <label className="text-caption font-semibold text-muted-foreground">Período</label>
@@ -104,13 +122,14 @@ export function ReportFilters() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas las categorías</SelectItem>
-              {MOCK_CATEGORIES.map(c => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              {MOCK_CATEGORIES.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-
       </div>
     </div>
   );

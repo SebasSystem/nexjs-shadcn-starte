@@ -13,7 +13,7 @@ import {
   Receipt,
   TrendingUp,
   CheckCircle2,
-  Eye
+  Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from 'src/shared/components/ui/button';
@@ -94,17 +94,18 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
       : null;
 
   const [quotation, setQuotation] = useState<Quotation>(
-    existing ?? {
-      id: `COT-${Math.random().toString(36).substring(2, 9)}`,
-      opportunityId: actualOppId ?? opp?.id ?? '',
-      client: opp?.clientName ?? '',
-      priceList: 'B2C - Consumidor Final',
-      date: new Date().toISOString().split('T')[0],
-      seller: 'Admin Software',
-      status: 'borrador',
-      products: [],
-      internalNotes: '',
-    }
+    () =>
+      existing ?? {
+        id: `COT-${crypto.randomUUID().split('-')[0]}`,
+        opportunityId: actualOppId ?? opp?.id ?? '',
+        client: opp?.clientName ?? '',
+        priceList: 'B2C - Consumidor Final',
+        date: new Date().toISOString().split('T')[0],
+        seller: 'Admin Software',
+        status: 'borrador',
+        products: [],
+        internalNotes: '',
+      }
   );
 
   const [isSaving, setIsSaving] = useState(false);
@@ -118,7 +119,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
       products: [
         ...prev.products,
         {
-          id: `line-${Math.random().toString(36).substring(2, 9)}`,
+          id: `line-${crypto.randomUUID().split('-')[0]}`,
           name: '',
           sku: '',
           qty: 1,
@@ -168,8 +169,8 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
 
   const invoice = getInvoiceByQuotation(quotation.id);
 
-  const isCerradoGanado = opp?.stage === 'cerrado_ganado';
-  const isCotizacionGenerada = opp?.stage === 'cotizacion_enviada' || opp?.stage === 'negociacion';
+  const isCerradoGanado = opp?.stage === 'cerrado-ganado';
+  const isCotizacionGenerada = opp?.stage === 'cotizacion-enviada' || opp?.stage === 'negociacion';
 
   const totals = calcTotals(quotation.products);
 
@@ -196,7 +197,9 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
               {STATUS_LABELS[quotation.status]}
             </Badge>
           </div>
-          <p className="text-body2 text-muted-foreground mt-1">Detalle de oportunidad y cotización</p>
+          <p className="text-body2 text-muted-foreground mt-1">
+            Detalle de oportunidad y cotización
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 w-full md:w-auto shrink-0 mt-2 md:mt-0">
@@ -209,7 +212,10 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
           </Button>
 
           {isCerradoGanado || isCotizacionGenerada ? (
-            <Button variant="outline" onClick={() => toast.info('Abriendo vista previa de cotización...')}>
+            <Button
+              variant="outline"
+              onClick={() => toast.info('Abriendo vista previa de cotización...')}
+            >
               <Eye size={16} />
               Ver Cotización
             </Button>
