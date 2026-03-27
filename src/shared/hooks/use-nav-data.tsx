@@ -56,6 +56,7 @@ const ICON_MAP: Record<string, IconName> = {
   billing: 'Activity',
   telemetry: 'BarChart3',
   shieldCheck: 'ShieldCheck',
+  globe: 'Globe',
 };
 
 const DEFAULT_ICON_NAME = 'Menu' as const;

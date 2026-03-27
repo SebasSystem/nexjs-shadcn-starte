@@ -1,0 +1,276 @@
+import type {
+  SettingsUser,
+  Rol,
+  Equipo,
+  CampoPersonalizado,
+  ConfigLocalizacion,
+} from 'src/features/settings/types/settings.types';
+
+// ── Usuarios ──────────────────────────────────────────────────────────────────
+export const MOCK_SETTINGS_USERS: SettingsUser[] = [
+  {
+    id: 'u1',
+    nombre: 'Carlos Mendoza',
+    email: 'carlos.mendoza@empresa.com',
+    rolId: 'r1',
+    rolNombre: 'Administrador',
+    equipoId: 'e1',
+    equipoNombre: 'Equipo Norte',
+    estado: 'ACTIVO',
+    ultimoAcceso: new Date(Date.now() - 1 * 3600000).toISOString(),
+    creadoEn: '2025-01-15T09:00:00Z',
+  },
+  {
+    id: 'u2',
+    nombre: 'Laura Ríos',
+    email: 'laura.rios@empresa.com',
+    rolId: 'r2',
+    rolNombre: 'Vendedor',
+    equipoId: 'e1',
+    equipoNombre: 'Equipo Norte',
+    estado: 'ACTIVO',
+    ultimoAcceso: new Date(Date.now() - 5 * 3600000).toISOString(),
+    creadoEn: '2025-02-01T10:00:00Z',
+  },
+  {
+    id: 'u3',
+    nombre: 'Andrés Torres',
+    email: 'andres.torres@empresa.com',
+    rolId: 'r2',
+    rolNombre: 'Vendedor',
+    equipoId: 'e2',
+    equipoNombre: 'Equipo Sur',
+    estado: 'ACTIVO',
+    ultimoAcceso: new Date(Date.now() - 24 * 3600000).toISOString(),
+    creadoEn: '2025-02-10T08:30:00Z',
+  },
+  {
+    id: 'u4',
+    nombre: 'Sofía Vargas',
+    email: 'sofia.vargas@empresa.com',
+    rolId: 'r3',
+    rolNombre: 'Gerente Comercial',
+    equipoId: 'e2',
+    equipoNombre: 'Equipo Sur',
+    estado: 'ACTIVO',
+    ultimoAcceso: new Date(Date.now() - 2 * 3600000).toISOString(),
+    creadoEn: '2025-01-20T11:00:00Z',
+  },
+  {
+    id: 'u5',
+    nombre: 'Miguel Flores',
+    email: 'miguel.flores@empresa.com',
+    rolId: 'r4',
+    rolNombre: 'Solo Lectura',
+    equipoId: undefined,
+    equipoNombre: undefined,
+    estado: 'PENDIENTE',
+    ultimoAcceso: new Date(Date.now() - 72 * 3600000).toISOString(),
+    creadoEn: '2025-03-01T14:00:00Z',
+  },
+  {
+    id: 'u6',
+    nombre: 'Valentina Cruz',
+    email: 'valentina.cruz@empresa.com',
+    rolId: 'r2',
+    rolNombre: 'Vendedor',
+    equipoId: 'e1',
+    equipoNombre: 'Equipo Norte',
+    estado: 'INACTIVO',
+    ultimoAcceso: new Date(Date.now() - 30 * 24 * 3600000).toISOString(),
+    creadoEn: '2024-11-05T09:00:00Z',
+  },
+];
+
+// ── Roles ─────────────────────────────────────────────────────────────────────
+export const MOCK_ROLES: Rol[] = [
+  {
+    id: 'r1',
+    nombre: 'Administrador',
+    descripcion: 'Acceso total al sistema y configuración',
+    totalUsuarios: 1,
+    esDefecto: false,
+    creadoEn: '2025-01-01T00:00:00Z',
+    permisos: [
+      {
+        moduloId: 'm1',
+        moduloNombre: 'Inventario',
+        acciones: ['ver', 'crear', 'editar', 'eliminar'],
+      },
+      { moduloId: 'm2', moduloNombre: 'Ventas', acciones: ['ver', 'crear', 'editar', 'eliminar'] },
+      { moduloId: 'm3', moduloNombre: 'Reportes', acciones: ['ver', 'crear'] },
+      {
+        moduloId: 'm4',
+        moduloNombre: 'RH / Comisiones',
+        acciones: ['ver', 'crear', 'editar', 'eliminar'],
+      },
+      {
+        moduloId: 'm5',
+        moduloNombre: 'Configuración',
+        acciones: ['ver', 'crear', 'editar', 'eliminar'],
+      },
+    ],
+  },
+  {
+    id: 'r2',
+    nombre: 'Vendedor',
+    descripcion: 'Acceso al pipeline, cotizaciones y clientes asignados',
+    totalUsuarios: 3,
+    esDefecto: true,
+    creadoEn: '2025-01-01T00:00:00Z',
+    permisos: [
+      { moduloId: 'm2', moduloNombre: 'Ventas', acciones: ['ver', 'crear', 'editar'] },
+      { moduloId: 'm3', moduloNombre: 'Reportes', acciones: ['ver'] },
+      { moduloId: 'm1', moduloNombre: 'Inventario', acciones: ['ver'] },
+    ],
+  },
+  {
+    id: 'r3',
+    nombre: 'Gerente Comercial',
+    descripcion: 'Supervisión de equipos, reportes completos y aprobaciones',
+    totalUsuarios: 1,
+    esDefecto: false,
+    creadoEn: '2025-01-05T00:00:00Z',
+    permisos: [
+      { moduloId: 'm2', moduloNombre: 'Ventas', acciones: ['ver', 'crear', 'editar', 'eliminar'] },
+      { moduloId: 'm3', moduloNombre: 'Reportes', acciones: ['ver', 'crear'] },
+      { moduloId: 'm4', moduloNombre: 'RH / Comisiones', acciones: ['ver', 'editar'] },
+      { moduloId: 'm1', moduloNombre: 'Inventario', acciones: ['ver'] },
+    ],
+  },
+  {
+    id: 'r4',
+    nombre: 'Solo Lectura',
+    descripcion: 'Puede ver información pero no modificarla',
+    totalUsuarios: 1,
+    esDefecto: false,
+    creadoEn: '2025-02-01T00:00:00Z',
+    permisos: [
+      { moduloId: 'm1', moduloNombre: 'Inventario', acciones: ['ver'] },
+      { moduloId: 'm2', moduloNombre: 'Ventas', acciones: ['ver'] },
+      { moduloId: 'm3', moduloNombre: 'Reportes', acciones: ['ver'] },
+    ],
+  },
+];
+
+// ── Equipos ───────────────────────────────────────────────────────────────────
+export const MOCK_EQUIPOS: Equipo[] = [
+  {
+    id: 'e1',
+    nombre: 'Equipo Norte',
+    liderId: 'u1',
+    liderNombre: 'Carlos Mendoza',
+    totalMiembros: 3,
+    creadoEn: '2025-01-10T00:00:00Z',
+    miembros: [
+      {
+        usuarioId: 'u1',
+        usuarioNombre: 'Carlos Mendoza',
+        rolNombre: 'Administrador',
+        clientesAsignados: 12,
+      },
+      {
+        usuarioId: 'u2',
+        usuarioNombre: 'Laura Ríos',
+        rolNombre: 'Vendedor',
+        clientesAsignados: 28,
+      },
+      {
+        usuarioId: 'u6',
+        usuarioNombre: 'Valentina Cruz',
+        rolNombre: 'Vendedor',
+        clientesAsignados: 5,
+      },
+    ],
+  },
+  {
+    id: 'e2',
+    nombre: 'Equipo Sur',
+    liderId: 'u4',
+    liderNombre: 'Sofía Vargas',
+    totalMiembros: 2,
+    creadoEn: '2025-01-12T00:00:00Z',
+    miembros: [
+      {
+        usuarioId: 'u4',
+        usuarioNombre: 'Sofía Vargas',
+        rolNombre: 'Gerente Comercial',
+        clientesAsignados: 0,
+      },
+      {
+        usuarioId: 'u3',
+        usuarioNombre: 'Andrés Torres',
+        rolNombre: 'Vendedor',
+        clientesAsignados: 34,
+      },
+    ],
+  },
+  {
+    id: 'e3',
+    nombre: 'Equipo Digital',
+    liderId: 'u4',
+    liderNombre: 'Sofía Vargas',
+    totalMiembros: 0,
+    creadoEn: '2025-03-05T00:00:00Z',
+    miembros: [],
+  },
+];
+
+// ── Campos Personalizados ─────────────────────────────────────────────────────
+export const MOCK_CAMPOS_PERSONALIZADOS: CampoPersonalizado[] = [
+  {
+    id: 'cf1',
+    nombre: 'codigo_licitacion',
+    etiqueta: 'Código de Licitación',
+    tipo: 'texto',
+    modulo: 'oportunidades',
+    requerido: false,
+    creadoEn: '2025-02-01T00:00:00Z',
+  },
+  {
+    id: 'cf2',
+    nombre: 'nit_empresa',
+    etiqueta: 'NIT / RUT',
+    tipo: 'texto',
+    modulo: 'empresas',
+    requerido: true,
+    creadoEn: '2025-01-15T00:00:00Z',
+  },
+  {
+    id: 'cf3',
+    nombre: 'categoria_cliente',
+    etiqueta: 'Categoría de Cliente',
+    tipo: 'select',
+    modulo: 'contactos',
+    requerido: false,
+    opciones: ['VIP', 'Frecuente', 'Ocasional', 'Inactivo'],
+    creadoEn: '2025-01-20T00:00:00Z',
+  },
+  {
+    id: 'cf4',
+    nombre: 'fecha_vencimiento_contrato',
+    etiqueta: 'Vencimiento de Contrato',
+    tipo: 'fecha',
+    modulo: 'empresas',
+    requerido: false,
+    creadoEn: '2025-02-10T00:00:00Z',
+  },
+  {
+    id: 'cf5',
+    nombre: 'cliente_recurrente',
+    etiqueta: '¿Es cliente recurrente?',
+    tipo: 'booleano',
+    modulo: 'contactos',
+    requerido: false,
+    creadoEn: '2025-03-01T00:00:00Z',
+  },
+];
+
+// ── Localización ──────────────────────────────────────────────────────────────
+export const MOCK_LOCALIZACION: ConfigLocalizacion = {
+  zonaHoraria: 'America/Bogota',
+  moneda: 'COP',
+  simboloMoneda: '$',
+  formatoFecha: 'DD/MM/YYYY',
+  idioma: 'es-CO',
+};
