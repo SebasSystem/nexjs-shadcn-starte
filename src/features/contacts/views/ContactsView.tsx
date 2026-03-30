@@ -98,7 +98,7 @@ export const ContactsView = () => {
         title="Directorio CRM"
         subtitle="Gestiona empresas, personas e instituciones de tu base comercial"
         action={
-          <Button onClick={handleOpenNew} className="gap-2">
+          <Button color="primary" onClick={handleOpenNew} className="gap-2">
             <Plus className="h-4 w-4" />
             Nuevo contacto
           </Button>
@@ -130,26 +130,28 @@ export const ContactsView = () => {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center">
-        <Input
-          placeholder="Buscar por nombre o email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          leftIcon={<Search className="h-4 w-4" />}
-          className="flex-1 max-w-sm"
-        />
-        <Select value={filterEstado} onValueChange={setFilterEstado}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Estado" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">Todos los estados</SelectItem>
-            <SelectItem value="ACTIVO">Activo</SelectItem>
-            <SelectItem value="PROSPECTO">Prospecto</SelectItem>
-            <SelectItem value="INACTIVO">Inactivo</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <SectionCard>
+        <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <Input
+            placeholder="Buscar por nombre o email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            leftIcon={<Search className="h-4 w-4" />}
+            className="flex-1 max-w-sm"
+          />
+          <Select value={filterEstado} onValueChange={setFilterEstado}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todos los estados</SelectItem>
+              <SelectItem value="ACTIVO">Activo</SelectItem>
+              <SelectItem value="PROSPECTO">Prospecto</SelectItem>
+              <SelectItem value="INACTIVO">Inactivo</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </SectionCard>
 
       <SectionCard noPadding className="shadow-sm border border-border/40">
         {isLoading ? (

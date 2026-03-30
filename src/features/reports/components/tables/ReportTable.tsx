@@ -15,7 +15,7 @@ import type { IconName } from 'src/shared/components/ui/icon';
 import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
 import { StockBadge } from 'src/features/inventory/components/StockBadge';
 import { cn } from 'src/lib/utils';
-import { Card } from 'src/shared/components/ui/card';
+import { SectionCard } from 'src/shared/components/layouts/page';
 
 const getCellIcon = (id: string): IconName | undefined => {
   const l = id.toLowerCase();
@@ -98,7 +98,7 @@ export function ReportTable({ data, columns }: { data: any[]; columns: any[] }) 
   if (data.length === 0) return null;
 
   return (
-    <Card className="border-none shadow-sm overflow-hidden flex flex-col w-full bg-card">
+    <SectionCard noPadding className="shadow-sm overflow-hidden flex flex-col w-full bg-card">
       <div className="p-4 border-b border-border/50 flex flex-col sm:flex-row justify-between items-center gap-3 bg-muted/5">
         <h2 className="text-h6 text-foreground">Detalle de registros</h2>
         <div className="w-full sm:w-64">
@@ -140,6 +140,6 @@ export function ReportTable({ data, columns }: { data: any[]; columns: any[] }) 
       </div>
 
       <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
-    </Card>
+    </SectionCard>
   );
 }

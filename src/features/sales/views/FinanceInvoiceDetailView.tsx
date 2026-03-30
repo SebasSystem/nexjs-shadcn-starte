@@ -8,9 +8,16 @@ import { Input } from 'src/shared/components/ui/input';
 import { Badge } from 'src/shared/components/ui/badge';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { Card, CardContent } from 'src/shared/components/ui/card';
-import { Table, TableBody, TableRow, TableCell } from 'src/shared/components/ui';
-import { PageContainer } from 'src/shared/components/layouts/page';
-import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
+import { PageContainer, SectionCard } from 'src/shared/components/layouts/page';
+import {
+  useTable,
+  TableHeadCustom,
+  TablePaginationCustom,
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+} from 'src/shared/components/table';
 
 // ─── Types & Mock Data ───────────────────────────────────────────────────────
 
@@ -298,7 +305,7 @@ export function FinanceInvoiceDetailView() {
       </div>
 
       {/* ── Billed Products Table — TanStack ─────────────────────────────── */}
-      <Card className="border-none shadow-card py-0 gap-0 overflow-hidden">
+      <SectionCard noPadding>
         <div className="px-6 py-4 border-b border-border/50">
           <h2 className="text-h6 text-foreground">Productos Facturados</h2>
         </div>
@@ -338,8 +345,10 @@ export function FinanceInvoiceDetailView() {
           </div>
         </div>
 
-        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
-      </Card>
+        <div className="border-t border-border/40">
+          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        </div>
+      </SectionCard>
 
       {/* ── Footer Actions ───────────────────────────────────────────────── */}
       <div className="flex justify-end gap-3">

@@ -1,8 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { Button } from 'src/shared/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from 'src/shared/components/ui/sheet';
 import { cn } from 'src/lib/utils';
 import type { Rol, AccionPermiso, PermisoModulo } from '../../types/settings.types';
 
@@ -62,106 +70,97 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
     if (success) onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      <div className="fixed inset-0 bg-black/40 z-[100]" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 w-full md:w-[520px] bg-white shadow-2xl z-[101] flex flex-col animate-in slide-in-from-right duration-300">
-        <div className="flex items-center justify-between px-6 py-4 border-b shrink-0">
-          <div>
-            <h2 className="text-xl font-bold">{rol ? 'Editar Rol' : 'Nuevo Rol'}</h2>
-            <p className="text-sm text-gray-500 mt-1">Define el nombre y los permisos por módulo</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
+    <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent side="right" className="sm:max-w-[520px] flex flex-col p-0">
+        <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
+          <SheetTitle>{rol ? 'Editar Rol' : 'Nuevo Rol'}</SheetTitle>
+          <SheetDescription>Define el nombre y los permisos por módulo</SheetDescription>
+        </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Nombre del rol *</label>
-            <input
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-              placeholder="Ej. Gerente de Zona"
-            />
-          </div>
+        <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
+          <div className="py-6 space-y-6">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Nombre del rol *</label>
+              <input
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
+                placeholder="Ej. Gerente de Zona"
+              />
+            </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Descripción</label>
-            <textarea
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm resize-none"
-              placeholder="Describe brevemente este rol..."
-            />
-          </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Descripción</label>
+              <textarea
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm resize-none"
+                placeholder="Describe brevemente este rol..."
+              />
+            </div>
 
-          <div className="space-y-3">
-            <h3 className="text-sm font-bold uppercase text-gray-500 tracking-wider">
-              Permisos por módulo
-            </h3>
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="text-left py-2.5 px-4 font-semibold text-gray-600 w-[40%]">
-                      Módulo
-                    </th>
-                    {ACCIONES.map((a) => (
-                      <th
-                        key={a}
-                        className="text-center py-2.5 px-2 font-semibold text-gray-600 capitalize w-[15%]"
-                      >
-                        {a}
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold uppercase text-gray-500 tracking-wider">
+                Permisos por módulo
+              </h3>
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="text-left py-2.5 px-4 font-semibold text-gray-600 w-[40%]">
+                        Módulo
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {MODULOS.map((modulo, idx) => (
-                    <tr
-                      key={modulo.id}
-                      className={cn(
-                        'border-b border-gray-100',
-                        idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'
-                      )}
-                    >
-                      <td className="py-2.5 px-4 font-medium text-gray-800">{modulo.nombre}</td>
-                      {ACCIONES.map((accion) => (
-                        <td key={accion} className="py-2.5 px-2 text-center">
-                          <button
-                            type="button"
-                            onClick={() => toggleAccion(modulo.id, accion)}
-                            className={cn(
-                              'w-6 h-6 rounded border-2 flex items-center justify-center mx-auto transition-colors',
-                              hasAccion(modulo.id, accion)
-                                ? 'bg-blue-600 border-blue-600 text-white'
-                                : 'border-gray-300 bg-white hover:border-blue-400'
-                            )}
-                          >
-                            {hasAccion(modulo.id, accion) && <Check size={12} strokeWidth={3} />}
-                          </button>
-                        </td>
+                      {ACCIONES.map((a) => (
+                        <th
+                          key={a}
+                          className="text-center py-2.5 px-2 font-semibold text-gray-600 capitalize w-[15%]"
+                        >
+                          {a}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {MODULOS.map((modulo, idx) => (
+                      <tr
+                        key={modulo.id}
+                        className={cn(
+                          'border-b border-gray-100',
+                          idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'
+                        )}
+                      >
+                        <td className="py-2.5 px-4 font-medium text-gray-800">{modulo.nombre}</td>
+                        {ACCIONES.map((accion) => (
+                          <td key={accion} className="py-2.5 px-2 text-center">
+                            <button
+                              type="button"
+                              onClick={() => toggleAccion(modulo.id, accion)}
+                              className={cn(
+                                'w-6 h-6 rounded border-2 flex items-center justify-center mx-auto transition-colors',
+                                hasAccion(modulo.id, accion)
+                                  ? 'bg-blue-600 border-blue-600 text-white'
+                                  : 'border-gray-300 bg-white hover:border-blue-400'
+                              )}
+                            >
+                              {hasAccion(modulo.id, accion) && <Check size={12} strokeWidth={3} />}
+                            </button>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-gray-400">
+                * &quot;Ver&quot; se activa automáticamente cuando se asigna cualquier otra acción.
+              </p>
             </div>
-            <p className="text-xs text-gray-400">
-              * &quot;Ver&quot; se activa automáticamente cuando se asigna cualquier otra acción.
-            </p>
           </div>
         </div>
 
-        <div className="border-t p-4 shrink-0 flex justify-end gap-3 bg-gray-50">
+        <SheetFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
@@ -173,8 +172,8 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
           >
             {isSubmitting ? 'Guardando...' : 'Guardar Rol'}
           </Button>
-        </div>
-      </div>
-    </>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 };

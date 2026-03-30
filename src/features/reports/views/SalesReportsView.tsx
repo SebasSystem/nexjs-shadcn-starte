@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { PageContainer, PageHeader } from 'src/shared/components/layouts/page';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { cn } from 'src/lib/utils';
 import { ReportFilters } from '../components/ReportFilters';
 import { ExportBar } from '../components/ExportBar';
@@ -97,10 +97,7 @@ export function SalesReportsView() {
         {/* KPIs */}
         <div className="flex flex-wrap gap-4 pb-2">
           {Object.entries(kpis).map(([key, val]) => (
-            <div
-              key={key}
-              className="bg-card border border-border/50 rounded-xl p-4 shadow-sm min-w-[140px] sm:min-w-[200px] flex-1"
-            >
+            <SectionCard key={key} className="min-w-[140px] sm:min-w-[200px] flex-1">
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold mb-1.5 truncate">
                 {key}
               </p>
@@ -116,13 +113,13 @@ export function SalesReportsView() {
               >
                 {String(val)}
               </p>
-            </div>
+            </SectionCard>
           ))}
         </div>
 
         {/* Gráficas Duplicadas por layout responsivo */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="bg-card border border-border/50 rounded-xl pt-5 pb-2 px-3 sm:px-5 shadow-sm overflow-hidden flex flex-col w-full h-[360px]">
+          <SectionCard className="pt-5 pb-2 px-3 sm:px-5 overflow-hidden flex flex-col w-full h-[360px]">
             <h3 className="text-subtitle2 font-bold mb-4 px-2">
               Comportamiento analítico principal
             </h3>
@@ -139,9 +136,9 @@ export function SalesReportsView() {
                 />
               )}
             </div>
-          </div>
+          </SectionCard>
 
-          <div className="bg-card border border-border/50 rounded-xl pt-5 pb-2 px-3 sm:px-5 shadow-sm overflow-hidden flex flex-col w-full h-[360px]">
+          <SectionCard className="pt-5 pb-2 px-3 sm:px-5 overflow-hidden flex flex-col w-full h-[360px]">
             <h3 className="text-subtitle2 font-bold mb-4 px-2">
               Métricas secundarias y proyecciones
             </h3>
@@ -164,7 +161,7 @@ export function SalesReportsView() {
                 />
               )}
             </div>
-          </div>
+          </SectionCard>
         </div>
 
         {/* Tabla nativa */}

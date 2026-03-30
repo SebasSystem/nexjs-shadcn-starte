@@ -35,69 +35,73 @@ const KPIS: {
   chartData: number[];
 }[] = [
   {
-    label: 'Unidades totales',
-    value: '2,847',
-    trendPercent: '+2.6% este mes',
+    label: 'Total Contactos',
+    value: '4,842',
+    trendPercent: '+8.2% este mes',
     trendUp: true,
-    chartData: [5, 18, 12, 51, 68, 11, 39, 37, 27, 20],
+    chartData: [112, 130, 145, 150, 180, 210, 240, 290, 310, 345],
   },
   {
-    label: 'Stock disponible',
-    value: '2,412',
-    trendPercent: '+5.2% este mes',
+    label: 'Tasa de Conversión',
+    value: '24.8%',
+    trendPercent: '+2.1% (Pipeline)',
     trendUp: true,
-    chartData: [20, 41, 63, 33, 28, 90, 50, 42, 109, 38],
+    chartData: [20, 21, 23, 21, 22, 24, 25, 23, 24, 25],
   },
   {
-    label: 'Stock reservado',
-    value: '435',
-    trendPercent: '+15.3% canales',
+    label: 'MRR Proyectado',
+    value: '$42,500',
+    trendPercent: '+12.5% este mes',
     trendUp: true,
-    chartData: [8, 9, 31, 8, 16, 21, 4, 11, 15, 36],
+    chartData: [38, 38.5, 39, 40, 40.2, 41, 41.5, 41.8, 42, 42.5],
   },
   {
-    label: 'Stock crítico',
-    value: '8',
-    trendPercent: '-2.1% requieren acción',
+    label: 'Clientes en Riesgo',
+    value: '42',
+    trendPercent: '-5% requieren acción',
     trendUp: false,
-    chartData: [20, 24, 18, 15, 16, 12, 10, 8, 5, 2],
+    chartData: [60, 58, 55, 52, 50, 48, 45, 44, 43, 42],
   },
 ];
 
-const BODEGAS = [
-  { name: 'Bodega Principal', units: 1892 },
-  { name: 'Tienda Física', units: 955 },
+const CARTERA_ETIQUETAS = [
+  { name: 'VIP', count: 145 },
+  { name: 'Recurrente', count: 320 },
+  { name: 'Nuevo', count: 85 },
+  { name: 'En Riesgo', count: 42 },
 ];
 
-const RESERVAS = [
+const VENTAS_SERIES = [
+  { name: 'Ingresos Reales', type: 'column', data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30] },
+  { name: 'Meta Proyectada', type: 'line', data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39] },
+];
+
+const TOP_SEGMENTOS = [
   {
-    initials: 'D',
-    avatarBg: 'bg-blue-500',
-    name: 'Distribuidora Mayorista',
-    cod: 'COT-2024-0166',
-    uds: '150 uds',
-    time: 'Hace 2h',
-    status: 'Pendiente',
-    statusColor: 'bg-amber-500/10 text-amber-600',
-  },
-  {
-    initials: 'R',
-    avatarBg: 'bg-rose-500',
-    name: 'Retail Corp',
-    cod: 'COT-2024-0165',
-    uds: '85 uds',
-    time: 'Hace 5h',
-    status: 'Confirmado',
+    initials: 'B',
+    avatarBg: 'bg-emerald-500',
+    name: 'B2B Alta Recurrencia',
+    cod: 'SEG-001 • Creado hace 2h',
+    uds: '1,420 contactos',
+    status: 'Activo',
     statusColor: 'bg-emerald-500/10 text-emerald-600',
   },
   {
-    initials: 'S',
-    avatarBg: 'bg-violet-500',
-    name: 'Super Norte',
-    cod: 'COT-2024-0164',
-    uds: '200 uds',
-    time: 'Hace 1d',
-    status: 'En proceso',
+    initials: 'R',
+    avatarBg: 'bg-amber-500',
+    name: 'En Riesgo de Fuga',
+    cod: 'SEG-045 • Actualizado hoy',
+    uds: '210 contactos',
+    status: 'Atención',
+    statusColor: 'bg-amber-500/10 text-amber-600',
+  },
+  {
+    initials: 'M',
+    avatarBg: 'bg-blue-500',
+    name: 'Mayoristas VIP',
+    cod: 'SEG-012 • Estable',
+    uds: '45 contactos',
+    status: 'Activo',
     statusColor: 'bg-blue-500/10 text-blue-600',
   },
 ];
@@ -302,7 +306,8 @@ export function DashboardView() {
   });
 
   const chartOptions = useChart({
-    labels: BODEGAS.map((b) => b.name),
+    labels: CARTERA_ETIQUETAS.map((b) => b.name),
+    colors: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'], // Blue, Green, Yellow, Red
     stroke: { show: false },
     legend: { position: 'bottom', horizontalAlign: 'center' },
     plotOptions: {
@@ -313,7 +318,24 @@ export function DashboardView() {
       },
     },
     tooltip: {
-      y: { formatter: (val: number) => `${val} uds` },
+      y: { formatter: (val: number) => `${val} contactos` },
+    },
+  });
+
+  const salesChartOptions = useChart({
+    stroke: { width: [0, 3] },
+    plotOptions: { bar: { columnWidth: '20%', borderRadius: 4 } },
+    fill: { type: ['solid', 'solid'] },
+    colors: ['#3B82F6', '#10B981'],
+    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov'],
+    xaxis: { type: 'category' },
+    yaxis: {
+      labels: { formatter: (val: number) => `$${val}k` },
+    },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      y: { formatter: (val: number) => `$${val},000` },
     },
   });
 
@@ -397,42 +419,59 @@ export function DashboardView() {
         ))}
       </div>
 
-      {/* ── Stock por Bodega + Reservas B2B ──────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Stock por Bodega */}
+      {/* ── Evolución de Ventas ────────────────────────────────────────── */}
+      <div className="mb-4">
         <SectionCard>
           <SectionCardHeader
-            title="Stock por Bodega"
-            subtitle="Distribución actual"
+            title="Rendimiento de Ventas"
+            subtitle="Ingresos Reales vs. Meta Proyectada"
+          />
+          <div className="mt-2">
+            <Chart type="line" series={VENTAS_SERIES} options={salesChartOptions} height={320} />
+          </div>
+        </SectionCard>
+      </div>
+
+      {/* ── Distribución B2B + Stock ──────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        {/* Distribución de Cartera */}
+        <SectionCard>
+          <SectionCardHeader
+            title="Distribución de Cartera"
+            subtitle="Contactos por Etiqueta (Tags)"
             action={
-              <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
-                Ver detalle →
-              </button>
+              <Link href={paths.settings.tags}>
+                <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                  Gestionar Etiquetas →
+                </button>
+              </Link>
             }
           />
           <div className="flex justify-center items-center mt-2 -mb-2">
             <Chart
               type="donut"
-              series={BODEGAS.map((b) => b.units)}
+              series={CARTERA_ETIQUETAS.map((b) => b.count)}
               options={chartOptions}
               height={260}
             />
           </div>
         </SectionCard>
 
-        {/* Reservas B2B Recientes */}
+        {/* Top Segmentos Activos */}
         <SectionCard>
           <SectionCardHeader
-            title="Reservas B2B Recientes"
-            subtitle={`${RESERVAS.length} operaciones activas`}
+            title="Top Segmentos Activos"
+            subtitle={`${TOP_SEGMENTOS.length} audiencias clave`}
             action={
-              <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
-                Ver todas →
-              </button>
+              <Link href={paths.contacts.segments}>
+                <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+                  Ir al Query Builder →
+                </button>
+              </Link>
             }
           />
           <div className="space-y-1">
-            {RESERVAS.map((r) => (
+            {TOP_SEGMENTOS.map((r) => (
               <div
                 key={r.cod}
                 className="flex items-center justify-between py-2.5 px-3 -mx-3 rounded-xl hover:bg-muted/50 transition-colors group cursor-default"

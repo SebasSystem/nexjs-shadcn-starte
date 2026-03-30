@@ -1,4 +1,5 @@
 export * from './accordion';
+export * from './section-card';
 export * from './icon';
 export * from './alert';
 export * from './avatar';

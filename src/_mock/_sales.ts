@@ -1,6 +1,11 @@
 // ─── PIPELINE ────────────────────────────────────────────────────────────────
 
-import type { PipelineStage, Opportunity, Quotation, Invoice } from 'src/types/sales';
+import type {
+  PipelineStage,
+  Opportunity,
+  Quotation,
+  Invoice,
+} from 'src/features/sales/types/sales.types';
 
 export const PIPELINE_STAGES: PipelineStage[] = [
   { id: 'prospecto', label: 'Prospecto', color: '#F59E0B' },

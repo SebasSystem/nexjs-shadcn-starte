@@ -63,7 +63,7 @@ export const CustomFieldsView = () => {
         title="Campos Personalizados"
         subtitle="Agrega campos a medida en los módulos del CRM según tu industria"
         action={
-          <Button onClick={handleOpenNew} className="gap-2">
+          <Button color="primary" onClick={handleOpenNew} className="gap-2">
             <Plus className="h-4 w-4" />
             Nuevo campo
           </Button>

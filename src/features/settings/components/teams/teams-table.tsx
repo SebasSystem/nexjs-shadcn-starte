@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from 'src/shared/components/ui/dropdown-menu';
 import type { Equipo } from '../../types/settings.types';
+import { SectionCard } from 'src/shared/components/layouts/page';
 
 function getInitials(nombre: string) {
   return nombre
@@ -69,9 +70,10 @@ export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
         const extra = equipo.miembros.length - preview.length;
 
         return (
-          <div
+          <SectionCard
             key={equipo.id}
-            className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/40 bg-card shadow-sm hover:shadow-md transition-shadow"
+            noPadding
+            className="group relative flex flex-col overflow-hidden hover:shadow-md transition-shadow"
           >
             {/* Color strip */}
             <div className={`h-1.5 w-full ${accent.strip}`} />
@@ -163,7 +165,7 @@ export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
             >
               Gestionar miembros →
             </button>
-          </div>
+          </SectionCard>
         );
       })}
     </div>

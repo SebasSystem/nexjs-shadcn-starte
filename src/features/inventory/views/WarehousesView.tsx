@@ -4,10 +4,6 @@ import { useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import {
   Icon,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
   Button,
   Input,
   Select,
@@ -16,8 +12,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from 'src/shared/components/ui';
-import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
-import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
+import {
+  useTable,
+  TableHeadCustom,
+  TablePaginationCustom,
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+} from 'src/shared/components/table';
+import {
+  PageContainer,
+  PageHeader,
+  SectionCard,
+  StatsCard,
+} from 'src/shared/components/layouts/page';
 import { cn } from 'src/lib/utils';
 import { MOCK_CATEGORIES, type Product } from 'src/_mock/_inventories';
 import { TransferDrawer } from '../components/TransferDrawer';
@@ -152,32 +161,15 @@ export function WarehousesView() {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {statsCards.map((card) => (
-          <div
+          <StatsCard
             key={card.title}
-            className="bg-card rounded-2xl px-6 py-5 border border-border/50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
-          >
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className={cn('p-2.5 rounded-xl shrink-0', card.iconClassName)}>
-                  {card.icon}
-                </div>
-                <p className="text-3xl font-bold text-foreground leading-none tabular-nums tracking-tight">
-                  {card.value}
-                </p>
-              </div>
-              {card.badge && (
-                <span
-                  className={cn(
-                    'text-[11px] font-semibold px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap mt-0.5',
-                    card.badgeClass
-                  )}
-                >
-                  {card.badge}
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground font-medium">{card.title}</p>
-          </div>
+            title={card.title}
+            value={card.value}
+            icon={card.icon}
+            iconClassName={card.iconClassName}
+            trend={card.badge}
+            trendUp
+          />
         ))}
       </div>
 

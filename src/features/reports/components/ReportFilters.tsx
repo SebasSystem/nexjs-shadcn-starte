@@ -9,6 +9,7 @@ import {
   SelectContent,
   SelectItem,
 } from 'src/shared/components/ui';
+import { SectionCard } from 'src/shared/components/layouts/page';
 import { cn } from 'src/lib/utils';
 import { MOCK_CATEGORIES } from 'src/_mock/_inventories';
 
@@ -38,7 +39,7 @@ export function ReportFilters() {
   }
 
   return (
-    <div className="w-full bg-card border border-border/50 rounded-xl mt-4 p-4 shadow-sm flex flex-col gap-4 animate-in fade-in slide-in-from-top-2">
+    <SectionCard className="mt-4 flex flex-col gap-4 animate-in fade-in slide-in-from-top-2">
       <div className="flex justify-between items-center mb-1">
         <p className="text-subtitle2 font-bold text-foreground flex items-center gap-2">
           <Icon name="SlidersHorizontal" size={16} /> Filtros de reporte
@@ -131,6 +132,6 @@ export function ReportFilters() {
           </Select>
         </div>
       </div>
-    </div>
+    </SectionCard>
   );
 }

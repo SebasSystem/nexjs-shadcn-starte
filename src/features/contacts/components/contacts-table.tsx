@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo } from 'react';
+import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { Eye, Pencil, MoreHorizontal, Users } from 'lucide-react';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Button } from 'src/shared/components/ui/button';
@@ -14,6 +15,16 @@ import {
 import { EntityTypeBadge } from './entity-type-badge';
 import { ContactStatusBadge } from './contact-status-badge';
 import type { Contacto } from '../types/contacts.types';
+import {
+  useTable,
+  TableHeadCustom,
+  TablePaginationCustom,
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+} from 'src/shared/components/table';
+import { cn } from 'src/lib/utils';
 
 function getInitials(nombre: string) {
   return nombre
@@ -43,8 +54,105 @@ interface ContactsTableProps {
   onDelete: (c: Contacto) => void;
 }
 
+const columnHelper = createColumnHelper<Contacto>();
+
 export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: ContactsTableProps) {
-  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const COLUMNS = useMemo(
+    () => [
+      columnHelper.accessor('nombre', {
+        header: 'Nombre',
+        cell: (info) => {
+          const c = info.row.original;
+          return (
+            <div className="flex items-center gap-3">
+              <Avatar className="h-9 w-9 shrink-0">
+                <AvatarFallback className={`text-xs font-semibold ${AVATAR_COLORS[c.tipo]}`}>
+                  {getInitials(c.nombre)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-foreground text-body2 leading-tight">{c.nombre}</p>
+                <p className="text-caption text-muted-foreground">{getSubtitle(c)}</p>
+              </div>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor('tipo', {
+        header: 'Tipo',
+        cell: (info) => <EntityTypeBadge tipo={info.getValue()} />,
+      }),
+      columnHelper.accessor('email', {
+        header: 'Email',
+        cell: (info) => (
+          <span className="text-body2 text-muted-foreground truncate block max-w-[180px]">
+            {info.getValue()}
+          </span>
+        ),
+      }),
+      columnHelper.accessor('pais', {
+        header: 'País',
+        cell: (info) => <span className="text-body2">{info.getValue()}</span>,
+      }),
+      columnHelper.accessor('estado', {
+        header: 'Estado',
+        cell: (info) => <ContactStatusBadge estado={info.getValue()} />,
+      }),
+      columnHelper.accessor('relaciones', {
+        header: 'Relaciones',
+        cell: (info) => (
+          <span className="text-body2 font-medium text-foreground">{info.getValue().length}</span>
+        ),
+      }),
+      columnHelper.display({
+        id: 'actions',
+        header: 'Acciones',
+        cell: (info) => {
+          const c = info.row.original;
+          return (
+            <div
+              className="flex items-center gap-1 transition-opacity opacity-0 group-hover:opacity-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => onViewDetail(c)}
+              >
+                <Eye className="h-3.5 w-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(c)}>
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <MoreHorizontal className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => onViewDetail(c)}>Ver detalle</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEdit(c)}>Editar</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-600" onClick={() => onDelete(c)}>
+                    Eliminar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        },
+      }),
+    ],
+    [onEdit, onViewDetail, onDelete]
+  );
+
+  const { table, dense, onChangeDense } = useTable({
+    data: contactos,
+    columns: COLUMNS,
+    defaultRowsPerPage: 10,
+  });
 
   if (contactos.length === 0) {
     return (
@@ -56,115 +164,30 @@ export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: Con
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border/40">
-            <th className="text-left py-3 px-4 text-caption font-semibold text-muted-foreground w-[28%]">
-              Nombre
-            </th>
-            <th className="text-left py-3 px-4 text-caption font-semibold text-muted-foreground w-[14%]">
-              Tipo
-            </th>
-            <th className="text-left py-3 px-4 text-caption font-semibold text-muted-foreground w-[20%]">
-              Email
-            </th>
-            <th className="text-left py-3 px-4 text-caption font-semibold text-muted-foreground w-[12%]">
-              País
-            </th>
-            <th className="text-left py-3 px-4 text-caption font-semibold text-muted-foreground w-[10%]">
-              Estado
-            </th>
-            <th className="text-left py-3 px-4 text-caption font-semibold text-muted-foreground w-[8%]">
-              Relaciones
-            </th>
-            <th className="text-left py-3 px-4 text-caption font-semibold text-muted-foreground w-[8%]">
-              Acciones
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {contactos.map((c) => (
-            <tr
-              key={c.id}
-              className="border-b border-border/20 hover:bg-muted/40 cursor-pointer transition-colors"
-              onClick={() => onViewDetail(c)}
-              onMouseEnter={() => setHoveredRow(c.id)}
-              onMouseLeave={() => setHoveredRow(null)}
-            >
-              <td className="py-3 px-4">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-9 w-9 shrink-0">
-                    <AvatarFallback className={`text-xs font-semibold ${AVATAR_COLORS[c.tipo]}`}>
-                      {getInitials(c.nombre)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-foreground text-body2 leading-tight">
-                      {c.nombre}
-                    </p>
-                    <p className="text-caption text-muted-foreground">{getSubtitle(c)}</p>
-                  </div>
-                </div>
-              </td>
-              <td className="py-3 px-4">
-                <EntityTypeBadge tipo={c.tipo} />
-              </td>
-              <td className="py-3 px-4">
-                <span className="text-body2 text-muted-foreground truncate block max-w-[180px]">
-                  {c.email}
-                </span>
-              </td>
-              <td className="py-3 px-4">
-                <span className="text-body2">{c.pais}</span>
-              </td>
-              <td className="py-3 px-4">
-                <ContactStatusBadge estado={c.estado} />
-              </td>
-              <td className="py-3 px-4">
-                <span className="text-body2 font-medium text-foreground">
-                  {c.relaciones.length}
-                </span>
-              </td>
-              <td className="py-3 px-4">
-                <div
-                  className={`flex items-center gap-1 transition-opacity ${hoveredRow === c.id ? 'opacity-100' : 'opacity-0'}`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => onViewDetail(c)}
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(c)}>
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7">
-                        <MoreHorizontal className="h-3.5 w-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onViewDetail(c)}>
-                        Ver detalle
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEdit(c)}>Editar</DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600" onClick={() => onDelete(c)}>
-                        Eliminar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="w-full">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeadCustom table={table} />
+          <TableBody>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                className="group border-b border-border/20 cursor-pointer transition-colors hover:bg-muted/40"
+                onClick={() => onViewDetail(row.original)}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id} className={cn('px-4', dense ? 'py-2' : 'py-3')}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="border-t border-border/40">
+        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+      </div>
     </div>
   );
 }

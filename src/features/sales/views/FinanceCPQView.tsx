@@ -7,10 +7,16 @@ import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-import { Card, CardContent } from 'src/shared/components/ui/card';
-import { Table, TableBody, TableRow, TableCell } from 'src/shared/components/ui';
-import { PageContainer, PageHeader } from 'src/shared/components/layouts/page';
-import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
+import {
+  useTable,
+  TableHeadCustom,
+  TablePaginationCustom,
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+} from 'src/shared/components/table';
 import {
   Sheet,
   SheetContent,
@@ -390,52 +396,45 @@ export function FinanceCPQView() {
         {/* ── Main Content ──────────────────────────────────────────────── */}
         <div className="flex-1 min-w-0 space-y-6">
           {/* Header form */}
-          <Card className="border-none shadow-card">
-            <CardContent className="p-6">
-              <h2 className="text-h6 text-foreground mb-4">Datos de la Cotización</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Cliente"
-                  placeholder="Buscar cliente..."
-                  value={client}
-                  onChange={(e) => setClient(e.target.value)}
-                />
-                <SelectField
-                  label="Tipo cliente"
-                  options={CLIENT_TYPE_OPTIONS}
-                  value={clientType}
-                  onChange={(v) => setClientType(v as string)}
-                />
-                <SelectField
-                  label="Moneda"
-                  options={CURRENCY_OPTIONS}
-                  value={currency}
-                  onChange={(v) => setCurrency(v as string)}
-                />
-                <SelectField
-                  label="Lista de precios"
-                  options={PRICE_LIST_OPTIONS}
-                  value={priceList}
-                  onChange={(v) => setPriceList(v as string)}
-                />
-                <Input
-                  label="Válido hasta"
-                  type="date"
-                  value={validUntil}
-                  onChange={(e) => setValidUntil(e.target.value)}
-                />
-                <Input
-                  label="N° Cotización"
-                  value="COT-2024-0847"
-                  readOnly
-                  className="bg-muted/20"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <SectionCard className="p-6">
+            <h2 className="text-h6 text-foreground mb-4">Datos de la Cotización</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Cliente"
+                placeholder="Buscar cliente..."
+                value={client}
+                onChange={(e) => setClient(e.target.value)}
+              />
+              <SelectField
+                label="Tipo cliente"
+                options={CLIENT_TYPE_OPTIONS}
+                value={clientType}
+                onChange={(v) => setClientType(v as string)}
+              />
+              <SelectField
+                label="Moneda"
+                options={CURRENCY_OPTIONS}
+                value={currency}
+                onChange={(v) => setCurrency(v as string)}
+              />
+              <SelectField
+                label="Lista de precios"
+                options={PRICE_LIST_OPTIONS}
+                value={priceList}
+                onChange={(v) => setPriceList(v as string)}
+              />
+              <Input
+                label="Válido hasta"
+                type="date"
+                value={validUntil}
+                onChange={(e) => setValidUntil(e.target.value)}
+              />
+              <Input label="N° Cotización" value="COT-2024-0847" readOnly className="bg-muted/20" />
+            </div>
+          </SectionCard>
 
           {/* Products Table — TanStack */}
-          <Card className="border-none shadow-card py-0 gap-0 overflow-hidden">
+          <SectionCard noPadding>
             <div className="px-6 py-4 border-b border-border/50 flex items-center justify-between">
               <h2 className="text-h6 text-foreground">Productos</h2>
               <Button variant="outline" size="sm" onClick={addLine}>
@@ -461,86 +460,78 @@ export function FinanceCPQView() {
               </Table>
             </div>
 
-            <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
-          </Card>
+            <div className="border-t border-border/40">
+              <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+            </div>
+          </SectionCard>
 
           {/* Notes */}
-          <Card className="border-none shadow-card">
-            <CardContent className="p-6">
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Notas y condiciones
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={4}
-                placeholder="Ingresa notas o condiciones comerciales para esta cotización..."
-                className="w-full bg-muted/20 border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none transition-colors"
-              />
-            </CardContent>
-          </Card>
+          <SectionCard className="p-6">
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Notas y condiciones
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+              placeholder="Ingresa notas o condiciones comerciales para esta cotización..."
+              className="w-full bg-muted/20 border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none transition-colors"
+            />
+          </SectionCard>
         </div>
 
         {/* ── Sticky Sidebar ───────────────────────────────────────────── */}
         <div className="w-full lg:w-72 shrink-0 lg:sticky lg:top-6">
-          <Card className="border-none shadow-card">
-            <CardContent className="p-5 space-y-3">
-              <h3 className="text-h6 text-foreground mb-2">Resumen</h3>
+          <SectionCard className="p-5 space-y-3">
+            <h3 className="text-h6 text-foreground mb-2">Resumen</h3>
 
-              <div className="space-y-2 pb-3 border-b border-border/40">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium text-foreground">{formatMXN(subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">IVA (16%)</span>
-                  <span className="font-medium text-foreground">{formatMXN(iva)}</span>
-                </div>
+            <div className="space-y-2 pb-3 border-b border-border/40">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-medium text-foreground">{formatMXN(subtotal)}</span>
               </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">IVA (16%)</span>
+                <span className="font-medium text-foreground">{formatMXN(iva)}</span>
+              </div>
+            </div>
 
-              <div className="flex justify-between items-baseline pt-1">
-                <span className="font-bold text-foreground">Total</span>
-                <span className="text-2xl font-bold text-blue-600">{formatMXN(total)}</span>
-              </div>
+            <div className="flex justify-between items-baseline pt-1">
+              <span className="font-bold text-foreground">Total</span>
+              <span className="text-2xl font-bold text-blue-600">{formatMXN(total)}</span>
+            </div>
 
-              {/* Margin bar */}
-              <div className="pt-2">
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-muted-foreground font-medium">Margen promedio</span>
-                  <span className="font-bold text-emerald-600">{avgMargin.toFixed(1)}%</span>
-                </div>
-                <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-500 rounded-full transition-all"
-                    style={{ width: `${Math.min(avgMargin, 100)}%` }}
-                  />
-                </div>
+            {/* Margin bar */}
+            <div className="pt-2">
+              <div className="flex justify-between text-xs mb-1.5">
+                <span className="text-muted-foreground font-medium">Margen promedio</span>
+                <span className="font-bold text-emerald-600">{avgMargin.toFixed(1)}%</span>
               </div>
+              <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 rounded-full transition-all"
+                  style={{ width: `${Math.min(avgMargin, 100)}%` }}
+                />
+              </div>
+            </div>
 
-              {/* Action buttons */}
-              <div className="pt-2 space-y-2">
-                <Button variant="outline" className="w-full">
-                  Guardar borrador
-                </Button>
-                <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-                  Aprobar
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
-                >
-                  Rechazar
-                </Button>
-                <Button
-                  color="primary"
-                  className="w-full"
-                  onClick={() => setInvoiceDrawerOpen(true)}
-                >
-                  Convertir a Factura
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Action buttons */}
+            <div className="pt-2 space-y-2">
+              <Button variant="outline" className="w-full">
+                Guardar borrador
+              </Button>
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Aprobar</Button>
+              <Button
+                variant="outline"
+                className="w-full border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+              >
+                Rechazar
+              </Button>
+              <Button color="primary" className="w-full" onClick={() => setInvoiceDrawerOpen(true)}>
+                Convertir a Factura
+              </Button>
+            </div>
+          </SectionCard>
         </div>
       </div>
 

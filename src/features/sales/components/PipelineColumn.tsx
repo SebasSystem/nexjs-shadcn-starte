@@ -3,7 +3,7 @@
 import { cn } from 'src/lib/utils';
 import { OpportunityCard } from './OpportunityCard';
 import { useSalesContext } from '../context/SalesContext';
-import type { PipelineStage, Opportunity } from 'src/types/sales';
+import type { PipelineStage, Opportunity } from 'src/features/sales/types/sales.types';
 
 interface PipelineColumnProps {
   stage: PipelineStage;

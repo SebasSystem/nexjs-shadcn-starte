@@ -11,7 +11,7 @@ import type {
   Payment,
   Activity,
   Note,
-} from 'src/types/sales';
+} from 'src/features/sales/types/sales.types';
 
 // ─── Context Shape ────────────────────────────────────────────────────────────
 

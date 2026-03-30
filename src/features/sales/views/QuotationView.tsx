@@ -24,7 +24,7 @@ import { PageContainer } from 'src/shared/components/layouts/page';
 import { paths } from 'src/routes/paths';
 import { useSalesContext } from '../context/SalesContext';
 import { OpportunityTimeline } from '../components/OpportunityTimeline';
-import type { Quotation, ProductLine } from 'src/types/sales';
+import type { Quotation, ProductLine } from 'src/features/sales/types/sales.types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

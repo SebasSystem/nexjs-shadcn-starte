@@ -24,7 +24,7 @@ import { SectionCard, PageContainer } from 'src/shared/components/layouts/page';
 import { RegisterPaymentDrawer } from '../components/RegisterPaymentDrawer';
 import { useInvoice } from '../hooks/useInvoice';
 import { paths } from 'src/routes/paths';
-import type { Payment } from 'src/types/sales';
+import type { Payment } from 'src/features/sales/types/sales.types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 

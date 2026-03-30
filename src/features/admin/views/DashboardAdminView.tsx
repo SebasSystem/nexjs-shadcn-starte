@@ -22,9 +22,18 @@ import { Chart } from 'src/shared/components/chart';
 import type ApexCharts from 'apexcharts';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
-import { TenantDetailDrawer } from 'src/features/admin/components/tenants/tenant-detail-drawer';
-import { TenantStatusBadge } from 'src/features/admin/components/tenants/tenant-status-badge';
+import { TenantDetailDrawer } from 'src/features/admin/components/tenant-detail-drawer';
+import { TenantStatusBadge } from 'src/features/admin/components/tenant-status-badge';
 import { Tenant } from 'src/features/admin/types/admin.types';
+import {
+  useTable,
+  TableHeadCustom,
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+} from 'src/shared/components/table';
+import { createColumnHelper, flexRender } from '@tanstack/react-table';
 
 function getInitials(nombre: string) {
   return nombre
@@ -47,6 +56,8 @@ function formatRelative(dateStr: string) {
   return `Hace ${Math.floor(diffD / 30)} mes(es)`;
 }
 
+const columnHelper = createColumnHelper<Tenant>();
+
 export const DashboardAdminView = () => {
   const { tenants, isLoading, refetch, suspendTenant } = useTenants();
 
@@ -61,6 +72,83 @@ export const DashboardAdminView = () => {
   const handleSuspend = async (tenant: Tenant) => {
     await suspendTenant(tenant.id);
   };
+
+  const COLUMNS = useMemo(
+    () => [
+      columnHelper.accessor('nombre', {
+        header: 'Tenant',
+        cell: (info) => {
+          const t = info.row.original;
+          return (
+            <div className="flex items-center gap-3">
+              <Avatar className="h-8 w-8 shrink-0">
+                <AvatarFallback className="text-xs bg-blue-100 text-blue-700 font-semibold">
+                  {getInitials(t.nombre)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-foreground text-sm">{t.nombre}</p>
+                <p className="text-xs text-muted-foreground">{t.dominio}</p>
+              </div>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor('planNombre', {
+        header: 'Plan',
+        cell: (info) => (
+          <Badge variant="outline" className="text-xs">
+            {info.getValue()}
+          </Badge>
+        ),
+      }),
+      columnHelper.accessor('totalUsuarios', {
+        header: 'Usuarios',
+        cell: (info) => {
+          const t = info.row.original;
+          return (
+            <p className="text-sm text-foreground">
+              {t.totalUsuarios} / {t.limiteUsuarios}
+            </p>
+          );
+        },
+      }),
+      columnHelper.accessor('mrr', {
+        header: 'MRR',
+        cell: (info) => <span className="font-medium text-foreground">${info.getValue()}</span>,
+      }),
+      columnHelper.accessor('estado', {
+        header: 'Estado',
+        cell: (info) => <TenantStatusBadge estado={info.getValue()} />,
+      }),
+      columnHelper.accessor('ultimoAcceso', {
+        header: 'Último acceso',
+        cell: (info) => (
+          <span className="text-sm text-muted-foreground">{formatRelative(info.getValue())}</span>
+        ),
+      }),
+      columnHelper.display({
+        id: 'acciones',
+        header: '',
+        cell: (info) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-xs font-medium"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleVerDetalle(info.row.original);
+              }}
+            >
+              Ver detalle
+            </Button>
+          </div>
+        ),
+      }),
+    ],
+    []
+  );
 
   const chartOptions: ApexCharts.ApexOptions = {
     chart: { type: 'area', toolbar: { show: false }, parentHeightOffset: 0 },
@@ -91,6 +179,12 @@ export const DashboardAdminView = () => {
       .sort((a, b) => new Date(b.creadoEn).getTime() - new Date(a.creadoEn).getTime())
       .slice(0, 10);
   }, [tenants]);
+
+  const { table } = useTable({
+    data: tenantsRecientes,
+    columns: COLUMNS,
+    defaultRowsPerPage: 10,
+  });
 
   if (isLoading) {
     return (
@@ -233,90 +327,24 @@ export const DashboardAdminView = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/20 bg-muted/20">
-                <th className="text-left py-3 px-5 text-caption font-semibold text-muted-foreground w-[28%]">
-                  Tenant
-                </th>
-                <th className="text-left py-3 px-5 text-caption font-semibold text-muted-foreground w-[14%]">
-                  Plan
-                </th>
-                <th className="text-left py-3 px-5 text-caption font-semibold text-muted-foreground w-[12%]">
-                  Usuarios
-                </th>
-                <th className="text-left py-3 px-5 text-caption font-semibold text-muted-foreground w-[10%]">
-                  MRR
-                </th>
-                <th className="text-left py-3 px-5 text-caption font-semibold text-muted-foreground w-[10%]">
-                  Estado
-                </th>
-                <th className="text-left py-3 px-5 text-caption font-semibold text-muted-foreground w-[14%]">
-                  Último acceso
-                </th>
-                <th className="text-right py-3 px-5 text-caption font-semibold text-muted-foreground w-[12%]">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {tenantsRecientes.map((tenant) => (
-                <tr
-                  key={tenant.id}
+          <Table>
+            <TableHeadCustom table={table} />
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
                   className="border-b border-border/10 hover:bg-muted/30 cursor-pointer"
-                  onClick={() => handleVerDetalle(tenant)}
+                  onClick={() => handleVerDetalle(row.original)}
                 >
-                  <td className="py-3 px-5">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8 shrink-0">
-                        <AvatarFallback className="text-xs bg-blue-100 text-blue-700 font-semibold">
-                          {getInitials(tenant.nombre)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium text-foreground text-sm">{tenant.nombre}</p>
-                        <p className="text-xs text-muted-foreground">{tenant.dominio}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-5">
-                    <Badge variant="outline" className="text-xs">
-                      {tenant.planNombre}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-5">
-                    <p className="text-sm text-foreground">
-                      {tenant.totalUsuarios} / {tenant.limiteUsuarios}
-                    </p>
-                  </td>
-                  <td className="py-3 px-5">
-                    <span className="font-medium text-foreground">${tenant.mrr}</span>
-                  </td>
-                  <td className="py-3 px-5">
-                    <TenantStatusBadge estado={tenant.estado} />
-                  </td>
-                  <td className="py-3 px-5">
-                    <span className="text-sm text-muted-foreground">
-                      {formatRelative(tenant.ultimoAcceso)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-5 text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 text-xs font-medium"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleVerDetalle(tenant);
-                      }}
-                    >
-                      Ver detalle
-                    </Button>
-                  </td>
-                </tr>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="py-3 px-5">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </SectionCard>
 

@@ -12,7 +12,7 @@ import {
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-import type { Payment } from 'src/types/sales';
+import type { Payment } from 'src/features/sales/types/sales.types';
 
 interface RegisterPaymentDrawerProps {
   open: boolean;

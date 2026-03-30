@@ -6,10 +6,21 @@ import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { TrendingUp, Clock, AlertCircle, BarChart2 } from 'lucide-react';
 import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
-import { Card, CardContent } from 'src/shared/components/ui/card';
-import { Table, TableBody, TableRow, TableCell } from 'src/shared/components/ui';
-import { PageContainer, PageHeader, StatsCard } from 'src/shared/components/layouts/page';
-import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
+import {
+  PageContainer,
+  PageHeader,
+  StatsCard,
+  SectionCard,
+} from 'src/shared/components/layouts/page';
+import {
+  useTable,
+  TableHeadCustom,
+  TablePaginationCustom,
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+} from 'src/shared/components/table';
 
 const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
@@ -253,21 +264,19 @@ export function FinanceDashboardView() {
       </div>
 
       {/* Sales Chart */}
-      <Card className="border-none shadow-card">
-        <CardContent className="p-6">
-          <h2 className="text-h6 text-foreground mb-1">Ventas por semana</h2>
-          <p className="text-body2 text-muted-foreground mb-5">Últimas 8 semanas</p>
-          <ReactApexChart
-            options={chartOptions}
-            series={[{ name: 'Ventas', data: WEEKLY_SALES_DATA }]}
-            type="bar"
-            height={280}
-          />
-        </CardContent>
-      </Card>
+      <SectionCard>
+        <h2 className="text-h6 text-foreground mb-1">Ventas por semana</h2>
+        <p className="text-body2 text-muted-foreground mb-5">Últimas 8 semanas</p>
+        <ReactApexChart
+          options={chartOptions}
+          series={[{ name: 'Ventas', data: WEEKLY_SALES_DATA }]}
+          type="bar"
+          height={280}
+        />
+      </SectionCard>
 
       {/* Invoices Table — TanStack */}
-      <Card className="border-none shadow-card py-0 gap-0 overflow-hidden">
+      <SectionCard noPadding>
         <div className="px-6 py-4 border-b border-border/50">
           <h2 className="text-h6 text-foreground">Últimas Facturas</h2>
         </div>
@@ -289,8 +298,10 @@ export function FinanceDashboardView() {
           </Table>
         </div>
 
-        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
-      </Card>
+        <div className="border-t border-border/40">
+          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        </div>
+      </SectionCard>
     </PageContainer>
   );
 }

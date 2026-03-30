@@ -7,10 +7,16 @@ import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { Switch } from 'src/shared/components/ui/switch';
 import { Badge } from 'src/shared/components/ui/badge';
-import { Card, CardContent } from 'src/shared/components/ui/card';
-import { Table, TableBody, TableRow, TableCell } from 'src/shared/components/ui';
-import { PageContainer, PageHeader } from 'src/shared/components/layouts/page';
-import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
+import {
+  useTable,
+  TableHeadCustom,
+  TablePaginationCustom,
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+} from 'src/shared/components/table';
 
 // ─── Types & Mock Data ───────────────────────────────────────────────────────
 
@@ -152,54 +158,52 @@ export function CreditRulesView() {
       />
 
       {/* ── Global Credit Rules ──────────────────────────────────────────── */}
-      <Card className="border-none shadow-card">
-        <CardContent className="p-6 space-y-5">
-          <h2 className="text-h6 text-foreground">Reglas globales de crédito</h2>
+      <SectionCard className="p-6 space-y-5">
+        <h2 className="text-h6 text-foreground">Reglas globales de crédito</h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="Días máximos de cartera"
-              type="number"
-              value={maxDays}
-              onChange={(e) => setMaxDays(e.target.value)}
-              hint="Número máximo de días que una factura puede estar pendiente"
-            />
-            <Input
-              label="Monto máximo permitido de crédito"
-              type="number"
-              value={maxAmount}
-              onChange={(e) => setMaxAmount(e.target.value)}
-              hint="Límite de crédito disponible por cliente (MXN)"
-            />
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Días máximos de cartera"
+            type="number"
+            value={maxDays}
+            onChange={(e) => setMaxDays(e.target.value)}
+            hint="Número máximo de días que una factura puede estar pendiente"
+          />
+          <Input
+            label="Monto máximo permitido de crédito"
+            type="number"
+            value={maxAmount}
+            onChange={(e) => setMaxAmount(e.target.value)}
+            hint="Límite de crédito disponible por cliente (MXN)"
+          />
+        </div>
 
-          {/* Auto-block toggle */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/20 border border-border/40">
-            <div className="flex-1 mr-4">
-              <p className="text-sm font-semibold text-foreground">
-                Activar bloqueo automático de crédito
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Cuando un cliente supere el límite configurado o tenga facturas vencidas, el sistema
-                bloqueará nuevas cotizaciones o facturas.
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <Badge variant="soft" color={autoBlock ? 'success' : 'secondary'}>
-                {autoBlock ? 'Activo' : 'Inactivo'}
-              </Badge>
-              <Switch checked={autoBlock} onCheckedChange={setAutoBlock} />
-            </div>
+        {/* Auto-block toggle */}
+        <div className="flex items-center justify-between p-4 rounded-xl bg-muted/20 border border-border/40">
+          <div className="flex-1 mr-4">
+            <p className="text-sm font-semibold text-foreground">
+              Activar bloqueo automático de crédito
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Cuando un cliente supere el límite configurado o tenga facturas vencidas, el sistema
+              bloqueará nuevas cotizaciones o facturas.
+            </p>
           </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <Badge variant="soft" color={autoBlock ? 'success' : 'secondary'}>
+              {autoBlock ? 'Activo' : 'Inactivo'}
+            </Badge>
+            <Switch checked={autoBlock} onCheckedChange={setAutoBlock} />
+          </div>
+        </div>
 
-          <div className="flex justify-end">
-            <Button color="primary">Guardar configuración</Button>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="flex justify-end">
+          <Button color="primary">Guardar configuración</Button>
+        </div>
+      </SectionCard>
 
       {/* ── Client Exceptions Table — TanStack ───────────────────────────── */}
-      <Card className="border-none shadow-card py-0 gap-0 overflow-hidden">
+      <SectionCard noPadding>
         <div className="px-6 py-4 border-b border-border/50 flex items-center justify-between">
           <h2 className="text-h6 text-foreground">Excepciones por cliente</h2>
           <Button variant="outline" size="sm">
@@ -225,8 +229,10 @@ export function CreditRulesView() {
           </Table>
         </div>
 
-        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
-      </Card>
+        <div className="border-t border-border/40">
+          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        </div>
+      </SectionCard>
     </PageContainer>
   );
 }

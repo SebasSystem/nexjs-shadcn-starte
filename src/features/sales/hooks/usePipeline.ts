@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useSalesContext } from '../context/SalesContext';
 import { PIPELINE_STAGES } from 'src/_mock/_sales';
-import type { StageId, Opportunity } from 'src/types/sales';
+import type { StageId, Opportunity } from 'src/features/sales/types/sales.types';
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 

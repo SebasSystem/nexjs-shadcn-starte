@@ -35,7 +35,7 @@ export const RolesView = () => {
         title="Roles y Permisos"
         subtitle="Define los niveles de acceso para cada tipo de usuario"
         action={
-          <Button onClick={handleOpenNew} className="gap-2">
+          <Button color="primary" onClick={handleOpenNew} className="gap-2">
             <Plus className="h-4 w-4" />
             Nuevo rol
           </Button>

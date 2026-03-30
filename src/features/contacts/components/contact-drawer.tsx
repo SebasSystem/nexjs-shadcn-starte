@@ -4,8 +4,16 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { Button } from 'src/shared/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from 'src/shared/components/ui/sheet';
 import { contactsService } from '../services/contacts.service';
 import type { Contacto, ContactoForm, TipoEntidad } from '../types/contacts.types';
 
@@ -117,283 +125,273 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
     if (success) onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      <div className="fixed inset-0 bg-black/40 z-[100]" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 w-full md:w-[500px] bg-white shadow-2xl z-[101] flex flex-col animate-in slide-in-from-right duration-300">
-        <div className="flex items-center justify-between px-6 py-4 border-b shrink-0">
-          <div>
-            <h2 className="text-xl font-bold">{contacto ? 'Editar Contacto' : 'Nuevo Contacto'}</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {contacto
-                ? 'Actualiza los datos del contacto'
-                : 'Completa el formulario según el tipo de entidad'}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
+    <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent side="right" className="sm:max-w-[500px] flex flex-col p-0">
+        <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
+          <SheetTitle>{contacto ? 'Editar Contacto' : 'Nuevo Contacto'}</SheetTitle>
+          <SheetDescription>
+            {contacto
+              ? 'Actualiza los datos del contacto'
+              : 'Completa el formulario según el tipo de entidad'}
+          </SheetDescription>
+        </SheetHeader>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex-1 overflow-y-auto px-6 py-6 space-y-5"
-        >
-          {/* Tipo de entidad */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Tipo de entidad *</label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['B2B', 'B2C', 'B2G'] as TipoEntidad[]).map((t) => {
-                const labels = { B2B: 'Empresa', B2C: 'Persona', B2G: 'Institución' };
-                const isActive = tipo === t;
-                return (
-                  <label
-                    key={t}
-                    className={`flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                      isActive
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <input type="radio" {...register('tipo')} value={t} className="sr-only" />
-                    <span
-                      className={`text-xs font-bold ${isActive ? 'text-blue-600' : 'text-gray-500'}`}
+        <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
+          <div className="py-6 space-y-5">
+            {/* Tipo de entidad */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Tipo de entidad *</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(['B2B', 'B2C', 'B2G'] as TipoEntidad[]).map((t) => {
+                  const labels = { B2B: 'Empresa', B2C: 'Persona', B2G: 'Institución' };
+                  const isActive = tipo === t;
+                  return (
+                    <label
+                      key={t}
+                      className={`flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        isActive
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
                     >
-                      {t}
-                    </span>
-                    <span
-                      className={`text-sm font-medium mt-0.5 ${isActive ? 'text-blue-700' : 'text-gray-700'}`}
-                    >
-                      {labels[t]}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Campos base */}
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Nombre *</label>
-            <input
-              {...register('nombre')}
-              className={`w-full h-10 px-3 border rounded-md text-sm ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder={
-                tipo === 'B2B'
-                  ? 'Razón social'
-                  : tipo === 'B2C'
-                    ? 'Nombre completo'
-                    : 'Nombre de la institución'
-              }
-            />
-            {errors.nombre && <p className="text-xs text-red-500">{errors.nombre.message}</p>}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Email *</label>
-            <input
-              {...register('email')}
-              type="email"
-              className={`w-full h-10 px-3 border rounded-md text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="correo@ejemplo.com"
-            />
-            {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
-            {duplicateWarning && !errors.email && (
-              <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 text-xs">
-                <AlertTriangle size={13} />
-                <span>{duplicateWarning}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Teléfono</label>
-              <input
-                {...register('telefono')}
-                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                placeholder="+57 300 000 0000"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Estado</label>
-              <select
-                {...register('estado')}
-                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-              >
-                <option value="ACTIVO">Activo</option>
-                <option value="PROSPECTO">Prospecto</option>
-                <option value="INACTIVO">Inactivo</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">País *</label>
-              <input
-                {...register('pais')}
-                className={`w-full h-10 px-3 border rounded-md text-sm ${errors.pais ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Colombia"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Ciudad</label>
-              <input
-                {...register('ciudad')}
-                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                placeholder="Bogotá"
-              />
-            </div>
-          </div>
-
-          {/* Campos B2B */}
-          {tipo === 'B2B' && (
-            <div className="space-y-4 pt-2 border-t border-gray-100">
-              <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider">
-                Datos de Empresa
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">NIT / RUT</label>
-                  <input
-                    {...register('nit')}
-                    className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                    placeholder="900.123.456-7"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Sector</label>
-                  <input
-                    {...register('sector')}
-                    className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                    placeholder="Tecnología"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Tamaño</label>
-                  <select
-                    {...register('tamano')}
-                    className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-                  >
-                    <option value="">Sin especificar</option>
-                    <option value="MICRO">Micro (&lt;10)</option>
-                    <option value="PEQUENA">Pequeña (10-50)</option>
-                    <option value="MEDIANA">Mediana (50-200)</option>
-                    <option value="GRANDE">Grande (200+)</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Sitio web</label>
-                  <input
-                    {...register('sitioWeb')}
-                    className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                    placeholder="https://empresa.com"
-                  />
-                </div>
+                      <input type="radio" {...register('tipo')} value={t} className="sr-only" />
+                      <span
+                        className={`text-xs font-bold ${isActive ? 'text-blue-600' : 'text-gray-500'}`}
+                      >
+                        {t}
+                      </span>
+                      <span
+                        className={`text-sm font-medium mt-0.5 ${isActive ? 'text-blue-700' : 'text-gray-700'}`}
+                      >
+                        {labels[t]}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
-          )}
 
-          {/* Campos B2C */}
-          {tipo === 'B2C' && (
-            <div className="space-y-4 pt-2 border-t border-gray-100">
-              <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider">
-                Datos de Persona
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Cédula / ID</label>
-                  <input
-                    {...register('cedula')}
-                    className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                    placeholder="12.345.678"
-                  />
+            {/* Campos base */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Nombre *</label>
+              <input
+                {...register('nombre')}
+                className={`w-full h-10 px-3 border rounded-md text-sm ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder={
+                  tipo === 'B2B'
+                    ? 'Razón social'
+                    : tipo === 'B2C'
+                      ? 'Nombre completo'
+                      : 'Nombre de la institución'
+                }
+              />
+              {errors.nombre && <p className="text-xs text-red-500">{errors.nombre.message}</p>}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Email *</label>
+              <input
+                {...register('email')}
+                type="email"
+                className={`w-full h-10 px-3 border rounded-md text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder="correo@ejemplo.com"
+              />
+              {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+              {duplicateWarning && !errors.email && (
+                <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 text-xs">
+                  <AlertTriangle size={13} />
+                  <span>{duplicateWarning}</span>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Cargo</label>
-                  <input
-                    {...register('cargo')}
-                    className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                    placeholder="Director Comercial"
-                  />
-                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">Teléfono</label>
+                <input
+                  {...register('telefono')}
+                  className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
+                  placeholder="+57 300 000 0000"
+                />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Empresa vinculada</label>
+                <label className="text-sm font-medium text-gray-700">Estado</label>
                 <select
-                  {...register('empresaId')}
+                  {...register('estado')}
                   className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
                 >
-                  <option value="">Sin empresa</option>
-                  {empresas.map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.nombre}
-                    </option>
-                  ))}
+                  <option value="ACTIVO">Activo</option>
+                  <option value="PROSPECTO">Prospecto</option>
+                  <option value="INACTIVO">Inactivo</option>
                 </select>
               </div>
             </div>
-          )}
 
-          {/* Campos B2G */}
-          {tipo === 'B2G' && (
-            <div className="space-y-4 pt-2 border-t border-gray-100">
-              <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider">
-                Datos de Institución
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Tipo de institución</label>
-                  <select
-                    {...register('tipoInstitucion')}
-                    className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-                  >
-                    <option value="">Seleccionar...</option>
-                    <option value="Ministerio">Ministerio</option>
-                    <option value="Alcaldía">Alcaldía / Municipio</option>
-                    <option value="Gobernación">Gobernación</option>
-                    <option value="Universidad Pública">Universidad Pública</option>
-                    <option value="Hospital Público">Hospital Público</option>
-                    <option value="Empresa Pública">Empresa Pública</option>
-                    <option value="Otro">Otro</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Código de Licitación</label>
-                  <input
-                    {...register('codigoLicitacion')}
-                    className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                    placeholder="LIC-2025-001"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">País *</label>
                 <input
-                  type="checkbox"
-                  id="entidadPublica"
-                  {...register('entidadPublica')}
-                  className="w-4 h-4 rounded border-gray-300 text-blue-600"
+                  {...register('pais')}
+                  className={`w-full h-10 px-3 border rounded-md text-sm ${errors.pais ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder="Colombia"
                 />
-                <label
-                  htmlFor="entidadPublica"
-                  className="text-sm font-medium text-gray-700 cursor-pointer"
-                >
-                  Entidad del sector público
-                </label>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">Ciudad</label>
+                <input
+                  {...register('ciudad')}
+                  className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
+                  placeholder="Bogotá"
+                />
               </div>
             </div>
-          )}
-        </form>
 
-        <div className="border-t p-4 shrink-0 flex justify-end gap-3 bg-gray-50">
+            {/* Campos B2B */}
+            {tipo === 'B2B' && (
+              <div className="space-y-4 pt-2 border-t border-gray-100">
+                <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider">
+                  Datos de Empresa
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">NIT / RUT</label>
+                    <input
+                      {...register('nit')}
+                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
+                      placeholder="900.123.456-7"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Sector</label>
+                    <input
+                      {...register('sector')}
+                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
+                      placeholder="Tecnología"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Tamaño</label>
+                    <select
+                      {...register('tamano')}
+                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
+                    >
+                      <option value="">Sin especificar</option>
+                      <option value="MICRO">Micro (&lt;10)</option>
+                      <option value="PEQUENA">Pequeña (10-50)</option>
+                      <option value="MEDIANA">Mediana (50-200)</option>
+                      <option value="GRANDE">Grande (200+)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Sitio web</label>
+                    <input
+                      {...register('sitioWeb')}
+                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
+                      placeholder="https://empresa.com"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Campos B2C */}
+            {tipo === 'B2C' && (
+              <div className="space-y-4 pt-2 border-t border-gray-100">
+                <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider">
+                  Datos de Persona
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Cédula / ID</label>
+                    <input
+                      {...register('cedula')}
+                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
+                      placeholder="12.345.678"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Cargo</label>
+                    <input
+                      {...register('cargo')}
+                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
+                      placeholder="Director Comercial"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-gray-700">Empresa vinculada</label>
+                  <select
+                    {...register('empresaId')}
+                    className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
+                  >
+                    <option value="">Sin empresa</option>
+                    {empresas.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Campos B2G */}
+            {tipo === 'B2G' && (
+              <div className="space-y-4 pt-2 border-t border-gray-100">
+                <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider">
+                  Datos de Institución
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">Tipo de institución</label>
+                    <select
+                      {...register('tipoInstitucion')}
+                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="Ministerio">Ministerio</option>
+                      <option value="Alcaldía">Alcaldía / Municipio</option>
+                      <option value="Gobernación">Gobernación</option>
+                      <option value="Universidad Pública">Universidad Pública</option>
+                      <option value="Hospital Público">Hospital Público</option>
+                      <option value="Empresa Pública">Empresa Pública</option>
+                      <option value="Otro">Otro</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium text-gray-700">
+                      Código de Licitación
+                    </label>
+                    <input
+                      {...register('codigoLicitacion')}
+                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
+                      placeholder="LIC-2025-001"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="entidadPublica"
+                    {...register('entidadPublica')}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600"
+                  />
+                  <label
+                    htmlFor="entidadPublica"
+                    className="text-sm font-medium text-gray-700 cursor-pointer"
+                  >
+                    Entidad del sector público
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <SheetFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
@@ -405,8 +403,8 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
           >
             {isSubmitting ? 'Guardando...' : contacto ? 'Guardar cambios' : 'Crear contacto'}
           </Button>
-        </div>
-      </div>
-    </>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 };

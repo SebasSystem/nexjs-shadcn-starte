@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from 'src/shared/components/ui/dialog';
 import { useSalesContext } from '../context/SalesContext';
-import type { Opportunity, ActivityType } from 'src/types/sales';
+import type { Opportunity, ActivityType } from 'src/features/sales/types/sales.types';
 import { cn } from 'src/lib/utils';
 import { SelectField } from 'src/shared/components/ui/select-field';
 

@@ -4,8 +4,15 @@ import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X } from 'lucide-react';
 import { Button } from 'src/shared/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from 'src/shared/components/ui/sheet';
 import type { SettingsUser, EstadoUsuario } from '../../types/settings.types';
 import type { Rol } from '../../types/settings.types';
 import type { Equipo } from '../../types/settings.types';
@@ -81,100 +88,88 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
     if (success) onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <>
-      <div className="fixed inset-0 bg-black/40 z-[100]" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 w-full md:w-[440px] bg-white shadow-2xl z-[101] flex flex-col animate-in slide-in-from-right duration-300">
-        <div className="flex items-center justify-between px-6 py-4 border-b shrink-0">
-          <div>
-            <h2 className="text-xl font-bold">{user ? 'Editar Usuario' : 'Invitar Usuario'}</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              {user
-                ? 'Actualiza el rol y equipo del usuario'
-                : 'Completa los datos del nuevo usuario'}
-            </p>
+    <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent side="right" className="sm:max-w-[440px] flex flex-col p-0">
+        <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
+          <SheetTitle>{user ? 'Editar Usuario' : 'Invitar Usuario'}</SheetTitle>
+          <SheetDescription>
+            {user
+              ? 'Actualiza el rol y equipo del usuario'
+              : 'Completa los datos del nuevo usuario'}
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
+          <div className="py-6 space-y-5">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Nombre completo *</label>
+              <input
+                {...register('nombre')}
+                className={`w-full h-10 px-3 border rounded-md text-sm ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder="Ej. Carlos Mendoza"
+              />
+              {errors.nombre && <p className="text-xs text-red-500">{errors.nombre.message}</p>}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Email *</label>
+              <input
+                {...register('email')}
+                type="email"
+                className={`w-full h-10 px-3 border rounded-md text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder="carlos@empresa.com"
+                disabled={!!user}
+              />
+              {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Rol *</label>
+              <select
+                {...register('rolId')}
+                className={`w-full h-10 px-3 border rounded-md text-sm bg-white ${errors.rolId ? 'border-red-500' : 'border-gray-300'}`}
+              >
+                <option value="">-- Seleccionar rol --</option>
+                {roles.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.nombre}
+                  </option>
+                ))}
+              </select>
+              {errors.rolId && <p className="text-xs text-red-500">{errors.rolId.message}</p>}
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Equipo</label>
+              <select
+                {...register('equipoId')}
+                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
+              >
+                <option value="">Sin equipo</option>
+                {equipos.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">Estado</label>
+              <select
+                {...register('estado')}
+                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
+              >
+                <option value="ACTIVO">Activo</option>
+                <option value="PENDIENTE">Pendiente</option>
+                <option value="INACTIVO">Inactivo</option>
+              </select>
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <X size={20} />
-          </button>
         </div>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="flex-1 overflow-y-auto px-6 py-6 space-y-5"
-        >
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Nombre completo *</label>
-            <input
-              {...register('nombre')}
-              className={`w-full h-10 px-3 border rounded-md text-sm ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="Ej. Carlos Mendoza"
-            />
-            {errors.nombre && <p className="text-xs text-red-500">{errors.nombre.message}</p>}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Email *</label>
-            <input
-              {...register('email')}
-              type="email"
-              className={`w-full h-10 px-3 border rounded-md text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder="carlos@empresa.com"
-              disabled={!!user}
-            />
-            {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Rol *</label>
-            <select
-              {...register('rolId')}
-              className={`w-full h-10 px-3 border rounded-md text-sm bg-white ${errors.rolId ? 'border-red-500' : 'border-gray-300'}`}
-            >
-              <option value="">-- Seleccionar rol --</option>
-              {roles.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.nombre}
-                </option>
-              ))}
-            </select>
-            {errors.rolId && <p className="text-xs text-red-500">{errors.rolId.message}</p>}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Equipo</label>
-            <select
-              {...register('equipoId')}
-              className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-            >
-              <option value="">Sin equipo</option>
-              {equipos.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Estado</label>
-            <select
-              {...register('estado')}
-              className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-            >
-              <option value="ACTIVO">Activo</option>
-              <option value="PENDIENTE">Pendiente</option>
-              <option value="INACTIVO">Inactivo</option>
-            </select>
-          </div>
-        </form>
-
-        <div className="border-t p-4 shrink-0 flex justify-end gap-3 bg-gray-50">
+        <SheetFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
@@ -186,8 +181,8 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
           >
             {isSubmitting ? 'Guardando...' : user ? 'Guardar cambios' : 'Invitar usuario'}
           </Button>
-        </div>
-      </div>
-    </>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 };

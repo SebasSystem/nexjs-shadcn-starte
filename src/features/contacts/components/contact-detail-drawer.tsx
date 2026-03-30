@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Link2, Unlink, Globe, Phone, MapPin, Building2, UserCheck } from 'lucide-react';
+import { Link2, Unlink, Globe, Phone, MapPin, Building2, UserCheck } from 'lucide-react';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
+import { Sheet, SheetContent } from 'src/shared/components/ui/sheet';
 import { EntityTypeBadge } from './entity-type-badge';
 import { ContactStatusBadge } from './contact-status-badge';
-import { InteraccionesTimeline } from '../../productividad/components/InteraccionesTimeline';
-import { ActividadesTab } from '../../productividad/components/ActividadesTab';
-import { BovedaTab } from '../../productividad/components/BovedaTab';
+import { InteractionsTimeline } from '../../productivity/components/InteractionsTimeline';
+import { ActivitiesTab } from '../../productivity/components/ActivitiesTab';
+import { VaultTab } from '../../productivity/components/VaultTab';
 import type { Contacto } from '../types/contacts.types';
 
 function getInitials(nombre: string) {
@@ -52,35 +53,40 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
   const [selectedRelId, setSelectedRelId] = useState('');
   const [linkingCargo, setLinkingCargo] = useState('');
 
-  if (!isOpen || !contacto) return null;
-
-  const relacionIds = contacto.relaciones.map((r) => r.entidadId);
-  const disponibles = todos.filter((c) => c.id !== contacto.id && !relacionIds.includes(c.id));
+  const relacionIds = contacto?.relaciones.map((r) => r.entidadId) ?? [];
+  const disponibles = todos.filter((c) => c.id !== contacto?.id && !relacionIds.includes(c.id));
 
   const handleAddRelacion = async () => {
-    if (!selectedRelId) return;
+    if (!selectedRelId || !contacto) return;
     await onAddRelacion(contacto.id, selectedRelId, linkingCargo || undefined);
     setSelectedRelId('');
     setLinkingCargo('');
   };
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/40 z-[100]" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 w-full md:w-[520px] bg-white shadow-2xl z-[101] flex flex-col animate-in slide-in-from-right duration-300">
+    <Sheet open={isOpen && !!contacto} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent
+        side="right"
+        className="sm:max-w-[520px] flex flex-col p-0"
+        showCloseButton={false}
+      >
         {/* Header */}
         <div className="flex items-start justify-between px-6 py-5 border-b shrink-0 bg-gray-50">
           <div className="flex items-center gap-4">
             <Avatar className="h-14 w-14 shrink-0">
-              <AvatarFallback className={`text-lg font-bold ${AVATAR_COLORS[contacto.tipo]}`}>
-                {getInitials(contacto.nombre)}
+              <AvatarFallback
+                className={`text-lg font-bold ${AVATAR_COLORS[contacto?.tipo ?? 'B2B']}`}
+              >
+                {contacto ? getInitials(contacto.nombre) : ''}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-lg font-bold text-foreground leading-tight">{contacto.nombre}</h2>
+              <h2 className="text-lg font-bold text-foreground leading-tight">
+                {contacto?.nombre}
+              </h2>
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <EntityTypeBadge tipo={contacto.tipo} />
-                <ContactStatusBadge estado={contacto.estado} />
+                {contacto && <EntityTypeBadge tipo={contacto.tipo} />}
+                {contacto && <ContactStatusBadge estado={contacto.estado} />}
               </div>
             </div>
           </div>
@@ -88,7 +94,7 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onEdit(contacto)}
+              onClick={() => contacto && onEdit(contacto)}
               className="h-8 text-xs"
             >
               Editar
@@ -97,7 +103,19 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
               onClick={onClose}
               className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <X size={20} />
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
             </button>
           </div>
         </div>
@@ -118,14 +136,14 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
               {t === 'historial' && 'Historial'}
               {t === 'actividades' && 'Agenda'}
               {t === 'archivos' && 'Bóveda'}
-              {t === 'relaciones' && `Relaciones (${contacto.relaciones.length})`}
+              {t === 'relaciones' && `Relaciones (${contacto?.relaciones.length ?? 0})`}
             </button>
           ))}
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
           {/* Tab: Info */}
-          {tab === 'info' && (
+          {tab === 'info' && contacto && (
             <div className="space-y-4">
               <InfoRow icon={<UserCheck size={15} />} label="Email" value={contacto.email} />
               {contacto.telefono && (
@@ -234,26 +252,26 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
             </div>
           )}
 
-          {tab === 'historial' && (
+          {tab === 'historial' && contacto && (
             <div className="-mx-6 -my-5 h-[calc(100%+40px)]">
-              <InteraccionesTimeline contactoId={contacto.id} />
+              <InteractionsTimeline contactoId={contacto.id} />
             </div>
           )}
 
-          {tab === 'actividades' && (
+          {tab === 'actividades' && contacto && (
             <div className="-mx-6 -my-5 h-[calc(100%+40px)]">
-              <ActividadesTab contactoId={contacto.id} contactoNombre={contacto.nombre} />
+              <ActivitiesTab contactoId={contacto.id} contactoNombre={contacto.nombre} />
             </div>
           )}
 
-          {tab === 'archivos' && (
+          {tab === 'archivos' && contacto && (
             <div className="-mx-6 -my-5 h-[calc(100%+40px)]">
-              <BovedaTab contactoId={contacto.id} />
+              <VaultTab contactoId={contacto.id} />
             </div>
           )}
 
           {/* Tab: Relaciones */}
-          {tab === 'relaciones' && (
+          {tab === 'relaciones' && contacto && (
             <div className="space-y-4">
               {contacto.relaciones.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-muted-foreground text-sm text-center">
@@ -333,8 +351,8 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
             </div>
           )}
         </div>
-      </div>
-    </>
+      </SheetContent>
+    </Sheet>
   );
 };
 

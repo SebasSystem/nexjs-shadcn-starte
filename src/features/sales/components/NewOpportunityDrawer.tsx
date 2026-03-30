@@ -13,7 +13,7 @@ import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { PIPELINE_STAGES } from 'src/_mock/_sales';
-import type { Opportunity, StageId, LeadSource } from 'src/types/sales';
+import type { Opportunity, StageId, LeadSource } from 'src/features/sales/types/sales.types';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
 interface NewOpportunityDrawerProps {

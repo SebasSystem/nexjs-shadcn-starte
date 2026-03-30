@@ -6,7 +6,7 @@ import { format, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from 'src/lib/utils';
 import { paths } from 'src/routes/paths';
-import type { Opportunity } from 'src/types/sales';
+import type { Opportunity } from 'src/features/sales/types/sales.types';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
