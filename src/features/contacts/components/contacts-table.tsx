@@ -23,6 +23,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableContainer,
 } from 'src/shared/components/table';
 
 function getInitials(nombre: string) {
@@ -161,7 +162,7 @@ export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: Con
 
   return (
     <div className="w-full">
-      <div className="overflow-x-auto">
+      <TableContainer>
         <Table>
           <TableHeadCustom table={table} />
           <TableBody dense={dense}>
@@ -176,7 +177,7 @@ export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: Con
             ))}
           </TableBody>
         </Table>
-      </div>
+      </TableContainer>
       <div className="border-t border-border/40">
         <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
       </div>

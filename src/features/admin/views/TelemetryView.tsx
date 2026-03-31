@@ -32,6 +32,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableContainer,
 } from 'src/shared/components/table';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 
@@ -343,7 +344,7 @@ export const TelemetryView = () => {
         {/* Panel: Errores por Tenant */}
         {activeTab === 'errores' && (
           <div>
-            <div className="overflow-x-auto">
+            <TableContainer>
               <Table>
                 <TableHeadCustom table={erroresTable.table} />
                 <TableBody dense={erroresTable.dense}>
@@ -361,7 +362,7 @@ export const TelemetryView = () => {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+            </TableContainer>
             <div className="border-t border-border/40">
               <TablePaginationCustom
                 table={erroresTable.table}
@@ -413,7 +414,7 @@ export const TelemetryView = () => {
             </div>
           ) : (
             <div className="w-full">
-              <div className="overflow-x-auto">
+              <TableContainer>
                 <Table>
                   <TableHeadCustom table={alertasTable.table} />
                   <TableBody dense={alertasTable.dense}>
@@ -431,7 +432,7 @@ export const TelemetryView = () => {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </TableContainer>
               <div className="border-t border-border/40">
                 <TablePaginationCustom
                   table={alertasTable.table}

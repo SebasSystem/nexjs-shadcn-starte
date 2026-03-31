@@ -22,7 +22,7 @@ export function HeaderSection({ slots }: Props) {
       <div className="flex items-center gap-3">
         <button
           onClick={toggleMobileNav}
-          className="min-[1200px]:hidden p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+          className="min-[1200px]:hidden p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           aria-label="Abrir menú"
         >
           <Icon name="Menu" size={20} />

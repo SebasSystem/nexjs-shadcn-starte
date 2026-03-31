@@ -1,4 +1,5 @@
 export * from './use-table';
+export * from './TableContainer';
 export * from './TableHeadCustom';
 export * from './TablePaginationCustom';
 export * from './TableNoData';

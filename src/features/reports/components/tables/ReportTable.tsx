@@ -12,7 +12,7 @@ import {
   TableCell,
 } from 'src/shared/components/ui';
 import type { IconName } from 'src/shared/components/ui/icon';
-import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
+import { useTable, TableHeadCustom, TablePaginationCustom, TableContainer } from 'src/shared/components/table';
 import { StockBadge } from 'src/features/inventory/components/StockBadge';
 import { cn } from 'src/lib/utils';
 import { SectionCard } from 'src/shared/components/layouts/page';
@@ -111,7 +111,7 @@ export function ReportTable({ data, columns }: { data: any[]; columns: any[] }) 
         </div>
       </div>
 
-      <div className="overflow-x-auto w-full">
+      <TableContainer className="w-full">
         <Table>
           <TableHeadCustom table={table} />
           <TableBody dense={dense}>
@@ -137,7 +137,7 @@ export function ReportTable({ data, columns }: { data: any[]; columns: any[] }) 
             )}
           </TableBody>
         </Table>
-      </div>
+      </TableContainer>
 
       <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
     </SectionCard>

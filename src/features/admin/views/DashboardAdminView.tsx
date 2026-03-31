@@ -33,6 +33,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableContainer,
 } from 'src/shared/components/table';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 
@@ -327,7 +328,7 @@ export const DashboardAdminView = () => {
           </Button>
         </div>
 
-        <div className="overflow-x-auto">
+        <TableContainer>
           <Table>
             <TableHeadCustom table={table} />
             <TableBody dense={dense}>
@@ -342,7 +343,7 @@ export const DashboardAdminView = () => {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TableContainer>
         <div className="border-t border-border/40">
           <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
         </div>

@@ -13,7 +13,7 @@ import {
   Badge,
 } from 'src/shared/components/ui';
 import { Button } from 'src/shared/components/ui/button';
-import { useTable, TableHeadCustom, TablePaginationCustom } from 'src/shared/components/table';
+import { useTable, TableHeadCustom, TablePaginationCustom, TableContainer } from 'src/shared/components/table';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { Chart, useChart } from 'src/shared/components/chart';
 import { paths } from 'src/routes/paths';
@@ -76,35 +76,6 @@ const VENTAS_SERIES = [
   { name: 'Meta Proyectada', type: 'line', data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39] },
 ];
 
-const TOP_SEGMENTOS = [
-  {
-    initials: 'B',
-    avatarBg: 'bg-emerald-500',
-    name: 'B2B Alta Recurrencia',
-    cod: 'SEG-001 • Creado hace 2h',
-    uds: '1,420 contactos',
-    status: 'Activo',
-    statusColor: 'bg-emerald-500/10 text-emerald-600',
-  },
-  {
-    initials: 'R',
-    avatarBg: 'bg-amber-500',
-    name: 'En Riesgo de Fuga',
-    cod: 'SEG-045 • Actualizado hoy',
-    uds: '210 contactos',
-    status: 'Atención',
-    statusColor: 'bg-amber-500/10 text-amber-600',
-  },
-  {
-    initials: 'M',
-    avatarBg: 'bg-blue-500',
-    name: 'Mayoristas VIP',
-    cod: 'SEG-012 • Estable',
-    uds: '45 contactos',
-    status: 'Activo',
-    statusColor: 'bg-blue-500/10 text-blue-600',
-  },
-];
 
 const STOCK_BAJO = [
   {
@@ -227,6 +198,55 @@ const COLUMNS = [
 ];
 
 import { ACTION_ICONS } from 'src/shared/constants/app-icons';
+
+
+const TAREAS_VENCIDAS_HOY = [
+  {
+    id: 'TASK-1041',
+    titulo: 'Enviar propuesta comercial',
+    cliente: 'TechMex Solutions',
+    responsable: 'Carlos V.',
+    vencimiento: 'Hoy 09:00',
+    prioridad: 'Alta',
+    prioridadColor: 'bg-red-500/10 text-red-600',
+  },
+  {
+    id: 'TASK-1038',
+    titulo: 'Seguimiento post-demo',
+    cliente: 'Global Industries SA',
+    responsable: 'Laura M.',
+    vencimiento: 'Hoy 10:30',
+    prioridad: 'Alta',
+    prioridadColor: 'bg-red-500/10 text-red-600',
+  },
+  {
+    id: 'TASK-1035',
+    titulo: 'Confirmar renovación contrato',
+    cliente: 'Alimentos del Sur',
+    responsable: 'Ana R.',
+    vencimiento: 'Hoy 11:00',
+    prioridad: 'Media',
+    prioridadColor: 'bg-amber-500/10 text-amber-600',
+  },
+  {
+    id: 'TASK-1031',
+    titulo: 'Llamada de bienvenida',
+    cliente: 'Constructora López',
+    responsable: 'Luis P.',
+    vencimiento: 'Hoy 12:00',
+    prioridad: 'Media',
+    prioridadColor: 'bg-amber-500/10 text-amber-600',
+  },
+  {
+    id: 'TASK-1028',
+    titulo: 'Actualizar datos de contacto',
+    cliente: 'Fashion Retail SRL',
+    responsable: 'Carlos V.',
+    vencimiento: 'Hoy 14:00',
+    prioridad: 'Baja',
+    prioridadColor: 'bg-blue-500/10 text-blue-600',
+  },
+];
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export function DashboardView() {
@@ -419,19 +439,6 @@ export function DashboardView() {
         ))}
       </div>
 
-      {/* ── Evolución de Ventas ────────────────────────────────────────── */}
-      <div className="mb-4">
-        <SectionCard>
-          <SectionCardHeader
-            title="Rendimiento de Ventas"
-            subtitle="Ingresos Reales vs. Meta Proyectada"
-          />
-          <div className="mt-2">
-            <Chart type="line" series={VENTAS_SERIES} options={salesChartOptions} height={320} />
-          </div>
-        </SectionCard>
-      </div>
-
       {/* ── Distribución B2B + Stock ──────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {/* Distribución de Cartera */}
@@ -457,50 +464,93 @@ export function DashboardView() {
           </div>
         </SectionCard>
 
-        {/* Top Segmentos Activos */}
-        <SectionCard>
-          <SectionCardHeader
-            title="Top Segmentos Activos"
-            subtitle={`${TOP_SEGMENTOS.length} audiencias clave`}
-            action={
-              <Link href={paths.contacts.segments}>
-                <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
-                  Ir al Query Builder →
-                </button>
-              </Link>
-            }
-          />
-          <div className="space-y-1">
-            {TOP_SEGMENTOS.map((r) => (
+        {/* Tareas Vencidas Hoy */}
+        <SectionCard noPadding>
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 pt-5 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-red-500/10">
+                <Icon name="Clock" size={15} className="text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-subtitle1 font-semibold text-foreground">Tareas Vencidas Hoy</h3>
+                <p className="text-caption text-muted-foreground">Requieren atención inmediata</p>
+              </div>
+            </div>
+            <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+              Ver todas <Icon name="ChevronRight" size={14} />
+            </button>
+          </div>
+
+          {/* Mini métricas */}
+          <div className="grid grid-cols-3 gap-3 px-5 pb-4">
+            <div className="rounded-xl bg-red-500/10 px-3 py-2.5 text-center">
+              <p className="text-xl font-bold text-red-600 leading-none">
+                {TAREAS_VENCIDAS_HOY.length}
+              </p>
+              <p className="text-[10px] font-medium text-red-600/80 mt-1">Total vencidas</p>
+            </div>
+            <div className="rounded-xl bg-amber-500/10 px-3 py-2.5 text-center">
+              <p className="text-xl font-bold text-amber-600 leading-none">
+                {TAREAS_VENCIDAS_HOY.filter((t) => t.prioridad === 'Alta').length}
+              </p>
+              <p className="text-[10px] font-medium text-amber-600/80 mt-1">Alta prioridad</p>
+            </div>
+            <div className="rounded-xl bg-blue-500/10 px-3 py-2.5 text-center">
+              <p className="text-xl font-bold text-blue-600 leading-none">
+                {TAREAS_VENCIDAS_HOY.filter((t) => t.prioridad === 'Media').length}
+              </p>
+              <p className="text-[10px] font-medium text-blue-600/80 mt-1">Media prioridad</p>
+            </div>
+          </div>
+
+          {/* Lista */}
+          <div className="divide-y divide-border/40">
+            {TAREAS_VENCIDAS_HOY.map((t) => (
               <div
-                key={r.cod}
-                className="flex items-center justify-between py-2.5 px-3 -mx-3 rounded-xl hover:bg-muted/50 transition-colors group cursor-default"
+                key={t.id}
+                className="flex items-center justify-between px-5 py-3 hover:bg-muted/40 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <Avatar size={40}>
-                    <AvatarFallback className={cn('text-white', r.avatarBg)}>
-                      {r.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-subtitle2 text-foreground">{r.name}</p>
-                    <p className="text-caption text-muted-foreground mt-0.5">{r.cod}</p>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2 rounded-lg bg-red-500/10 shrink-0">
+                    <Icon name="AlertCircle" size={14} className="text-red-500" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-subtitle2 text-foreground truncate">{t.titulo}</p>
+                    <p className="text-caption text-muted-foreground truncate">
+                      {t.cliente} · {t.responsable}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right flex flex-col items-end gap-1">
-                  <p className="text-subtitle2 text-foreground">{r.uds}</p>
+                <div className="flex items-center gap-2 shrink-0 ml-2">
                   <Badge
                     variant="soft"
                     className={cn(
                       'text-[10px] font-semibold px-2 py-0.5 rounded-full border-none',
-                      r.statusColor
+                      t.prioridadColor
                     )}
                   >
-                    {r.status}
+                    {t.prioridad}
                   </Badge>
+                  <span className="text-[11px] text-muted-foreground w-16 text-right">
+                    {t.vencimiento}
+                  </span>
                 </div>
               </div>
             ))}
+          </div>
+        </SectionCard>
+      </div>
+
+      {/* ── Evolución de Ventas ────────────────────────────────────────── */}
+      <div className="mb-4">
+        <SectionCard>
+          <SectionCardHeader
+            title="Rendimiento de Ventas"
+            subtitle="Ingresos Reales vs. Meta Proyectada"
+          />
+          <div className="mt-2">
+            <Chart type="line" series={VENTAS_SERIES} options={salesChartOptions} height={320} />
           </div>
         </SectionCard>
       </div>
@@ -524,7 +574,7 @@ export function DashboardView() {
         </div>
 
         {/* Table con TanStack */}
-        <div className="overflow-x-auto relative">
+        <TableContainer className="relative">
           <Table>
             <TableHeadCustom table={table} />
             <TableBody dense={dense}>
@@ -539,7 +589,7 @@ export function DashboardView() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TableContainer>
         <div className="border-t border-border/40">
           <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
         </div>
@@ -559,7 +609,7 @@ export function DashboardView() {
         </div>
 
         {/* Table con TanStack */}
-        <div className="overflow-x-auto relative">
+        <TableContainer className="relative">
           <Table>
             <TableHeadCustom table={cotizacionesTable} />
             <TableBody dense={cotizacionesDense}>
@@ -574,7 +624,7 @@ export function DashboardView() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TableContainer>
         <div className="border-t border-border/40">
           <TablePaginationCustom
             table={cotizacionesTable}

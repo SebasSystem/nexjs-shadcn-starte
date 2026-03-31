@@ -21,6 +21,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableContainer,
 } from 'src/shared/components/table';
 import { UserStatusBadge } from './user-status-badge';
 import type { SettingsUser } from '../../types/settings.types';
@@ -152,7 +153,7 @@ export function UsersTable({ users, onEdit, onToggleEstado, onDelete }: UsersTab
 
   return (
     <div className="w-full">
-      <div className="overflow-x-auto">
+      <TableContainer>
         <Table>
           <TableHeadCustom table={table} />
           <TableBody dense={dense}>
@@ -167,7 +168,7 @@ export function UsersTable({ users, onEdit, onToggleEstado, onDelete }: UsersTab
             ))}
           </TableBody>
         </Table>
-      </div>
+      </TableContainer>
       <div className="border-t border-border/40">
         <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
       </div>

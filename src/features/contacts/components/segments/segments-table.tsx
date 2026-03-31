@@ -7,6 +7,7 @@ import {
   TableHeadCustom,
   useTable,
   TablePaginationCustom,
+  TableContainer,
 } from 'src/shared/components/table';
 import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
@@ -136,7 +137,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
 
   return (
     <div className="w-full">
-      <div className="overflow-x-auto relative min-h-[300px]">
+      <TableContainer className="relative min-h-[300px]">
         <Table>
           <TableHeadCustom table={table} />
           <TableBody dense={dense}>
@@ -151,7 +152,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
             ))}
           </TableBody>
         </Table>
-      </div>
+      </TableContainer>
       <div className="border-t border-border/40">
         <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
       </div>

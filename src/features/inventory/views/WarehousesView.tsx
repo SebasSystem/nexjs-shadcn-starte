@@ -20,6 +20,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableContainer,
 } from 'src/shared/components/table';
 import {
   PageContainer,
@@ -271,7 +272,7 @@ export function WarehousesView() {
           </Select>
         </div>
 
-        <div className="overflow-x-auto">
+        <TableContainer>
           <Table>
             <TableHeadCustom table={table} />
             <TableBody dense={dense}>
@@ -286,7 +287,7 @@ export function WarehousesView() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TableContainer>
         <div className="border-t border-border/40">
           <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
         </div>

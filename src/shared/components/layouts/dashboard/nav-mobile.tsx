@@ -1,7 +1,7 @@
 'use client';
 
-import { Icon } from 'src/shared/components/ui';
-import { NavSection, NavSectionData } from './nav-section';
+import { NavSectionData } from './nav-section';
+import { NavVertical } from './nav-vertical';
 
 type Props = {
   open: boolean;
@@ -22,28 +22,8 @@ export function NavMobile({ open, onClose, navData }: Props) {
       />
 
       {/* Drawer */}
-      <aside className="fixed left-0 top-0 bottom-0 w-[280px] bg-card border-r z-50 min-[1200px]:hidden flex flex-col shadow-2xl">
-        {/* Header */}
-        <div className="h-[72px] flex items-center justify-between px-4 border-b shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="size-7 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-black text-sm">C</span>
-            </div>
-            <span className="font-semibold text-sm tracking-tight">CRM System</span>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Cerrar menú"
-          >
-            <Icon name="X" size={18} />
-          </button>
-        </div>
-
-        {/* Nav Links */}
-        <div className="flex-1 overflow-y-auto py-3 px-2">
-          <NavSection data={navData} isMini={false} />
-        </div>
+      <aside className="fixed left-0 top-0 bottom-0 w-[280px] bg-sidebar z-50 min-[1200px]:hidden shadow-2xl">
+        <NavVertical navData={navData} onClose={onClose} />
       </aside>
     </>
   );

@@ -72,7 +72,11 @@ import {
   ArrowLeft,
   Store,
   CheckCircle,
+  CheckCircle2,
   XCircle,
+  UserPlus,
+  Clock,
+  AlertCircle,
 
   // ── UI / Feedback ───────────────────────────────────────────────────────────
   Cloud,
@@ -165,7 +169,11 @@ const icons = {
   ArrowLeft,
   Store,
   CheckCircle,
+  CheckCircle2,
   XCircle,
+  UserPlus,
+  Clock,
+  AlertCircle,
 
   // UI
   Cloud,

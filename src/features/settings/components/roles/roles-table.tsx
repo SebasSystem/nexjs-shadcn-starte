@@ -20,6 +20,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableContainer,
 } from 'src/shared/components/table';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 
@@ -133,7 +134,7 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
 
   return (
     <div className="w-full">
-      <div className="overflow-x-auto">
+      <TableContainer>
         <Table>
           <TableHeadCustom table={table} />
           <TableBody dense={dense}>
@@ -148,7 +149,7 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
             ))}
           </TableBody>
         </Table>
-      </div>
+      </TableContainer>
       <div className="border-t border-border/40">
         <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
       </div>

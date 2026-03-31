@@ -22,6 +22,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableContainer,
 } from 'src/shared/components/table';
 
 interface TenantsTableProps {
@@ -200,7 +201,7 @@ export function TenantsTable({ tenants, onEdit, onViewDetail, onSuspend }: Tenan
 
   return (
     <div className="w-full">
-      <div className="overflow-x-auto">
+      <TableContainer>
         <Table>
           <TableHeadCustom table={table} />
           <TableBody dense={dense}>
@@ -215,7 +216,7 @@ export function TenantsTable({ tenants, onEdit, onViewDetail, onSuspend }: Tenan
             ))}
           </TableBody>
         </Table>
-      </div>
+      </TableContainer>
       <div className="border-t border-border/40">
         <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
       </div>

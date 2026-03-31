@@ -348,6 +348,49 @@
   animation: auth-bg-appear 0.45s ease-out forwards;
 }
 
+/* === Table horizontal scrollbar (auto-hide) === */
+@layer utilities {
+  .table-container {
+    /* Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s ease;
+  }
+
+  .table-container.scrollbar-visible {
+    scrollbar-color: #cbd1d7 transparent;
+  }
+
+  .table-container::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  /* Ocultar flechas/botones del scrollbar */
+  .table-container::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+
+  .table-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .table-container::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 9999px;
+    transition: background 0.3s ease;
+  }
+
+  .table-container.scrollbar-visible::-webkit-scrollbar-thumb {
+    background: #cbd1d7;
+  }
+}
+
+/* Ocultar scrollbar completamente (ej. nav mini) */
+.scrollbar-hidden::-webkit-scrollbar { display: none; }
+.scrollbar-hidden { scrollbar-width: none; }
+
 /* === Custom Scrollbar for sidebars & specific areas === */
 @layer utilities {
   .custom-scrollbar {

@@ -7,6 +7,7 @@ import {
   TableHeadCustom,
   useTable,
   TablePaginationCustom,
+  TableContainer,
 } from 'src/shared/components/table';
 import { Button } from 'src/shared/components/ui/button';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
@@ -123,7 +124,7 @@ export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) 
 
   return (
     <div className="w-full">
-      <div className="overflow-x-auto relative min-h-[300px]">
+      <TableContainer className="relative min-h-[300px]">
         <Table>
           <TableHeadCustom table={table} />
           <TableBody dense={dense}>
@@ -138,7 +139,7 @@ export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) 
             ))}
           </TableBody>
         </Table>
-      </div>
+      </TableContainer>
       <div className="border-t border-border/40">
         <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
       </div>
