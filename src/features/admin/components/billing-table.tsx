@@ -17,7 +17,6 @@ import {
   TableRow,
   TableCell,
 } from 'src/shared/components/table';
-import { cn } from 'src/lib/utils';
 
 interface BillingTableProps {
   facturas: Factura[];
@@ -205,15 +204,11 @@ export function BillingTable({ facturas, onViewDetail, onMarcarPagadas }: Billin
       <div className="overflow-x-auto">
         <Table>
           <TableHeadCustom table={table} />
-          <TableBody>
+          <TableBody dense={dense}>
             {table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="group border-b border-border/20 cursor-pointer transition-colors hover:bg-muted/40"
-                onClick={() => onViewDetail(row.original)}
-              >
+              <TableRow key={row.id} onClick={() => onViewDetail(row.original)}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className={cn('px-4', dense ? 'py-2' : 'py-3')}>
+                  <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

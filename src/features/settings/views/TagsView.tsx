@@ -44,11 +44,8 @@ export const TagsView = () => {
       />
 
       <SectionCard noPadding>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
-          <div className="flex items-center gap-2 text-foreground font-medium">
-            <TagsIcon className="h-5 w-5 text-muted-foreground" />
-            Etiquetas disponibles
-          </div>
+        <div className="flex items-center justify-between px-5 py-4">
+          <p className="text-h6 text-foreground">Etiquetas disponibles</p>
         </div>
 
         {isLoading && tags.length === 0 ? (

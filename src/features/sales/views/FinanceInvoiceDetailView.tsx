@@ -313,9 +313,9 @@ export function FinanceInvoiceDetailView() {
         <div className="overflow-x-auto">
           <Table>
             <TableHeadCustom table={table} />
-            <TableBody>
+            <TableBody dense={dense}>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="hover:bg-muted/10 transition-colors">
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

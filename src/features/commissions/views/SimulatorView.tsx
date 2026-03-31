@@ -13,7 +13,6 @@ import {
   TableRow,
   TableCell,
 } from 'src/shared/components/table';
-import { cn } from 'src/lib/utils';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 
 type TramoDesglose = {
@@ -218,7 +217,7 @@ export const SimulatorView = () => {
 
           <SectionCard noPadding>
             <div className="px-6 py-4 border-b bg-muted/20">
-              <h3 className="text-sm font-bold text-foreground">Desglose por Tramos</h3>
+              <h3 className="text-h6 text-foreground">Desglose por Tramos</h3>
             </div>
 
             {mostrarDesglose ? (
@@ -226,24 +225,15 @@ export const SimulatorView = () => {
                 <Table>
                   <TableHeadCustom table={table} />
                   <TableBody>
-                    {table.getRowModel().rows.map((row) => {
-                      const aplica = row.original.montoQueEntraEnTramo > 0;
-                      return (
-                        <TableRow
-                          key={row.id}
-                          className={cn(
-                            'border-b border-border/40 transition-colors',
-                            aplica ? 'hover:bg-muted/30' : 'bg-muted/10 opacity-70'
-                          )}
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id} className="px-6 py-3">
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      );
-                    })}
+                    {table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id} className="px-6 py-3">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
                     <TableRow className="bg-blue-50/50 border-t-2 border-blue-100 hover:bg-blue-50/50">
                       <TableCell
                         colSpan={2}

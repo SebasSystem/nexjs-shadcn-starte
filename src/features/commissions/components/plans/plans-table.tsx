@@ -15,7 +15,6 @@ import {
   TableCell,
 } from 'src/shared/components/table';
 import { SectionCard } from 'src/shared/components/ui/section-card';
-import { cn } from 'src/lib/utils';
 
 interface PlansTableProps {
   planes: PlanComision[];
@@ -196,24 +195,21 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
       <div className="overflow-x-auto">
         <Table>
           <TableHeadCustom table={table} />
-          <TableBody>
+          <TableBody dense={dense}>
             {table.getRowModel().rows.map((row) => {
               const plan = row.original;
               const isExpanded = expandedId === plan.id;
               return (
                 <React.Fragment key={row.id}>
-                  <TableRow
-                    className="border-border/40 hover:bg-muted/30 cursor-pointer transition-colors"
-                    onClick={() => toggleExpand(plan.id)}
-                  >
+                  <TableRow onClick={() => toggleExpand(plan.id)}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className={cn('px-4', dense ? 'py-2' : 'py-4')}>
+                      <TableCell key={cell.id} className={!dense ? 'py-4' : undefined}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
                   {isExpanded && (
-                    <TableRow className="bg-muted/10 hover:bg-muted/10 border-b">
+                    <TableRow>
                       <TableCell colSpan={row.getVisibleCells().length} className="px-8 py-4">
                         <SectionCard className="max-w-xl border shadow-sm" noPadding>
                           <div className="px-6 py-4 border-b">
@@ -237,7 +233,7 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
                             </thead>
                             <TableBody>
                               {plan.tramos.map((tramo, index) => (
-                                <TableRow key={tramo.id || index} className="hover:bg-muted/30">
+                                <TableRow key={tramo.id || index}>
                                   <TableCell className="py-2.5 px-6">
                                     ${tramo.desde.toLocaleString()}
                                   </TableCell>

@@ -13,7 +13,6 @@ import {
   TableRow,
   TableCell,
 } from 'src/shared/components/table';
-import { cn } from 'src/lib/utils';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 
 type VentaPeriodo = {
@@ -168,7 +167,7 @@ export const CommissionsDashboardView = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
         {/* Gráfico de Progreso - Simulado con anillo CSS */}
         <SectionCard className="flex flex-col items-center justify-center">
-          <h3 className="text-sm font-bold text-foreground w-full mb-6">Progreso Mensual</h3>
+          <h3 className="text-h6 text-foreground w-full mb-8">Progreso Mensual</h3>
           <div className="relative w-48 h-48 flex items-center justify-center -mt-4">
             <svg viewBox="0 0 36 36" className="w-48 h-48 transform -rotate-90">
               <path
@@ -202,7 +201,7 @@ export const CommissionsDashboardView = () => {
 
         {/* Detalle de Tramos Activos */}
         <SectionCard>
-          <h3 className="text-sm font-bold text-foreground mb-6">Tramos de tu plan actual</h3>
+          <h3 className="text-h6 text-foreground mb-6">Tramos de tu plan actual</h3>
           <div className="space-y-6">
             {tramos.map((tramo) => (
               <div key={tramo.id} className="space-y-2">
@@ -251,20 +250,17 @@ export const CommissionsDashboardView = () => {
       </div>
 
       <SectionCard noPadding className="mt-2">
-        <div className="px-6 py-4 border-b flex justify-between items-center bg-muted/20">
-          <h3 className="text-sm font-bold text-foreground">Últimas Ventas del Periodo</h3>
+        <div className="px-6 py-4 flex justify-between items-center bg-muted/20">
+          <h3 className="text-h6 text-foreground">Últimas Ventas del Periodo</h3>
         </div>
         <div className="w-full overflow-x-auto">
           <Table>
             <TableHeadCustom table={table} />
-            <TableBody>
+            <TableBody dense={dense}>
               {table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className="border-border/40 hover:bg-muted/30 transition-colors"
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className={cn('px-6', dense ? 'py-2' : 'py-3')}>
+                    <TableCell key={cell.id} className="px-6">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

@@ -100,8 +100,8 @@ export const BillingView = () => {
         />
       </div>
 
-      <SectionCard>
-        <div className="flex flex-col sm:flex-row gap-4 items-center w-full">
+      <SectionCard noPadding className="flex flex-col shadow-sm border border-border/40">
+        <div className="flex flex-col sm:flex-row gap-4 items-center px-5 py-4">
           <Input
             placeholder="Buscar tenant..."
             value={search}
@@ -161,9 +161,6 @@ export const BillingView = () => {
             )}
           </div>
         </div>
-      </SectionCard>
-
-      <SectionCard noPadding className="flex flex-col shadow-sm border border-border/40">
         {isLoading ? (
           <div className="flex flex-col gap-4 p-5 animate-pulse">
             {[...Array(5)].map((_, i) => (

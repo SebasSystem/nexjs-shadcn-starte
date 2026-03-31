@@ -13,7 +13,6 @@ import {
   TableRow,
   TableCell,
 } from 'src/shared/components/table';
-import { cn } from 'src/lib/utils';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 
@@ -199,14 +198,11 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
       <div className="overflow-x-auto">
         <Table>
           <TableHeadCustom table={table} />
-          <TableBody>
+          <TableBody dense={dense}>
             {table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="border-border/40 hover:bg-muted/30 transition-colors"
-              >
+              <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className={cn('px-4', dense ? 'py-2' : 'py-4')}>
+                  <TableCell key={cell.id} className={!dense ? 'py-4' : undefined}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

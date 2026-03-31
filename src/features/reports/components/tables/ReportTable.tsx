@@ -99,7 +99,7 @@ export function ReportTable({ data, columns }: { data: any[]; columns: any[] }) 
 
   return (
     <SectionCard noPadding className="shadow-sm overflow-hidden flex flex-col w-full bg-card">
-      <div className="p-4 border-b border-border/50 flex flex-col sm:flex-row justify-between items-center gap-3 bg-muted/5">
+      <div className="p-4 flex flex-col sm:flex-row justify-between items-center gap-3 bg-muted/5">
         <h2 className="text-h6 text-foreground">Detalle de registros</h2>
         <div className="w-full sm:w-64">
           <Input
@@ -114,7 +114,7 @@ export function ReportTable({ data, columns }: { data: any[]; columns: any[] }) 
       <div className="overflow-x-auto w-full">
         <Table>
           <TableHeadCustom table={table} />
-          <TableBody>
+          <TableBody dense={dense}>
             {table.getRowModel().rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
@@ -126,9 +126,9 @@ export function ReportTable({ data, columns }: { data: any[]; columns: any[] }) 
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="hover:bg-muted/10 transition-colors">
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-3 px-4 whitespace-nowrap">
+                    <TableCell key={cell.id} className="px-4 whitespace-nowrap">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

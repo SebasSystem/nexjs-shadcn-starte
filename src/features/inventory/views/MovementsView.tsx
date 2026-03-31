@@ -141,24 +141,32 @@ export function MovementsView() {
     {
       title: 'Movimientos este mes',
       value: movementStats.totalThisMonth,
+      trend: '+5 vs mes pasado',
+      trendUp: true,
       icon: <Icon name="ArrowLeftRight" size={18} />,
       iconClassName: 'bg-primary/10 text-primary',
     },
     {
       title: 'Entradas de mercancía',
       value: movementStats.receipts,
+      trend: 'este periodo',
+      trendUp: true,
       icon: <Icon name="PackagePlus" size={18} />,
       iconClassName: 'bg-success/10 text-success',
     },
     {
       title: 'Traslados entre bodegas',
       value: movementStats.transfers,
+      trend: 'este mes',
+      trendUp: true,
       icon: <Icon name="ArrowLeftRight" size={18} />,
       iconClassName: 'bg-info/10 text-info',
     },
     {
       title: 'Ajustes manuales',
       value: movementStats.adjustments,
+      trend: '-1 vs mes pasado',
+      trendUp: false,
       icon: <Icon name="SlidersHorizontal" size={18} />,
       iconClassName: 'bg-warning/10 text-warning',
     },
@@ -361,6 +369,8 @@ export function MovementsView() {
             key={card.title}
             title={card.title}
             value={card.value}
+            trend={card.trend}
+            trendUp={card.trendUp}
             icon={card.icon}
             iconClassName={card.iconClassName}
           />
@@ -368,7 +378,7 @@ export function MovementsView() {
       </div>
 
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-border/60">
+        <div className="flex flex-wrap items-center gap-3 px-5 py-4">
           <div className="relative flex-1 min-w-48">
             <Icon
               name="Search"
@@ -413,18 +423,18 @@ export function MovementsView() {
         <div className="overflow-x-auto">
           <Table>
             <TableHeadCustom table={table} />
-            <TableBody>
+            <TableBody dense={dense}>
               {table.getRowModel().rows.map((row) => (
                 <Fragment key={row.id}>
-                  <TableRow className="border-border/40 transition-colors">
+                  <TableRow>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className={cn('px-5', dense ? 'py-2' : 'py-3.5')}>
+                      <TableCell key={cell.id} className="px-5">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
                   {expandedRows.has(row.original.id) && canExpand(row.original) && (
-                    <TableRow className="bg-muted/10 border-border/40">
+                    <TableRow>
                       <TableCell colSpan={row.getVisibleCells().length} className="px-8 py-3">
                         <MovementExpandedRow movement={row.original} />
                       </TableCell>

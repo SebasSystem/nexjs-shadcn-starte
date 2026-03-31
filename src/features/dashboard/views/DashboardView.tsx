@@ -508,7 +508,7 @@ export function DashboardView() {
       {/* ── Productos con Stock Bajo ──────────────────────────────────── */}
       <SectionCard noPadding>
         {/* Table header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
+        <div className="flex items-center justify-between px-5 py-4">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-amber-500/10">
               <Icon name="AlertTriangle" size={15} className="text-amber-500" />
@@ -527,17 +527,11 @@ export function DashboardView() {
         <div className="overflow-x-auto relative">
           <Table>
             <TableHeadCustom table={table} />
-            <TableBody>
-              {table.getRowModel().rows.map((row, i) => (
-                <TableRow
-                  key={row.id}
-                  className={cn(
-                    'transition-colors',
-                    i < STOCK_BAJO.length - 1 && 'border-border/40' // keep consistent separators
-                  )}
-                >
+            <TableBody dense={dense}>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className={cn('px-5', dense ? 'py-2' : 'py-3.5')}>
+                    <TableCell key={cell.id} className="px-5">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -554,7 +548,7 @@ export function DashboardView() {
       {/* ── Últimas Cotizaciones ─────────────────────────────────────── */}
       <SectionCard noPadding>
         {/* Table header */}
-        <div className="flex items-center justify-between px-5 py-5 border-b border-border/60">
+        <div className="flex items-center justify-between px-5 py-5">
           <div className="flex flex-col gap-1">
             <h2 className="text-lg font-bold text-foreground">Últimas Cotizaciones</h2>
             <p className="text-sm text-muted-foreground">Cotizaciones creadas recientemente</p>
@@ -568,20 +562,11 @@ export function DashboardView() {
         <div className="overflow-x-auto relative">
           <Table>
             <TableHeadCustom table={cotizacionesTable} />
-            <TableBody>
-              {cotizacionesTable.getRowModel().rows.map((row, i) => (
-                <TableRow
-                  key={row.id}
-                  className={cn(
-                    'transition-colors',
-                    i < ULTIMAS_COTIZACIONES.length - 1 && 'border-b border-border/40'
-                  )}
-                >
+            <TableBody dense={cotizacionesDense}>
+              {cotizacionesTable.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className={cn('px-5', cotizacionesDense ? 'py-3' : 'py-4')}
-                    >
+                    <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

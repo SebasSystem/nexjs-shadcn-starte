@@ -38,7 +38,9 @@ export const PlansView = () => {
       />
 
       <SectionCard noPadding>
-        {/* Aquí irían los filtros si los hubiera */}
+        <div className="flex items-center justify-between px-5 py-4">
+          <p className="text-h6 text-foreground">Lista de planes</p>
+        </div>
         <PlansTable planes={planes} isLoading={isLoading} onEdit={handleEdit} />
       </SectionCard>
 

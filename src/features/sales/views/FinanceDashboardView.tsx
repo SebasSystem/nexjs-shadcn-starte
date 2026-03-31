@@ -277,16 +277,16 @@ export function FinanceDashboardView() {
 
       {/* Invoices Table — TanStack */}
       <SectionCard noPadding>
-        <div className="px-6 py-4 border-b border-border/50">
+        <div className="px-6 py-4">
           <h2 className="text-h6 text-foreground">Últimas Facturas</h2>
         </div>
 
         <div className="overflow-x-auto">
           <Table>
             <TableHeadCustom table={table} />
-            <TableBody>
+            <TableBody dense={dense}>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="hover:bg-muted/10 transition-colors">
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

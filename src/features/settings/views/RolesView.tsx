@@ -42,7 +42,10 @@ export const RolesView = () => {
         }
       />
 
-      <SectionCard noPadding className="shadow-sm border border-border/40">
+      <SectionCard noPadding>
+        <div className="flex items-center justify-between px-5 py-4">
+          <p className="text-h6 text-foreground">Roles configurados</p>
+        </div>
         {isLoading ? (
           <div className="flex flex-col gap-4 p-5 animate-pulse">
             {[...Array(4)].map((_, i) => (

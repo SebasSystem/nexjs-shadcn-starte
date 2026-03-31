@@ -319,7 +319,7 @@ export const HistoryView = () => {
 
       <SectionCard noPadding>
         {/* Filtros Integrados */}
-        <div className="flex gap-4 flex-wrap items-center p-4 border-b border-border/40 bg-muted/10">
+        <div className="flex gap-4 flex-wrap items-center p-4 bg-muted/10">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <input
@@ -374,7 +374,7 @@ export const HistoryView = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeadCustom table={table} />
-                <TableBody>
+                <TableBody dense={dense}>
                   {table.getRowModel().rows.map((row) => {
                     const isExpanded = expandedId === row.original.id;
                     const detalle = MOCK_DETALLES[row.original.id];
@@ -383,16 +383,13 @@ export const HistoryView = () => {
                       <React.Fragment key={row.id}>
                         <TableRow
                           className={cn(
-                            'border-b border-border/40 hover:bg-muted/30 transition-colors cursor-pointer',
+                            'transition-colors cursor-pointer',
                             isExpanded && 'bg-blue-50/30'
                           )}
                           onClick={() => toggleExpand(row.original.id)}
                         >
                           {row.getVisibleCells().map((cell) => (
-                            <TableCell
-                              key={cell.id}
-                              className={cn('px-4', dense ? 'py-2' : 'py-4')}
-                            >
+                            <TableCell key={cell.id} className={!dense ? 'py-4' : undefined}>
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </TableCell>
                           ))}
@@ -400,7 +397,7 @@ export const HistoryView = () => {
 
                         {/* Fila expandible */}
                         {isExpanded && detalle && (
-                          <TableRow className="border-b border-border/40">
+                          <TableRow>
                             <TableCell
                               colSpan={row.getVisibleCells().length}
                               className="bg-muted/10 p-0"
@@ -427,10 +424,7 @@ export const HistoryView = () => {
                                     </thead>
                                     <TableBody>
                                       {detalle.ventas.map((v, i) => (
-                                        <TableRow
-                                          key={i}
-                                          className="border-t border-border/40 hover:bg-muted/20"
-                                        >
+                                        <TableRow key={i}>
                                           <TableCell className="py-2 text-xs text-muted-foreground">
                                             {v.fecha}
                                           </TableCell>
@@ -465,10 +459,7 @@ export const HistoryView = () => {
                                     </thead>
                                     <TableBody>
                                       {detalle.desglose.map((d, i) => (
-                                        <TableRow
-                                          key={i}
-                                          className="border-t border-border/40 hover:bg-muted/20"
-                                        >
+                                        <TableRow key={i}>
                                           <TableCell className="py-2">
                                             <div className="font-medium text-xs text-foreground">
                                               {d.tramo}
@@ -485,7 +476,7 @@ export const HistoryView = () => {
                                           </TableCell>
                                         </TableRow>
                                       ))}
-                                      <TableRow className="border-t-2 border-blue-200 bg-blue-50/50 hover:bg-blue-50/50">
+                                      <TableRow>
                                         <TableCell
                                           colSpan={2}
                                           className="py-2 font-bold text-xs text-foreground text-right pr-2"

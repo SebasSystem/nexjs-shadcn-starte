@@ -67,7 +67,7 @@ export const AssignmentView = () => {
 
       <SectionCard noPadding>
         {/* Filtros Integrados */}
-        <div className="flex flex-col sm:flex-row gap-4 p-4 border-b border-border/40 bg-muted/10">
+        <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/10">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <input

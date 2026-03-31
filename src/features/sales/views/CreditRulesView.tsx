@@ -204,7 +204,7 @@ export function CreditRulesView() {
 
       {/* ── Client Exceptions Table — TanStack ───────────────────────────── */}
       <SectionCard noPadding>
-        <div className="px-6 py-4 border-b border-border/50 flex items-center justify-between">
+        <div className="px-6 py-4 flex items-center justify-between">
           <h2 className="text-h6 text-foreground">Excepciones por cliente</h2>
           <Button variant="outline" size="sm">
             <Plus size={15} />
@@ -215,9 +215,9 @@ export function CreditRulesView() {
         <div className="overflow-x-auto">
           <Table>
             <TableHeadCustom table={table} />
-            <TableBody>
+            <TableBody dense={dense}>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="hover:bg-muted/10 transition-colors">
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { cn } from 'src/lib/utils';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -97,23 +98,23 @@ export function StatsCard({
       <div className="flex items-start justify-between mb-4">
         {icon && <div className={cn('p-2.5 rounded-xl', iconClassName)}>{icon}</div>}
         {trend && (
-          <span
+          <div
             className={cn(
-              'text-[10px] font-semibold px-2 py-0.5 rounded-full',
+              'flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full',
               trendUp ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-600'
             )}
           >
-            {trendUp ? '↑' : '↓'}
-          </span>
+            {trendUp ? (
+              <TrendingUp className="h-3 w-3 shrink-0" />
+            ) : (
+              <TrendingDown className="h-3 w-3 shrink-0" />
+            )}
+            <span>{trend}</span>
+          </div>
         )}
       </div>
       <p className="text-h3 text-foreground mb-1">{value}</p>
       <p className="text-body2 font-medium text-muted-foreground">{title}</p>
-      {trend && (
-        <p className="text-caption text-muted-foreground/70 mt-3 pt-3 border-t border-border/40">
-          {trend}
-        </p>
-      )}
     </div>
   );
 }

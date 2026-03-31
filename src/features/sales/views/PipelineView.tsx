@@ -106,18 +106,24 @@ export function PipelineView() {
         <StatsCard
           title="Total Pipeline"
           value={formatCurrency(metrics.totalPipelineValue)}
+          trend="+8% este mes"
+          trendUp
           icon={<TrendingUp size={20} />}
           iconClassName="bg-indigo-500/10 text-indigo-500"
         />
         <StatsCard
           title="Oportunidades Activas"
           value={metrics.activeCount}
+          trend="en curso"
+          trendUp
           icon={<BarChart2 size={20} />}
           iconClassName="bg-blue-500/10 text-blue-500"
         />
         <StatsCard
           title="Cerradas Ganadas"
           value={metrics.closedWonCount}
+          trend="este periodo"
+          trendUp
           icon={<Trophy size={20} />}
           iconClassName="bg-emerald-500/10 text-emerald-500"
         />

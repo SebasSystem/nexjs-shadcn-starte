@@ -342,21 +342,33 @@ export const TelemetryView = () => {
 
         {/* Panel: Errores por Tenant */}
         {activeTab === 'errores' && (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeadCustom table={erroresTable.table} />
-              <TableBody>
-                {erroresTable.table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className="border-b border-border/20 hover:bg-muted/30">
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="py-4 px-6">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeadCustom table={erroresTable.table} />
+                <TableBody dense={erroresTable.dense}>
+                  {erroresTable.table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          className={!erroresTable.dense ? 'py-4 px-6' : 'px-6'}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="border-t border-border/40">
+              <TablePaginationCustom
+                table={erroresTable.table}
+                dense={erroresTable.dense}
+                onChangeDense={erroresTable.onChangeDense}
+              />
+            </div>
           </div>
         )}
 
@@ -404,14 +416,14 @@ export const TelemetryView = () => {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeadCustom table={alertasTable.table} />
-                  <TableBody>
+                  <TableBody dense={alertasTable.dense}>
                     {alertasTable.table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        className="border-b border-border/20 hover:bg-muted/30"
-                      >
+                      <TableRow key={row.id}>
                         {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id} className="py-4 px-6">
+                          <TableCell
+                            key={cell.id}
+                            className={!alertasTable.dense ? 'py-4 px-6' : 'px-6'}
+                          >
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </TableCell>
                         ))}

@@ -139,9 +139,9 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
       <div className="overflow-x-auto relative min-h-[300px]">
         <Table>
           <TableHeadCustom table={table} />
-          <TableBody>
+          <TableBody dense={dense}>
             {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} className="border-b border-border/40 hover:bg-muted/30">
+              <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id} className="py-3 px-5">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

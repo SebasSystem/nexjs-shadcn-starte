@@ -422,14 +422,14 @@ export function ComponentsExampleView() {
             />
             <Table>
               <TableHeadCustom table={table} />
-              <TableBody>
+              <TableBody dense={dense}>
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
                           key={cell.id}
-                          className={dense ? 'py-2 px-4 border-dashed' : 'py-4 px-4 border-dashed'}
+                          className={!dense ? 'py-4 px-4 border-dashed' : 'px-4 border-dashed'}
                         >
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>

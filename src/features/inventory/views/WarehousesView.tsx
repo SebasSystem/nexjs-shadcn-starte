@@ -55,6 +55,8 @@ export function WarehousesView() {
     {
       title: 'Total bodegas',
       value: 2,
+      badge: 'activas',
+      badgeClass: 'bg-primary/10 text-primary',
       icon: <Icon name="Warehouse" size={18} />,
       iconClassName: 'bg-primary/10 text-primary',
     },
@@ -77,6 +79,8 @@ export function WarehousesView() {
     {
       title: 'Total unidades en sistema',
       value: (totalMain + totalStore).toLocaleString(),
+      badge: 'en inventario',
+      badgeClass: 'bg-warning/10 text-warning',
       icon: <Icon name="BarChart3" size={18} />,
       iconClassName: 'bg-warning/10 text-warning',
     },
@@ -227,7 +231,7 @@ export function WarehousesView() {
 
       {/* Comparative table */}
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-border/60">
+        <div className="flex flex-wrap items-center gap-3 px-5 py-4">
           <div className="relative flex-1 min-w-48">
             <Icon
               name="Search"
@@ -270,11 +274,11 @@ export function WarehousesView() {
         <div className="overflow-x-auto">
           <Table>
             <TableHeadCustom table={table} />
-            <TableBody>
+            <TableBody dense={dense}>
               {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="border-border/40 transition-colors">
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className={cn('px-5', dense ? 'py-2' : 'py-3.5')}>
+                    <TableCell key={cell.id} className="px-5">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

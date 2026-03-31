@@ -19,14 +19,14 @@ interface Props<TData> {
 
 export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Props<TData>) {
   return (
-    <div className="flex items-center justify-between px-2 py-4">
+    <div className="flex items-center justify-between px-2 py-3">
       {/* Dense Switch */}
       <div className="flex-1">
         {onChangeDense && (
           <div className="flex items-center space-x-2">
             <Switch id="dense-mode" checked={dense} onCheckedChange={onChangeDense} />
             <label htmlFor="dense-mode" className="text-sm font-medium leading-none cursor-pointer">
-              Dense
+              Compacto
             </label>
           </div>
         )}
@@ -35,7 +35,7 @@ export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Pr
       <div className="flex items-center space-x-6 lg:space-x-8">
         {/* Rows per page selector */}
         <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium">Rows per page</p>
+          <p className="text-sm font-medium">Filas por página</p>
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
@@ -46,7 +46,7 @@ export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Pr
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
-              {[5, 10, 25, 50].map((pageSize) => (
+              {[5, 10, 20, 25, 50].map((pageSize) => (
                 <SelectItem key={pageSize} value={`${pageSize}`}>
                   {pageSize}
                 </SelectItem>
@@ -57,7 +57,7 @@ export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Pr
 
         {/* Current page info */}
         <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+          Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
         </div>
 
         {/* Navigation Buttons */}

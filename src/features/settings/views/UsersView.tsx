@@ -88,31 +88,39 @@ export const UsersView = () => {
         <StatsCard
           title="Total"
           value={stats.total}
+          trend="registrados"
+          trendUp
           icon={<Users className="h-5 w-5" />}
           iconClassName="bg-blue-500/10 text-blue-600"
         />
         <StatsCard
           title="Activos"
           value={stats.activos}
+          trend={`${stats.total ? Math.round((stats.activos / stats.total) * 100) : 0}% del total`}
+          trendUp
           icon={<UserCheck className="h-5 w-5" />}
           iconClassName="bg-emerald-500/10 text-emerald-600"
         />
         <StatsCard
           title="Pendientes"
           value={stats.pendientes}
+          trend={stats.pendientes === 0 ? 'sin pendientes' : `${stats.pendientes} sin activar`}
+          trendUp={stats.pendientes === 0}
           icon={<Clock className="h-5 w-5" />}
           iconClassName="bg-amber-500/10 text-amber-600"
         />
         <StatsCard
           title="Inactivos"
           value={stats.inactivos}
+          trend={`${stats.total ? Math.round((stats.inactivos / stats.total) * 100) : 0}% del total`}
+          trendUp={false}
           icon={<UserX className="h-5 w-5" />}
           iconClassName="bg-gray-500/10 text-gray-500"
         />
       </div>
 
-      <SectionCard>
-        <div className="flex flex-col sm:flex-row gap-3 items-center">
+      <SectionCard noPadding>
+        <div className="flex flex-col sm:flex-row gap-3 items-center px-5 py-4">
           <Input
             placeholder="Buscar por nombre o email..."
             value={search}
@@ -148,9 +156,6 @@ export const UsersView = () => {
             </Select>
           </div>
         </div>
-      </SectionCard>
-
-      <SectionCard noPadding className="shadow-sm border border-border/40">
         {isLoading ? (
           <div className="flex flex-col gap-4 p-5 animate-pulse">
             {[...Array(5)].map((_, i) => (

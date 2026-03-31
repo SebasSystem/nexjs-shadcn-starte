@@ -22,7 +22,6 @@ import {
   TableRow,
   TableCell,
 } from 'src/shared/components/table';
-import { cn } from 'src/lib/utils';
 import { UserStatusBadge } from './user-status-badge';
 import type { SettingsUser } from '../../types/settings.types';
 
@@ -107,10 +106,7 @@ export function UsersTable({ users, onEdit, onToggleEstado, onDelete }: UsersTab
         cell: (info) => {
           const user = info.row.original;
           return (
-            <div
-              className="flex items-center gap-1 transition-opacity opacity-0 group-hover:opacity-100"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="flex items-center gap-1">
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(user)}>
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
@@ -159,14 +155,11 @@ export function UsersTable({ users, onEdit, onToggleEstado, onDelete }: UsersTab
       <div className="overflow-x-auto">
         <Table>
           <TableHeadCustom table={table} />
-          <TableBody>
+          <TableBody dense={dense}>
             {table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="group border-b border-border/20 transition-colors hover:bg-muted/40"
-              >
+              <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className={cn('px-4', dense ? 'py-2' : 'py-3')}>
+                  <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

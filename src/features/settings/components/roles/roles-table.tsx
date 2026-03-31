@@ -136,14 +136,11 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
       <div className="overflow-x-auto">
         <Table>
           <TableHeadCustom table={table} />
-          <TableBody>
+          <TableBody dense={dense}>
             {table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="border-b border-border/20 hover:bg-muted/40 transition-colors"
-              >
+              <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className={dense ? 'py-2 px-4' : 'py-3 px-4'}>
+                  <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

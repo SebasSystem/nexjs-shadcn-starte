@@ -24,7 +24,6 @@ import {
   TableRow,
   TableCell,
 } from 'src/shared/components/table';
-import { cn } from 'src/lib/utils';
 
 function getInitials(nombre: string) {
   return nombre
@@ -110,10 +109,7 @@ export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: Con
         cell: (info) => {
           const c = info.row.original;
           return (
-            <div
-              className="flex items-center gap-1 transition-opacity opacity-0 group-hover:opacity-100"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="icon"
@@ -168,15 +164,11 @@ export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: Con
       <div className="overflow-x-auto">
         <Table>
           <TableHeadCustom table={table} />
-          <TableBody>
+          <TableBody dense={dense}>
             {table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="group border-b border-border/20 cursor-pointer transition-colors hover:bg-muted/40"
-                onClick={() => onViewDetail(row.original)}
-              >
+              <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className={cn('px-4', dense ? 'py-2' : 'py-3')}>
+                  <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

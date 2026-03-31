@@ -8,7 +8,7 @@ import {
   StatsCard,
 } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
-import { Plus, DatabaseZap, Users, Filter, Briefcase } from 'lucide-react';
+import { Plus, DatabaseZap, Users, Filter } from 'lucide-react';
 import { useSegments } from '../hooks/use-segments';
 import { SegmentsTable } from '../components/segments/segments-table';
 import { SegmentBuilderDrawer } from '../components/segments/segment-builder-drawer';
@@ -81,11 +81,8 @@ export const SegmentsView = () => {
       </div>
 
       <SectionCard noPadding>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border/60 bg-muted/10">
-          <div className="flex items-center gap-2 text-foreground font-medium">
-            <Briefcase className="h-5 w-5 text-muted-foreground" />
-            Vistas y Segmentos Disponibles
-          </div>
+        <div className="flex items-center justify-between px-5 py-4">
+          <p className="text-h6 text-foreground">Vistas y Segmentos Disponibles</p>
         </div>
 
         {isLoading && segments.length === 0 ? (

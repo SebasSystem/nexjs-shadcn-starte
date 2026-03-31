@@ -129,9 +129,8 @@ export const ContactsView = () => {
         ))}
       </div>
 
-      {/* Filtros */}
-      <SectionCard>
-        <div className="flex flex-col sm:flex-row gap-3 items-center">
+      <SectionCard noPadding>
+        <div className="flex flex-col sm:flex-row gap-3 items-center px-5 py-4">
           <Input
             placeholder="Buscar por nombre o email..."
             value={search}
@@ -151,9 +150,6 @@ export const ContactsView = () => {
             </SelectContent>
           </Select>
         </div>
-      </SectionCard>
-
-      <SectionCard noPadding className="shadow-sm border border-border/40">
         {isLoading ? (
           <div className="flex flex-col gap-4 p-5 animate-pulse">
             {[...Array(6)].map((_, i) => (

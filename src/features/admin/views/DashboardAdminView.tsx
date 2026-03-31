@@ -28,6 +28,7 @@ import { Tenant } from 'src/features/admin/types/admin.types';
 import {
   useTable,
   TableHeadCustom,
+  TablePaginationCustom,
   Table,
   TableBody,
   TableRow,
@@ -180,7 +181,7 @@ export const DashboardAdminView = () => {
       .slice(0, 10);
   }, [tenants]);
 
-  const { table } = useTable({
+  const { table, dense, onChangeDense } = useTable({
     data: tenantsRecientes,
     columns: COLUMNS,
     defaultRowsPerPage: 10,
@@ -319,7 +320,7 @@ export const DashboardAdminView = () => {
       </div>
 
       <SectionCard noPadding>
-        <div className="p-5 border-b border-border/40 flex justify-between items-center">
+        <div className="p-5 flex justify-between items-center">
           <h2 className="text-h6 text-foreground">Tenants Recientes</h2>
           <Button variant="link" size="sm" className="text-sm font-medium pr-0">
             Ver todos los tenants &rarr;
@@ -329,15 +330,11 @@ export const DashboardAdminView = () => {
         <div className="overflow-x-auto">
           <Table>
             <TableHeadCustom table={table} />
-            <TableBody>
+            <TableBody dense={dense}>
               {table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className="border-b border-border/10 hover:bg-muted/30 cursor-pointer"
-                  onClick={() => handleVerDetalle(row.original)}
-                >
+                <TableRow key={row.id} onClick={() => handleVerDetalle(row.original)}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-3 px-5">
+                    <TableCell key={cell.id} className="px-5">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -345,6 +342,9 @@ export const DashboardAdminView = () => {
               ))}
             </TableBody>
           </Table>
+        </div>
+        <div className="border-t border-border/40">
+          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
         </div>
       </SectionCard>
 

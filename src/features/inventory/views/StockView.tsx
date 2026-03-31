@@ -176,12 +176,16 @@ export function StockView() {
     {
       title: 'Stock físico total',
       value: stats.totalPhysical.toLocaleString(),
+      badge: 'unidades en sistema',
+      badgeClass: 'bg-primary/10 text-primary',
       icon: <Icon name="Package" size={18} />,
       iconClassName: 'bg-primary/10 text-primary',
     },
     {
       title: 'Cotizaciones aprobadas',
       value: stats.approvedQuotes,
+      badge: 'activas',
+      badgeClass: 'bg-warning/10 text-warning',
       icon: <Icon name="FileText" size={18} />,
       iconClassName: 'bg-warning/10 text-warning',
     },
@@ -367,7 +371,7 @@ export function StockView() {
 
       {/* Table */}
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-center gap-3 px-5 py-4 border-b border-border/60">
+        <div className="flex flex-wrap items-center gap-3 px-5 py-4">
           <div className="relative flex-1 min-w-48">
             <Icon
               name="Search"
@@ -424,23 +428,18 @@ export function StockView() {
         <div className="overflow-x-auto">
           <Table>
             <TableHeadCustom table={table} />
-            <TableBody>
+            <TableBody dense={dense}>
               {table.getRowModel().rows.map((row) => (
                 <Fragment key={row.id}>
-                  <TableRow
-                    className={cn(
-                      'border-border/40 transition-colors',
-                      row.original.available <= 0 && 'bg-error/5'
-                    )}
-                  >
+                  <TableRow className={cn(row.original.available <= 0 && 'bg-error/5')}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className={cn('px-5', dense ? 'py-2' : 'py-3.5')}>
+                      <TableCell key={cell.id} className="px-5">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
                   {expandedRows.has(row.original.id) && (
-                    <TableRow className="bg-muted/10 border-border/40">
+                    <TableRow>
                       <TableCell colSpan={row.getVisibleCells().length} className="px-8 py-3">
                         <B2BExpandedRow product={row.original} />
                       </TableCell>

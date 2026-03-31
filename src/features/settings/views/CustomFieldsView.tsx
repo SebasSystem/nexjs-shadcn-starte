@@ -115,7 +115,7 @@ export const CustomFieldsView = () => {
         ))}
       </div>
 
-      <SectionCard noPadding className="shadow-sm border border-border/40">
+      <SectionCard noPadding>
         {isLoading ? (
           <div className="flex flex-col gap-4 p-5 animate-pulse">
             {[...Array(5)].map((_, i) => (

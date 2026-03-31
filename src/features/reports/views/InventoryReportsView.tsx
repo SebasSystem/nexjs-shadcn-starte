@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Icon, Button } from 'src/shared/components/ui';
+import type { IconName } from 'src/shared/components/ui/icon';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { cn } from 'src/lib/utils';
 import { ReportFilters } from '../components/ReportFilters';
@@ -16,6 +17,38 @@ import {
   mockInventoryB2B,
 } from 'src/_mock/_reports';
 import { toast } from 'sonner';
+
+function getKpiMeta(key: string): { icon: IconName; iconBg: string; iconColor: string } {
+  const k = key.toLowerCase();
+  if (
+    k.includes('agotado') ||
+    k.includes('riesgo') ||
+    k.includes('descuadre') ||
+    k.includes('crítico')
+  )
+    return { icon: 'AlertTriangle', iconBg: 'bg-red-100', iconColor: 'text-red-600' };
+  if (k.includes('bodega') || k.includes('bodeg'))
+    return { icon: 'Warehouse', iconBg: 'bg-blue-100', iconColor: 'text-blue-600' };
+  if (k.includes('tienda'))
+    return { icon: 'Store', iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600' };
+  if (k.includes('movimiento') || k.includes('traslado'))
+    return { icon: 'ArrowLeftRight', iconBg: 'bg-violet-100', iconColor: 'text-violet-600' };
+  if (k.includes('entrada'))
+    return { icon: 'PackagePlus', iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600' };
+  if (k.includes('ajuste'))
+    return { icon: 'SlidersHorizontal', iconBg: 'bg-orange-100', iconColor: 'text-orange-600' };
+  if (k.includes('categoría') || k.includes('catálogo'))
+    return { icon: 'Layers', iconBg: 'bg-purple-100', iconColor: 'text-purple-600' };
+  if (k.includes('reserva') || k.includes('separad'))
+    return { icon: 'CalendarDays', iconBg: 'bg-cyan-100', iconColor: 'text-cyan-600' };
+  if (k.includes('cliente'))
+    return { icon: 'Users', iconBg: 'bg-teal-100', iconColor: 'text-teal-600' };
+  if (k.includes('stock') || k.includes('bajo'))
+    return { icon: 'Package', iconBg: 'bg-amber-100', iconColor: 'text-amber-600' };
+  if (k.includes('unidad') || k.includes('global'))
+    return { icon: 'BarChart3', iconBg: 'bg-blue-100', iconColor: 'text-blue-600' };
+  return { icon: 'BarChart2', iconBg: 'bg-blue-100', iconColor: 'text-blue-600' };
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DATA_MAP: Record<string, () => any> = {
@@ -100,26 +133,42 @@ export function InventoryReportsView() {
       <div className="w-full max-w-full space-y-6">
         {/* KPIs */}
         <div className="flex flex-wrap gap-4 pb-2">
-          {Object.entries(kpis).map(([key, val]) => (
-            <SectionCard key={key} className="min-w-[140px] sm:min-w-[200px] flex-1">
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-bold mb-1.5 truncate">
-                {key}
-              </p>
-              <p
-                className={cn(
-                  'text-2xl font-extrabold tracking-tight tabular-nums',
-                  key.toLowerCase().includes('agotado') ||
-                    key.toLowerCase().includes('crítico') ||
-                    key.toLowerCase().includes('descuadre') ||
-                    (typeof val === 'number' && val > 0 && key.toLowerCase().includes('riesgo'))
-                    ? 'text-error'
-                    : 'text-foreground'
-                )}
-              >
-                {String(val)}
-              </p>
-            </SectionCard>
-          ))}
+          {Object.entries(kpis).map(([key, val]) => {
+            const meta = getKpiMeta(key);
+            const isNegative =
+              key.toLowerCase().includes('agotado') ||
+              key.toLowerCase().includes('crítico') ||
+              key.toLowerCase().includes('descuadre') ||
+              (typeof val === 'number' && val > 0 && key.toLowerCase().includes('riesgo'));
+            return (
+              <SectionCard key={key} className="min-w-[140px] sm:min-w-[180px] flex-1">
+                <div className="flex items-start justify-between mb-3">
+                  <div className={cn('p-2 rounded-xl', meta.iconBg)}>
+                    <Icon name={meta.icon} size={15} className={meta.iconColor} />
+                  </div>
+                  <span
+                    className={cn(
+                      'text-[10px] font-bold px-2 py-0.5 rounded-full',
+                      isNegative ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
+                    )}
+                  >
+                    {isNegative ? '↓' : '↑'}
+                  </span>
+                </div>
+                <p
+                  className={cn(
+                    'text-2xl font-extrabold tracking-tight tabular-nums mb-1',
+                    isNegative ? 'text-error' : 'text-foreground'
+                  )}
+                >
+                  {String(val)}
+                </p>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold truncate">
+                  {key}
+                </p>
+              </SectionCard>
+            );
+          })}
         </div>
 
         {/* Gráficas Duplicadas por layout responsivo */}
