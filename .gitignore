@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# AI agent — estado local y config personal
+.atl/
+.agent/
+.claude/settings.json
+.claude/settings.local.json
+.claude/skills/

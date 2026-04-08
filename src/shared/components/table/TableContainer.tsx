@@ -4,7 +4,7 @@ import * as React from 'react';
 import { cn } from 'src/lib/utils';
 
 const SCROLL_END_DELAY_MS = 200; // tiempo sin eventos scroll para considerar que paró
-const HIDE_DELAY_MS = 1500;      // tiempo después de parar antes de desvanecer
+const HIDE_DELAY_MS = 1500; // tiempo después de parar antes de desvanecer
 
 interface TableContainerProps {
   children: React.ReactNode;
@@ -52,7 +52,11 @@ export function TableContainer({ children, className }: TableContainerProps) {
 
   return (
     <div
-      className={cn('table-container overflow-x-auto w-full', visible && 'scrollbar-visible', className)}
+      className={cn(
+        'table-container overflow-x-auto w-full',
+        visible && 'scrollbar-visible',
+        className
+      )}
       onScroll={handleScroll}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

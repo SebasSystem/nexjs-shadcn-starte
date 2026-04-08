@@ -12,7 +12,12 @@ import {
   TableCell,
 } from 'src/shared/components/ui';
 import type { IconName } from 'src/shared/components/ui/icon';
-import { useTable, TableHeadCustom, TablePaginationCustom, TableContainer } from 'src/shared/components/table';
+import {
+  useTable,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableContainer,
+} from 'src/shared/components/table';
 import { StockBadge } from 'src/features/inventory/components/StockBadge';
 import { cn } from 'src/lib/utils';
 import { SectionCard } from 'src/shared/components/layouts/page';

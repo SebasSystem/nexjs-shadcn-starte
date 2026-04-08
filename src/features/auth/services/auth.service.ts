@@ -1,10 +1,15 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
 import { setSession } from 'src/shared/auth/context/jwt/utils';
-import { MOCK_LOGIN_RESPONSE, MOCK_INIT_DATA_RESPONSE } from 'src/_mock/_auth';
+import { MOCK_LOGIN_RESPONSE, getMockInitDataByEmail, MOCK_CREDENTIALS } from 'src/_mock/_auth';
+
+// ⚠️ MOCK ONLY — clave para seleccionar el perfil correcto en getInitData
+const MOCK_EMAIL_KEY = '_mock_email';
+
+const VALID_MOCK_EMAILS = Object.values(MOCK_CREDENTIALS);
 
 export const signInWithPassword = async ({
-  email: _email,
-  password: _password,
+  email,
+  password,
 }: {
   email: string;
   password: string;
@@ -12,6 +17,11 @@ export const signInWithPassword = async ({
   // ⚠️ MODO MOCK — reemplazar por la llamada real cuando el backend esté listo:
   // const res = await axiosInstance.post(endpoints.auth.login, { email, password });
   // const { accessToken, refreshToken } = res.data;
+
+  // ⚠️ MOCK ONLY — validar credenciales contra usuarios mock
+  if (!VALID_MOCK_EMAILS.includes(email) || password !== 'admin123') {
+    throw new Error('Credenciales incorrectas. Verificá el usuario y la contraseña.');
+  }
 
   const { accessToken, refreshToken } = MOCK_LOGIN_RESPONSE;
 
@@ -22,6 +32,10 @@ export const signInWithPassword = async ({
   if (refreshToken) {
     sessionStorage.setItem('refreshToken', refreshToken);
   }
+
+  // ⚠️ MOCK ONLY — guardar email para seleccionar módulos correctos
+  sessionStorage.setItem(MOCK_EMAIL_KEY, email);
+
   return MOCK_LOGIN_RESPONSE;
 };
 
@@ -51,6 +65,7 @@ export const signOut = async () => {
   setSession(null);
   sessionStorage.removeItem('refreshToken');
   sessionStorage.removeItem('jwt_access_token');
+  sessionStorage.removeItem(MOCK_EMAIL_KEY);
 };
 
 export const getInitData = async () => {
@@ -58,5 +73,6 @@ export const getInitData = async () => {
   // const res = await axiosInstance.get(endpoints.auth.me);
   // return res.data;
 
-  return MOCK_INIT_DATA_RESPONSE;
+  const email = sessionStorage.getItem(MOCK_EMAIL_KEY) ?? '';
+  return getMockInitDataByEmail(email);
 };

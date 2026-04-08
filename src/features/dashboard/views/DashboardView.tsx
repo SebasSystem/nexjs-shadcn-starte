@@ -13,7 +13,12 @@ import {
   Badge,
 } from 'src/shared/components/ui';
 import { Button } from 'src/shared/components/ui/button';
-import { useTable, TableHeadCustom, TablePaginationCustom, TableContainer } from 'src/shared/components/table';
+import {
+  useTable,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableContainer,
+} from 'src/shared/components/table';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { Chart, useChart } from 'src/shared/components/chart';
 import { paths } from 'src/routes/paths';
@@ -75,7 +80,6 @@ const VENTAS_SERIES = [
   { name: 'Ingresos Reales', type: 'column', data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30] },
   { name: 'Meta Proyectada', type: 'line', data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39] },
 ];
-
 
 const STOCK_BAJO = [
   {
@@ -198,7 +202,6 @@ const COLUMNS = [
 ];
 
 import { ACTION_ICONS } from 'src/shared/constants/app-icons';
-
 
 const TAREAS_VENCIDAS_HOY = [
   {
@@ -473,7 +476,9 @@ export function DashboardView() {
                 <Icon name="Clock" size={15} className="text-red-600" />
               </div>
               <div>
-                <h3 className="text-subtitle1 font-semibold text-foreground">Tareas Vencidas Hoy</h3>
+                <h3 className="text-subtitle1 font-semibold text-foreground">
+                  Tareas Vencidas Hoy
+                </h3>
                 <p className="text-caption text-muted-foreground">Requieren atención inmediata</p>
               </div>
             </div>

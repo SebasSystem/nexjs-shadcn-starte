@@ -1,10 +1,10 @@
-import { FinanceInvoiceDetailView } from 'src/features/sales/views/FinanceInvoiceDetailView';
+import { InvoicesListView } from 'src/features/sales/views/InvoicesListView';
 
 export const metadata = {
-  title: 'Detalle de Factura | CRM',
-  description: 'Registro de pagos y detalle de factura.',
+  title: 'Facturas | CRM',
+  description: 'Historial y gestión de facturas.',
 };
 
 export default function FinanceInvoicePage() {
-  return <FinanceInvoiceDetailView />;
+  return <InvoicesListView />;
 }

@@ -59,6 +59,10 @@ const STATUS_CONFIG = {
     label: 'PAGADA',
     className: 'bg-emerald-500/10 text-emerald-600',
   },
+  vencida: {
+    label: 'VENCIDA',
+    className: 'bg-red-500/10 text-red-600',
+  },
 } as const;
 
 const METHOD_ICONS: Record<string, string> = {

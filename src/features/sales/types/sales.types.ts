@@ -86,7 +86,7 @@ export interface Quotation {
   priceList: string;
   date: string;
   seller: string;
-  status: 'borrador' | 'enviada' | 'aprobada' | 'rechazada';
+  status: 'borrador' | 'enviada' | 'aprobada' | 'rechazada' | 'convertida';
   products: ProductLine[];
   internalNotes: string;
 }
@@ -122,7 +122,7 @@ export interface Invoice {
   dueDate: string;
   paymentMethod: string;
   seller: string;
-  status: 'pendiente' | 'parcial' | 'pagada';
+  status: 'pendiente' | 'parcial' | 'pagada' | 'vencida';
   total: number;
   totalPaid: number;
   products: InvoiceLine[];

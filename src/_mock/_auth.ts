@@ -1,4 +1,17 @@
 // ─────────────────────────────────────────────────────────────────────────────
+// Mock credentials:
+//   SuperAdmin → superadmin@platform.com / admin123
+//   Admin tenant → admin@tenant.com / admin123
+//
+// ⚠️ MOCK ONLY — eliminar cuando se integre el backend real
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const MOCK_CREDENTIALS = {
+  SUPERADMIN: 'superadmin@platform.com',
+  ADMIN: 'admin@tenant.com',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Mock: Respuesta del endpoint POST /auth/login
 // Tokens válidos hasta 2030 (exp: 1893456000 ≈ 2030-01-01)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -12,14 +25,92 @@ export const MOCK_LOGIN_RESPONSE = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mock: Respuesta del endpoint GET /auth/init-data
+// Mock: SuperAdmin — solo ve módulos de plataforma SaaS
+// ─────────────────────────────────────────────────────────────────────────────
+export const MOCK_SUPERADMIN_INIT_DATA_RESPONSE = {
+  statusCode: 200,
+  data: {
+    id: 'sa-1',
+    names: 'Super Admin',
+    email: 'superadmin@platform.com',
+    roles: [{ id: 'sa', name: 'superadmin' }],
+    modules: [
+      {
+        moduleId: '6',
+        subheader: 'Admin SaaS',
+        order: 1,
+        items: [
+          {
+            id: '90',
+            name: 'Dashboard',
+            icon: 'dashboard',
+            path: '/admin/dashboard',
+            order: 1,
+            itemparentId: null,
+            permissions: ['view'],
+            moduleId: '6',
+            children: [],
+          },
+          {
+            id: '91',
+            name: 'Tenants',
+            icon: 'tenants',
+            path: '/admin/tenants',
+            order: 2,
+            itemparentId: null,
+            permissions: ['view', 'edit', 'create', 'delete'],
+            moduleId: '6',
+            children: [],
+          },
+          {
+            id: '92',
+            name: 'Planes',
+            icon: 'plans',
+            path: '/admin/plans',
+            order: 3,
+            itemparentId: null,
+            permissions: ['view', 'edit', 'create'],
+            moduleId: '6',
+            children: [],
+          },
+          {
+            id: '93',
+            name: 'Facturación',
+            icon: 'billing',
+            path: '/admin/billing',
+            order: 4,
+            itemparentId: null,
+            permissions: ['view'],
+            moduleId: '6',
+            children: [],
+          },
+          {
+            id: '94',
+            name: 'Telemetría',
+            icon: 'telemetry',
+            path: '/admin/telemetry',
+            order: 5,
+            itemparentId: null,
+            permissions: ['view'],
+            moduleId: '6',
+            children: [],
+          },
+        ],
+      },
+    ],
+  },
+  message: 'Logged-in user data successfully retrieved',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mock: Admin tenant — acceso completo al CRM (sin módulos de plataforma SaaS)
 // ─────────────────────────────────────────────────────────────────────────────
 export const MOCK_INIT_DATA_RESPONSE = {
   statusCode: 200,
   data: {
     id: '1',
     names: 'Juan Díaz',
-    email: 'juan.diaz@empresa.com',
+    email: 'admin@tenant.com',
     roles: [{ id: '1', name: 'admin' }],
     modules: [
       {
@@ -132,7 +223,7 @@ export const MOCK_INIT_DATA_RESPONSE = {
           },
           {
             id: '62',
-            name: 'Cotizador CPQ',
+            name: 'Cotizaciones',
             icon: 'pricelist',
             path: '/sales/finance/quotation',
             order: 3,
@@ -142,11 +233,22 @@ export const MOCK_INIT_DATA_RESPONSE = {
             children: [],
           },
           {
+            id: '65',
+            name: 'Facturas',
+            icon: 'billing',
+            path: '/sales/finance/invoice',
+            order: 4,
+            itemparentId: null,
+            permissions: ['view', 'edit'],
+            moduleId: '3',
+            children: [],
+          },
+          {
             id: '63',
             name: 'Reglas de Crédito',
             icon: 'b2b',
             path: '/sales/finance/credit-rules',
-            order: 4,
+            order: 5,
             itemparentId: null,
             permissions: ['view', 'edit'],
             moduleId: '3',
@@ -157,7 +259,7 @@ export const MOCK_INIT_DATA_RESPONSE = {
             name: 'Multimoneda',
             icon: 'Settings',
             path: '/sales/finance/multi-currency',
-            order: 5,
+            order: 6,
             itemparentId: null,
             permissions: ['view', 'edit'],
             moduleId: '3',
@@ -190,68 +292,6 @@ export const MOCK_INIT_DATA_RESPONSE = {
             itemparentId: null,
             permissions: ['view'],
             moduleId: '4',
-            children: [],
-          },
-        ],
-      },
-      {
-        moduleId: '6',
-        subheader: 'Admin SaaS',
-        order: 6,
-        items: [
-          {
-            id: '90',
-            name: 'Dashboard',
-            icon: 'dashboard',
-            path: '/admin/dashboard',
-            order: 1,
-            itemparentId: null,
-            permissions: ['view'],
-            moduleId: '6',
-            children: [],
-          },
-          {
-            id: '91',
-            name: 'Tenants',
-            icon: 'tenants',
-            path: '/admin/tenants',
-            order: 2,
-            itemparentId: null,
-            permissions: ['view', 'edit', 'create', 'delete'],
-            moduleId: '6',
-            children: [],
-          },
-          {
-            id: '92',
-            name: 'Planes',
-            icon: 'plans',
-            path: '/admin/plans',
-            order: 3,
-            itemparentId: null,
-            permissions: ['view', 'edit', 'create'],
-            moduleId: '6',
-            children: [],
-          },
-          {
-            id: '93',
-            name: 'Facturación',
-            icon: 'billing',
-            path: '/admin/billing',
-            order: 4,
-            itemparentId: null,
-            permissions: ['view'],
-            moduleId: '6',
-            children: [],
-          },
-          {
-            id: '94',
-            name: 'Telemetría',
-            icon: 'telemetry',
-            path: '/admin/telemetry',
-            order: 5,
-            itemparentId: null,
-            permissions: ['view'],
-            moduleId: '6',
             children: [],
           },
         ],
@@ -435,3 +475,13 @@ export const MOCK_INIT_DATA_RESPONSE = {
   },
   message: 'Logged-in user data successfully retrieved',
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Selector por credencial — ⚠️ MOCK ONLY
+// ─────────────────────────────────────────────────────────────────────────────
+export function getMockInitDataByEmail(email: string) {
+  if (email === MOCK_CREDENTIALS.SUPERADMIN) {
+    return MOCK_SUPERADMIN_INIT_DATA_RESPONSE;
+  }
+  return MOCK_INIT_DATA_RESPONSE;
+}

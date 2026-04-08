@@ -18,7 +18,12 @@ type ScrollbarProps = {
 };
 
 // ─── Componente ───────────────────────────────────────────────────────────────
-export function Scrollbar({ children, className, horizontal = false, hideBar = false }: ScrollbarProps) {
+export function Scrollbar({
+  children,
+  className,
+  horizontal = false,
+  hideBar = false,
+}: ScrollbarProps) {
   const [visible, setVisible] = React.useState(false);
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 

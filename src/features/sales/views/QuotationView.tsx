@@ -14,6 +14,8 @@ import {
   TrendingUp,
   CheckCircle2,
   Eye,
+  Send,
+  XCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from 'src/shared/components/ui/button';
@@ -50,9 +52,10 @@ function calcTotals(products: ProductLine[]) {
 
 const STATUS_LABELS: Record<Quotation['status'], string> = {
   borrador: 'Borrador',
-  enviada: 'Enviada',
+  enviada: 'Enviada al cliente',
   aprobada: 'Aprobada',
   rechazada: 'Rechazada',
+  convertida: 'Convertida a Factura',
 };
 
 const STATUS_COLORS: Record<Quotation['status'], string> = {
@@ -60,6 +63,7 @@ const STATUS_COLORS: Record<Quotation['status'], string> = {
   enviada: 'bg-blue-500/10 text-blue-600',
   aprobada: 'bg-emerald-500/10 text-emerald-600',
   rechazada: 'bg-red-500/10 text-red-600',
+  convertida: 'bg-purple-500/10 text-purple-600',
 };
 
 // ─── View ─────────────────────────────────────────────────────────────────────
@@ -109,6 +113,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   );
 
   const [isSaving, setIsSaving] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
 
   // ── Products ───────────────────────────────────────────────────────────────
@@ -156,21 +161,41 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
     await new Promise((r) => setTimeout(r, 400));
     saveQuotation(quotation);
     setIsSaving(false);
+    toast.success('Cotización guardada como borrador');
+  };
+
+  const handleSend = async () => {
+    setIsSending(true);
+    await new Promise((r) => setTimeout(r, 400));
+    const updated = { ...quotation, status: 'enviada' as const };
+    setQuotation(updated);
+    saveQuotation(updated);
+    setIsSending(false);
+    toast.success('Cotización enviada al cliente');
+  };
+
+  const handleReject = () => {
+    const updated = { ...quotation, status: 'rechazada' as const };
+    setQuotation(updated);
+    saveQuotation(updated);
+    toast.info('Cotización marcada como rechazada');
   };
 
   const handleConvert = async () => {
     setIsConverting(true);
     await new Promise((r) => setTimeout(r, 600));
     const invoice = convertQuotationToInvoice(quotation.id);
-    // Asegurar que la cotización esté guardada antes de convertir
-    saveQuotation({ ...quotation, status: 'enviada' });
+    saveQuotation({ ...quotation, status: 'convertida' });
     router.push(paths.sales.invoice(invoice.id));
   };
 
   const invoice = getInvoiceByQuotation(quotation.id);
 
-  const isCerradoGanado = opp?.stage === 'cerrado-ganado';
-  const isCotizacionGenerada = opp?.stage === 'cotizacion-enviada' || opp?.stage === 'negociacion';
+  const isBorrador = quotation.status === 'borrador';
+  const isEnviada = quotation.status === 'enviada' || quotation.status === 'aprobada';
+  const isConvertida = quotation.status === 'convertida';
+  const isRechazada = quotation.status === 'rechazada';
+  const isEditable = isBorrador;
 
   const totals = calcTotals(quotation.products);
 
@@ -208,43 +233,81 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             className="text-muted-foreground mr-1 hover:bg-muted/10 transition-colors"
             onClick={() => router.push(paths.sales.pipeline)}
           >
-            Cancelar
+            Volver
           </Button>
 
-          {isCerradoGanado || isCotizacionGenerada ? (
-            <Button
-              variant="outline"
-              onClick={() => toast.info('Abriendo vista previa de cotización...')}
-            >
-              <Eye size={16} />
-              Ver Cotización
-            </Button>
-          ) : (
-            <Button variant="outline" onClick={handleSave} loading={isSaving}>
-              <Save size={16} />
-              Guardar Cotización
-            </Button>
+          {/* Borrador: guardar + enviar al cliente */}
+          {isBorrador && (
+            <>
+              <Button variant="outline" onClick={handleSave} loading={isSaving}>
+                <Save size={16} />
+                Guardar borrador
+              </Button>
+              <Button
+                variant="outline"
+                className="border-red-300 text-red-500 hover:bg-red-500/10"
+                onClick={handleReject}
+              >
+                <XCircle size={16} />
+                Rechazar
+              </Button>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                onClick={handleSend}
+                loading={isSending}
+                disabled={quotation.products.length === 0}
+              >
+                <Send size={16} />
+                Enviar al cliente
+              </Button>
+            </>
           )}
 
-          {isCerradoGanado ? (
+          {/* Enviada: ver preview + convertir a factura */}
+          {isEnviada && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => toast.info('Vista previa de cotización próximamente...')}
+              >
+                <Eye size={16} />
+                Ver cotización
+              </Button>
+              <Button
+                variant="outline"
+                className="border-red-300 text-red-500 hover:bg-red-500/10"
+                onClick={handleReject}
+              >
+                <XCircle size={16} />
+                Rechazar
+              </Button>
+              <Button
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+                onClick={handleConvert}
+                loading={isConverting}
+              >
+                <CheckCircle2 size={16} />
+                Convertir a Factura
+              </Button>
+            </>
+          )}
+
+          {/* Convertida: ver factura */}
+          {isConvertida && invoice && (
             <Button
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-2"
-              onClick={() => invoice && router.push(paths.sales.invoice(invoice.id))}
-              disabled={!invoice}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold"
+              onClick={() => router.push(paths.sales.invoice(invoice.id))}
             >
               <FileText size={16} />
               Ver Factura
             </Button>
-          ) : (
-            <Button
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold flex items-center gap-2"
-              onClick={handleConvert}
-              loading={isConverting}
-              disabled={quotation.products.length === 0}
-            >
-              <CheckCircle2 size={16} />
-              Convertir a Factura
-            </Button>
+          )}
+
+          {/* Rechazada: solo lectura */}
+          {isRechazada && (
+            <span className="text-sm text-muted-foreground italic px-2">
+              Esta cotización fue rechazada
+            </span>
           )}
         </div>
       </div>
@@ -269,24 +332,28 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                   value={quotation.client}
                   onChange={(e) => setQuotation((p) => ({ ...p, client: e.target.value }))}
                   placeholder="Seleccionar cliente..."
+                  disabled={!isEditable}
                 />
                 <Input
                   label="Lista de Precios"
                   value={quotation.priceList}
                   onChange={(e) => setQuotation((p) => ({ ...p, priceList: e.target.value }))}
                   placeholder="ej: B2C - Consumidor Final"
+                  disabled={!isEditable}
                 />
                 <Input
                   label="Fecha"
                   type="date"
                   value={quotation.date}
                   onChange={(e) => setQuotation((p) => ({ ...p, date: e.target.value }))}
+                  disabled={!isEditable}
                 />
                 <Input
                   label="Vendedor"
                   value={quotation.seller}
                   onChange={(e) => setQuotation((p) => ({ ...p, seller: e.target.value }))}
                   placeholder="María González"
+                  disabled={!isEditable}
                 />
               </div>
             </CardContent>
