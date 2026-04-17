@@ -9,6 +9,8 @@ const ROOTS = {
   REPORTS: '/reports',
   HR: '/hr',
   SETTINGS: '/settings',
+  PROJECTS: '/projects',
+  PARTNERS: '/partners',
 };
 
 export const paths = {
@@ -101,6 +103,19 @@ export const paths = {
       simulator: `${ROOTS.HR}/commissions/simulator`,
       history: `${ROOTS.HR}/commissions/history`,
     },
+  },
+
+  // PROJECTS
+  projects: {
+    root: ROOTS.PROJECTS,
+    detail: (id: string) => `${ROOTS.PROJECTS}/${id}`,
+  },
+
+  // PARTNERS
+  partners: {
+    root: ROOTS.PARTNERS,
+    opportunities: `${ROOTS.PARTNERS}/opportunities`,
+    portal: `${ROOTS.PARTNERS}/portal`,
   },
 
   // SETTINGS

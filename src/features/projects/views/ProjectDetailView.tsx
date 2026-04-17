@@ -1,0 +1,436 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { flexRender, createColumnHelper } from '@tanstack/react-table';
+import { Icon, Button, Badge } from 'src/shared/components/ui';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from 'src/shared/components/ui';
+import {
+  useTable,
+  TableHeadCustom,
+  Table,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableContainer,
+} from 'src/shared/components/table';
+import { PageContainer, SectionCard } from 'src/shared/components/layouts/page';
+import { cn } from 'src/lib/utils';
+import { paths } from 'src/routes/paths';
+import { RESOURCE_ROLE_CONFIG } from 'src/_mock/_projects';
+import { ProjectDrawer } from '../components/ProjectDrawer';
+import { MilestoneDrawer } from '../components/MilestoneDrawer';
+import { ResourceDrawer } from '../components/ResourceDrawer';
+import { ProjectStatusBadge } from '../components/ProjectStatusBadge';
+import { MilestoneStatusBadge } from '../components/MilestoneStatusBadge';
+import { useProjects } from '../hooks/useProjects';
+import type { Milestone, ProjectResource } from '../types';
+
+// ─── Column helpers ───────────────────────────────────────────────────────────
+
+const msColumnHelper = createColumnHelper<Milestone>();
+
+// ─── Progress color ───────────────────────────────────────────────────────────
+
+function getProgressColor(progress: number) {
+  if (progress <= 33) return 'bg-error';
+  if (progress <= 66) return 'bg-warning';
+  if (progress < 100) return 'bg-info';
+  return 'bg-success';
+}
+
+// ─── Empty state ──────────────────────────────────────────────────────────────
+
+function EmptyState({ icon, title, subtitle }: { icon: string; title: string; subtitle: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-14 text-center">
+      <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+        <Icon name={icon as 'Flag'} size={22} className="text-muted-foreground" />
+      </div>
+      <p className="text-subtitle2 text-foreground font-medium">{title}</p>
+      <p className="text-caption text-muted-foreground mt-1 max-w-xs">{subtitle}</p>
+    </div>
+  );
+}
+
+// ─── Resource Card ────────────────────────────────────────────────────────────
+
+function ResourceCard({ resource, onRemove }: { resource: ProjectResource; onRemove: () => void }) {
+  const roleConfig = RESOURCE_ROLE_CONFIG[resource.role];
+  const initials = resource.name
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  return (
+    <SectionCard className="p-4">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm shrink-0">
+          {initials}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-subtitle2 font-semibold text-foreground truncate">{resource.name}</p>
+          <Badge variant="soft" color={roleConfig.color} className="mt-0.5 text-[10px]">
+            {roleConfig.label}
+          </Badge>
+        </div>
+      </div>
+      <div className="mt-3 space-y-1.5">
+        <div className="flex items-center gap-1.5 text-caption text-muted-foreground">
+          <Icon name="Mail" size={12} />
+          <span className="truncate">{resource.email}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-caption text-muted-foreground">
+          <Icon name="Calendar" size={12} />
+          <span>
+            {new Date(resource.startDate).toLocaleDateString('es', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            })}
+            {resource.endDate
+              ? ` — ${new Date(resource.endDate).toLocaleDateString('es', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}`
+              : ' → presente'}
+          </span>
+        </div>
+      </div>
+      <div className="mt-3 pt-3 border-t border-border/40">
+        <Button variant="outline" color="error" size="sm" className="w-full" onClick={onRemove}>
+          Remover
+        </Button>
+      </div>
+    </SectionCard>
+  );
+}
+
+// ─── Main view ────────────────────────────────────────────────────────────────
+
+interface Props {
+  projectId: string;
+}
+
+export function ProjectDetailView({ projectId }: Props) {
+  const router = useRouter();
+  const {
+    getProjectById,
+    updateProject,
+    cancelProject,
+    addMilestone,
+    updateMilestone,
+    deleteMilestone,
+    addResource,
+    removeResource,
+  } = useProjects();
+
+  const project = getProjectById(projectId);
+
+  const [editDrawerOpen, setEditDrawerOpen] = useState(false);
+  const [msDrawerOpen, setMsDrawerOpen] = useState(false);
+  const [msDrawerMode, setMsDrawerMode] = useState<'create' | 'edit'>('create');
+  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
+  const [resDrawerOpen, setResDrawerOpen] = useState(false);
+
+  const MS_COLUMNS = [
+    msColumnHelper.accessor('name', {
+      header: 'Hito',
+      cell: (info) => (
+        <div>
+          <p className="text-subtitle2 text-foreground">{info.getValue()}</p>
+          {info.row.original.description && (
+            <p className="text-caption text-muted-foreground line-clamp-1">
+              {info.row.original.description}
+            </p>
+          )}
+        </div>
+      ),
+    }),
+    msColumnHelper.accessor('assignedTo', {
+      header: 'Responsable',
+      cell: (info) => <span className="text-body2">{info.getValue()}</span>,
+    }),
+    msColumnHelper.accessor('dueDate', {
+      header: 'Fecha límite',
+      cell: (info) => {
+        const isDelayed = info.row.original.status === 'delayed';
+        return (
+          <span
+            className={cn(
+              'text-body2',
+              isDelayed ? 'text-error font-medium' : 'text-muted-foreground'
+            )}
+          >
+            {new Date(info.getValue()).toLocaleDateString('es', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            })}
+          </span>
+        );
+      },
+    }),
+    msColumnHelper.accessor('status', {
+      header: 'Estado',
+      cell: (info) => <MilestoneStatusBadge status={info.getValue()} />,
+    }),
+    msColumnHelper.display({
+      id: 'ms-actions',
+      header: '',
+      cell: (info) => (
+        <div className="flex items-center gap-2">
+          <button
+            className="text-muted-foreground hover:text-primary transition-colors"
+            onClick={() => {
+              setSelectedMilestone(info.row.original);
+              setMsDrawerMode('edit');
+              setMsDrawerOpen(true);
+            }}
+          >
+            <Icon name="Pencil" size={14} />
+          </button>
+          <button
+            className="text-muted-foreground hover:text-error transition-colors"
+            onClick={() => deleteMilestone(projectId, info.row.original.id)}
+          >
+            <Icon name="Trash2" size={14} />
+          </button>
+        </div>
+      ),
+    }),
+  ];
+
+  const { table: msTable, dense: msDense } = useTable({
+    data: project?.milestones ?? [],
+    columns: MS_COLUMNS,
+    defaultRowsPerPage: 50,
+  });
+
+  if (!project) {
+    return (
+      <PageContainer>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <Icon name="FolderX" size={48} className="text-muted-foreground mb-4" />
+          <p className="text-h6 font-semibold">Proyecto no encontrado</p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4"
+            onClick={() => router.push(paths.projects.root)}
+          >
+            <Icon name="ArrowLeft" size={15} />
+            Volver a Proyectos
+          </Button>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  const progressColor = getProgressColor(project.progress);
+  const isOverdue =
+    new Date(project.endDate) < new Date() &&
+    project.status !== 'completed' &&
+    project.status !== 'cancelled';
+
+  return (
+    <PageContainer>
+      {/* Back */}
+      <button
+        onClick={() => router.push(paths.projects.root)}
+        className="flex items-center gap-2 text-caption text-muted-foreground hover:text-foreground transition-colors mb-2"
+      >
+        <Icon name="ArrowLeft" size={14} />
+        Proyectos
+      </button>
+
+      {/* Header card */}
+      <SectionCard className="p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-h6 font-bold text-foreground">{project.name}</h1>
+            <ProjectStatusBadge status={project.status} />
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setEditDrawerOpen(true)}>
+            <Icon name="Pencil" size={14} />
+            Editar
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+          {[
+            { label: 'Cliente', value: project.clientName },
+            { label: 'Manager', value: project.manager },
+            {
+              label: 'Inicio',
+              value: new Date(project.startDate).toLocaleDateString('es', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              }),
+            },
+            {
+              label: 'Fin estimado',
+              value: new Date(project.endDate).toLocaleDateString('es', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              }),
+              error: isOverdue,
+            },
+          ].map((item) => (
+            <div key={item.label}>
+              <p className="text-caption text-muted-foreground">{item.label}</p>
+              <p className={cn('text-body2 font-medium', item.error && 'text-error')}>
+                {item.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 space-y-1.5">
+          <div className="flex items-center justify-between">
+            <p className="text-caption text-muted-foreground">Progreso</p>
+            <p className="text-caption font-semibold text-foreground">
+              {project.progress}% completado
+            </p>
+          </div>
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className={cn('h-full rounded-full transition-all', progressColor)}
+              style={{ width: `${project.progress}%` }}
+            />
+          </div>
+        </div>
+
+        {project.description && (
+          <p className="text-caption text-muted-foreground mt-3">{project.description}</p>
+        )}
+      </SectionCard>
+
+      {/* Tabs */}
+      <Tabs defaultValue="milestones">
+        <TabsList className="w-full justify-start">
+          <TabsTrigger value="milestones" className="gap-2">
+            <Icon name="Flag" size={14} />
+            Hitos ({project.milestones.length})
+          </TabsTrigger>
+          <TabsTrigger value="resources" className="gap-2">
+            <Icon name="Users" size={14} />
+            Recursos ({project.resources.length})
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab Hitos */}
+        <TabsContent value="milestones" className="mt-4 space-y-4">
+          <div className="flex justify-end">
+            <Button
+              color="primary"
+              size="sm"
+              onClick={() => {
+                setSelectedMilestone(null);
+                setMsDrawerMode('create');
+                setMsDrawerOpen(true);
+              }}
+            >
+              <Icon name="Plus" size={15} />
+              Agregar hito
+            </Button>
+          </div>
+
+          {project.milestones.length === 0 ? (
+            <EmptyState
+              icon="Flag"
+              title="Sin hitos definidos"
+              subtitle="Agregá los hitos del proyecto para hacer seguimiento del avance."
+            />
+          ) : (
+            <SectionCard noPadding>
+              <TableContainer>
+                <Table>
+                  <TableHeadCustom table={msTable} />
+                  <TableBody dense={msDense}>
+                    {msTable.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id} className="px-5">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </SectionCard>
+          )}
+        </TabsContent>
+
+        {/* Tab Recursos */}
+        <TabsContent value="resources" className="mt-4 space-y-4">
+          <div className="flex justify-end">
+            <Button color="primary" size="sm" onClick={() => setResDrawerOpen(true)}>
+              <Icon name="Plus" size={15} />
+              Asignar recurso
+            </Button>
+          </div>
+
+          {project.resources.length === 0 ? (
+            <EmptyState
+              icon="Users"
+              title="Sin recursos asignados"
+              subtitle="Asigná consultores o técnicos al proyecto."
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {project.resources.map((res) => (
+                <ResourceCard
+                  key={res.id}
+                  resource={res}
+                  onRemove={() => removeResource(projectId, res.id)}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Drawers */}
+      <ProjectDrawer
+        open={editDrawerOpen}
+        mode="edit"
+        project={project}
+        onClose={() => setEditDrawerOpen(false)}
+        onCreate={() => {}}
+        onUpdate={updateProject}
+        onCancel={cancelProject}
+      />
+
+      <MilestoneDrawer
+        open={msDrawerOpen}
+        mode={msDrawerMode}
+        milestone={selectedMilestone}
+        onClose={() => {
+          setMsDrawerOpen(false);
+          setSelectedMilestone(null);
+        }}
+        onSave={(data) => {
+          if (msDrawerMode === 'edit' && selectedMilestone) {
+            updateMilestone(projectId, selectedMilestone.id, data);
+          } else {
+            addMilestone(projectId, data);
+          }
+        }}
+      />
+
+      <ResourceDrawer
+        open={resDrawerOpen}
+        onClose={() => setResDrawerOpen(false)}
+        onAssign={(resource) => addResource(projectId, resource)}
+      />
+    </PageContainer>
+  );
+}

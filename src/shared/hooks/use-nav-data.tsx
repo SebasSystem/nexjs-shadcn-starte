@@ -57,6 +57,15 @@ const ICON_MAP: Record<string, IconName> = {
   telemetry: 'BarChart3',
   shieldCheck: 'ShieldCheck',
   globe: 'Globe',
+  // Proyectos
+  FolderKanban: 'FolderKanban',
+  // Partners / PRM
+  Handshake: 'Handshake',
+  ClipboardList: 'ClipboardList',
+  FolderOpen: 'FolderOpen',
+  // Reportes
+  LayoutDashboard: 'LayoutDashboard',
+  PieChart: 'PieChart',
 };
 
 const DEFAULT_ICON_NAME = 'Menu' as const;

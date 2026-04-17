@@ -92,6 +92,23 @@ import {
   CreditCard,
   Activity,
   Shield,
+
+  // ── Proyectos ───────────────────────────────────────────────────────────
+  FolderKanban,
+  PauseCircle,
+  FolderX,
+  Flag,
+  Calendar,
+
+  // ── Partners / PRM ──────────────────────────────────────────────────────
+  Handshake,
+  ClipboardList,
+  FolderOpen,
+  GraduationCap,
+  BookOpen,
+  FileSignature,
+  Presentation,
+  Upload,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -189,6 +206,23 @@ const icons = {
   CreditCard,
   Activity,
   Shield,
+
+  // Proyectos
+  FolderKanban,
+  PauseCircle,
+  FolderX,
+  Flag,
+  Calendar,
+
+  // Partners / PRM
+  Handshake,
+  ClipboardList,
+  FolderOpen,
+  GraduationCap,
+  BookOpen,
+  FileSignature,
+  Presentation,
+  Upload,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────

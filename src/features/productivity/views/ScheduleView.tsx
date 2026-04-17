@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { useActivities } from '../hooks/use-activities';
+import { useAgendaItems } from '../hooks/use-agenda-items';
 import { ActivityDrawer } from '../components/ActivityDrawer';
 import { format, isToday, isPast, isTomorrow, isThisWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -16,10 +17,27 @@ import {
   MoreHorizontal,
   Check,
   User,
+  ArrowRight,
 } from 'lucide-react';
 import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
-import type { Actividad, EstadoActividad } from '../types/productivity.types';
+import type { Actividad, EstadoActividad, ActividadSource } from '../types/productivity.types';
+
+// ─── Source badge config ──────────────────────────────────────────────────────
+
+const SOURCE_CONFIG: Record<ActividadSource, { label: string; className: string } | undefined> = {
+  pipeline: {
+    label: 'Pipeline',
+    className: 'bg-blue-50 text-blue-700 border-blue-200',
+  },
+  project: {
+    label: 'Proyecto',
+    className: 'bg-violet-50 text-violet-700 border-violet-200',
+  },
+  agenda: undefined, // no badge for manually created items
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const getEstadoIcon = (estado: EstadoActividad) => {
   switch (estado) {
@@ -53,12 +71,15 @@ const GROUP_ORDERS = {
   Completadas: 5,
 };
 
+// ─── View ─────────────────────────────────────────────────────────────────────
+
 export const ScheduleView = () => {
-  const { data, isLoading, updateEstado, addActividad } = useActivities();
+  const router = useRouter();
+  const { data, isLoading, updateEstado, addActividad } = useAgendaItems();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [filterTab, setFilterTab] = useState<'Pendientes' | 'Todas' | 'Completadas'>('Pendientes');
+  const [filterSource, setFilterSource] = useState<'all' | ActividadSource>('all');
 
-  // Hardcoded users for now — in a real app this comes from useAuthStore / useUsers
   const usuarios = useMemo(
     () => [
       { id: '1', nombre: 'Juan Díaz' },
@@ -69,11 +90,16 @@ export const ScheduleView = () => {
 
   const filteredData = useMemo(() => {
     return data.filter((a) => {
-      if (filterTab === 'Pendientes') return a.estado !== 'COMPLETADA';
-      if (filterTab === 'Completadas') return a.estado === 'COMPLETADA';
-      return true;
+      const matchTab =
+        filterTab === 'Pendientes'
+          ? a.estado !== 'COMPLETADA'
+          : filterTab === 'Completadas'
+            ? a.estado === 'COMPLETADA'
+            : true;
+      const matchSource = filterSource === 'all' || a.source === filterSource;
+      return matchTab && matchSource;
     });
-  }, [data, filterTab]);
+  }, [data, filterTab, filterSource]);
 
   const groupedData = useMemo(() => {
     const groups: Record<string, Actividad[]> = {};
@@ -82,7 +108,6 @@ export const ScheduleView = () => {
       if (!groups[g]) groups[g] = [];
       groups[g].push(a);
     });
-    // Sort groups
     return Object.entries(groups).sort(
       (a, b) =>
         GROUP_ORDERS[a[0] as keyof typeof GROUP_ORDERS] -
@@ -106,11 +131,18 @@ export const ScheduleView = () => {
     [data]
   );
 
+  const sourceFilterOptions: { value: 'all' | ActividadSource; label: string }[] = [
+    { value: 'all', label: 'Todas las fuentes' },
+    { value: 'agenda', label: 'Agenda manual' },
+    { value: 'pipeline', label: 'Pipeline' },
+    { value: 'project', label: 'Proyectos' },
+  ];
+
   return (
     <PageContainer>
       <PageHeader
         title="Agenda & Productividad"
-        subtitle="Visualiza y gestiona todas las tareas, recordatorios y reuniones de tu día a día."
+        subtitle="Tareas, hitos y reuniones del pipeline y proyectos, todo en un solo lugar."
         action={
           <Button color="primary" onClick={() => setIsDrawerOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
@@ -150,21 +182,41 @@ export const ScheduleView = () => {
         </SectionCard>
       </div>
 
-      {/* View Tabs */}
-      <div className="flex items-center gap-1 border-b mb-6">
-        {(['Pendientes', 'Completadas', 'Todas'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setFilterTab(tab)}
-            className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
-              filterTab === tab
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-900'
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      {/* Filters row */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        {/* Status tabs */}
+        <div className="flex items-center gap-1 border-b">
+          {(['Pendientes', 'Completadas', 'Todas'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setFilterTab(tab)}
+              className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                filterTab === tab
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Source filter chips */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {sourceFilterOptions.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setFilterSource(opt.value)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                filterSource === opt.value
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {isLoading ? (
@@ -177,7 +229,7 @@ export const ScheduleView = () => {
             <Check size={32} />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-1">Todo al día</h3>
-          <p className="text-sm text-gray-500 mb-6">No tienes actividades para este filtro.</p>
+          <p className="text-sm text-gray-500 mb-6">No hay actividades para este filtro.</p>
           <Button variant="outline" onClick={() => setIsDrawerOpen(true)}>
             Agendar algo nuevo
           </Button>
@@ -202,97 +254,145 @@ export const ScheduleView = () => {
               </h4>
 
               <div className="grid grid-cols-1 gap-3">
-                {items.map((actividad) => (
-                  <SectionCard
-                    key={actividad.id}
-                    className={`group flex items-start gap-4 transition-all duration-200 cursor-default ${
-                      actividad.estado === 'COMPLETADA'
-                        ? 'opacity-60 hover:opacity-100'
-                        : actividad.estado === 'VENCIDA' || groupName === 'Vencidas'
-                          ? 'border-red-200 bg-red-50/20 dark:bg-red-500/5'
-                          : 'hover:border-primary/40 hover:shadow-md'
-                    }`}
-                  >
-                    <button
-                      onClick={() =>
-                        updateEstado(
-                          actividad.id,
-                          actividad.estado === 'COMPLETADA' ? 'PENDIENTE' : 'COMPLETADA'
-                        )
-                      }
-                      className="mt-1 transform hover:scale-110 active:scale-95 transition focus:outline-none shrink-0"
-                      title={
-                        actividad.estado === 'COMPLETADA' ? 'Marcar como pendiente' : 'Completar'
-                      }
-                    >
-                      {getEstadoIcon(actividad.estado)}
-                    </button>
+                {items.map((actividad) => {
+                  const sourceCfg = actividad.source ? SOURCE_CONFIG[actividad.source] : undefined;
+                  const isReadOnly =
+                    actividad.source === 'pipeline' || actividad.source === 'project';
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
-                        <div>
-                          <h5
-                            className={`text-[15px] leading-tight font-semibold tracking-tight ${actividad.estado === 'COMPLETADA' ? 'line-through text-muted-foreground' : 'text-foreground'}`}
-                          >
-                            {actividad.titulo}
-                          </h5>
-                          {actividad.contactoNombre && (
-                            <div className="text-xs text-primary font-medium mt-1 truncate">
-                              Empresa / Contacto: {actividad.contactoNombre}
+                  return (
+                    <SectionCard
+                      key={actividad.id}
+                      className={`group flex items-start gap-4 transition-all duration-200 cursor-default ${
+                        actividad.estado === 'COMPLETADA'
+                          ? 'opacity-60 hover:opacity-100'
+                          : actividad.estado === 'VENCIDA' || groupName === 'Vencidas'
+                            ? 'border-red-200 bg-red-50/20 dark:bg-red-500/5'
+                            : 'hover:border-primary/40 hover:shadow-md'
+                      }`}
+                    >
+                      {/* Toggle button — disabled for read-only items */}
+                      <button
+                        onClick={() =>
+                          !isReadOnly &&
+                          updateEstado(
+                            actividad.id,
+                            actividad.estado === 'COMPLETADA' ? 'PENDIENTE' : 'COMPLETADA'
+                          )
+                        }
+                        disabled={isReadOnly}
+                        className={`mt-1 transform transition focus:outline-none shrink-0 ${
+                          isReadOnly
+                            ? 'opacity-40 cursor-not-allowed'
+                            : 'hover:scale-110 active:scale-95'
+                        }`}
+                        title={
+                          isReadOnly
+                            ? 'Actualizá el estado en la fuente original'
+                            : actividad.estado === 'COMPLETADA'
+                              ? 'Marcar como pendiente'
+                              : 'Completar'
+                        }
+                      >
+                        {getEstadoIcon(actividad.estado)}
+                      </button>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
+                          <div>
+                            <h5
+                              className={`text-[15px] leading-tight font-semibold tracking-tight ${
+                                actividad.estado === 'COMPLETADA'
+                                  ? 'line-through text-muted-foreground'
+                                  : 'text-foreground'
+                              }`}
+                            >
+                              {actividad.titulo}
+                            </h5>
+                            {actividad.contactoNombre && (
+                              <div className="text-xs text-primary font-medium mt-1 truncate">
+                                {actividad.source === 'project'
+                                  ? `Proyecto: ${actividad.sourceLabel}`
+                                  : `Cliente: ${actividad.contactoNombre}`}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex gap-2 items-center shrink-0">
+                            {/* Source badge */}
+                            {sourceCfg && (
+                              <Badge
+                                variant="outline"
+                                className={`text-[10px] uppercase font-bold px-2 py-0.5 ${sourceCfg.className}`}
+                              >
+                                {sourceCfg.label}
+                              </Badge>
+                            )}
+
+                            {/* Activity type badge */}
+                            <Badge
+                              variant="outline"
+                              className={`text-[10px] uppercase font-bold px-2 py-0.5 ${
+                                actividad.tipo === 'REUNION'
+                                  ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                  : actividad.tipo === 'RECORDATORIO'
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                              }`}
+                            >
+                              {actividad.tipo}
+                            </Badge>
+
+                            {/* Actions: redirect or more options */}
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {actividad.sourcePath ? (
+                                <button
+                                  onClick={() => router.push(actividad.sourcePath!)}
+                                  className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[11px] font-medium"
+                                  title="Ir a la fuente"
+                                >
+                                  Ver
+                                  <ArrowRight size={12} />
+                                </button>
+                              ) : (
+                                <button className="p-1 hover:bg-muted rounded text-muted-foreground">
+                                  <MoreHorizontal size={16} />
+                                </button>
+                              )}
                             </div>
-                          )}
+                          </div>
                         </div>
-                        <div className="flex gap-2 items-center shrink-0">
-                          <Badge
-                            variant="outline"
-                            className={`text-[10px] uppercase font-bold px-2 py-0.5 ${
-                              actividad.tipo === 'REUNION'
-                                ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                                : actividad.tipo === 'RECORDATORIO'
-                                  ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                  : 'bg-blue-50 text-blue-700 border-blue-200'
-                            }`}
-                          >
-                            {actividad.tipo}
-                          </Badge>
-                          <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-1 hover:bg-muted rounded text-muted-foreground">
-                              <MoreHorizontal size={16} />
-                            </button>
+
+                        {actividad.descripcion && (
+                          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                            {actividad.descripcion}
+                          </p>
+                        )}
+
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 text-[12px] font-medium text-muted-foreground">
+                          <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md border border-border/50">
+                            <Clock
+                              size={14}
+                              className={groupName === 'Vencidas' ? 'text-red-500' : 'text-primary'}
+                            />
+                            <span
+                              className={
+                                groupName === 'Vencidas' ? 'text-red-600' : 'text-foreground'
+                              }
+                            >
+                              {format(new Date(actividad.fechaVencimiento), 'dd MMM yyyy', {
+                                locale: es,
+                              })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md border border-border/50">
+                            <User size={14} className="text-emerald-500" />
+                            <span className="text-foreground">{actividad.asignadoA}</span>
                           </div>
                         </div>
                       </div>
-
-                      {actividad.descripcion && (
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                          {actividad.descripcion}
-                        </p>
-                      )}
-
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 text-[12px] font-medium text-muted-foreground">
-                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md border border-border/50">
-                          <Clock
-                            size={14}
-                            className={groupName === 'Vencidas' ? 'text-red-500' : 'text-primary'}
-                          />
-                          <span
-                            className={
-                              groupName === 'Vencidas' ? 'text-red-600' : 'text-foreground'
-                            }
-                          >
-                            {format(new Date(actividad.fechaVencimiento), 'dd MMM yyyy', {
-                              locale: es,
-                            })}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md border border-border/50">
-                          <User size={14} className="text-emerald-500" />
-                          <span className="text-foreground">{actividad.asignadoA}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </SectionCard>
-                ))}
+                    </SectionCard>
+                  );
+                })}
               </div>
             </div>
           ))}

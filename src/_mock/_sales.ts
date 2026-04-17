@@ -39,6 +39,14 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
         status: 'completada',
         notes: 'Demostración del producto completada con éxito. Cliente solicita cotización.',
       },
+      {
+        id: 'act-1b',
+        type: 'seguimiento',
+        date: '2026-04-16T10:00:00Z',
+        responsible: 'María González',
+        status: 'pendiente',
+        notes: 'Seguimiento de cotización enviada. Confirmar si necesitan ajustes.',
+      },
     ],
     notes: [
       {
@@ -49,7 +57,7 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
       },
     ],
     lastActivityAt: '2026-03-05T10:00:00Z',
-    nextActivityAt: '2026-03-10T15:00:00Z',
+    nextActivityAt: '2026-04-16T10:00:00Z',
   },
   {
     id: 'opp-002',
@@ -64,7 +72,24 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     mainProduct: 'Infraestructura Cloud',
     owner: 'Carlos Ramírez',
     probability: 80,
-    activities: [],
+    activities: [
+      {
+        id: 'act-2a',
+        type: 'reunion',
+        date: '2026-04-15T14:00:00Z',
+        responsible: 'Carlos Ramírez',
+        status: 'pendiente',
+        notes: 'Reunión de negociación — presentar contrapropuesta de pricing.',
+      },
+      {
+        id: 'act-2b',
+        type: 'llamada',
+        date: '2026-04-10T09:00:00Z',
+        responsible: 'Carlos Ramírez',
+        status: 'pendiente',
+        notes: 'Llamada de check-in antes de la reunión.',
+      },
+    ],
     notes: [],
     lastActivityAt: '2026-02-28T11:00:00Z',
   },
@@ -79,7 +104,16 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     source: 'Referido',
     owner: 'Ana Pérez',
     probability: 20,
-    activities: [],
+    activities: [
+      {
+        id: 'act-3a',
+        type: 'email',
+        date: '2026-04-17T08:00:00Z',
+        responsible: 'Ana Pérez',
+        status: 'pendiente',
+        notes: 'Enviar presentación corporativa al contacto de compras.',
+      },
+    ],
     notes: [],
   },
   {

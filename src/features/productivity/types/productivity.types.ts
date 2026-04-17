@@ -15,6 +15,7 @@ export interface Interaccion {
 
 export type EstadoActividad = 'PENDIENTE' | 'COMPLETADA' | 'VENCIDA';
 export type TipoActividad = 'TAREA' | 'RECORDATORIO' | 'REUNION';
+export type ActividadSource = 'agenda' | 'pipeline' | 'project';
 
 export interface Actividad {
   id: string;
@@ -26,6 +27,11 @@ export interface Actividad {
   estado: EstadoActividad;
   fechaVencimiento: string;
   asignadoA: string;
+  // Origen de la actividad
+  source?: ActividadSource;
+  sourceId?: string; // opportunityId o projectId
+  sourcePath?: string; // /sales/pipeline o /projects/:id
+  sourceLabel?: string; // nombre del cliente o proyecto
 }
 
 export interface Documento {
