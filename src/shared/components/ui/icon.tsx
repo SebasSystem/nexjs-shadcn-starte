@@ -109,6 +109,10 @@ import {
   FileSignature,
   Presentation,
   Upload,
+
+  // Inteligencia Competitiva
+  Swords,
+  Target,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -223,6 +227,10 @@ const icons = {
   FileSignature,
   Presentation,
   Upload,
+
+  // Inteligencia Competitiva
+  Swords,
+  Target,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────

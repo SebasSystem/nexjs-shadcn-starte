@@ -11,6 +11,7 @@ const ROOTS = {
   SETTINGS: '/settings',
   PROJECTS: '/projects',
   PARTNERS: '/partners',
+  INTELLIGENCE: '/intelligence',
 };
 
 export const paths = {
@@ -116,6 +117,13 @@ export const paths = {
     root: ROOTS.PARTNERS,
     opportunities: `${ROOTS.PARTNERS}/opportunities`,
     portal: `${ROOTS.PARTNERS}/portal`,
+  },
+
+  // INTELLIGENCE
+  intelligence: {
+    root: ROOTS.INTELLIGENCE,
+    battlecards: `${ROOTS.INTELLIGENCE}/battlecards`,
+    lostReasons: `${ROOTS.INTELLIGENCE}/lost-reasons`,
   },
 
   // SETTINGS

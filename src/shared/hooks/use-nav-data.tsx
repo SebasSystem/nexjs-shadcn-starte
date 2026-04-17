@@ -66,6 +66,9 @@ const ICON_MAP: Record<string, IconName> = {
   // Reportes
   LayoutDashboard: 'LayoutDashboard',
   PieChart: 'PieChart',
+  // Inteligencia Competitiva
+  Swords: 'Swords',
+  TrendingDown: 'TrendingDown',
 };
 
 const DEFAULT_ICON_NAME = 'Menu' as const;
