@@ -3,19 +3,15 @@ import { cn } from 'src/lib/utils';
 import { PIPELINE_STAGES } from 'src/_mock/_sales';
 import type { StageId } from '../types/sales.types';
 
-const ACTIVE_STAGES: StageId[] = [
-  'prospecto',
-  'cotizacion-enviada',
-  'negociacion',
-  'cerrado-ganado',
-];
+const ACTIVE_STAGES: StageId[] = ['leads', 'contactado', 'negociacion', 'cerrado'];
 
 interface StageProgressBarProps {
   currentStage: StageId;
+  outcome?: 'ganado' | 'perdido';
 }
 
-export function StageProgressBar({ currentStage }: StageProgressBarProps) {
-  const isLost = currentStage === 'cerrado-perdido';
+export function StageProgressBar({ currentStage, outcome }: StageProgressBarProps) {
+  const isLost = currentStage === 'cerrado' && outcome === 'perdido';
 
   if (isLost) {
     return (

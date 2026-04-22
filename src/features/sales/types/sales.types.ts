@@ -61,12 +61,7 @@ export type LeadSource =
 
 // ─── Pipeline ────────────────────────────────────────────────────────────────
 
-export type StageId =
-  | 'prospecto'
-  | 'cotizacion-enviada'
-  | 'negociacion'
-  | 'cerrado-ganado'
-  | 'cerrado-perdido';
+export type StageId = 'leads' | 'contactado' | 'negociacion' | 'cerrado';
 
 export interface PipelineStage {
   id: StageId;
@@ -101,6 +96,10 @@ export interface Opportunity {
 
   lastActivityAt?: string;
   nextActivityAt?: string;
+
+  outcome?: 'ganado' | 'perdido';
+  leadScore?: 'hot' | 'warm' | 'cold';
+  leadScoreValue?: number;
 }
 
 // ─── Cotizaciones ─────────────────────────────────────────────────────────────

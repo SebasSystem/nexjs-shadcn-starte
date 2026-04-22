@@ -13,7 +13,8 @@ import { SelectField } from 'src/shared/components/ui/select-field';
 import { PipelineColumn } from '../components/PipelineColumn';
 import { NewOpportunityDrawer } from '../components/NewOpportunityDrawer';
 import { OpportunityPanel } from '../components/OpportunityPanel';
-import { LostReasonDialog } from '../components/LostReasonDialog';
+import { OutcomeDialog } from '../components/OutcomeDialog';
+import { PipelineChevron } from '../components/PipelineChevron';
 import { usePipeline } from '../hooks/usePipeline';
 import { useOpportunityPanel } from '../hooks/useOpportunityPanel';
 import { useSalesContext } from '../context/SalesContext';
@@ -50,7 +51,7 @@ function formatCurrency(amount: number): string {
 export function PipelineView() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingMove, setPendingMove] = useState<{ oppId: string } | null>(null);
-  const [lostDialogOpen, setLostDialogOpen] = useState(false);
+  const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
 
   const { stages, opportunitiesByStage, metrics, addOpportunity, filters, setFilters } =
     usePipeline();
@@ -63,23 +64,23 @@ export function PipelineView() {
     : undefined;
 
   const handleColumnDrop = (oppId: string, targetStage: StageId) => {
-    if (targetStage === 'cerrado-perdido') {
+    if (targetStage === 'cerrado') {
       setPendingMove({ oppId });
-      setLostDialogOpen(true);
+      setOutcomeDialogOpen(true);
     } else {
       moveOpportunity(oppId, targetStage);
     }
   };
 
-  const handleLostConfirm = (reason: LostReasonInfo) => {
+  const handleOutcomeConfirm = (outcome: 'ganado' | 'perdido', lostReason?: LostReasonInfo) => {
     if (!pendingMove) return;
-    moveOpportunity(pendingMove.oppId, 'cerrado-perdido', reason);
-    setLostDialogOpen(false);
+    moveOpportunity(pendingMove.oppId, 'cerrado', { outcome, lostReason });
+    setOutcomeDialogOpen(false);
     setPendingMove(null);
   };
 
-  const handleLostCancel = () => {
-    setLostDialogOpen(false);
+  const handleOutcomeCancel = () => {
+    setOutcomeDialogOpen(false);
     setPendingMove(null);
   };
 
@@ -140,7 +141,7 @@ export function PipelineView() {
       </SectionCard>
 
       {/* Métricas */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-4 shrink-0">
+      {/* <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-4 shrink-0">
         <StatsCard
           title="Total Pipeline"
           value={formatCurrency(metrics.totalPipelineValue)}
@@ -173,20 +174,26 @@ export function PipelineView() {
           icon={<Trophy size={20} />}
           iconClassName="bg-emerald-500/10 text-emerald-500"
         />
-      </div>
+      </div> */}
 
       {/* Kanban */}
-      <div className="w-full overflow-x-auto pb-4 custom-scrollbar mt-4">
-        <div className="flex gap-4 min-w-max pr-4">
-          {stages.map((stage) => (
-            <PipelineColumn
-              key={stage.id}
-              stage={stage}
-              opportunities={opportunitiesByStage.get(stage.id) ?? []}
-              onCardDrop={handleColumnDrop}
-              onOpenPanel={openPanel}
-            />
-          ))}
+      <div className="w-full overflow-x-auto pb-4 custom-scrollbar mt-2">
+        <div
+          className="flex flex-col w-full"
+          style={{ minWidth: `${stages.length * 260 + (stages.length - 1) * 16}px` }}
+        >
+          <PipelineChevron stages={stages} />
+          <div className="flex gap-4 w-full">
+            {stages.map((stage) => (
+              <PipelineColumn
+                key={stage.id}
+                stage={stage}
+                opportunities={opportunitiesByStage.get(stage.id) ?? []}
+                onCardDrop={handleColumnDrop}
+                onOpenPanel={openPanel}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
@@ -206,12 +213,12 @@ export function PipelineView() {
         agingLevel={agingLevel}
       />
 
-      {/* Dialog de razón de pérdida */}
-      <LostReasonDialog
-        open={lostDialogOpen}
+      {/* Dialog de cierre */}
+      <OutcomeDialog
+        open={outcomeDialogOpen}
         clientName={pendingOpportunity?.clientName ?? ''}
-        onConfirm={handleLostConfirm}
-        onCancel={handleLostCancel}
+        onConfirm={handleOutcomeConfirm}
+        onCancel={handleOutcomeCancel}
       />
     </PageContainer>
   );

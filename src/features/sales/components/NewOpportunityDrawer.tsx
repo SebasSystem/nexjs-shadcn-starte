@@ -27,9 +27,10 @@ interface NewOpportunityDrawerProps {
   onSave: (data: NewOpportunityData) => void;
 }
 
-const STAGE_OPTIONS = PIPELINE_STAGES.filter(
-  (s) => s.id !== 'cerrado-ganado' && s.id !== 'cerrado-perdido'
-).map((s) => ({ value: s.id, label: s.label }));
+const STAGE_OPTIONS = PIPELINE_STAGES.filter((s) => s.id !== 'cerrado').map((s) => ({
+  value: s.id,
+  label: s.label,
+}));
 
 const ORIGIN_OPTIONS = [
   { value: 'Web', label: 'Sitio Web' },
@@ -57,7 +58,7 @@ export function NewOpportunityDrawer({ open, onClose, onSave }: NewOpportunityDr
     contactEmail: '',
     contactPhone: '',
     estimatedAmount: '',
-    stage: 'prospecto' as StageId,
+    stage: 'leads' as StageId,
     source: 'Web' as LeadSource,
     mainProduct: '',
     notes: '',
@@ -115,7 +116,7 @@ export function NewOpportunityDrawer({ open, onClose, onSave }: NewOpportunityDr
       contactEmail: '',
       contactPhone: '',
       estimatedAmount: '',
-      stage: 'prospecto',
+      stage: 'leads',
       source: 'Web',
       mainProduct: '',
       notes: '',

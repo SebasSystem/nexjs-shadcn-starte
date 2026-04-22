@@ -8,11 +8,10 @@ import type {
 } from 'src/features/sales/types/sales.types';
 
 export const PIPELINE_STAGES: PipelineStage[] = [
-  { id: 'prospecto', label: 'Prospecto', color: '#F59E0B' },
-  { id: 'cotizacion-enviada', label: 'Cotización Enviada', color: '#3B82F6' },
-  { id: 'negociacion', label: 'Negociación', color: '#8B5CF6' },
-  { id: 'cerrado-ganado', label: 'Cerrado Ganado', color: '#10B981' },
-  { id: 'cerrado-perdido', label: 'Cerrado Perdido', color: '#EF4444' },
+  { id: 'leads', label: 'Leads', color: '#93C5FD' }, // blue-300
+  { id: 'contactado', label: 'Contactado', color: '#7DD3FC' }, // sky-300
+  { id: 'negociacion', label: 'Negociación', color: '#FCD34D' }, // amber-300
+  { id: 'cerrado', label: 'Cerrado', color: '#86EFAC' }, // green-300
 ];
 
 export const MOCK_OPPORTUNITIES: Opportunity[] = [
@@ -23,13 +22,13 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     contactEmail: 'carlos@techmex.com',
     estimatedAmount: 45200,
     expectedCloseDate: '2026-03-15',
-    stage: 'cotizacion-enviada',
+    stage: 'contactado',
     quotationId: 'COT-2024-0089',
     createdAt: '2026-01-10',
     stageEnteredAt: '2026-03-06',
     stageHistory: [
-      { stage: 'prospecto', enteredAt: '2026-01-10', exitedAt: '2026-03-06' },
-      { stage: 'cotizacion-enviada', enteredAt: '2026-03-06' },
+      { stage: 'leads', enteredAt: '2026-01-10', exitedAt: '2026-03-06' },
+      { stage: 'contactado', enteredAt: '2026-03-06' },
     ],
     checklist: [
       { id: 'chk-001-1', text: 'Contactar al cliente', done: true },
@@ -84,8 +83,8 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     createdAt: '2026-01-08',
     stageEnteredAt: '2026-02-28',
     stageHistory: [
-      { stage: 'prospecto', enteredAt: '2026-01-08', exitedAt: '2026-02-15' },
-      { stage: 'cotizacion-enviada', enteredAt: '2026-02-15', exitedAt: '2026-02-28' },
+      { stage: 'leads', enteredAt: '2026-01-08', exitedAt: '2026-02-15' },
+      { stage: 'contactado', enteredAt: '2026-02-15', exitedAt: '2026-02-28' },
       { stage: 'negociacion', enteredAt: '2026-02-28' },
     ],
     checklist: [
@@ -130,11 +129,11 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     clientName: 'Constructora López',
     estimatedAmount: 87300,
     expectedCloseDate: '2026-03-20',
-    stage: 'prospecto',
+    stage: 'leads',
     quotationId: null,
     createdAt: '2026-01-05',
     stageEnteredAt: '2026-01-05',
-    stageHistory: [{ stage: 'prospecto', enteredAt: '2026-01-05' }],
+    stageHistory: [{ stage: 'leads', enteredAt: '2026-01-05' }],
     checklist: [
       { id: 'chk-003-1', text: 'Contactar al cliente', done: false },
       { id: 'chk-003-2', text: 'Calificar necesidad', done: false },
@@ -161,15 +160,16 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     clientName: 'Distribuidora Norte SA',
     estimatedAmount: 32000,
     expectedCloseDate: '2026-02-28',
-    stage: 'cerrado-ganado',
+    stage: 'cerrado',
+    outcome: 'ganado',
     quotationId: 'COT-2024-0075',
     createdAt: '2026-01-02',
     stageEnteredAt: '2026-02-28',
     stageHistory: [
-      { stage: 'prospecto', enteredAt: '2026-01-02', exitedAt: '2026-01-20' },
-      { stage: 'cotizacion-enviada', enteredAt: '2026-01-20', exitedAt: '2026-02-10' },
+      { stage: 'leads', enteredAt: '2026-01-02', exitedAt: '2026-01-20' },
+      { stage: 'contactado', enteredAt: '2026-01-20', exitedAt: '2026-02-10' },
       { stage: 'negociacion', enteredAt: '2026-02-10', exitedAt: '2026-02-28' },
-      { stage: 'cerrado-ganado', enteredAt: '2026-02-28' },
+      { stage: 'cerrado', enteredAt: '2026-02-28' },
     ],
     checklist: [
       { id: 'chk-004-1', text: 'Contactar al cliente', done: true },
@@ -215,14 +215,15 @@ export const MOCK_OPPORTUNITIES: Opportunity[] = [
     clientName: 'Retail Express Corp',
     estimatedAmount: 19500,
     expectedCloseDate: '2026-02-10',
-    stage: 'cerrado-perdido',
+    stage: 'cerrado',
+    outcome: 'perdido',
     quotationId: 'COT-2024-0071',
     createdAt: '2025-12-20',
     stageEnteredAt: '2026-02-10',
     stageHistory: [
-      { stage: 'prospecto', enteredAt: '2025-12-20', exitedAt: '2026-01-15' },
-      { stage: 'cotizacion-enviada', enteredAt: '2026-01-15', exitedAt: '2026-02-10' },
-      { stage: 'cerrado-perdido', enteredAt: '2026-02-10' },
+      { stage: 'leads', enteredAt: '2025-12-20', exitedAt: '2026-01-15' },
+      { stage: 'contactado', enteredAt: '2026-01-15', exitedAt: '2026-02-10' },
+      { stage: 'cerrado', enteredAt: '2026-02-10' },
     ],
     checklist: [
       { id: 'chk-005-1', text: 'Contactar al cliente', done: true },

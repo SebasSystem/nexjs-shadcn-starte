@@ -41,8 +41,7 @@ export function OpportunityQuotationsTab({ opportunity }: OpportunityQuotationsT
   const router = useRouter();
   const { quotations } = useSalesContext();
   const linked = quotations.filter((q) => q.opportunityId === opportunity.id);
-  const isTerminal =
-    opportunity.stage === 'cerrado-ganado' || opportunity.stage === 'cerrado-perdido';
+  const isTerminal = opportunity.stage === 'cerrado';
 
   return (
     <div className="space-y-3">

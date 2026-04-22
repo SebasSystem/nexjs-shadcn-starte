@@ -142,9 +142,8 @@ interface ResumenTabProps {
 
 function ResumenTab({ opportunity }: ResumenTabProps) {
   const router = useRouter();
-  const isTerminal =
-    opportunity.stage === 'cerrado-ganado' || opportunity.stage === 'cerrado-perdido';
-  const isLost = opportunity.stage === 'cerrado-perdido';
+  const isTerminal = opportunity.stage === 'cerrado';
+  const isLost = opportunity.stage === 'cerrado' && opportunity.outcome === 'perdido';
   const weightedAmount = opportunity.estimatedAmount * STAGE_PROBABILITY[opportunity.stage];
   const checklistDone = opportunity.checklist.filter((i) => i.done).length;
   const checklistTotal = opportunity.checklist.length;
@@ -265,7 +264,7 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
       {/* Stage-aware CTA */}
       {!isTerminal && (
         <div className="border-t border-border/40 pt-4 flex flex-col gap-2">
-          {opportunity.stage === 'prospecto' && (
+          {opportunity.stage === 'leads' && (
             <Button
               color="primary"
               className="w-full"
@@ -274,7 +273,7 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
               Crear cotización
             </Button>
           )}
-          {(opportunity.stage === 'cotizacion-enviada' || opportunity.stage === 'negociacion') && (
+          {(opportunity.stage === 'contactado' || opportunity.stage === 'negociacion') && (
             <Button
               variant="outline"
               className="w-full"
@@ -288,17 +287,19 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
         </div>
       )}
 
-      {opportunity.stage === 'cerrado-ganado' && opportunity.quotationId && (
-        <div className="border-t border-border/40 pt-4">
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => router.push(paths.sales.quotation(opportunity.quotationId!))}
-          >
-            Ver cotización (cerrada)
-          </Button>
-        </div>
-      )}
+      {opportunity.stage === 'cerrado' &&
+        opportunity.outcome === 'ganado' &&
+        opportunity.quotationId && (
+          <div className="border-t border-border/40 pt-4">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => router.push(paths.sales.quotation(opportunity.quotationId!))}
+            >
+              Ver cotización (cerrada)
+            </Button>
+          </div>
+        )}
     </div>
   );
 }
@@ -369,7 +370,7 @@ export function OpportunityPanel({
                 </div>
               </div>
               <div className="flex justify-center">
-                <StageProgressBar currentStage={opportunity.stage} />
+                <StageProgressBar currentStage={opportunity.stage} outcome={opportunity.outcome} />
               </div>
             </div>
 

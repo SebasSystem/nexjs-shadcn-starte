@@ -1,8 +1,7 @@
 'use client';
 
-import { Package, Globe, Clock, CheckSquare, AlertTriangle } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { Package, AlertTriangle, Check, Flame, Trophy, XCircle, CheckSquare } from 'lucide-react';
+import { differenceInDays } from 'date-fns';
 import { cn } from 'src/lib/utils';
 import { STAGE_AGING_THRESHOLDS, STAGE_PROBABILITY } from '../config/pipeline.config';
 import { DealAvatar } from './DealAvatar';
@@ -22,10 +21,9 @@ function getActivityStatus(lastActivityAt?: string, createdAt?: string) {
   if (!dateStr) return { color: 'bg-slate-400', label: 'Sin datos' };
   const refDate = new Date(dateStr + (dateStr.includes('T') ? '' : 'T12:00:00'));
   const diff = differenceInDays(new Date(), refDate);
-  if (diff <= 3)
-    return { color: 'bg-emerald-500', label: lastActivityAt ? 'Reciente' : 'Nuevo lead' };
+  if (diff <= 3) return { color: 'bg-emerald-500', label: lastActivityAt ? 'Reciente' : 'Nuevo' };
   if (diff <= 7) return { color: 'bg-amber-500', label: 'Falta atención' };
-  return { color: 'bg-red-500', label: 'Riesgo abandono' };
+  return { color: 'bg-red-500', label: 'En riesgo' };
 }
 
 function formatCurrency(amount: number): string {
@@ -35,16 +33,6 @@ function formatCurrency(amount: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
-}
-
-function formatDate(dateStr: string): string {
-  try {
-    const hasTimeInfo = dateStr.includes('T') || dateStr.includes(' ');
-    const safeDateStr = hasTimeInfo ? dateStr : `${dateStr}T12:00:00`;
-    return format(new Date(safeDateStr), 'd MMM yyyy', { locale: es });
-  } catch {
-    return dateStr;
-  }
 }
 
 function getAgingLevel(opportunity: Opportunity): AgingLevel {
@@ -62,133 +50,189 @@ function getDaysInStage(opportunity: Opportunity): number {
   return differenceInDays(new Date(), new Date(opportunity.stageEnteredAt));
 }
 
-const AGING_BADGE: Record<AgingLevel, { label: string; className: string } | null> = {
+const AGING_BADGE: Record<AgingLevel, { className: string } | null> = {
   normal: null,
-  warning: { label: 'd', className: 'bg-warning/10 text-warning' },
-  risk: { label: 'd', className: 'bg-orange-500/10 text-orange-500' },
-  stalled: { label: 'd', className: 'bg-destructive/10 text-destructive' },
+  warning: { className: 'bg-warning/10 text-warning' },
+  risk: { className: 'bg-orange-500/10 text-orange-500' },
+  stalled: { className: 'bg-destructive/10 text-destructive' },
 };
 
+const LEAD_SCORE_CONFIG = {
+  hot: {
+    label: 'Caliente',
+    className: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+  },
+  warm: {
+    label: 'Tibio',
+    className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  },
+  cold: {
+    label: 'Frío',
+    className: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+  },
+} as const;
+
 export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: OpportunityCardProps) {
-  const isArchived = opportunity.stage === 'cerrado-perdido';
+  const isClosed = opportunity.stage === 'cerrado';
+  const isArchived = isClosed && opportunity.outcome === 'perdido';
+  const isGanado = isClosed && opportunity.outcome === 'ganado';
   const activityIndicator = getActivityStatus(opportunity.lastActivityAt, opportunity.createdAt);
   const agingLevel = getAgingLevel(opportunity);
   const daysInStage = getDaysInStage(opportunity);
   const agingBadge = AGING_BADGE[agingLevel];
   const checklistDone = opportunity.checklist?.filter((i) => i.done).length ?? 0;
   const checklistTotal = opportunity.checklist?.length ?? 0;
+  const checklistVisible = opportunity.checklist?.slice(0, 3) ?? [];
+  const checklistHidden = checklistTotal > 3 ? checklistTotal - 3 : 0;
   const weightedAmount = opportunity.estimatedAmount * STAGE_PROBABILITY[opportunity.stage];
+  const leadScoreCfg = opportunity.leadScore ? LEAD_SCORE_CONFIG[opportunity.leadScore] : null;
 
   return (
     <div
-      onClick={() => !isArchived && onOpenPanel(opportunity.id)}
-      draggable={!isArchived}
+      onClick={() => onOpenPanel(opportunity.id)}
+      draggable={!isClosed}
       onDragStart={(e) => {
         e.dataTransfer.setData('text/plain', opportunity.id);
         e.dataTransfer.effectAllowed = 'move';
+        (e.currentTarget as HTMLElement).style.opacity = '0.45';
+      }}
+      onDragEnd={(e) => {
+        (e.currentTarget as HTMLElement).style.opacity = '';
       }}
       className={cn(
-        'group relative bg-card rounded-xl border border-border/50 p-4',
-        !isArchived &&
-          'cursor-pointer hover:shadow-md hover:border-border transition-all duration-200 hover:-translate-y-0.5',
-        isArchived && 'opacity-60 cursor-default'
+        'group relative bg-card rounded-2xl border border-border/60 p-4 select-none',
+        'transition-all duration-200',
+        !isClosed &&
+          'cursor-grab active:cursor-grabbing hover:shadow-lg hover:shadow-black/5 hover:border-border hover:-translate-y-0.5',
+        isGanado && 'cursor-pointer hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5',
+        isArchived && 'opacity-55 cursor-pointer'
       )}
     >
-      {/* Row 1: Avatar + name + aging badge */}
-      <div className="flex items-start gap-2.5 mb-3">
+      {/* Left accent bar based on stage */}
+      {/* <div
+        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full"
+        style={{ backgroundColor: stageColor }}
+      /> */}
+
+      {/* Row 1: Avatar + name + badges */}
+      <div className="flex items-start gap-2.5">
         <DealAvatar name={opportunity.clientName} size="sm" />
         <div className="flex-1 min-w-0">
-          <p className="text-subtitle2 text-foreground font-bold leading-snug truncate group-hover:text-primary transition-colors">
+          <p className="text-sm font-bold text-foreground leading-snug truncate group-hover:text-primary transition-colors">
             {opportunity.clientName}
           </p>
-          {opportunity.contactName && (
-            <p className="text-[10px] text-muted-foreground truncate">{opportunity.contactName}</p>
-          )}
-        </div>
-        {agingBadge && daysInStage > 0 && (
-          <span
-            className={cn(
-              'flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0',
-              agingBadge.className
-            )}
-          >
-            <AlertTriangle size={8} />
-            {daysInStage}
-            {agingBadge.label}
-          </span>
-        )}
-      </div>
-
-      {/* Product badge */}
-      {opportunity.mainProduct && (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3 border border-border/50 px-2 py-1 bg-muted/20 rounded-md w-max max-w-full">
-          <Package size={12} className="shrink-0" />
-          <span className="truncate leading-none">{opportunity.mainProduct}</span>
-        </div>
-      )}
-
-      {/* Amount + probability */}
-      <div className="flex items-center justify-between mt-3">
-        <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-extrabold text-foreground" style={{ color: stageColor }}>
-            {formatCurrency(opportunity.estimatedAmount)}
-          </span>
-          {opportunity.stage !== 'cerrado-ganado' && opportunity.stage !== 'cerrado-perdido' && (
-            <span className="text-[10px] text-muted-foreground">
-              ≈ {formatCurrency(weightedAmount)} ponderado
-            </span>
-          )}
-        </div>
-
-        {opportunity.probability !== undefined && (
-          <span
-            className={cn(
-              'text-[10px] font-bold px-2 py-0.5 rounded-full',
-              opportunity.probability >= 70
-                ? 'bg-success/10 text-success'
-                : opportunity.probability >= 40
-                  ? 'bg-warning/10 text-warning'
-                  : 'bg-destructive/10 text-destructive'
-            )}
-          >
-            {opportunity.probability}%
-          </span>
-        )}
-      </div>
-
-      {/* Footer: activity + checklist + source */}
-      <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', activityIndicator.color)} />
-          <span className="text-[10px] text-muted-foreground font-medium">
-            {activityIndicator.label}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {checklistTotal > 0 && (
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <CheckSquare size={10} />
-              <span>
-                {checklistDone}/{checklistTotal}
+          {opportunity.mainProduct && (
+            <div className="flex items-center gap-1 mt-0.5">
+              <Package size={10} className="text-muted-foreground shrink-0" />
+              <span className="text-[10px] text-muted-foreground truncate">
+                {opportunity.mainProduct}
               </span>
             </div>
           )}
-          {opportunity.source && (
-            <div className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground bg-muted/30 px-1.5 py-0.5 rounded-full">
-              <Globe size={9} className="shrink-0" />
-              <span>{opportunity.source}</span>
-            </div>
+        </div>
+        {/* Right badges column */}
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          {isGanado && (
+            <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
+              <Trophy size={8} />
+              Ganado
+            </span>
+          )}
+          {isArchived && (
+            <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive">
+              <XCircle size={8} />
+              Perdido
+            </span>
+          )}
+          {leadScoreCfg && !isClosed && (
+            <span
+              className={cn(
+                'flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full',
+                leadScoreCfg.className
+              )}
+            >
+              <Flame size={8} />
+              {leadScoreCfg.label}
+            </span>
+          )}
+          {agingBadge && daysInStage > 0 && !isClosed && (
+            <span
+              className={cn(
+                'flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full',
+                agingBadge.className
+              )}
+            >
+              <AlertTriangle size={8} />
+              {daysInStage}d
+            </span>
           )}
         </div>
       </div>
 
-      {opportunity.nextActivityAt && (
-        <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-          <Clock size={9} className="shrink-0" />
-          <span>Próx: {formatDate(opportunity.nextActivityAt)}</span>
+      {/* Amount section */}
+      <div className="mt-4">
+        <span className="text-base font-extrabold" style={{ color: stageColor }}>
+          {formatCurrency(opportunity.estimatedAmount)}
+        </span>
+        {!isClosed && (
+          <p className="text-[10px] text-muted-foreground mt-0.5">
+            ≈ {formatCurrency(weightedAmount)} ponderado
+          </p>
+        )}
+      </div>
+
+      {/* Checklist (after amount, as requested) */}
+      {checklistTotal > 0 && !isClosed && (
+        <div className="mt-3 space-y-1.5">
+          {checklistVisible.map((item) => (
+            <div key={item.id} className="flex items-center gap-2">
+              <div
+                className={cn(
+                  'w-3.5 h-3.5 rounded-sm border flex items-center justify-center shrink-0',
+                  item.done ? 'bg-success border-success' : 'border-border/60'
+                )}
+              >
+                {item.done && <Check size={8} className="text-white" />}
+              </div>
+              <span
+                className={cn(
+                  'text-[10px] text-muted-foreground truncate leading-snug',
+                  item.done && 'line-through opacity-40'
+                )}
+              >
+                {item.text}
+              </span>
+            </div>
+          ))}
+          {checklistHidden > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenPanel(opportunity.id);
+              }}
+              className="text-[10px] text-primary hover:underline pl-5 font-medium"
+            >
+              +{checklistHidden} más
+            </button>
+          )}
         </div>
       )}
+
+      {/* Footer: activity status + checklist summary */}
+      <div className="mt-3 pt-2.5 border-t border-border/30 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', activityIndicator.color)} />
+          <span className="text-[10px] text-muted-foreground">{activityIndicator.label}</span>
+        </div>
+        {checklistTotal > 0 && (
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <CheckSquare size={10} />
+            <span>
+              {checklistDone}/{checklistTotal}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

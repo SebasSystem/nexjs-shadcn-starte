@@ -3,10 +3,8 @@
 import { useMemo, useState } from 'react';
 import { useSalesContext } from '../context/SalesContext';
 import { PIPELINE_STAGES } from 'src/_mock/_sales';
-import { STAGE_PROBABILITY } from '../config/pipeline.config';
+import { STAGE_PROBABILITY, computeLeadScore } from '../config/pipeline.config';
 import type { StageId, Opportunity } from 'src/features/sales/types/sales.types';
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function usePipeline() {
   const { opportunities, addOpportunity, moveOpportunity } = useSalesContext();
@@ -19,20 +17,29 @@ export function usePipeline() {
 
   const stages = PIPELINE_STAGES;
 
+  // Enriquecer oportunidades activas con lead score calculado
+  const scoredOpportunities = useMemo<Opportunity[]>(
+    () =>
+      opportunities.map((opp) => {
+        if (opp.stage === 'cerrado') return opp;
+        const { score, label } = computeLeadScore(opp);
+        return { ...opp, leadScore: label, leadScoreValue: score };
+      }),
+    [opportunities]
+  );
+
   const filteredOpportunities = useMemo(() => {
-    return opportunities.filter((opp) => {
+    return scoredOpportunities.filter((opp) => {
       const matchSearch =
         !filters.search ||
         opp.clientName.toLowerCase().includes(filters.search.toLowerCase()) ||
         opp.contactName?.toLowerCase().includes(filters.search.toLowerCase());
       const matchSource = !filters.source || opp.source === filters.source;
       const matchProduct = !filters.mainProduct || opp.mainProduct === filters.mainProduct;
-
       return matchSearch && matchSource && matchProduct;
     });
-  }, [opportunities, filters]);
+  }, [scoredOpportunities, filters]);
 
-  // Oportunidades agrupadas por etapa
   const opportunitiesByStage = useMemo(() => {
     const map = new Map<StageId, Opportunity[]>();
     stages.forEach((s) => map.set(s.id, []));
@@ -43,12 +50,11 @@ export function usePipeline() {
     return map;
   }, [filteredOpportunities, stages]);
 
-  // Métricas globales del pipeline
   const metrics = useMemo(() => {
-    const active = filteredOpportunities.filter(
-      (o) => o.stage !== 'cerrado-ganado' && o.stage !== 'cerrado-perdido'
+    const active = filteredOpportunities.filter((o) => o.stage !== 'cerrado');
+    const closedWon = filteredOpportunities.filter(
+      (o) => o.stage === 'cerrado' && o.outcome === 'ganado'
     );
-    const closedWon = filteredOpportunities.filter((o) => o.stage === 'cerrado-ganado');
 
     const totalPipelineValue = active.reduce((sum, o) => sum + o.estimatedAmount, 0);
     const forecastValue = active.reduce(

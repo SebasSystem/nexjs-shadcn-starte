@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { cn } from 'src/lib/utils';
 import { STAGE_PROBABILITY } from '../config/pipeline.config';
 import { OpportunityCard } from './OpportunityCard';
@@ -27,7 +28,8 @@ export function PipelineColumn({
   onCardDrop,
   onOpenPanel,
 }: PipelineColumnProps) {
-  const isTerminal = stage.id === 'cerrado-ganado' || stage.id === 'cerrado-perdido';
+  const [isDragOver, setIsDragOver] = useState(false);
+  const isTerminal = stage.id === 'cerrado';
   const totalValue = opportunities.reduce((sum, o) => sum + o.estimatedAmount, 0);
   const weightedValue = opportunities.reduce(
     (sum, o) => sum + o.estimatedAmount * STAGE_PROBABILITY[o.stage],
@@ -35,62 +37,53 @@ export function PipelineColumn({
   );
 
   return (
-    <div
-      className="flex flex-col min-w-[280px] max-w-[280px] w-[280px] flex-shrink-0 transition-opacity rounded-2xl p-3 border"
-      style={{ backgroundColor: `${stage.color}08`, borderColor: `${stage.color}15` }}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        const oppId = e.dataTransfer.getData('text/plain');
-        if (oppId) onCardDrop(oppId, stage.id);
-      }}
-    >
-      {/* Header */}
-      <div
-        className={cn(
-          'flex items-center justify-between mb-2 px-1 py-1 rounded-xl',
-          'border border-transparent'
-        )}
-      >
-        <div className="flex items-center gap-2">
-          <span
-            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: stage.color }}
-          />
-          <span className="text-sm font-semibold text-foreground">{stage.label}</span>
-        </div>
+    <div className="flex flex-col flex-1 min-w-[260px]">
+      {/* Mini stats */}
+      <div className="flex items-center justify-between mb-2 px-0.5 h-8">
         <span
-          className="text-xs font-bold px-2 py-0.5 rounded-full min-w-[22px] text-center"
-          style={{ backgroundColor: `${stage.color}25`, color: stage.color }}
+          className="text-xs font-bold px-2.5 py-0.5 rounded-full"
+          style={{ backgroundColor: `${stage.color}20`, color: stage.color }}
         >
           {opportunities.length}
         </span>
-      </div>
-
-      {/* Value summary */}
-      <div className="h-10 px-1 mb-2">
-        {opportunities.length > 0 && !isTerminal && (
-          <div>
-            <p className="text-caption text-muted-foreground">{formatCurrency(totalValue)} total</p>
-            <p className="text-[10px] text-muted-foreground/60">
-              {formatCurrency(weightedValue)} ponderado
+        {opportunities.length > 0 && (
+          <div className="text-right">
+            <p className="text-[10px] font-medium text-muted-foreground leading-tight">
+              {formatCurrency(totalValue)}
             </p>
+            {!isTerminal && (
+              <p className="text-[9px] text-muted-foreground/50 leading-tight">
+                {formatCurrency(weightedValue)} pond.
+              </p>
+            )}
           </div>
         )}
       </div>
 
-      {/* Cards */}
-      <div className="flex flex-col gap-2.5 min-h-[120px]">
+      {/* Drop zone — sin contenedor visible en estado normal */}
+      <div
+        className={cn(
+          'flex flex-col gap-2.5 min-h-[200px] rounded-2xl transition-all duration-200',
+          isDragOver && 'bg-primary/4'
+        )}
+        style={isDragOver ? { outline: `2px solid ${stage.color}60` } : {}}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (!isDragOver) setIsDragOver(true);
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragOver(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDragOver(false);
+          const oppId = e.dataTransfer.getData('text/plain');
+          if (oppId) onCardDrop(oppId, stage.id);
+        }}
+      >
         {opportunities.length === 0 ? (
-          <div
-            className={cn(
-              'flex flex-col items-center justify-center h-28 rounded-xl border-2 border-dashed',
-              'border-border/40 text-muted-foreground/40'
-            )}
-          >
+          <div className="flex flex-col items-center justify-center h-32 rounded-2xl border-2 border-dashed border-border/30 text-muted-foreground/30">
             <span className="text-xs">Sin oportunidades</span>
           </div>
         ) : (

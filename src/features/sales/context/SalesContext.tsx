@@ -28,7 +28,11 @@ interface SalesContextValue {
   invoices: Invoice[];
 
   addOpportunity: (opp: NewOpportunityData) => Opportunity;
-  moveOpportunity: (id: string, stage: StageId, lostReason?: LostReasonInfo) => void;
+  moveOpportunity: (
+    id: string,
+    stage: StageId,
+    payload?: { outcome?: 'ganado' | 'perdido'; lostReason?: LostReasonInfo }
+  ) => void;
   toggleChecklistItem: (oppId: string, itemId: string) => void;
   addChecklistItem: (oppId: string, text: string) => void;
   removeChecklistItem: (oppId: string, itemId: string) => void;
@@ -81,24 +85,32 @@ export function SalesProvider({ children }: { children: ReactNode }) {
     return newOpp;
   }, []);
 
-  const moveOpportunity = useCallback((id: string, stage: StageId, lostReason?: LostReasonInfo) => {
-    const now = new Date().toISOString();
-    setOpportunities((prev) =>
-      prev.map((opp) => {
-        if (opp.id !== id) return opp;
-        const updatedHistory = opp.stageHistory.map((entry) =>
-          !entry.exitedAt ? { ...entry, exitedAt: now } : entry
-        );
-        return {
-          ...opp,
-          stage,
-          stageEnteredAt: now,
-          stageHistory: [...updatedHistory, { stage, enteredAt: now }],
-          ...(lostReason ? { lostReason } : {}),
-        };
-      })
-    );
-  }, []);
+  const moveOpportunity = useCallback(
+    (
+      id: string,
+      stage: StageId,
+      payload?: { outcome?: 'ganado' | 'perdido'; lostReason?: LostReasonInfo }
+    ) => {
+      const now = new Date().toISOString();
+      setOpportunities((prev) =>
+        prev.map((opp) => {
+          if (opp.id !== id) return opp;
+          const updatedHistory = opp.stageHistory.map((entry) =>
+            !entry.exitedAt ? { ...entry, exitedAt: now } : entry
+          );
+          return {
+            ...opp,
+            stage,
+            stageEnteredAt: now,
+            stageHistory: [...updatedHistory, { stage, enteredAt: now }],
+            ...(payload?.outcome ? { outcome: payload.outcome } : {}),
+            ...(payload?.lostReason ? { lostReason: payload.lostReason } : {}),
+          };
+        })
+      );
+    },
+    []
+  );
 
   const toggleChecklistItem = useCallback((oppId: string, itemId: string) => {
     setOpportunities((prev) =>
@@ -246,23 +258,20 @@ export function SalesProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, quotation];
     });
-    // Si la oportunidad estaba en Prospecto, avanzar a Cotización Enviada
+    // Si la oportunidad estaba en Leads, avanzar a Contactado al enviar cotización
     setOpportunities((prev) =>
       prev.map((opp) => {
-        if (opp.id !== quotation.opportunityId || opp.stage !== 'prospecto') return opp;
+        if (opp.id !== quotation.opportunityId || opp.stage !== 'leads') return opp;
         const now = new Date().toISOString();
         const updatedHistory = opp.stageHistory.map((e) =>
           !e.exitedAt ? { ...e, exitedAt: now } : e
         );
         return {
           ...opp,
-          stage: 'cotizacion-enviada' as StageId,
+          stage: 'contactado' as StageId,
           quotationId: quotation.id,
           stageEnteredAt: now,
-          stageHistory: [
-            ...updatedHistory,
-            { stage: 'cotizacion-enviada' as StageId, enteredAt: now },
-          ],
+          stageHistory: [...updatedHistory, { stage: 'contactado' as StageId, enteredAt: now }],
         };
       })
     );
@@ -311,7 +320,7 @@ export function SalesProvider({ children }: { children: ReactNode }) {
 
       setInvoices((prev) => [...prev, newInvoice]);
 
-      // Avanzar oportunidad a Cerrado Ganado automáticamente cuando se emite la factura
+      // Avanzar oportunidad a Cerrado (ganado) automáticamente cuando se emite la factura
       setOpportunities((prev) =>
         prev.map((opp) => {
           if (opp.quotationId !== quotationId) return opp;
@@ -321,12 +330,10 @@ export function SalesProvider({ children }: { children: ReactNode }) {
           );
           return {
             ...opp,
-            stage: 'cerrado-ganado' as StageId,
+            stage: 'cerrado' as StageId,
+            outcome: 'ganado' as const,
             stageEnteredAt: now,
-            stageHistory: [
-              ...updatedHistory,
-              { stage: 'cerrado-ganado' as StageId, enteredAt: now },
-            ],
+            stageHistory: [...updatedHistory, { stage: 'cerrado' as StageId, enteredAt: now }],
           };
         })
       );
@@ -372,12 +379,12 @@ export function SalesProvider({ children }: { children: ReactNode }) {
 
       setInvoices((prev) => prev.map((i) => (i.id === invoiceId ? updatedInvoice : i)));
 
-      // Si la factura está totalmente pagada, mover la oportunidad a Cerrado Ganado
+      // Si la factura está totalmente pagada, mover la oportunidad a Cerrado (ganado)
       if (updatedInvoice.status === 'pagada') {
         setOpportunities((prev) =>
           prev.map((opp) =>
             opp.quotationId === updatedInvoice.quotationId
-              ? { ...opp, stage: 'cerrado-ganado' as StageId }
+              ? { ...opp, stage: 'cerrado' as StageId, outcome: 'ganado' as const }
               : opp
           )
         );

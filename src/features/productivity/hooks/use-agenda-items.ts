@@ -55,7 +55,7 @@ export function useAgendaItems() {
   const pipelineItems = useMemo((): Actividad[] => {
     const items: Actividad[] = [];
     MOCK_OPPORTUNITIES.forEach((opp) => {
-      if (opp.stage === 'cerrado-ganado' || opp.stage === 'cerrado-perdido') return;
+      if (opp.stage === 'cerrado') return;
       opp.activities.forEach((act) => {
         if (act.status === 'cancelada') return;
         const estado: EstadoActividad =
