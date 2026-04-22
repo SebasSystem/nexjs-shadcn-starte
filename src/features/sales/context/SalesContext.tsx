@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { MOCK_OPPORTUNITIES, MOCK_QUOTATIONS, MOCK_INVOICES } from 'src/_mock/_sales';
+import { STAGE_CHECKLIST_TEMPLATES } from '../config/pipeline.config';
 import type {
   Opportunity,
   Quotation,
@@ -11,17 +12,26 @@ import type {
   Payment,
   Activity,
   Note,
+  LostReasonInfo,
 } from 'src/features/sales/types/sales.types';
 
 // ─── Context Shape ────────────────────────────────────────────────────────────
+
+type NewOpportunityData = Omit<
+  Opportunity,
+  'id' | 'createdAt' | 'stageEnteredAt' | 'stageHistory' | 'checklist' | 'lostReason'
+>;
 
 interface SalesContextValue {
   opportunities: Opportunity[];
   quotations: Quotation[];
   invoices: Invoice[];
 
-  addOpportunity: (opp: Omit<Opportunity, 'id' | 'createdAt'>) => Opportunity;
-  moveOpportunity: (id: string, stage: StageId) => void;
+  addOpportunity: (opp: NewOpportunityData) => Opportunity;
+  moveOpportunity: (id: string, stage: StageId, lostReason?: LostReasonInfo) => void;
+  toggleChecklistItem: (oppId: string, itemId: string) => void;
+  addChecklistItem: (oppId: string, text: string) => void;
+  removeChecklistItem: (oppId: string, itemId: string) => void;
   addActivityToOpportunity: (id: string, activity: Omit<Activity, 'id'>) => void;
   addNoteToOpportunity: (id: string, note: Omit<Note, 'id' | 'createdAt'>) => void;
   updateNoteInOpportunity: (oppId: string, noteId: string, text: string) => void;
@@ -52,18 +62,80 @@ export function SalesProvider({ children }: { children: ReactNode }) {
   const [quotations, setQuotations] = useState<Quotation[]>(MOCK_QUOTATIONS);
   const [invoices, setInvoices] = useState<Invoice[]>(MOCK_INVOICES);
 
-  const addOpportunity = useCallback((data: Omit<Opportunity, 'id' | 'createdAt'>): Opportunity => {
+  const addOpportunity = useCallback((data: NewOpportunityData): Opportunity => {
+    const now = new Date().toISOString();
+    const templates = STAGE_CHECKLIST_TEMPLATES[data.stage] ?? [];
     const newOpp: Opportunity = {
       ...data,
       id: `opp-${Date.now()}`,
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: now.split('T')[0],
+      stageEnteredAt: now,
+      stageHistory: [{ stage: data.stage, enteredAt: now }],
+      checklist: templates.map((text, i) => ({
+        id: `chk-${Date.now()}-${i}`,
+        text,
+        done: false,
+      })),
     };
     setOpportunities((prev) => [...prev, newOpp]);
     return newOpp;
   }, []);
 
-  const moveOpportunity = useCallback((id: string, stage: StageId) => {
-    setOpportunities((prev) => prev.map((opp) => (opp.id === id ? { ...opp, stage } : opp)));
+  const moveOpportunity = useCallback((id: string, stage: StageId, lostReason?: LostReasonInfo) => {
+    const now = new Date().toISOString();
+    setOpportunities((prev) =>
+      prev.map((opp) => {
+        if (opp.id !== id) return opp;
+        const updatedHistory = opp.stageHistory.map((entry) =>
+          !entry.exitedAt ? { ...entry, exitedAt: now } : entry
+        );
+        return {
+          ...opp,
+          stage,
+          stageEnteredAt: now,
+          stageHistory: [...updatedHistory, { stage, enteredAt: now }],
+          ...(lostReason ? { lostReason } : {}),
+        };
+      })
+    );
+  }, []);
+
+  const toggleChecklistItem = useCallback((oppId: string, itemId: string) => {
+    setOpportunities((prev) =>
+      prev.map((opp) => {
+        if (opp.id !== oppId) return opp;
+        return {
+          ...opp,
+          checklist: opp.checklist.map((item) =>
+            item.id === itemId ? { ...item, done: !item.done } : item
+          ),
+        };
+      })
+    );
+  }, []);
+
+  const addChecklistItem = useCallback((oppId: string, text: string) => {
+    setOpportunities((prev) =>
+      prev.map((opp) => {
+        if (opp.id !== oppId) return opp;
+        return {
+          ...opp,
+          checklist: [...opp.checklist, { id: `chk-${Date.now()}`, text, done: false }],
+        };
+      })
+    );
+  }, []);
+
+  const removeChecklistItem = useCallback((oppId: string, itemId: string) => {
+    setOpportunities((prev) =>
+      prev.map((opp) => {
+        if (opp.id !== oppId) return opp;
+        return {
+          ...opp,
+          checklist: opp.checklist.filter((item) => item.id !== itemId),
+        };
+      })
+    );
   }, []);
 
   const addActivityToOpportunity = useCallback((id: string, activityData: Omit<Activity, 'id'>) => {
@@ -176,11 +248,23 @@ export function SalesProvider({ children }: { children: ReactNode }) {
     });
     // Si la oportunidad estaba en Prospecto, avanzar a Cotización Enviada
     setOpportunities((prev) =>
-      prev.map((opp) =>
-        opp.id === quotation.opportunityId && opp.stage === 'prospecto'
-          ? { ...opp, stage: 'cotizacion-enviada' as StageId, quotationId: quotation.id }
-          : opp
-      )
+      prev.map((opp) => {
+        if (opp.id !== quotation.opportunityId || opp.stage !== 'prospecto') return opp;
+        const now = new Date().toISOString();
+        const updatedHistory = opp.stageHistory.map((e) =>
+          !e.exitedAt ? { ...e, exitedAt: now } : e
+        );
+        return {
+          ...opp,
+          stage: 'cotizacion-enviada' as StageId,
+          quotationId: quotation.id,
+          stageEnteredAt: now,
+          stageHistory: [
+            ...updatedHistory,
+            { stage: 'cotizacion-enviada' as StageId, enteredAt: now },
+          ],
+        };
+      })
     );
   }, []);
 
@@ -229,9 +313,22 @@ export function SalesProvider({ children }: { children: ReactNode }) {
 
       // Avanzar oportunidad a Cerrado Ganado automáticamente cuando se emite la factura
       setOpportunities((prev) =>
-        prev.map((opp) =>
-          opp.quotationId === quotationId ? { ...opp, stage: 'cerrado-ganado' as StageId } : opp
-        )
+        prev.map((opp) => {
+          if (opp.quotationId !== quotationId) return opp;
+          const now = new Date().toISOString();
+          const updatedHistory = opp.stageHistory.map((e) =>
+            !e.exitedAt ? { ...e, exitedAt: now } : e
+          );
+          return {
+            ...opp,
+            stage: 'cerrado-ganado' as StageId,
+            stageEnteredAt: now,
+            stageHistory: [
+              ...updatedHistory,
+              { stage: 'cerrado-ganado' as StageId, enteredAt: now },
+            ],
+          };
+        })
       );
 
       return newInvoice;
@@ -299,6 +396,9 @@ export function SalesProvider({ children }: { children: ReactNode }) {
         invoices,
         addOpportunity,
         moveOpportunity,
+        toggleChecklistItem,
+        addChecklistItem,
+        removeChecklistItem,
         addActivityToOpportunity,
         addNoteToOpportunity,
         updateNoteInOpportunity,

@@ -220,7 +220,7 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
         {timelineItems.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-6">No hay historial aún.</p>
         ) : (
-          <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border/60 before:to-transparent">
+          <div className="space-y-6 relative before:absolute before:top-0 before:bottom-0 before:left-5 before:w-0.5 before:-translate-x-1/2 before:bg-gradient-to-b before:from-transparent before:via-border/60 before:to-transparent">
             {timelineItems.map((item) => {
               const Icon = ACTIVITY_ICONS[item.type] || Mail;
               const isNote = item.type === 'nota';

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useSalesContext } from '../context/SalesContext';
 import { PIPELINE_STAGES } from 'src/_mock/_sales';
+import { STAGE_PROBABILITY } from '../config/pipeline.config';
 import type { StageId, Opportunity } from 'src/features/sales/types/sales.types';
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -50,9 +51,14 @@ export function usePipeline() {
     const closedWon = filteredOpportunities.filter((o) => o.stage === 'cerrado-ganado');
 
     const totalPipelineValue = active.reduce((sum, o) => sum + o.estimatedAmount, 0);
+    const forecastValue = active.reduce(
+      (sum, o) => sum + o.estimatedAmount * STAGE_PROBABILITY[o.stage],
+      0
+    );
 
     return {
       totalPipelineValue,
+      forecastValue,
       activeCount: active.length,
       closedWonCount: closedWon.length,
     };

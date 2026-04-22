@@ -16,10 +16,15 @@ import { PIPELINE_STAGES } from 'src/_mock/_sales';
 import type { Opportunity, StageId, LeadSource } from 'src/features/sales/types/sales.types';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
+type NewOpportunityData = Omit<
+  Opportunity,
+  'id' | 'createdAt' | 'stageEnteredAt' | 'stageHistory' | 'checklist' | 'lostReason'
+>;
+
 interface NewOpportunityDrawerProps {
   open: boolean;
   onClose: () => void;
-  onSave: (data: Omit<Opportunity, 'id' | 'createdAt'>) => void;
+  onSave: (data: NewOpportunityData) => void;
 }
 
 const STAGE_OPTIONS = PIPELINE_STAGES.filter(

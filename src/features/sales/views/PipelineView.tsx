@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, TrendingUp, BarChart2, Trophy, Search } from 'lucide-react';
+import { Plus, TrendingUp, BarChart2, Trophy, Search, Target } from 'lucide-react';
 import { Button } from 'src/shared/components/ui/button';
 import {
   PageContainer,
@@ -9,11 +9,15 @@ import {
   SectionCard,
   StatsCard,
 } from 'src/shared/components/layouts/page';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import { PipelineColumn } from '../components/PipelineColumn';
 import { NewOpportunityDrawer } from '../components/NewOpportunityDrawer';
+import { OpportunityPanel } from '../components/OpportunityPanel';
+import { LostReasonDialog } from '../components/LostReasonDialog';
 import { usePipeline } from '../hooks/usePipeline';
-import type { Opportunity } from 'src/features/sales/types/sales.types';
-import { SelectField } from 'src/shared/components/ui/select-field';
+import { useOpportunityPanel } from '../hooks/useOpportunityPanel';
+import { useSalesContext } from '../context/SalesContext';
+import type { Opportunity, StageId, LostReasonInfo } from 'src/features/sales/types/sales.types';
 
 const ORIGIN_OPTIONS = [
   { value: 'Web', label: 'Sitio Web' },
@@ -45,16 +49,51 @@ function formatCurrency(amount: number): string {
 
 export function PipelineView() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [pendingMove, setPendingMove] = useState<{ oppId: string } | null>(null);
+  const [lostDialogOpen, setLostDialogOpen] = useState(false);
+
   const { stages, opportunitiesByStage, metrics, addOpportunity, filters, setFilters } =
     usePipeline();
+  const { moveOpportunity, opportunities } = useSalesContext();
+  const { selectedId, isOpen, openPanel, closePanel, daysInStage, agingLevel } =
+    useOpportunityPanel();
 
-  const handleSaveOpportunity = (data: Omit<Opportunity, 'id' | 'createdAt'>) => {
+  const pendingOpportunity = pendingMove
+    ? opportunities.find((o) => o.id === pendingMove.oppId)
+    : undefined;
+
+  const handleColumnDrop = (oppId: string, targetStage: StageId) => {
+    if (targetStage === 'cerrado-perdido') {
+      setPendingMove({ oppId });
+      setLostDialogOpen(true);
+    } else {
+      moveOpportunity(oppId, targetStage);
+    }
+  };
+
+  const handleLostConfirm = (reason: LostReasonInfo) => {
+    if (!pendingMove) return;
+    moveOpportunity(pendingMove.oppId, 'cerrado-perdido', reason);
+    setLostDialogOpen(false);
+    setPendingMove(null);
+  };
+
+  const handleLostCancel = () => {
+    setLostDialogOpen(false);
+    setPendingMove(null);
+  };
+
+  const handleSaveOpportunity = (
+    data: Omit<
+      Opportunity,
+      'id' | 'createdAt' | 'stageEnteredAt' | 'stageHistory' | 'checklist' | 'lostReason'
+    >
+  ) => {
     addOpportunity(data);
   };
 
   return (
     <PageContainer fluid className="pb-10 min-w-0 w-full">
-      {/* ── Page Header ──────────────────────────────────────────────── */}
       <PageHeader
         title="Pipeline Comercial"
         subtitle="Gestiona y visualiza el avance de tus oportunidades de venta"
@@ -66,7 +105,7 @@ export function PipelineView() {
         }
       />
 
-      {/* ── Filtros y Búsqueda ───────────────────────────────────────── */}
+      {/* Filtros */}
       <SectionCard className="mb-6">
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <div className="relative flex-1 w-full">
@@ -81,7 +120,6 @@ export function PipelineView() {
               onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
             />
           </div>
-
           <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
             <div className="w-full sm:w-48">
               <SelectField
@@ -101,8 +139,8 @@ export function PipelineView() {
         </div>
       </SectionCard>
 
-      {/* ── Métricas ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2 shrink-0">
+      {/* Métricas */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-4 shrink-0">
         <StatsCard
           title="Total Pipeline"
           value={formatCurrency(metrics.totalPipelineValue)}
@@ -112,12 +150,20 @@ export function PipelineView() {
           iconClassName="bg-indigo-500/10 text-indigo-500"
         />
         <StatsCard
+          title="Forecast Ponderado"
+          value={formatCurrency(metrics.forecastValue)}
+          trend="por probabilidad"
+          trendUp
+          icon={<Target size={20} />}
+          iconClassName="bg-blue-500/10 text-blue-500"
+        />
+        <StatsCard
           title="Oportunidades Activas"
           value={metrics.activeCount}
           trend="en curso"
           trendUp
           icon={<BarChart2 size={20} />}
-          iconClassName="bg-blue-500/10 text-blue-500"
+          iconClassName="bg-purple-500/10 text-purple-500"
         />
         <StatsCard
           title="Cerradas Ganadas"
@@ -129,7 +175,7 @@ export function PipelineView() {
         />
       </div>
 
-      {/* ── Tablero Kanban ─────────────────────────────────────────────── */}
+      {/* Kanban */}
       <div className="w-full overflow-x-auto pb-4 custom-scrollbar mt-4">
         <div className="flex gap-4 min-w-max pr-4">
           {stages.map((stage) => (
@@ -137,16 +183,35 @@ export function PipelineView() {
               key={stage.id}
               stage={stage}
               opportunities={opportunitiesByStage.get(stage.id) ?? []}
+              onCardDrop={handleColumnDrop}
+              onOpenPanel={openPanel}
             />
           ))}
         </div>
       </div>
 
-      {/* ── Drawer Nueva Oportunidad ──────────────────────────────────── */}
+      {/* Drawer nueva oportunidad */}
       <NewOpportunityDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onSave={handleSaveOpportunity}
+      />
+
+      {/* Panel lateral de oportunidad */}
+      <OpportunityPanel
+        opportunityId={selectedId}
+        isOpen={isOpen}
+        onClose={closePanel}
+        daysInStage={daysInStage}
+        agingLevel={agingLevel}
+      />
+
+      {/* Dialog de razón de pérdida */}
+      <LostReasonDialog
+        open={lostDialogOpen}
+        clientName={pendingOpportunity?.clientName ?? ''}
+        onConfirm={handleLostConfirm}
+        onCancel={handleLostCancel}
       />
     </PageContainer>
   );

@@ -1,3 +1,34 @@
+// ─── Checklist ────────────────────────────────────────────────────────────────
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+export interface StageHistoryEntry {
+  stage: StageId;
+  enteredAt: string;
+  exitedAt?: string;
+}
+
+export type LostReasonCategory =
+  | 'price'
+  | 'features'
+  | 'relationship'
+  | 'support'
+  | 'timing'
+  | 'competitor'
+  | 'no_decision'
+  | 'other';
+
+export interface LostReasonInfo {
+  category: LostReasonCategory;
+  competitorId?: string;
+  competitorName?: string;
+  detail: string;
+}
+
 // ─── Actividades y Notas ───────────────────────────────────────────────────────
 
 export type ActivityType = 'llamada' | 'email' | 'reunion' | 'demo' | 'seguimiento';
@@ -54,6 +85,10 @@ export interface Opportunity {
   stage: StageId;
   quotationId: string | null;
   createdAt: string;
+  stageEnteredAt: string;
+  stageHistory: StageHistoryEntry[];
+  checklist: ChecklistItem[];
+  lostReason?: LostReasonInfo;
 
   // Nuevos campos del flujo final
   source: LeadSource;

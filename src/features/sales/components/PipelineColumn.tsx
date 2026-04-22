@@ -1,13 +1,15 @@
 'use client';
 
 import { cn } from 'src/lib/utils';
+import { STAGE_PROBABILITY } from '../config/pipeline.config';
 import { OpportunityCard } from './OpportunityCard';
-import { useSalesContext } from '../context/SalesContext';
-import type { PipelineStage, Opportunity } from 'src/features/sales/types/sales.types';
+import type { PipelineStage, Opportunity, StageId } from 'src/features/sales/types/sales.types';
 
 interface PipelineColumnProps {
   stage: PipelineStage;
   opportunities: Opportunity[];
+  onCardDrop: (oppId: string, targetStage: StageId) => void;
+  onOpenPanel: (id: string) => void;
 }
 
 function formatCurrency(amount: number): string {
@@ -19,10 +21,18 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export function PipelineColumn({ stage, opportunities }: PipelineColumnProps) {
-  const { moveOpportunity } = useSalesContext();
-  const totalValue = opportunities.reduce((sum, o) => sum + o.estimatedAmount, 0);
+export function PipelineColumn({
+  stage,
+  opportunities,
+  onCardDrop,
+  onOpenPanel,
+}: PipelineColumnProps) {
   const isTerminal = stage.id === 'cerrado-ganado' || stage.id === 'cerrado-perdido';
+  const totalValue = opportunities.reduce((sum, o) => sum + o.estimatedAmount, 0);
+  const weightedValue = opportunities.reduce(
+    (sum, o) => sum + o.estimatedAmount * STAGE_PROBABILITY[o.stage],
+    0
+  );
 
   return (
     <div
@@ -35,11 +45,10 @@ export function PipelineColumn({ stage, opportunities }: PipelineColumnProps) {
       onDrop={(e) => {
         e.preventDefault();
         const oppId = e.dataTransfer.getData('text/plain');
-        if (oppId) {
-          moveOpportunity(oppId, stage.id);
-        }
+        if (oppId) onCardDrop(oppId, stage.id);
       }}
     >
+      {/* Header */}
       <div
         className={cn(
           'flex items-center justify-between mb-2 px-1 py-1 rounded-xl',
@@ -47,28 +56,29 @@ export function PipelineColumn({ stage, opportunities }: PipelineColumnProps) {
         )}
       >
         <div className="flex items-center gap-2">
-          {/* Color dot */}
           <span
             className="w-2.5 h-2.5 rounded-full flex-shrink-0"
             style={{ backgroundColor: stage.color }}
           />
           <span className="text-sm font-semibold text-foreground">{stage.label}</span>
         </div>
-        <div className="flex items-center gap-2">
-          {/* Count badge */}
-          <span
-            className="text-xs font-bold px-2 py-0.5 rounded-full min-w-[22px] text-center"
-            style={{ backgroundColor: `${stage.color}25`, color: stage.color }}
-          >
-            {opportunities.length}
-          </span>
-        </div>
+        <span
+          className="text-xs font-bold px-2 py-0.5 rounded-full min-w-[22px] text-center"
+          style={{ backgroundColor: `${stage.color}25`, color: stage.color }}
+        >
+          {opportunities.length}
+        </span>
       </div>
 
-      {/* Column value summary — fixed height to prevent misalignment */}
-      <div className="h-6 px-1 mb-2">
+      {/* Value summary */}
+      <div className="h-10 px-1 mb-2">
         {opportunities.length > 0 && !isTerminal && (
-          <p className="text-caption text-muted-foreground">{formatCurrency(totalValue)} total</p>
+          <div>
+            <p className="text-caption text-muted-foreground">{formatCurrency(totalValue)} total</p>
+            <p className="text-[10px] text-muted-foreground/60">
+              {formatCurrency(weightedValue)} ponderado
+            </p>
+          </div>
         )}
       </div>
 
@@ -85,7 +95,12 @@ export function PipelineColumn({ stage, opportunities }: PipelineColumnProps) {
           </div>
         ) : (
           opportunities.map((opp) => (
-            <OpportunityCard key={opp.id} opportunity={opp} stageColor={stage.color} />
+            <OpportunityCard
+              key={opp.id}
+              opportunity={opp}
+              stageColor={stage.color}
+              onOpenPanel={onOpenPanel}
+            />
           ))
         )}
       </div>
