@@ -1,14 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, TrendingUp, BarChart2, Trophy, Search, Target } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { Button } from 'src/shared/components/ui/button';
-import {
-  PageContainer,
-  PageHeader,
-  SectionCard,
-  StatsCard,
-} from 'src/shared/components/layouts/page';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { PipelineColumn } from '../components/PipelineColumn';
 import { NewOpportunityDrawer } from '../components/NewOpportunityDrawer';
@@ -39,22 +34,12 @@ const MAIN_PRODUCTS = [
   { value: 'Otro', label: 'Otro' },
 ];
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 export function PipelineView() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [pendingMove, setPendingMove] = useState<{ oppId: string } | null>(null);
   const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
 
-  const { stages, opportunitiesByStage, metrics, addOpportunity, filters, setFilters } =
-    usePipeline();
+  const { stages, opportunitiesByStage, addOpportunity, filters, setFilters } = usePipeline();
   const { moveOpportunity, opportunities } = useSalesContext();
   const { selectedId, isOpen, openPanel, closePanel, daysInStage, agingLevel } =
     useOpportunityPanel();
@@ -139,42 +124,6 @@ export function PipelineView() {
           </div>
         </div>
       </SectionCard>
-
-      {/* Métricas */}
-      {/* <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-4 shrink-0">
-        <StatsCard
-          title="Total Pipeline"
-          value={formatCurrency(metrics.totalPipelineValue)}
-          trend="+8% este mes"
-          trendUp
-          icon={<TrendingUp size={20} />}
-          iconClassName="bg-indigo-500/10 text-indigo-500"
-        />
-        <StatsCard
-          title="Forecast Ponderado"
-          value={formatCurrency(metrics.forecastValue)}
-          trend="por probabilidad"
-          trendUp
-          icon={<Target size={20} />}
-          iconClassName="bg-blue-500/10 text-blue-500"
-        />
-        <StatsCard
-          title="Oportunidades Activas"
-          value={metrics.activeCount}
-          trend="en curso"
-          trendUp
-          icon={<BarChart2 size={20} />}
-          iconClassName="bg-purple-500/10 text-purple-500"
-        />
-        <StatsCard
-          title="Cerradas Ganadas"
-          value={metrics.closedWonCount}
-          trend="este periodo"
-          trendUp
-          icon={<Trophy size={20} />}
-          iconClassName="bg-emerald-500/10 text-emerald-500"
-        />
-      </div> */}
 
       {/* Kanban */}
       <div className="w-full overflow-x-auto pb-4 custom-scrollbar mt-2">

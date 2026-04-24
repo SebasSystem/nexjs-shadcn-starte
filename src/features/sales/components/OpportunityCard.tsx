@@ -5,6 +5,7 @@ import { differenceInDays } from 'date-fns';
 import { cn } from 'src/lib/utils';
 import { STAGE_AGING_THRESHOLDS, STAGE_PROBABILITY } from '../config/pipeline.config';
 import { DealAvatar } from './DealAvatar';
+import { LinkedInValidationBadge } from 'src/features/automation/components/LinkedInValidationBadge';
 import type { AgingLevel } from '../hooks/useOpportunityPanel';
 import type { Opportunity } from 'src/features/sales/types/sales.types';
 
@@ -224,14 +225,19 @@ export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: Opport
           <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', activityIndicator.color)} />
           <span className="text-[10px] text-muted-foreground">{activityIndicator.label}</span>
         </div>
-        {checklistTotal > 0 && (
-          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-            <CheckSquare size={10} />
-            <span>
-              {checklistDone}/{checklistTotal}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {opportunity.source === 'LinkedIn' && opportunity.linkedIn && (
+            <LinkedInValidationBadge profile={opportunity.linkedIn} />
+          )}
+          {checklistTotal > 0 && (
+            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+              <CheckSquare size={10} />
+              <span>
+                {checklistDone}/{checklistTotal}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

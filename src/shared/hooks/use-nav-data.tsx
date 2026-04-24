@@ -69,6 +69,9 @@ const ICON_MAP: Record<string, IconName> = {
   // Inteligencia Competitiva
   Swords: 'Swords',
   TrendingDown: 'TrendingDown',
+  // Automatización
+  Zap: 'Zap',
+  UserCheck: 'UserCheck',
 };
 
 const DEFAULT_ICON_NAME = 'Menu' as const;

@@ -2,7 +2,16 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DollarSign, Calendar, Tag, User, AlertTriangle, CheckSquare } from 'lucide-react';
+import {
+  DollarSign,
+  Calendar,
+  Tag,
+  User,
+  AlertTriangle,
+  CheckSquare,
+  ExternalLink,
+} from 'lucide-react';
+import { LinkedInValidationBadge } from 'src/features/automation/components/LinkedInValidationBadge';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from 'src/lib/utils';
@@ -260,6 +269,33 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
           </div>
         )}
       </div>
+
+      {/* LinkedIn section */}
+      {opportunity.source === 'LinkedIn' && opportunity.linkedIn && (
+        <div className="rounded-xl border border-border/50 bg-muted/20 p-4 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
+              LinkedIn
+            </span>
+            <LinkedInValidationBadge profile={opportunity.linkedIn} />
+          </div>
+          {opportunity.linkedIn.title && (
+            <p className="text-body2 font-medium text-foreground">{opportunity.linkedIn.title}</p>
+          )}
+          {opportunity.linkedIn.company && (
+            <p className="text-caption text-muted-foreground">{opportunity.linkedIn.company}</p>
+          )}
+          <a
+            href={opportunity.linkedIn.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-caption text-primary hover:underline"
+          >
+            <ExternalLink size={11} />
+            {opportunity.linkedIn.url.replace('https://', '')}
+          </a>
+        </div>
+      )}
 
       {/* Stage-aware CTA */}
       {!isTerminal && (

@@ -113,6 +113,11 @@ import {
   // Inteligencia Competitiva
   Swords,
   Target,
+
+  // Automatización
+  Zap,
+  UserCheck,
+  Linkedin,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -231,6 +236,11 @@ const icons = {
   // Inteligencia Competitiva
   Swords,
   Target,
+
+  // Automatización
+  Zap,
+  UserCheck,
+  Linkedin,
 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,3 +1,5 @@
+import type { LinkedInProfile } from 'src/features/automation/types';
+
 // ─── Checklist ────────────────────────────────────────────────────────────────
 
 export interface ChecklistItem {
@@ -100,6 +102,7 @@ export interface Opportunity {
   outcome?: 'ganado' | 'perdido';
   leadScore?: 'hot' | 'warm' | 'cold';
   leadScoreValue?: number;
+  linkedIn?: LinkedInProfile;
 }
 
 // ─── Cotizaciones ─────────────────────────────────────────────────────────────
