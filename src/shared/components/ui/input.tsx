@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { CheckCircle2 } from 'lucide-react';
 
 import { cn } from 'src/lib/utils';
+import { Icon } from './icon';
 
 export interface InputProps extends Omit<React.ComponentProps<'input'>, 'size'> {
   label?: string;
-  floatingLabel?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   hint?: string;
@@ -15,25 +14,11 @@ export interface InputProps extends Omit<React.ComponentProps<'input'>, 'size'> 
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  (
-    {
-      className,
-      type,
-      label,
-      floatingLabel,
-      leftIcon,
-      rightIcon,
-      hint,
-      error,
-      success,
-      size = 'md',
-      id,
-      ...props
-    },
-    ref
-  ) => {
+  ({ className, type, label, leftIcon, rightIcon, hint, error, success, size = 'md', id, ...props }, ref) => {
     const generatedId = React.useId();
     const inputId = id ?? generatedId;
+    const hintId = `${inputId}-hint`;
+    const errorId = `${inputId}-error`;
 
     const sizeClasses = {
       sm: 'h-8 text-xs px-3',
@@ -41,19 +26,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       lg: 'h-11 text-sm px-4',
     };
 
-    const restingTranslateY = {
-      sm: 'peer-placeholder-shown:translate-y-[6px]',
-      md: 'peer-placeholder-shown:translate-y-2.5',
-      lg: 'peer-placeholder-shown:translate-y-3',
-    };
-
     const hasError = !!error;
-    const isFloating = floatingLabel && label;
+    const describedBy =
+      [hint && hintId, hasError && errorId].filter(Boolean).join(' ') || undefined;
 
     return (
-      <div className={cn('flex w-full flex-col gap-1.5 relative', className)}>
-        {/* Label estático */}
-        {label && !isFloating && (
+      <div className={cn('flex w-full flex-col gap-1.5', className)}>
+        {label && (
           <label htmlFor={inputId} className="text-sm font-medium text-foreground leading-none">
             {label}
             {props.required && <span className="ml-1 text-destructive">*</span>}
@@ -74,12 +53,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
 
           <input
-            {...props}
             id={inputId}
             type={type}
             ref={ref}
-            placeholder={isFloating ? ' ' : props.placeholder}
-            aria-invalid={hasError ? 'true' : 'false'}
+            aria-invalid={hasError}
+            aria-describedby={describedBy}
             className={cn(
               'flex w-full rounded-lg border bg-background text-foreground shadow-sm',
               'placeholder:text-muted-foreground/70',
@@ -87,62 +65,21 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               'disabled:cursor-not-allowed disabled:opacity-50',
               'transition-all duration-200',
               sizeClasses[size],
-              leftIcon ? 'pl-10' : '',
-              rightIcon || success ? 'pr-10' : '',
-              isFloating ? 'peer' : '',
+              leftIcon && 'pl-10',
+              (rightIcon || success) && 'pr-10',
               hasError
-                ? [
-                    'border-destructive/80',
-                    'focus-visible:outline-none focus-visible:border-destructive focus-visible:ring-[3px] focus-visible:ring-destructive/20',
-                    'text-foreground placeholder:text-muted-foreground/50',
-                  ]
+                ? 'border-destructive/80 focus-visible:outline-none focus-visible:border-destructive focus-visible:ring-[3px] focus-visible:ring-destructive/20'
                 : success
-                  ? [
-                      'border-success/80',
-                      'focus-visible:outline-none focus-visible:border-success focus-visible:ring-[3px] focus-visible:ring-success/20',
-                    ]
-                  : [
-                      'border-border hover:border-border/80',
-                      'focus-visible:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/20',
-                    ]
+                  ? 'border-success/80 focus-visible:outline-none focus-visible:border-success focus-visible:ring-[3px] focus-visible:ring-success/20'
+                  : 'border-border hover:border-border/80 focus-visible:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/20'
             )}
             {...props}
           />
 
-          {isFloating && (
-            <label
-              htmlFor={inputId}
-              className={cn(
-                'absolute pointer-events-none cursor-text origin-top-left z-10 bg-background px-1',
-                'transition-all duration-300 ease-[cubic-bezier(0.2,0.0,0.0,1.0)]',
-                'top-0 left-0 text-sm will-change-transform',
-
-                // Resting State: Use Size-based Y transform and Icon-based X transform, Normal scale
-                restingTranslateY[size],
-                leftIcon
-                  ? 'peer-placeholder-shown:translate-x-9'
-                  : 'peer-placeholder-shown:translate-x-2.5',
-                'peer-placeholder-shown:scale-100 peer-placeholder-shown:text-muted-foreground/70',
-
-                // Active State (Focused or Has text): Fixed Top Y, slight X shift, Scaled down
-                'peer-focus:-translate-y-1/2 peer-focus:translate-x-2.5 peer-focus:scale-[0.8]',
-                'peer-[:not(:placeholder-shown)]:-translate-y-1/2 peer-[:not(:placeholder-shown)]:translate-x-2.5 peer-[:not(:placeholder-shown)]:scale-[0.8]',
-
-                // Color: base is label-gray, turns dark only on focus
-                hasError
-                  ? 'text-destructive peer-focus:text-destructive'
-                  : ['text-muted-foreground', 'peer-focus:text-primary']
-              )}
-            >
-              {label}
-              {props.required && <span className="ml-1 text-destructive">*</span>}
-            </label>
-          )}
-
           {(rightIcon || success) && (
             <div className="absolute right-3 flex items-center justify-center text-muted-foreground pointer-events-none">
               {success && !rightIcon ? (
-                <CheckCircle2 className="h-4 w-4 text-success" />
+                <Icon name="CheckCircle2" size={16} className="text-success" />
               ) : (
                 rightIcon
               )}
@@ -150,11 +87,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
 
-        {hint && !error && (
-          <p className="text-[0.75rem] text-muted-foreground leading-tight">{hint}</p>
+        {hint && !hasError && (
+          <p id={hintId} className="text-[0.75rem] text-muted-foreground leading-tight">
+            {hint}
+          </p>
         )}
-        {error && (
-          <p className="text-[0.75rem] font-medium text-destructive leading-tight">{error}</p>
+        {hasError && (
+          <p id={errorId} className="text-[0.75rem] font-medium text-destructive leading-tight">
+            {error}
+          </p>
         )}
       </div>
     );

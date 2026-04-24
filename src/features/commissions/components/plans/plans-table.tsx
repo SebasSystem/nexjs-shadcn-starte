@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { type PlanComision } from '../../types/commissions.types';
-import { Edit, Copy, MoreVertical, ChevronDown, ChevronRight } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { format } from 'date-fns';
 import {
   useTable,
@@ -41,7 +41,7 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
           const plan = info.row.original;
           return (
             <div className="text-muted-foreground w-4">
-              {expandedId === plan.id ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+              {expandedId === plan.id ? <Icon name="ChevronDown" size={18} /> : <Icon name="ChevronRight" size={18} />}
             </div>
           );
         },
@@ -144,13 +144,13 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
                 className="p-1 text-muted-foreground hover:text-blue-600 transition-colors"
                 title="Editar"
               >
-                <Edit size={16} />
+                <Icon name="Edit" size={16} />
               </button>
               <button
                 className="p-1 text-muted-foreground hover:text-foreground transition-colors"
                 title="Duplicar"
               >
-                <Copy size={16} />
+                <Icon name="Copy" size={16} />
               </button>
             </div>
           );
@@ -180,7 +180,7 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
     return (
       <div className="py-20 text-center flex flex-col items-center">
         <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-          <MoreVertical className="text-gray-400" />
+          <Icon name="MoreVertical" className="text-gray-400" />
         </div>
         <h3 className="text-lg font-medium">Aún no hay planes configurados</h3>
         <p className="text-sm text-gray-500 mt-1 mb-4">Crea tu primer plan de comisión.</p>

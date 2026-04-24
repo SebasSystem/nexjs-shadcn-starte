@@ -1,6 +1,6 @@
 'use client';
 
-import { Pencil, MoreHorizontal, Users, Crown } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
@@ -53,7 +53,7 @@ export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
   if (equipos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <Users className="h-10 w-10 mb-3 opacity-40" />
+        <Icon name="Users" size={40} className="mb-3 opacity-40" />
         <p className="text-body2">No hay equipos configurados.</p>
         <p className="text-caption mt-1">
           Crea tu primer equipo para organizar a tu fuerza de ventas.
@@ -89,7 +89,7 @@ export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
                 <div className="min-w-0">
                   <p className="font-semibold text-foreground truncate">{equipo.nombre}</p>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <Crown size={11} className="text-muted-foreground shrink-0" />
+                    <Icon name="Crown" size={11} className="text-muted-foreground shrink-0" />
                     <p className="text-xs text-muted-foreground truncate">{equipo.liderNombre}</p>
                   </div>
                 </div>
@@ -102,12 +102,12 @@ export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
                   className="h-7 w-7"
                   onClick={() => onEdit(equipo)}
                 >
-                  <Pencil className="h-3.5 w-3.5" />
+                  <Icon name="Pencil" size={14} />
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7">
-                      <MoreHorizontal className="h-3.5 w-3.5" />
+                      <Icon name="MoreHorizontal" size={14} />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">

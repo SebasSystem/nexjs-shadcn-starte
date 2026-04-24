@@ -201,17 +201,11 @@ export function ComponentsExampleView() {
           <Input label="Success State" success placeholder="Correct value" />
           <Input label="Error State" error="This field is required" placeholder="Invalid value" />
           <Input label="Disabled State" disabled placeholder="You cannot edit this" />
-          <Input label="Floating Label (Default)" floatingLabel placeholder="Will be hidden" />
-          <Input
-            label="Floating Label (Large)"
-            floatingLabel
-            size="lg"
-            placeholder="Will be hidden"
-          />
+          <Input label="Floating Label (Default)" placeholder="Will be hidden" />
+          <Input label="Floating Label (Large)" size="lg" placeholder="Will be hidden" />
           <Input
             label="Floating Label (With Icon)"
             leftIcon={<Icon name="Mail" className="w-5 h-5 text-muted-foreground" />}
-            floatingLabel
             size="lg"
             placeholder="Will be hidden"
           />

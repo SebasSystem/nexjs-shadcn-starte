@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import {
   Sheet,
@@ -89,7 +89,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
       <SheetContent side="right" className="sm:max-w-[480px] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
           <div className="flex items-center gap-3">
-            <Users size={20} className="text-blue-600 shrink-0" />
+            <Icon name="Users" size={20} className="text-blue-600 shrink-0" />
             <div>
               <SheetTitle>Asignación Masiva</SheetTitle>
               <SheetDescription>Asigna un plan a varios vendedores a la vez</SheetDescription>
@@ -295,7 +295,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
         <SheetFooter className="justify-between">
           {paso > 1 ? (
             <Button variant="outline" onClick={() => setPaso((p) => (p - 1) as 1 | 2 | 3)}>
-              <ChevronLeft size={16} className="mr-1" /> Atrás
+              <Icon name="ChevronLeft" size={16} className="mr-1" /> Atrás
             </Button>
           ) : (
             <Button variant="outline" onClick={handleClose}>
@@ -309,7 +309,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
               disabled={paso === 1 ? !puedeAvanzarPaso1 : !puedeAvanzarPaso2}
               onClick={() => setPaso((p) => (p + 1) as 1 | 2 | 3)}
             >
-              Siguiente <ChevronRight size={16} className="ml-1" />
+              Siguiente <Icon name="ChevronRight" size={16} className="ml-1" />
             </Button>
           ) : (
             <Button

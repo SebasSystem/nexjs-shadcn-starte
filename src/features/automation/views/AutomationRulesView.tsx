@@ -2,17 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Plus,
-  Zap,
-  Activity,
-  PlayCircle,
-  Clock,
-  Search,
-  Pencil,
-  Power,
-  Trash2,
-} from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import {
   PageContainer,
@@ -55,7 +45,7 @@ export function AutomationRulesView() {
         subtitle="Configurá disparadores y acciones automáticas para tu pipeline comercial"
         action={
           <Button color="primary" onClick={() => router.push(paths.automation.ruleNew)}>
-            <Plus size={16} />
+            <Icon name="Plus" size={16} />
             Nueva regla
           </Button>
         }
@@ -65,28 +55,28 @@ export function AutomationRulesView() {
         <StatsCard
           title="Reglas activas"
           value={stats.activeCount}
-          icon={<Zap size={20} />}
+          icon={<Icon name="Zap" size={20} />}
           iconClassName="bg-emerald-500/10 text-emerald-500"
           trendUp
         />
         <StatsCard
           title="Reglas inactivas"
           value={stats.inactiveCount}
-          icon={<Activity size={20} />}
+          icon={<Icon name="Activity" size={20} />}
           iconClassName="bg-muted text-muted-foreground"
           trendUp={false}
         />
         <StatsCard
           title="Total ejecuciones"
           value={stats.totalRuns}
-          icon={<PlayCircle size={20} />}
+          icon={<Icon name="PlayCircle" size={20} />}
           iconClassName="bg-primary/10 text-primary"
           trendUp
         />
         <StatsCard
           title="Última ejecución"
           value={formatDate(stats.lastRun)}
-          icon={<Clock size={20} />}
+          icon={<Icon name="Clock" size={20} />}
           iconClassName="bg-blue-500/10 text-blue-500"
         />
       </div>
@@ -94,7 +84,8 @@ export function AutomationRulesView() {
       <SectionCard noPadding>
         <div className="p-5 border-b border-border/40">
           <div className="relative">
-            <Search
+            <Icon
+              name="Search"
               size={15}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
             />
@@ -180,21 +171,21 @@ export function AutomationRulesView() {
                         onClick={() => router.push(paths.automation.ruleEdit(rule.id))}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                       >
-                        <Pencil size={14} />
+                        <Icon name="Pencil" size={14} />
                       </button>
                       <button
                         title={rule.enabled ? 'Pausar' : 'Activar'}
                         onClick={() => toggleRule(rule.id)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                       >
-                        <Power size={14} />
+                        <Icon name="Power" size={14} />
                       </button>
                       <button
                         title="Eliminar"
                         onClick={() => deleteRule(rule.id)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       >
-                        <Trash2 size={14} />
+                        <Icon name="Trash2" size={14} />
                       </button>
                     </div>
                   </td>

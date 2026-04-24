@@ -2,21 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Plus,
-  Trash2,
-  Save,
-  FileText,
-  ArrowLeft,
-  Info,
-  Box,
-  Receipt,
-  TrendingUp,
-  CheckCircle2,
-  Eye,
-  Send,
-  XCircle,
-} from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { toast } from 'sonner';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
@@ -208,7 +194,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             onClick={() => router.push(paths.sales.pipeline)}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2"
           >
-            <ArrowLeft size={15} />
+            <Icon name="ArrowLeft" size={15} />
             Volver al Pipeline
           </button>
           <div className="flex items-center gap-3">
@@ -240,7 +226,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
           {isBorrador && (
             <>
               <Button variant="outline" onClick={handleSave} loading={isSaving}>
-                <Save size={16} />
+                <Icon name="Save" size={16} />
                 Guardar borrador
               </Button>
               <Button
@@ -248,7 +234,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                 className="border-red-300 text-red-500 hover:bg-red-500/10"
                 onClick={handleReject}
               >
-                <XCircle size={16} />
+                <Icon name="XCircle" size={16} />
                 Rechazar
               </Button>
               <Button
@@ -257,7 +243,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                 loading={isSending}
                 disabled={quotation.products.length === 0}
               >
-                <Send size={16} />
+                <Icon name="Send" size={16} />
                 Enviar al cliente
               </Button>
             </>
@@ -270,7 +256,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                 variant="outline"
                 onClick={() => toast.info('Vista previa de cotización próximamente...')}
               >
-                <Eye size={16} />
+                <Icon name="Eye" size={16} />
                 Ver cotización
               </Button>
               <Button
@@ -278,7 +264,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                 className="border-red-300 text-red-500 hover:bg-red-500/10"
                 onClick={handleReject}
               >
-                <XCircle size={16} />
+                <Icon name="XCircle" size={16} />
                 Rechazar
               </Button>
               <Button
@@ -286,7 +272,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                 onClick={handleConvert}
                 loading={isConverting}
               >
-                <CheckCircle2 size={16} />
+                <Icon name="CheckCircle2" size={16} />
                 Convertir a Factura
               </Button>
             </>
@@ -298,7 +284,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
               className="bg-purple-600 hover:bg-purple-700 text-white font-semibold"
               onClick={() => router.push(paths.sales.invoice(invoice.id))}
             >
-              <FileText size={16} />
+              <Icon name="FileText" size={16} />
               Ver Factura
             </Button>
           )}
@@ -321,7 +307,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-6">
                 <div className="w-5 h-5 flex items-center justify-center rounded-full text-indigo-500 border border-indigo-500/20 bg-indigo-500/10 shrink-0">
-                  <Info size={12} strokeWidth={3} />
+                  <Icon name="Info" size={12} strokeWidth={3} />
                 </div>
                 <h2 className="text-sm font-bold text-foreground">Información General</h2>
               </div>
@@ -363,7 +349,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
           <Card className="border-none shadow-card overflow-hidden py-0 gap-0">
             <div className="flex items-center justify-between px-6 py-5 border-b border-border/40">
               <div className="flex items-center gap-2">
-                <Box size={18} className="text-indigo-500" />
+                <Icon name="Box" size={18} className="text-indigo-500" />
                 <h2 className="text-sm font-bold text-foreground">Líneas de Producto</h2>
               </div>
               <button
@@ -371,7 +357,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                 onClick={addLine}
                 className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold rounded-full bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 transition-colors"
               >
-                <Plus size={14} />
+                <Icon name="Plus" size={14} />
                 Agregar Línea
               </button>
             </div>
@@ -403,7 +389,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                         <div className="flex flex-col items-center gap-2">
-                          <FileText size={28} className="opacity-30" />
+                          <Icon name="FileText" size={28} className="opacity-30" />
                           <span className="text-sm font-medium">
                             Sin líneas de producto. Agrega una para comenzar.
                           </span>
@@ -474,7 +460,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                             onClick={() => removeLine(line.id)}
                             className="opacity-0 group-hover:opacity-100 p-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all"
                           >
-                            <Trash2 size={16} />
+                            <Icon name="Trash2" size={16} />
                           </button>
                         </td>
                       </tr>
@@ -495,7 +481,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
           <Card className="border-none shadow-card py-0">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-5">
-                <Receipt size={16} className="text-indigo-500" />
+                <Icon name="Receipt" size={16} className="text-indigo-500" />
                 <h2 className="text-sm font-bold text-foreground">Resumen</h2>
               </div>
               <div className="space-y-4">
@@ -526,7 +512,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                  <TrendingUp size={20} className="text-white" />
+                  <Icon name="TrendingUp" size={20} className="text-white" />
                 </div>
                 <h2 className="text-sm font-semibold tracking-wide">Estadísticas</h2>
               </div>
@@ -548,7 +534,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             <Card className="border-none shadow-card py-0">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <TrendingUp size={16} className="text-amber-500" />
+                  <Icon name="TrendingUp" size={16} className="text-amber-500" />
                   <h2 className="text-sm font-bold text-foreground">Estado del Lead</h2>
                 </div>
 

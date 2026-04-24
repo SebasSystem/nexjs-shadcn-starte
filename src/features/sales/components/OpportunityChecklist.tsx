@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, Plus, Trash2 } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
@@ -71,7 +71,7 @@ export function OpportunityChecklist({ opportunity }: OpportunityChecklistProps)
                     : 'border-border hover:border-success/60'
                 )}
               >
-                {item.done && <Check size={10} strokeWidth={3} />}
+                {item.done && <Icon name="Check" size={10} strokeWidth={3} />}
               </button>
               <span
                 className={cn(
@@ -85,7 +85,7 @@ export function OpportunityChecklist({ opportunity }: OpportunityChecklistProps)
                 onClick={() => removeChecklistItem(opportunity.id, item.id)}
                 className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all p-0.5"
               >
-                <Trash2 size={12} />
+                <Icon name="Trash2" size={12} />
               </button>
             </div>
           ))
@@ -102,7 +102,7 @@ export function OpportunityChecklist({ opportunity }: OpportunityChecklistProps)
           className="flex-1 h-8 text-sm"
         />
         <Button size="sm" variant="outline" onClick={handleAdd} disabled={!newText.trim()}>
-          <Plus size={14} />
+          <Icon name="Plus" size={14} />
         </Button>
       </div>
     </div>

@@ -12,7 +12,7 @@ import {
 import { Button } from 'src/shared/components/ui/button';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import type { Tag, TagColor, TagEntity } from '../../types/tags.types';
-import { Trash2, Edit } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 
 interface TagsTableProps {
   tags: Tag[];
@@ -99,7 +99,7 @@ export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) 
               className="h-8 w-8 p-0"
               onClick={() => onEdit(info.row.original)}
             >
-              <Edit className="h-4 w-4 text-muted-foreground" />
+              <Icon name="Edit" size={16} className="text-muted-foreground" />
             </Button>
             <Button
               variant="ghost"
@@ -107,7 +107,7 @@ export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) 
               className="h-8 w-8 p-0 hover:text-red-600 hover:bg-red-50"
               onClick={() => onDelete(info.row.original.id)}
             >
-              <Trash2 className="h-4 w-4" />
+              <Icon name="Trash2" size={16} />
             </Button>
           </div>
         ),

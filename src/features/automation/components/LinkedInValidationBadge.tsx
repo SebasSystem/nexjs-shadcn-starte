@@ -1,6 +1,6 @@
 'use client';
 
-import { Linkedin } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { cn } from 'src/lib/utils';
 import {
   Tooltip,
@@ -44,7 +44,7 @@ export function LinkedInValidationBadge({ profile, className }: LinkedInValidati
               className
             )}
           >
-            <Linkedin size={10} className="shrink-0" />
+            <Icon name="Linkedin" size={10} className="shrink-0" />
             <span>{profile.validationScore}</span>
             <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', statusDot)} />
           </span>

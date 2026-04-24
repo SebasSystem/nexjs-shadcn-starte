@@ -4,7 +4,7 @@ import { useEffect, useId, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
@@ -104,11 +104,11 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
         action={
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => router.push(paths.automation.rules)}>
-              <ArrowLeft size={16} />
+              <Icon name="ArrowLeft" size={16} />
               Volver
             </Button>
             <Button color="primary" onClick={onSubmit}>
-              <Save size={16} />
+              <Icon name="Save" size={16} />
               Guardar
             </Button>
           </div>

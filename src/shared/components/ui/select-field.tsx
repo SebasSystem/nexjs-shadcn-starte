@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useId } from 'react';
-import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { Icon } from './icon';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import {
   Command,
@@ -135,7 +135,7 @@ export function SelectField({
                       }}
                       className="rounded-full hover:bg-muted ml-0.5 p-0.5 outline-none cursor-pointer"
                     >
-                      <X className="h-3 w-3" />
+                      <Icon name="X" className="h-3 w-3" />
                     </div>
                   </Badge>
                 ))
@@ -155,10 +155,10 @@ export function SelectField({
                   onClick={clear}
                   className="rounded p-0.5 text-muted-foreground hover:text-foreground outline-none cursor-pointer"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <Icon name="X" className="h-3.5 w-3.5" />
                 </div>
               )}
-              <ChevronsUpDown className="h-4 w-4 shrink-0 text-muted-foreground opacity-50" />
+              <Icon name="ChevronsUpDown" className="h-4 w-4 shrink-0 text-muted-foreground opacity-50" />
             </div>
           </button>
         </PopoverTrigger>
@@ -183,7 +183,7 @@ export function SelectField({
                     {opt.icon}
                     {opt.label}
                     {selected.includes(opt.value) && (
-                      <Check className="ml-auto h-4 w-4 text-primary" />
+                      <Icon name="Check" className="ml-auto h-4 w-4 text-primary" />
                     )}
                   </CommandItem>
                 ))}

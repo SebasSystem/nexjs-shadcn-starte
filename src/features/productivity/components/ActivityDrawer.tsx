@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calendar, Clock, User, Building2 } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { Textarea } from 'src/shared/components/ui/textarea';
@@ -117,7 +117,7 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
                     Fecha de Vencimiento (*)
                   </label>
                   <div className="relative">
-                    <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <Icon name="Calendar" className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                     <Input
                       type="date"
                       value={fecha}
@@ -131,7 +131,7 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
                     Hora límite
                   </label>
                   <div className="relative">
-                    <Clock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                    <Icon name="Clock" className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                     <Input type="time" className="pl-9" />
                   </div>
                 </div>
@@ -142,7 +142,7 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
                   Asignar a
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <Icon name="User" className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                   <Select value={asignadoA} onValueChange={setAsignadoA}>
                     <SelectTrigger className="w-full pl-9">
                       <SelectValue />
@@ -163,7 +163,7 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
                   Asociar a Cliente (Opcional)
                 </label>
                 <div className="relative">
-                  <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <Icon name="Building2" className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                   <Select value={contactoId} onValueChange={setContactoId}>
                     <SelectTrigger className="w-full pl-9">
                       <SelectValue />

@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Plus, FileText, Eye, CheckCircle2 } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Input } from 'src/shared/components/ui/input';
@@ -148,7 +148,7 @@ export function QuotationsListView() {
                 }}
                 title="Ver detalle"
               >
-                <Eye size={15} />
+                <Icon name="Eye" size={15} />
               </Button>
               {canConvert && (
                 <Button
@@ -163,7 +163,7 @@ export function QuotationsListView() {
                   }}
                   title="Convertir a factura"
                 >
-                  <CheckCircle2 size={15} />
+                  <Icon name="CheckCircle2" size={15} />
                 </Button>
               )}
             </div>
@@ -183,7 +183,7 @@ export function QuotationsListView() {
         subtitle={`${filtered.length} cotizacion${filtered.length !== 1 ? 'es' : ''}`}
         action={
           <Button color="primary" onClick={() => router.push(paths.sales.pipeline)}>
-            <Plus size={16} />
+            <Icon name="Plus" size={16} />
             Nueva Cotización
           </Button>
         }
@@ -215,7 +215,7 @@ export function QuotationsListView() {
                 <TableRow>
                   <TableCell colSpan={columns.length} className="py-16 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                      <FileText size={32} className="opacity-30" />
+                      <Icon name="FileText" size={32} className="opacity-30" />
                       <span className="text-sm">
                         {search || statusFilter
                           ? 'Sin resultados para los filtros aplicados'

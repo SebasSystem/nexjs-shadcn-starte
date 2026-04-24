@@ -2,7 +2,7 @@
 
 import { useFieldArray } from 'react-hook-form';
 import type { UseFormReturn } from 'react-hook-form';
-import { Trash2, Plus } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
@@ -81,7 +81,7 @@ export function ActionBlock({ form }: ActionBlockProps) {
                   onClick={() => remove(index)}
                   className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                 >
-                  <Trash2 size={13} />
+                  <Icon name="Trash2" size={13} />
                 </button>
               </div>
 
@@ -186,7 +186,7 @@ export function ActionBlock({ form }: ActionBlockProps) {
         className="mt-4 gap-1.5 text-xs"
         onClick={handleAddAction}
       >
-        <Plus size={13} />
+        <Icon name="Plus" size={13} />
         Agregar acción
       </Button>
     </SectionCard>

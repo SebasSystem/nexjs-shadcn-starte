@@ -7,18 +7,7 @@ import { useAgendaItems } from '../hooks/use-agenda-items';
 import { ActivityDrawer } from '../components/ActivityDrawer';
 import { format, isToday, isPast, isTomorrow, isThisWeek } from 'date-fns';
 import { es } from 'date-fns/locale';
-import {
-  Clock,
-  CheckCircle2,
-  Circle,
-  AlertCircle,
-  CalendarDays,
-  Plus,
-  MoreHorizontal,
-  Check,
-  User,
-  ArrowRight,
-} from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
 import type { Actividad, EstadoActividad, ActividadSource } from '../types/productivity.types';
@@ -42,12 +31,12 @@ const SOURCE_CONFIG: Record<ActividadSource, { label: string; className: string 
 const getEstadoIcon = (estado: EstadoActividad) => {
   switch (estado) {
     case 'PENDIENTE':
-      return <Circle size={20} className="text-gray-300 hover:text-blue-500 transition-colors" />;
+      return <Icon name="Circle" size={20} className="text-gray-300 hover:text-blue-500 transition-colors" />;
     case 'COMPLETADA':
-      return <CheckCircle2 size={20} className="text-emerald-500" />;
+      return <Icon name="CheckCircle2" size={20} className="text-emerald-500" />;
     case 'VENCIDA':
       return (
-        <AlertCircle size={20} className="text-red-500 hover:text-red-600 transition-colors" />
+        <Icon name="AlertCircle" size={20} className="text-red-500 hover:text-red-600 transition-colors" />
       );
   }
 };
@@ -145,7 +134,7 @@ export const ScheduleView = () => {
         subtitle="Tareas, hitos y reuniones del pipeline y proyectos, todo en un solo lugar."
         action={
           <Button color="primary" onClick={() => setIsDrawerOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
+            <Icon name="Plus" className="h-4 w-4" />
             Nueva Actividad
           </Button>
         }
@@ -159,7 +148,7 @@ export const ScheduleView = () => {
             <h3 className="text-2xl font-bold text-gray-900">{stats.vencidas}</h3>
           </div>
           <div className="h-12 w-12 bg-red-50 rounded-full flex items-center justify-center text-red-600">
-            <AlertCircle size={24} />
+            <Icon name="AlertCircle" size={24} />
           </div>
         </SectionCard>
         <SectionCard className="hover:border-blue-200 hover:shadow-sm transition flex items-center justify-between">
@@ -168,7 +157,7 @@ export const ScheduleView = () => {
             <h3 className="text-2xl font-bold text-gray-900">{stats.hoy}</h3>
           </div>
           <div className="h-12 w-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600">
-            <CalendarDays size={24} />
+            <Icon name="CalendarDays" size={24} />
           </div>
         </SectionCard>
         <SectionCard className="hover:border-emerald-200 hover:shadow-sm transition flex items-center justify-between">
@@ -177,7 +166,7 @@ export const ScheduleView = () => {
             <h3 className="text-2xl font-bold text-gray-900">{stats.completadas}</h3>
           </div>
           <div className="h-12 w-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
-            <CheckCircle2 size={24} />
+            <Icon name="CheckCircle2" size={24} />
           </div>
         </SectionCard>
       </div>
@@ -226,7 +215,7 @@ export const ScheduleView = () => {
       ) : groupedData.length === 0 ? (
         <SectionCard className="p-16 text-center flex flex-col items-center justify-center">
           <div className="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-4">
-            <Check size={32} />
+            <Icon name="Check" size={32} />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-1">Todo al día</h3>
           <p className="text-sm text-gray-500 mb-6">No hay actividades para este filtro.</p>
@@ -351,11 +340,11 @@ export const ScheduleView = () => {
                                   title="Ir a la fuente"
                                 >
                                   Ver
-                                  <ArrowRight size={12} />
+                                  <Icon name="ArrowRight" size={12} />
                                 </button>
                               ) : (
                                 <button className="p-1 hover:bg-muted rounded text-muted-foreground">
-                                  <MoreHorizontal size={16} />
+                                  <Icon name="MoreHorizontal" size={16} />
                                 </button>
                               )}
                             </div>
@@ -370,7 +359,8 @@ export const ScheduleView = () => {
 
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-4 text-[12px] font-medium text-muted-foreground">
                           <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md border border-border/50">
-                            <Clock
+                            <Icon
+                              name="Clock"
                               size={14}
                               className={groupName === 'Vencidas' ? 'text-red-500' : 'text-primary'}
                             />
@@ -385,7 +375,7 @@ export const ScheduleView = () => {
                             </span>
                           </div>
                           <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md border border-border/50">
-                            <User size={14} className="text-emerald-500" />
+                            <Icon name="User" size={14} className="text-emerald-500" />
                             <span className="text-foreground">{actividad.asignadoA}</span>
                           </div>
                         </div>

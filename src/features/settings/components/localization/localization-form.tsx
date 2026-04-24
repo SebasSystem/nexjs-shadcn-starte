@@ -3,7 +3,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from 'src/shared/components/ui/button';
-import { Globe, Clock, DollarSign, Calendar, Languages, CheckCircle2 } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import type { ConfigLocalizacion } from '../../types/settings.types';
 
 const ZONAS_HORARIAS = [
@@ -76,7 +76,7 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="space-y-1.5">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <Clock size={15} className="text-muted-foreground" />
+            <Icon name="Clock" size={15} className="text-muted-foreground" />
             Zona horaria
           </label>
           <select
@@ -93,7 +93,7 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
 
         <div className="space-y-1.5">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <DollarSign size={15} className="text-muted-foreground" />
+            <Icon name="DollarSign" size={15} className="text-muted-foreground" />
             Moneda principal
           </label>
           <select
@@ -110,7 +110,7 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
 
         <div className="space-y-1.5">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <Calendar size={15} className="text-muted-foreground" />
+            <Icon name="Calendar" size={15} className="text-muted-foreground" />
             Formato de fecha
           </label>
           <select
@@ -127,7 +127,7 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
 
         <div className="space-y-1.5">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <Languages size={15} className="text-muted-foreground" />
+            <Icon name="Languages" size={15} className="text-muted-foreground" />
             Idioma
           </label>
           <select
@@ -149,12 +149,12 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
           disabled={!isDirty || isSaving}
           className="bg-blue-600 hover:bg-blue-700 gap-2"
         >
-          <Globe size={15} />
+          <Icon name="Globe" size={15} />
           {isSaving ? 'Guardando...' : 'Guardar configuración'}
         </Button>
         {saved && (
           <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
-            <CheckCircle2 size={15} />
+            <Icon name="CheckCircle2" size={15} />
             Guardado correctamente
           </span>
         )}

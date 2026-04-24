@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Eye, Pencil, MoreHorizontal, Users } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Button } from 'src/shared/components/ui/button';
 import {
@@ -117,15 +117,15 @@ export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: Con
                 className="h-7 w-7"
                 onClick={() => onViewDetail(c)}
               >
-                <Eye className="h-3.5 w-3.5" />
+                <Icon name="Eye" className="h-3.5 w-3.5" />
               </Button>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(c)}>
-                <Pencil className="h-3.5 w-3.5" />
+                <Icon name="Pencil" className="h-3.5 w-3.5" />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <MoreHorizontal className="h-3.5 w-3.5" />
+                    <Icon name="MoreHorizontal" className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -154,7 +154,7 @@ export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: Con
   if (contactos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <Users className="h-10 w-10 mb-3 opacity-40" />
+        <Icon name="Users" className="h-10 w-10 mb-3 opacity-40" />
         <p className="text-body2">No se encontraron contactos con los filtros aplicados.</p>
       </div>
     );

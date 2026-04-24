@@ -5,7 +5,7 @@ import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/la
 import { useTenants } from 'src/features/admin/hooks/use-tenants';
 import { usePlansAdmin } from 'src/features/admin/hooks/use-plans-admin';
 import { Button } from 'src/shared/components/ui/button';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { TenantsTable } from 'src/features/admin/components/tenants-table';
 import { TenantDetailDrawer } from 'src/features/admin/components/tenant-detail-drawer';
 import { TenantFormDrawer } from 'src/features/admin/components/tenant-form-drawer';
@@ -79,7 +79,7 @@ export const TenantsView = () => {
         subtitle="Gestiona todos los clientes del sistema"
         action={
           <Button color="primary" onClick={handleOpenNew} className="gap-2">
-            <Plus className="h-4 w-4" />
+            <Icon name="Plus" className="h-4 w-4" />
             Nuevo Tenant
           </Button>
         }
@@ -91,7 +91,7 @@ export const TenantsView = () => {
             placeholder="Buscar por nombre o dominio..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            leftIcon={<Search className="h-4 w-4" />}
+            leftIcon={<Icon name="Search" className="h-4 w-4" />}
             className="flex-1 w-full max-w-sm"
           />
 
@@ -133,7 +133,7 @@ export const TenantsView = () => {
                 }}
                 className="text-muted-foreground h-10 px-3"
               >
-                <Filter className="h-4 w-4 mr-2" />
+                <Icon name="Filter" className="h-4 w-4 mr-2" />
                 Limpiar <span className="ml-1 opacity-70">({activeFiltersCount})</span>
               </Button>
             )}

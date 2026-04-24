@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Plus, Trash2 } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import {
   Sheet,
@@ -201,7 +201,7 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
                           onClick={() => setOpciones((prev) => prev.filter((o) => o !== op))}
                           className="text-gray-400 hover:text-red-600 transition-colors"
                         >
-                          <Trash2 size={13} />
+                          <Icon name="Trash2" size={13} />
                         </button>
                       </div>
                     ))}
@@ -224,7 +224,7 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
                     onClick={addOpcion}
                     className="h-8 gap-1"
                   >
-                    <Plus size={13} /> Agregar
+                    <Icon name="Plus" size={13} /> Agregar
                   </Button>
                 </div>
               </div>

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
-import { Plus, Tags as TagsIcon } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { useTags } from '../hooks/use-tags';
 import { TagsTable } from '../components/tags/tags-table';
 import { TagDrawer } from '../components/tags/tag-drawer';
@@ -37,7 +37,7 @@ export const TagsView = () => {
         subtitle="Gestiona las etiquetas (tags) para categorizar tus clientes, prospectos y negocios."
         action={
           <Button color="primary" onClick={handleOpenNew} className="gap-2">
-            <Plus className="h-4 w-4" />
+            <Icon name="Plus" size={16} />
             Nueva etiqueta
           </Button>
         }
@@ -57,7 +57,7 @@ export const TagsView = () => {
         ) : tags.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="bg-primary/10 p-4 rounded-full mb-4">
-              <TagsIcon className="h-12 w-12 text-primary opacity-80" />
+              <Icon name="Tags" size={48} className="text-primary opacity-80" />
             </div>
             <h3 className="text-h6 text-foreground font-semibold mb-2">No hay etiquetas creadas</h3>
             <p className="text-body2 text-muted-foreground max-w-sm mb-6">

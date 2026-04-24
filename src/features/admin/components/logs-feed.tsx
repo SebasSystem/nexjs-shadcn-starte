@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { LogEntry } from 'src/features/admin/types/admin.types';
 
 interface LogsFeedProps {
@@ -89,7 +89,7 @@ export function LogsFeed({ logs }: LogsFeedProps) {
           ))}
         </div>
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Icon name="Search" className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <input
             type="text"
             value={busqueda}

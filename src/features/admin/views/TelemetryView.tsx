@@ -9,15 +9,7 @@ import {
 } from 'src/shared/components/layouts/page';
 import { useTelemetry } from 'src/features/admin/hooks/use-telemetry';
 import { Button } from 'src/shared/components/ui/button';
-import {
-  Settings,
-  CheckCircle2,
-  AlertOctagon,
-  Building2,
-  Zap,
-  ArrowRight,
-  Bell,
-} from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { LogsFeed } from 'src/features/admin/components/logs-feed';
 import { AlertsDrawer } from 'src/features/admin/components/alerts-drawer';
@@ -189,7 +181,7 @@ export const TelemetryView = () => {
             size="sm"
             className="text-blue-600 font-medium h-8 hover:bg-blue-50"
           >
-            Ver logs <ArrowRight className="h-3.5 w-3.5 ml-1" />
+            Ver logs <Icon name="ArrowRight" className="h-3.5 w-3.5 ml-1" />
           </Button>
         ),
       }),
@@ -280,7 +272,7 @@ export const TelemetryView = () => {
         subtitle="Monitoreo de errores y salud del sistema por tenant"
         action={
           <Button color="primary" onClick={() => handleOpenAlertas()} className="gap-2">
-            <Settings className="h-4 w-4" />
+            <Icon name="Settings" className="h-4 w-4" />
             Configurar Alertas
           </Button>
         }
@@ -291,7 +283,7 @@ export const TelemetryView = () => {
           title="Uptime Global"
           value="99.94%"
           trend="SLA: 99.9%"
-          icon={<CheckCircle2 className="h-5 w-5" />}
+          icon={<Icon name="CheckCircle2" className="h-5 w-5" />}
           iconClassName="bg-emerald-500/10 text-emerald-600"
         />
         <StatsCard
@@ -299,14 +291,14 @@ export const TelemetryView = () => {
           value="143"
           trend="-22% vs ayer"
           trendUp={false}
-          icon={<AlertOctagon className="h-5 w-5" />}
+          icon={<Icon name="AlertOctagon" className="h-5 w-5" />}
           iconClassName="bg-red-500/10 text-red-600"
         />
         <StatsCard
           title="Tenants con errores"
           value="8"
           trend="5 críticos"
-          icon={<Building2 className="h-5 w-5" />}
+          icon={<Icon name="Building2" className="h-5 w-5" />}
           iconClassName="bg-amber-500/10 text-amber-600"
         />
         <StatsCard
@@ -314,7 +306,7 @@ export const TelemetryView = () => {
           value="240ms"
           trend="↑ +30ms vs ayer"
           trendUp={false}
-          icon={<Zap className="h-5 w-5" />}
+          icon={<Icon name="Zap" className="h-5 w-5" />}
           iconClassName="bg-purple-500/10 text-purple-600"
         />
       </div>
@@ -399,7 +391,7 @@ export const TelemetryView = () => {
           ) : alertas.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="bg-primary/10 p-4 rounded-full mb-4">
-                <Bell className="h-12 w-12 text-primary opacity-80" />
+                <Icon name="Bell" className="h-12 w-12 text-primary opacity-80" />
               </div>
               <h3 className="text-h6 text-foreground font-semibold mb-2">
                 No hay alertas configuradas
@@ -409,7 +401,7 @@ export const TelemetryView = () => {
                 críticos en los tenants.
               </p>
               <Button color="primary" onClick={() => handleOpenAlertas()} className="gap-2">
-                Configura tu primera alerta <ArrowRight className="h-4 w-4" />
+                Configura tu primera alerta <Icon name="ArrowRight" className="h-4 w-4" />
               </Button>
             </div>
           ) : (

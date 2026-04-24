@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { Switch } from 'src/shared/components/ui/switch';
@@ -132,10 +132,10 @@ export function CreditRulesView() {
         cell: () => (
           <div className="flex items-center justify-center gap-2">
             <button className="text-muted-foreground hover:text-primary transition-colors p-1 rounded-lg hover:bg-primary/10">
-              <Pencil size={15} />
+              <Icon name="Pencil" size={15} />
             </button>
             <button className="text-muted-foreground hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-500/10">
-              <Trash2 size={15} />
+              <Icon name="Trash2" size={15} />
             </button>
           </div>
         ),
@@ -207,7 +207,7 @@ export function CreditRulesView() {
         <div className="px-6 py-4 flex items-center justify-between">
           <h2 className="text-h6 text-foreground">Excepciones por cliente</h2>
           <Button variant="outline" size="sm">
-            <Plus size={15} />
+            <Icon name="Plus" size={15} />
             Agregar excepción
           </Button>
         </div>

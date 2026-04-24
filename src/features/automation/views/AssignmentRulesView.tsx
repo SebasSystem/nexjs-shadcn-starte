@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Users } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { ASSIGNMENT_RULE_TYPE_LABELS } from '../types';
@@ -39,7 +39,7 @@ export function AssignmentRulesView() {
         subtitle="Configurá cómo se distribuyen automáticamente los leads entre los vendedores"
         action={
           <Button color="primary" onClick={() => setDrawerOpen(true)}>
-            <Plus size={16} />
+            <Icon name="Plus" size={16} />
             Nueva regla
           </Button>
         }
@@ -91,7 +91,7 @@ export function AssignmentRulesView() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <Users size={13} className="shrink-0" />
+                      <Icon name="Users" size={13} className="shrink-0" />
                       <span>{getUserNames(rule.userIds)}</span>
                     </div>
                   </td>
@@ -105,14 +105,14 @@ export function AssignmentRulesView() {
                         onClick={() => handleEdit(rule)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                       >
-                        <Pencil size={14} />
+                        <Icon name="Pencil" size={14} />
                       </button>
                       <button
                         title="Eliminar"
                         onClick={() => deleteAssignmentRule(rule.id)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       >
-                        <Trash2 size={14} />
+                        <Icon name="Trash2" size={14} />
                       </button>
                     </div>
                   </td>

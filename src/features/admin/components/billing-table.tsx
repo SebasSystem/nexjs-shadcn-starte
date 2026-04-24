@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Eye, AlertCircle, FileText } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
@@ -145,7 +145,7 @@ export function BillingTable({ facturas, onViewDetail, onMarcarPagadas }: Billin
           if (vencidaDate) {
             return (
               <span className="flex items-center gap-1 text-red-600 font-semibold text-body2">
-                <AlertCircle className="h-3.5 w-3.5" />
+                <Icon name="AlertCircle" className="h-3.5 w-3.5" />
                 {formatDate(factura.fechaVencimiento)}
               </span>
             );
@@ -174,7 +174,7 @@ export function BillingTable({ facturas, onViewDetail, onMarcarPagadas }: Billin
                 className="h-7 w-7"
                 onClick={() => onViewDetail(factura)}
               >
-                <Eye className="h-3.5 w-3.5" />
+                <Icon name="Eye" className="h-3.5 w-3.5" />
               </Button>
             </div>
           );
@@ -194,7 +194,7 @@ export function BillingTable({ facturas, onViewDetail, onMarcarPagadas }: Billin
   if (facturas.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <FileText className="h-10 w-10 mb-3 opacity-40" />
+        <Icon name="FileText" className="h-10 w-10 mb-3 opacity-40" />
         <p className="text-body2">No se encontraron facturas con los filtros aplicados.</p>
       </div>
     );

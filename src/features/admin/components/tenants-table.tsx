@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Eye, Pencil, MoreHorizontal, UserCheck } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
@@ -153,7 +153,7 @@ export function TenantsTable({ tenants, onEdit, onViewDetail, onSuspend }: Tenan
                 className="h-7 w-7"
                 onClick={() => onViewDetail(tenant)}
               >
-                <Eye className="h-3.5 w-3.5" />
+                <Icon name="Eye" className="h-3.5 w-3.5" />
               </Button>
               <Button
                 variant="ghost"
@@ -161,12 +161,12 @@ export function TenantsTable({ tenants, onEdit, onViewDetail, onSuspend }: Tenan
                 className="h-7 w-7"
                 onClick={() => onEdit(tenant)}
               >
-                <Pencil className="h-3.5 w-3.5" />
+                <Icon name="Pencil" className="h-3.5 w-3.5" />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <MoreHorizontal className="h-3.5 w-3.5" />
+                    <Icon name="MoreHorizontal" className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -193,7 +193,7 @@ export function TenantsTable({ tenants, onEdit, onViewDetail, onSuspend }: Tenan
   if (tenants.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <UserCheck className="h-10 w-10 mb-3 opacity-40" />
+        <Icon name="UserCheck" className="h-10 w-10 mb-3 opacity-40" />
         <p className="text-body2">No se encontraron tenants con los filtros aplicados.</p>
       </div>
     );

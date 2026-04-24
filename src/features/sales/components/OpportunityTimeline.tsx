@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { CalendarDays, Mail, Phone, MessageSquare, Check, Trash2, Edit2, X } from 'lucide-react';
+import { Icon, type IconName } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Textarea } from 'src/shared/components/ui/textarea';
 import {
@@ -23,13 +23,13 @@ interface OpportunityTimelineProps {
   opportunity: Opportunity;
 }
 
-const ACTIVITY_ICONS: Record<ActivityType | 'nota', React.ElementType> = {
-  llamada: Phone,
-  email: Mail,
-  reunion: CalendarDays,
-  demo: CalendarDays,
-  seguimiento: CalendarDays,
-  nota: MessageSquare,
+const ACTIVITY_ICONS: Record<ActivityType | 'nota', IconName> = {
+  llamada: 'Phone',
+  email: 'Mail',
+  reunion: 'CalendarDays',
+  demo: 'CalendarDays',
+  seguimiento: 'CalendarDays',
+  nota: 'MessageSquare',
 };
 
 export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
@@ -222,7 +222,7 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
         ) : (
           <div className="space-y-6 relative before:absolute before:top-0 before:bottom-0 before:left-5 before:w-0.5 before:-translate-x-1/2 before:bg-gradient-to-b before:from-transparent before:via-border/60 before:to-transparent">
             {timelineItems.map((item) => {
-              const Icon = ACTIVITY_ICONS[item.type] || Mail;
+              const activityIcon = ACTIVITY_ICONS[item.type] ?? 'Mail';
               const isNote = item.type === 'nota';
 
               return (
@@ -235,9 +235,9 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
                     )}
                   >
                     {'status' in item && (item as { status?: string }).status === 'completada' ? (
-                      <Check size={16} />
+                      <Icon name="Check" size={16} />
                     ) : (
-                      <Icon size={16} />
+                      <Icon name={activityIcon} size={16} />
                     )}
                   </div>
 
@@ -263,14 +263,14 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
                           className="p-1 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded transition-colors"
                           title="Editar"
                         >
-                          <Edit2 size={12} />
+                          <Icon name="Edit2" size={12} />
                         </button>
                         <button
                           onClick={() => setDeleteItem({ id: item.id, type: item.type })}
                           className="p-1 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
                           title="Eliminar"
                         >
-                          <Trash2 size={12} />
+                          <Icon name="Trash2" size={12} />
                         </button>
                       </div>
                     </div>
@@ -290,7 +290,7 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
                             onClick={() => setEditingId(null)}
                             className="h-7 text-xs px-2"
                           >
-                            <X size={12} className="mr-1" /> Cancelar
+                            <Icon name="X" size={12} className="mr-1" /> Cancelar
                           </Button>
                           <Button
                             size="sm"
@@ -298,7 +298,7 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
                             onClick={() => handleUpdate(item)}
                             className="h-7 text-xs px-2"
                           >
-                            <Check size={12} className="mr-1" /> Guardar
+                            <Icon name="Check" size={12} className="mr-1" /> Guardar
                           </Button>
                         </div>
                       </div>

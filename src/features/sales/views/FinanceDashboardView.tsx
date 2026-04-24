@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { TrendingUp, Clock, AlertCircle, BarChart2 } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
 import {
@@ -234,7 +234,7 @@ export function FinanceDashboardView() {
           value={formatMXN(842300)}
           trend="+12% vs mes anterior"
           trendUp={true}
-          icon={<TrendingUp size={20} />}
+          icon={<Icon name="TrendingUp" size={20} />}
           iconClassName="bg-emerald-500/10 text-emerald-500"
         />
         <StatsCard
@@ -242,7 +242,7 @@ export function FinanceDashboardView() {
           value="23 facturas"
           trend={`${formatMXN(187500)} pendiente`}
           trendUp={false}
-          icon={<Clock size={20} />}
+          icon={<Icon name="Clock" size={20} />}
           iconClassName="bg-amber-500/10 text-amber-500"
         />
         <StatsCard
@@ -250,7 +250,7 @@ export function FinanceDashboardView() {
           value={formatMXN(43200)}
           trend="3 clientes en mora"
           trendUp={false}
-          icon={<AlertCircle size={20} />}
+          icon={<Icon name="AlertCircle" size={20} />}
           iconClassName="bg-red-500/10 text-red-500"
         />
         <StatsCard
@@ -258,7 +258,7 @@ export function FinanceDashboardView() {
           value="48.3%"
           trend="Meta: 45%"
           trendUp={true}
-          icon={<BarChart2 size={20} />}
+          icon={<Icon name="BarChart2" size={20} />}
           iconClassName="bg-indigo-500/10 text-indigo-500"
         />
       </div>

@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { useDashboardCommissions } from 'src/features/commissions/hooks/use-dashboard';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { Target, TrendingUp, DollarSign, CheckCircle2 } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   useTable,
   TableHeadCustom,
@@ -108,7 +108,7 @@ export const CommissionsDashboardView = () => {
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Meta Mensual
             </span>
-            <Target className="text-blue-500" size={20} />
+            <Icon name="Target" className="text-blue-500" size={20} />
           </div>
           <div className="text-3xl font-bold">${kpis.metaMensual.toLocaleString()}</div>
           <div className="text-xs text-muted-foreground mt-2">Periodo actual</div>
@@ -119,7 +119,7 @@ export const CommissionsDashboardView = () => {
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Ventas Logradas
             </span>
-            <TrendingUp className="text-green-500" size={20} />
+            <Icon name="TrendingUp" className="text-green-500" size={20} />
           </div>
           <div
             className={`text-3xl font-bold ${porcentajeMeta >= 50 ? 'text-green-600' : 'text-foreground'}`}
@@ -142,7 +142,7 @@ export const CommissionsDashboardView = () => {
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Comisión Proyectada
             </span>
-            <DollarSign className="text-yellow-600" size={20} />
+            <Icon name="DollarSign" className="text-yellow-600" size={20} />
           </div>
           <div className="text-3xl font-bold text-blue-600 h-[36px]">
             ${kpis.comisionProyectada.toLocaleString()}
@@ -155,7 +155,7 @@ export const CommissionsDashboardView = () => {
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Liquidado
             </span>
-            <CheckCircle2 className="text-green-500" size={20} />
+            <Icon name="CheckCircle2" className="text-green-500" size={20} />
           </div>
           <div className="text-3xl font-bold text-green-700 h-[36px]">
             ${kpis.comisionLiquidada.toLocaleString()}

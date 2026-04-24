@@ -1,16 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import {
-  MoreHorizontal,
-  Pencil,
-  Users,
-  HardDrive,
-  Zap,
-  HeadphonesIcon,
-  CheckCircle2,
-  XCircle,
-} from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import {
@@ -94,12 +85,12 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
           </div>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(plan)}>
-              <Pencil className="h-3.5 w-3.5" />
+              <Icon name="Pencil" className="h-3.5 w-3.5" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <MoreHorizontal className="h-3.5 w-3.5" />
+                  <Icon name="MoreHorizontal" className="h-3.5 w-3.5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -125,7 +116,7 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
             <AccordionContent>
               <div className="space-y-2 pt-1">
                 <div className="flex items-center gap-2 text-body2">
-                  <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <Icon name="Users" className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">Usuarios:</span>
                   <span className="font-medium text-foreground">
                     {plan.features.limiteUsuarios === null
@@ -134,7 +125,7 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-body2">
-                  <HardDrive className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <Icon name="HardDrive" className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">Almacenamiento:</span>
                   <span className="font-medium text-foreground">
                     {plan.features.almacenamientoGB === null
@@ -143,7 +134,7 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-body2">
-                  <Zap className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <Icon name="Zap" className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">API calls/mes:</span>
                   <span className="font-medium text-foreground">
                     {plan.features.apiCallsMes === null
@@ -154,7 +145,7 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-body2">
-                  <HeadphonesIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <Icon name="Headphones" className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">Soporte:</span>
                   <span className="font-medium text-foreground">
                     {soporteLabel[plan.features.soporte]}
@@ -179,31 +170,31 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
                 <div className="grid grid-cols-2 gap-1 pt-1">
                   <div className="flex items-center gap-1.5 text-caption">
                     {plan.features.customDomain ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                      <Icon name="CheckCircle2" className="h-3.5 w-3.5 text-emerald-500" />
                     ) : (
-                      <XCircle className="h-3.5 w-3.5 text-muted-foreground/40" />
+                      <Icon name="XCircle" className="h-3.5 w-3.5 text-muted-foreground/40" />
                     )}
                     <span className="text-muted-foreground">Custom Domain</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-caption">
                     {plan.features.sso ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                      <Icon name="CheckCircle2" className="h-3.5 w-3.5 text-emerald-500" />
                     ) : (
-                      <XCircle className="h-3.5 w-3.5 text-muted-foreground/40" />
+                      <Icon name="XCircle" className="h-3.5 w-3.5 text-muted-foreground/40" />
                     )}
                     <span className="text-muted-foreground">SSO</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-caption">
                     {plan.features.reportesAvanzados ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                      <Icon name="CheckCircle2" className="h-3.5 w-3.5 text-emerald-500" />
                     ) : (
-                      <XCircle className="h-3.5 w-3.5 text-muted-foreground/40" />
+                      <Icon name="XCircle" className="h-3.5 w-3.5 text-muted-foreground/40" />
                     )}
                     <span className="text-muted-foreground">Reportes avanzados</span>
                   </div>
                   {plan.features.slaUptime && (
                     <div className="flex items-center gap-1.5 text-caption">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                      <Icon name="CheckCircle2" className="h-3.5 w-3.5 text-emerald-500" />
                       <span className="text-muted-foreground">SLA {plan.features.slaUptime}%</span>
                     </div>
                   )}

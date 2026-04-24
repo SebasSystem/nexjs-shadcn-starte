@@ -11,7 +11,7 @@ import {
   SheetFooter,
 } from 'src/shared/components/ui/sheet';
 import { Input } from 'src/shared/components/ui/input';
-import { Trash2, PlusCircle, SplitSquareVertical } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import type { Segment, SegmentForm, Rule, FieldType, Operator } from '../../types/segments.types';
 
 const FIELDS: { value: FieldType; label: string }[] = [
@@ -111,7 +111,7 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
           <div className="space-y-4 pt-4 border-t border-border/40">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <SplitSquareVertical className="h-5 w-5 text-primary" />
+                <Icon name="SplitSquareVertical" className="h-5 w-5 text-primary" />
                 <h3 className="font-semibold text-foreground">Reglas de Búsqueda</h3>
               </div>
               <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-md">
@@ -189,7 +189,7 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
                       onClick={() => removeRule(regla.id)}
                       disabled={reglas.length === 1}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Icon name="Trash2" className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -201,7 +201,7 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
                 className="mt-4 w-full border-dashed border-2 bg-transparent text-muted-foreground font-semibold gap-2 hover:bg-muted/40 hover:text-foreground"
                 onClick={addRule}
               >
-                <PlusCircle className="h-4 w-4" />
+                <Icon name="PlusCircle" className="h-4 w-4" />
                 Agregar Condición
               </Button>
             </div>

@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Plus, FileText, Eye, AlertTriangle } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Input } from 'src/shared/components/ui/input';
@@ -134,7 +134,7 @@ export function InvoicesListView() {
           return (
             <span className={overdue ? 'text-red-500 font-medium' : 'text-muted-foreground'}>
               {formatDate(row.original.dueDate)}
-              {overdue && <AlertTriangle size={12} className="inline ml-1" />}
+              {overdue && <Icon name="AlertTriangle" size={12} className="inline ml-1" />}
             </span>
           );
         },
@@ -194,7 +194,7 @@ export function InvoicesListView() {
             }}
             title="Ver detalle"
           >
-            <Eye size={15} />
+            <Icon name="Eye" size={15} />
           </Button>
         ),
       }),
@@ -211,7 +211,7 @@ export function InvoicesListView() {
         subtitle={`${filtered.length} factura${filtered.length !== 1 ? 's' : ''}`}
         action={
           <Button color="primary" onClick={() => router.push(paths.sales.pipeline)}>
-            <Plus size={16} />
+            <Icon name="Plus" size={16} />
             Nueva Factura
           </Button>
         }
@@ -220,7 +220,7 @@ export function InvoicesListView() {
       {/* Alerta de mora */}
       {overdueCount > 0 && (
         <div className="flex items-center gap-3 p-4 mb-5 bg-red-500/10 border border-red-500/20 rounded-xl text-sm">
-          <AlertTriangle size={18} className="text-red-500 shrink-0" />
+          <Icon name="AlertTriangle" size={18} className="text-red-500 shrink-0" />
           <span className="font-medium text-red-700 dark:text-red-400">
             {overdueCount} factura{overdueCount !== 1 ? 's' : ''} vencida
             {overdueCount !== 1 ? 's' : ''} — saldo en mora:{' '}
@@ -255,7 +255,7 @@ export function InvoicesListView() {
                 <TableRow>
                   <TableCell colSpan={columns.length} className="py-16 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                      <FileText size={32} className="opacity-30" />
+                      <Icon name="FileText" size={32} className="opacity-30" />
                       <span className="text-sm">
                         {search || statusFilter
                           ? 'Sin resultados para los filtros aplicados'

@@ -11,16 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from 'src/shared/components/ui/select';
-import { PhoneCall, Mail, StickyNote, Activity } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import type { TipoInteraccion } from '../types/productivity.types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const ICONS = {
-  NOTA: <StickyNote size={16} className="text-amber-500" />,
-  LLAMADA: <PhoneCall size={16} className="text-green-500" />,
-  CORREO: <Mail size={16} className="text-blue-500" />,
-  SISTEMA: <Activity size={16} className="text-gray-400" />,
+  NOTA: <Icon name="StickyNote" size={16} className="text-amber-500" />,
+  LLAMADA: <Icon name="PhoneCall" size={16} className="text-green-500" />,
+  CORREO: <Icon name="Mail" size={16} className="text-blue-500" />,
+  SISTEMA: <Icon name="Activity" size={16} className="text-gray-400" />,
 };
 
 export const InteractionsTimeline = ({ contactoId }: { contactoId: string }) => {

@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from 'src/shared/components/ui/select';
 import { Button } from 'src/shared/components/ui/button';
-import { DollarSign, Clock, AlertTriangle, Search, Filter, Download } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 
 export const BillingView = () => {
   const { facturas, isLoading, marcarPagadas } = useBilling();
@@ -68,7 +68,7 @@ export const BillingView = () => {
         subtitle="Historial de cobros y estado de pagos por tenant"
         action={
           <Button variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
+            <Icon name="Download" className="h-4 w-4" />
             Generar Reporte
           </Button>
         }
@@ -79,7 +79,7 @@ export const BillingView = () => {
           title="Cobrado este mes"
           value="$21,350"
           trend="+8% vs anterior"
-          icon={<DollarSign className="h-5 w-5" />}
+          icon={<Icon name="DollarSign" className="h-5 w-5" />}
           iconClassName="bg-emerald-500/10 text-emerald-600"
         />
         <StatsCard
@@ -87,7 +87,7 @@ export const BillingView = () => {
           value="$4,200"
           trend="12 facturas"
           trendUp={false}
-          icon={<Clock className="h-5 w-5" />}
+          icon={<Icon name="Clock" className="h-5 w-5" />}
           iconClassName="bg-amber-500/10 text-amber-600"
         />
         <StatsCard
@@ -95,7 +95,7 @@ export const BillingView = () => {
           value="$1,800"
           trend="7 vencidas"
           trendUp={false}
-          icon={<AlertTriangle className="h-5 w-5" />}
+          icon={<Icon name="AlertTriangle" className="h-5 w-5" />}
           iconClassName="bg-red-500/10 text-red-600"
         />
       </div>
@@ -106,7 +106,7 @@ export const BillingView = () => {
             placeholder="Buscar tenant..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            leftIcon={<Search className="h-4 w-4" />}
+            leftIcon={<Icon name="Search" className="h-4 w-4" />}
             className="flex-1 w-full max-w-sm"
           />
 
@@ -155,7 +155,7 @@ export const BillingView = () => {
                 onClick={clearFilters}
                 className="text-muted-foreground h-10 px-3"
               >
-                <Filter className="h-4 w-4 mr-2" />
+                <Icon name="Filter" className="h-4 w-4 mr-2" />
                 Limpiar <span className="ml-1 opacity-70">({activeFiltersCount})</span>
               </Button>
             )}

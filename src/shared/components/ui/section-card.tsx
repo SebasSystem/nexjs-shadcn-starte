@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { Icon } from './icon';
 import { cn } from 'src/lib/utils';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -105,9 +105,9 @@ export function StatsCard({
             )}
           >
             {trendUp ? (
-              <TrendingUp className="h-3 w-3 shrink-0" />
+              <Icon name="TrendingUp" className="h-3 w-3 shrink-0" />
             ) : (
-              <TrendingDown className="h-3 w-3 shrink-0" />
+              <Icon name="TrendingDown" className="h-3 w-3 shrink-0" />
             )}
             <span>{trend}</span>
           </div>

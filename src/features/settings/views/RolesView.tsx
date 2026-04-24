@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { useRoles } from '../hooks/use-roles';
@@ -36,7 +36,7 @@ export const RolesView = () => {
         subtitle="Define los niveles de acceso para cada tipo de usuario"
         action={
           <Button color="primary" onClick={handleOpenNew} className="gap-2">
-            <Plus className="h-4 w-4" />
+            <Icon name="Plus" size={16} />
             Nuevo rol
           </Button>
         }

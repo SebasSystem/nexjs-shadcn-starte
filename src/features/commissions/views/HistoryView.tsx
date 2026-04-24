@@ -4,7 +4,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { useHistory } from 'src/features/commissions/hooks/use-history';
 import { Button } from 'src/shared/components/ui/button';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { FileDown, Search, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   useTable,
   TableHeadCustom,
@@ -231,7 +231,7 @@ export const HistoryView = () => {
                 }}
                 className="text-muted-foreground hover:text-blue-600 transition-colors p-1 rounded"
               >
-                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                {isExpanded ? <Icon name="ChevronUp" size={16} /> : <Icon name="ChevronDown" size={16} />}
               </button>
             </div>
           );
@@ -277,7 +277,7 @@ export const HistoryView = () => {
             variant="outline"
             className="border-gray-300"
           >
-            <FileDown className="mr-2 h-4 w-4" />
+            <Icon name="FileDown" className="mr-2 h-4 w-4" />
             Generar Reporte PDF
           </Button>
         }
@@ -322,7 +322,7 @@ export const HistoryView = () => {
         {/* Filtros Integrados */}
         <div className="flex gap-4 flex-wrap items-center p-4 bg-muted/10">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Icon name="Search" className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <input
               placeholder="Buscar vendedor..."
               value={searchTerm}
@@ -585,7 +585,7 @@ export const HistoryView = () => {
         <SheetContent side="right" className="sm:max-w-[380px] flex flex-col p-0">
           <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
             <div className="flex items-center gap-3">
-              <FileText size={20} className="text-blue-600 shrink-0" />
+              <Icon name="FileText" size={20} className="text-blue-600 shrink-0" />
               <div>
                 <SheetTitle>Generar Reporte PDF</SheetTitle>
                 <SheetDescription>Configura las opciones del reporte</SheetDescription>

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { RefreshCw, AlertTriangle, Save } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
 import { SelectField } from 'src/shared/components/ui/select-field';
@@ -127,7 +127,7 @@ export function MultiCurrencyView() {
         cell: () => (
           <div className="flex justify-center">
             <Button variant="outline" size="sm">
-              <Save size={13} />
+              <Icon name="Save" size={13} />
               Guardar
             </Button>
           </div>
@@ -222,7 +222,7 @@ export function MultiCurrencyView() {
           {hasOutdated && (
             <SectionCard className="border border-amber-200 bg-amber-50 dark:bg-amber-500/10 dark:border-amber-500/30 flex flex-col justify-between">
               <div className="flex gap-3">
-                <AlertTriangle size={20} className="text-amber-500 shrink-0 mt-0.5" />
+                <Icon name="AlertTriangle" size={20} className="text-amber-500 shrink-0 mt-0.5" />
                 <div>
                   <p className="font-semibold text-amber-800 dark:text-amber-400 text-sm">
                     Tipo de cambio desactualizado
@@ -238,7 +238,7 @@ export function MultiCurrencyView() {
                   size="sm"
                   className="border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-500/40 dark:text-amber-400 dark:hover:bg-amber-500/10"
                 >
-                  <RefreshCw size={14} />
+                  <Icon name="RefreshCw" size={14} />
                   Actualizar tipo de cambio
                 </Button>
               </div>

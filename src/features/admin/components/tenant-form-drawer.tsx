@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { toast } from 'sonner';
 import {
   Sheet,
@@ -204,7 +204,7 @@ export function TenantFormDrawer({
               {selectedPlan && (
                 <div className="rounded-xl bg-muted/50 border border-border/40 p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Package className="h-4 w-4 text-blue-600" />
+                    <Icon name="Package" className="h-4 w-4 text-blue-600" />
                     <span className="font-semibold text-body2 text-foreground">
                       {selectedPlan.nombre} — ${selectedPlan.precio}/mes
                     </span>

@@ -1,6 +1,6 @@
 'use client';
 
-import { Package, AlertTriangle, Check, Flame, Trophy, XCircle, CheckSquare } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { differenceInDays } from 'date-fns';
 import { cn } from 'src/lib/utils';
 import { STAGE_AGING_THRESHOLDS, STAGE_PROBABILITY } from '../config/pipeline.config';
@@ -124,7 +124,7 @@ export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: Opport
           </p>
           {opportunity.mainProduct && (
             <div className="flex items-center gap-1 mt-0.5">
-              <Package size={10} className="text-muted-foreground shrink-0" />
+              <Icon name="Package" size={10} className="text-muted-foreground shrink-0" />
               <span className="text-[10px] text-muted-foreground truncate">
                 {opportunity.mainProduct}
               </span>
@@ -135,13 +135,13 @@ export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: Opport
         <div className="flex flex-col items-end gap-1 shrink-0">
           {isGanado && (
             <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
-              <Trophy size={8} />
+              <Icon name="Trophy" size={8} />
               Ganado
             </span>
           )}
           {isArchived && (
             <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive">
-              <XCircle size={8} />
+              <Icon name="XCircle" size={8} />
               Perdido
             </span>
           )}
@@ -152,7 +152,7 @@ export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: Opport
                 leadScoreCfg.className
               )}
             >
-              <Flame size={8} />
+              <Icon name="Flame" size={8} />
               {leadScoreCfg.label}
             </span>
           )}
@@ -163,7 +163,7 @@ export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: Opport
                 agingBadge.className
               )}
             >
-              <AlertTriangle size={8} />
+              <Icon name="AlertTriangle" size={8} />
               {daysInStage}d
             </span>
           )}
@@ -193,7 +193,7 @@ export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: Opport
                   item.done ? 'bg-success border-success' : 'border-border/60'
                 )}
               >
-                {item.done && <Check size={8} className="text-white" />}
+                {item.done && <Icon name="Check" size={8} className="text-white" />}
               </div>
               <span
                 className={cn(
@@ -231,7 +231,7 @@ export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: Opport
           )}
           {checklistTotal > 0 && (
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <CheckSquare size={10} />
+              <Icon name="CheckSquare" size={10} />
               <span>
                 {checklistDone}/{checklistTotal}
               </span>

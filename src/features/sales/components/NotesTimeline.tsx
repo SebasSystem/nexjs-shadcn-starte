@@ -3,16 +3,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import {
-  MessageSquare,
-  Plus,
-  Trash2,
-  Edit2,
-  Check,
-  X,
-  Calendar as CalendarIcon,
-  Filter,
-} from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Textarea } from 'src/shared/components/ui/textarea';
 import { Card, CardContent } from 'src/shared/components/ui/card';
@@ -90,7 +81,7 @@ export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
           <div className="p-6 border-b border-border/40 shrink-0">
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <MessageSquare size={16} className="text-indigo-500" />
+                <Icon name="MessageSquare" size={16} className="text-indigo-500" />
                 <h2 className="text-sm font-bold text-foreground">Timeline y Notas</h2>
               </div>
             </div>
@@ -106,7 +97,7 @@ export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
               <div className="flex items-center justify-between gap-2">
                 <div className="relative flex-1">
                   <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none text-muted-foreground">
-                    <Filter size={12} />
+                    <Icon name="Filter" size={12} />
                   </div>
                   <input
                     type="text"
@@ -122,7 +113,7 @@ export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
                   disabled={!newNote.trim()}
                   className="h-8"
                 >
-                  <Plus size={14} className="mr-1" /> Agregar
+                  <Icon name="Plus" size={14} className="mr-1" /> Agregar
                 </Button>
               </div>
             </div>
@@ -140,7 +131,7 @@ export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
                   <div key={note.id} className="relative flex items-start gap-4 group">
                     {/* Icon */}
                     <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-background shrink-0 bg-indigo-500/10 text-indigo-500 shadow-sm z-10 mt-1">
-                      <MessageSquare size={14} />
+                      <Icon name="MessageSquare" size={14} />
                     </div>
 
                     {/* Card */}
@@ -151,7 +142,7 @@ export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
                         </span>
                         <div className="flex items-center gap-2">
                           <time className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
-                            <CalendarIcon size={10} />
+                            <Icon name="Calendar" size={10} />
                             {format(new Date(note.createdAt), 'd MMM, HH:mm', { locale: es })}
                           </time>
 
@@ -162,14 +153,14 @@ export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
                               className="p-1 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded transition-colors"
                               title="Editar"
                             >
-                              <Edit2 size={12} />
+                              <Icon name="Edit2" size={12} />
                             </button>
                             <button
                               onClick={() => setDeleteId(note.id)}
                               className="p-1 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
                               title="Eliminar"
                             >
-                              <Trash2 size={12} />
+                              <Icon name="Trash2" size={12} />
                             </button>
                           </div>
                         </div>
@@ -190,7 +181,7 @@ export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
                               onClick={() => setEditingNoteId(null)}
                               className="h-7 text-xs px-2"
                             >
-                              <X size={12} className="mr-1" /> Cancelar
+                              <Icon name="X" size={12} className="mr-1" /> Cancelar
                             </Button>
                             <Button
                               size="sm"
@@ -198,7 +189,7 @@ export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
                               onClick={() => handleUpdateNote(note.id)}
                               className="h-7 text-xs px-2"
                             >
-                              <Check size={12} className="mr-1" /> Guardar
+                              <Icon name="Check" size={12} className="mr-1" /> Guardar
                             </Button>
                           </div>
                         </div>

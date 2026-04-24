@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserPlus, Trash2 } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import {
   Sheet,
@@ -139,7 +139,7 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
                           onClick={() => onRemoveMember(equipo.id, miembro.usuarioId)}
                           className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
                         >
-                          <Trash2 size={14} />
+                          <Icon name="Trash2" size={14} />
                         </button>
                       </div>
                     ))}
@@ -169,7 +169,7 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
                     disabled={!selectedUserId}
                     className="gap-1.5 h-9"
                   >
-                    <UserPlus size={14} /> Agregar
+                    <Icon name="UserPlus" size={14} /> Agregar
                   </Button>
                 </div>
               </div>

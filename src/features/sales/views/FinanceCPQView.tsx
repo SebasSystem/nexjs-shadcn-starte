@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Plus, Trash2, FileText } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Input } from 'src/shared/components/ui/input';
@@ -130,7 +130,7 @@ function InvoicePreviewDrawer({ open, onClose, lines }: InvoicePreviewDrawerProp
             <div className="flex items-center justify-between pb-4 border-b border-border/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <FileText size={20} className="text-primary" />
+                  <Icon name="FileText" size={20} className="text-primary" />
                 </div>
                 <div>
                   <p className="font-bold text-foreground text-lg">FinOps CRM</p>
@@ -370,7 +370,7 @@ export function FinanceCPQView() {
               onClick={() => removeLine(info.row.original.id)}
               className="text-muted-foreground hover:text-red-500 transition-colors p-1 rounded hover:bg-red-500/10"
             >
-              <Trash2 size={15} />
+              <Icon name="Trash2" size={15} />
             </button>
           </div>
         ),
@@ -438,7 +438,7 @@ export function FinanceCPQView() {
             <div className="px-6 py-4 flex items-center justify-between">
               <h2 className="text-h6 text-foreground">Productos</h2>
               <Button variant="outline" size="sm" onClick={addLine}>
-                <Plus size={15} />
+                <Icon name="Plus" size={15} />
                 Agregar producto
               </Button>
             </div>

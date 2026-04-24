@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { FileText, CheckCircle2, Clock, Download, Mail } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { Badge } from 'src/shared/components/ui/badge';
@@ -157,7 +157,7 @@ export function FinanceInvoiceDetailView() {
               <p className="text-xs text-muted-foreground">IVA incluido</p>
             </div>
             <div className="w-11 h-11 rounded-full flex items-center justify-center bg-blue-500/10 text-blue-500">
-              <FileText size={20} />
+              <Icon name="FileText" size={20} />
             </div>
           </CardContent>
         </Card>
@@ -172,7 +172,7 @@ export function FinanceInvoiceDetailView() {
               <p className="text-xs text-muted-foreground">2 pagos registrados</p>
             </div>
             <div className="w-11 h-11 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-500">
-              <CheckCircle2 size={20} />
+              <Icon name="CheckCircle2" size={20} />
             </div>
           </CardContent>
         </Card>
@@ -187,7 +187,7 @@ export function FinanceInvoiceDetailView() {
               <p className="text-xs text-muted-foreground">Vence: 15 Feb 2024</p>
             </div>
             <div className="w-11 h-11 rounded-full flex items-center justify-center bg-orange-500/10 text-orange-500">
-              <Clock size={20} />
+              <Icon name="Clock" size={20} />
             </div>
           </CardContent>
         </Card>
@@ -353,11 +353,11 @@ export function FinanceInvoiceDetailView() {
       {/* ── Footer Actions ───────────────────────────────────────────────── */}
       <div className="flex justify-end gap-3">
         <Button variant="outline">
-          <Download size={16} />
+          <Icon name="Download" size={16} />
           Descargar PDF
         </Button>
         <Button color="primary">
-          <Mail size={16} />
+          <Icon name="Mail" size={16} />
           Enviar por Correo
         </Button>
       </div>

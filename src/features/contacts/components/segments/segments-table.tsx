@@ -13,7 +13,7 @@ import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import type { Segment } from '../../types/segments.types';
-import { Trash2, Edit, Play, Users } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 
 interface SegmentsTableProps {
   segments: Segment[];
@@ -79,7 +79,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
         header: 'Contactos',
         cell: (info) => (
           <div className="flex items-center gap-2 text-sm font-medium">
-            <Users className="h-4 w-4 text-emerald-600" />
+            <Icon name="Users" className="h-4 w-4 text-emerald-600" />
             {info.getValue().toLocaleString()}
           </div>
         ),
@@ -103,7 +103,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
               className="h-8 gap-1 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
               onClick={() => onRun(info.row.original)}
             >
-              <Play className="h-3 w-3" />
+              <Icon name="Play" className="h-3 w-3" />
               Ejecutar
             </Button>
             <Button
@@ -112,7 +112,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
               className="h-8 w-8 p-0"
               onClick={() => onEdit(info.row.original)}
             >
-              <Edit className="h-4 w-4 text-muted-foreground" />
+              <Icon name="Edit" className="h-4 w-4 text-muted-foreground" />
             </Button>
             <Button
               variant="ghost"
@@ -120,7 +120,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
               className="h-8 w-8 p-0 hover:text-red-600 hover:bg-red-50"
               onClick={() => onDelete(info.row.original.id)}
             >
-              <Trash2 className="h-4 w-4" />
+              <Icon name="Trash2" className="h-4 w-4" />
             </Button>
           </div>
         ),

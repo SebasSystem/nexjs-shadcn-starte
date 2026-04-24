@@ -8,7 +8,7 @@ import {
   StatsCard,
 } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
-import { Plus, DatabaseZap, Users, Filter } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { useSegments } from '../hooks/use-segments';
 import { SegmentsTable } from '../components/segments/segments-table';
 import { SegmentBuilderDrawer } from '../components/segments/segment-builder-drawer';
@@ -52,7 +52,7 @@ export const SegmentsView = () => {
         subtitle="Construye consultas dinámicas sobre tu base de datos y guarda grupos de clientes para campañas o análisis rápido."
         action={
           <Button color="primary" onClick={handleOpenNew} className="gap-2">
-            <Plus className="h-4 w-4" />
+            <Icon name="Plus" className="h-4 w-4" />
             Crear Segmento Dinámico
           </Button>
         }
@@ -63,19 +63,19 @@ export const SegmentsView = () => {
         <StatsCard
           title="Segmentos Guardados"
           value={totalSaved.toString()}
-          icon={<Filter className="h-5 w-5 text-blue-500" />}
+          icon={<Icon name="Filter" className="h-5 w-5 text-blue-500" />}
           trend="+12% este mes"
         />
         <StatsCard
           title="Audiencia Total Indexada"
           value={totalAudience.toLocaleString()}
-          icon={<Users className="h-5 w-5 text-emerald-500" />}
+          icon={<Icon name="Users" className="h-5 w-5 text-emerald-500" />}
           trend="+5.2% crecimiento mensual"
         />
         <StatsCard
           title="Velocidad Media de Query"
           value="42ms"
-          icon={<DatabaseZap className="h-5 w-5 text-orange-500" />}
+          icon={<Icon name="DatabaseZap" className="h-5 w-5 text-orange-500" />}
           trend="Rendimiento del motor GIN"
         />
       </div>
@@ -94,7 +94,7 @@ export const SegmentsView = () => {
         ) : segments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="bg-primary/10 p-5 rounded-full mb-4">
-              <DatabaseZap className="h-12 w-12 text-primary opacity-80" />
+              <Icon name="DatabaseZap" className="h-12 w-12 text-primary opacity-80" />
             </div>
             <h3 className="text-h6 text-foreground font-semibold mb-2">
               Base de datos sin segmentar

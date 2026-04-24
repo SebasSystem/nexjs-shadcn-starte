@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Users, DollarSign, Calendar, HardDrive, Zap } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   Sheet,
   SheetContent,
@@ -161,7 +161,7 @@ export function TenantDetailDrawer({
             <div className="p-6">
               <div className="rounded-xl border border-red-200 bg-red-50 p-5">
                 <div className="flex items-center gap-3 mb-4">
-                  <AlertTriangle className="h-6 w-6 text-red-600 shrink-0" />
+                  <Icon name="AlertTriangle" className="h-6 w-6 text-red-600 shrink-0" />
                   <h3 className="font-semibold text-red-700 text-body2">
                     ¿Suspender a &quot;{tenant.nombre}&quot;?
                   </h3>
@@ -208,21 +208,21 @@ export function TenantDetailDrawer({
                 <div className="grid grid-cols-3 gap-3 mt-2">
                   <div className="bg-muted/40 rounded-xl p-3 text-center">
                     <div className="flex justify-center mb-1">
-                      <Users className="h-4 w-4 text-blue-600" />
+                      <Icon name="Users" className="h-4 w-4 text-blue-600" />
                     </div>
                     <p className="text-h6 font-bold text-foreground">{tenant.totalUsuarios}</p>
                     <p className="text-caption text-muted-foreground">Usuarios activos</p>
                   </div>
                   <div className="bg-muted/40 rounded-xl p-3 text-center">
                     <div className="flex justify-center mb-1">
-                      <DollarSign className="h-4 w-4 text-emerald-600" />
+                      <Icon name="DollarSign" className="h-4 w-4 text-emerald-600" />
                     </div>
                     <p className="text-h6 font-bold text-foreground">${tenant.mrr}</p>
                     <p className="text-caption text-muted-foreground">MRR</p>
                   </div>
                   <div className="bg-muted/40 rounded-xl p-3 text-center">
                     <div className="flex justify-center mb-1">
-                      <Calendar className="h-4 w-4 text-purple-600" />
+                      <Icon name="Calendar" className="h-4 w-4 text-purple-600" />
                     </div>
                     <p className="text-h6 font-bold text-foreground">{dias}</p>
                     <p className="text-caption text-muted-foreground">Días activo</p>
@@ -236,7 +236,7 @@ export function TenantDetailDrawer({
                   <div>
                     <div className="flex justify-between text-caption text-muted-foreground mb-1">
                       <span className="flex items-center gap-1.5">
-                        <Users className="h-3.5 w-3.5" /> Usuarios
+                        <Icon name="Users" className="h-3.5 w-3.5" /> Usuarios
                       </span>
                       <span>
                         {tenant.totalUsuarios} / {tenant.limiteUsuarios} ({userPct}%)
@@ -248,7 +248,7 @@ export function TenantDetailDrawer({
                   <div>
                     <div className="flex justify-between text-caption text-muted-foreground mb-1">
                       <span className="flex items-center gap-1.5">
-                        <HardDrive className="h-3.5 w-3.5" /> Almacenamiento
+                        <Icon name="HardDrive" className="h-3.5 w-3.5" /> Almacenamiento
                       </span>
                       <span>
                         {tenant.almacenamientoUsadoGB} / {tenant.limiteAlmacenamientoGB} GB (
@@ -261,7 +261,7 @@ export function TenantDetailDrawer({
                   <div>
                     <div className="flex justify-between text-caption text-muted-foreground mb-1">
                       <span className="flex items-center gap-1.5">
-                        <Zap className="h-3.5 w-3.5" /> API calls/mes
+                        <Icon name="Zap" className="h-3.5 w-3.5" /> API calls/mes
                       </span>
                       <span>60k / 100k ({apiPct}%)</span>
                     </div>
@@ -277,7 +277,7 @@ export function TenantDetailDrawer({
                       className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
                       onClick={() => setConfirmandoSuspension(true)}
                     >
-                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      <Icon name="AlertTriangle" className="h-4 w-4 mr-2" />
                       Suspender Tenant
                     </Button>
                   </div>

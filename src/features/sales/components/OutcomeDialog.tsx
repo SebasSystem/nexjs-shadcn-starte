@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Trophy, XCircle } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   Dialog,
   DialogContent,
@@ -84,14 +84,14 @@ export function OutcomeDialog({ open, clientName, onConfirm, onCancel }: Outcome
                 onClick={handleGanado}
                 className="flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-success/30 bg-success/5 hover:bg-success/10 hover:border-success/50 transition-all"
               >
-                <Trophy size={28} className="text-success" />
+                <Icon name="Trophy" size={28} className="text-success" />
                 <span className="text-sm font-bold text-success">Ganado</span>
               </button>
               <button
                 onClick={() => setStep('reason')}
                 className="flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-destructive/30 bg-destructive/5 hover:bg-destructive/10 hover:border-destructive/50 transition-all"
               >
-                <XCircle size={28} className="text-destructive" />
+                <Icon name="XCircle" size={28} className="text-destructive" />
                 <span className="text-sm font-bold text-destructive">Perdido</span>
               </button>
             </div>

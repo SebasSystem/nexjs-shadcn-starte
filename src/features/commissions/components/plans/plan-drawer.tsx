@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from 'src/shared/components/ui/button';
-import { Trash2, Plus } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   Sheet,
   SheetContent,
@@ -247,7 +247,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                         disabled={fields.length === 1}
                         className="p-1.5 text-gray-400 hover:text-red-600 disabled:opacity-30 transition-colors"
                       >
-                        <Trash2 size={16} />
+                        <Icon name="Trash2" size={16} />
                       </button>
                     </div>
                   </div>
@@ -262,7 +262,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                 onClick={() => append({ desde: 0, hasta: null, porcentajeAplicado: 1 })}
                 className="text-blue-600 border-dashed border-blue-200 hover:bg-blue-50 w-full"
               >
-                <Plus size={16} className="mr-2" /> Agregar Tramo
+                <Icon name="Plus" size={16} className="mr-2" /> Agregar Tramo
               </Button>
             </section>
 

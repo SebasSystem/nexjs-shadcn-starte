@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Plus } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { useCustomFields } from '../hooks/use-custom-fields';
@@ -64,7 +64,7 @@ export const CustomFieldsView = () => {
         subtitle="Agrega campos a medida en los módulos del CRM según tu industria"
         action={
           <Button color="primary" onClick={handleOpenNew} className="gap-2">
-            <Plus className="h-4 w-4" />
+            <Icon name="Plus" size={16} />
             Nuevo campo
           </Button>
         }

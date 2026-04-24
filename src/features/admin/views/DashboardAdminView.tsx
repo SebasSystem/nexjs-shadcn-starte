@@ -9,14 +9,7 @@ import {
   StatsCard,
 } from 'src/shared/components/layouts/page';
 import { useTenants } from 'src/features/admin/hooks/use-tenants';
-import {
-  Building2,
-  TrendingUp,
-  AlertCircle,
-  Activity,
-  CheckCircle2,
-  RefreshCw,
-} from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Chart } from 'src/shared/components/chart';
 import type ApexCharts from 'apexcharts';
@@ -214,7 +207,7 @@ export const DashboardAdminView = () => {
         subtitle="Vista general del sistema y estado de todos los tenants"
         action={
           <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
+            <Icon name="RefreshCw" className="h-4 w-4" />
             Actualizar
           </Button>
         }
@@ -225,14 +218,14 @@ export const DashboardAdminView = () => {
           title="Tenants Activos"
           value={tenants.filter((t) => t.estado === 'ACTIVO').length}
           trend="+3 este mes"
-          icon={<Building2 className="h-5 w-5" />}
+          icon={<Icon name="Building2" className="h-5 w-5" />}
           iconClassName="bg-blue-500/10 text-blue-600"
         />
         <StatsCard
           title="Ingreso Mensual (MRR)"
           value="$18,420"
           trend="+12% vs mes anterior"
-          icon={<TrendingUp className="h-5 w-5" />}
+          icon={<Icon name="TrendingUp" className="h-5 w-5" />}
           iconClassName="bg-emerald-500/10 text-emerald-600"
         />
         <StatsCard
@@ -240,7 +233,7 @@ export const DashboardAdminView = () => {
           value="7"
           trend="3 críticas"
           trendUp={false}
-          icon={<AlertCircle className="h-5 w-5" />}
+          icon={<Icon name="AlertCircle" className="h-5 w-5" />}
           iconClassName="bg-amber-500/10 text-amber-600"
         />
         <StatsCard
@@ -248,7 +241,7 @@ export const DashboardAdminView = () => {
           value="2"
           trend="↓ vs ayer"
           trendUp={false}
-          icon={<Activity className="h-5 w-5" />}
+          icon={<Icon name="Activity" className="h-5 w-5" />}
           iconClassName="bg-red-500/10 text-red-600"
         />
       </div>
@@ -274,7 +267,7 @@ export const DashboardAdminView = () => {
             <div className="flex-1 overflow-y-auto pr-2 pb-2 space-y-3">
               {tenantsEnRiesgo.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center p-6 text-muted-foreground">
-                  <CheckCircle2 className="h-10 w-10 text-emerald-500 mb-3 opacity-80" />
+                  <Icon name="CheckCircle2" className="h-10 w-10 text-emerald-500 mb-3 opacity-80" />
                   <p className="text-body2 font-medium">Todo en orden</p>
                   <p className="text-caption mt-1">No hay tenants en riesgo actualmente.</p>
                 </div>

@@ -5,7 +5,7 @@ import { usePlans } from 'src/features/commissions/hooks/use-plans';
 import { PlansTable } from 'src/features/commissions/components/plans/plans-table';
 import { PlanDrawer } from 'src/features/commissions/components/plans/plan-drawer';
 import { Button } from 'src/shared/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { type PlanComision } from 'src/features/commissions/types/commissions.types';
 
@@ -31,7 +31,7 @@ export const PlansView = () => {
         subtitle="Configura y administra los planes de incentivos para tu equipo comercial"
         action={
           <Button color="primary" onClick={() => handleOpenDrawer()}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Icon name="Plus" className="mr-2 h-4 w-4" />
             Nuevo Plan
           </Button>
         }

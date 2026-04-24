@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from 'src/shared/components/ui/select';
-import { CheckCircle2, Clock, CalendarDays, Circle, AlertCircle } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import type { TipoActividad, EstadoActividad } from '../types/productivity.types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -51,11 +51,11 @@ export const ActivitiesTab = ({
   const getEstadoIcon = (estado: EstadoActividad) => {
     switch (estado) {
       case 'PENDIENTE':
-        return <Circle size={16} className="text-blue-500" />;
+        return <Icon name="Circle" size={16} className="text-blue-500" />;
       case 'COMPLETADA':
-        return <CheckCircle2 size={16} className="text-emerald-500" />;
+        return <Icon name="CheckCircle2" size={16} className="text-emerald-500" />;
       case 'VENCIDA':
-        return <AlertCircle size={16} className="text-red-500" />;
+        return <Icon name="AlertCircle" size={16} className="text-red-500" />;
     }
   };
 
@@ -63,7 +63,7 @@ export const ActivitiesTab = ({
     <div className="flex flex-col h-full bg-slate-50">
       <div className="p-4 bg-white border-b border-gray-100 shadow-sm rounded-t-xl mx-4 mt-4 mb-2 border">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
-          <CalendarDays size={16} className="text-blue-600" />
+          <Icon name="CalendarDays" size={16} className="text-blue-600" />
           Agendar nueva actividad
         </h4>
 
@@ -158,7 +158,8 @@ export const ActivitiesTab = ({
                   )}
                   <div className="flex items-center gap-2 mt-2 text-[11px] font-medium text-gray-500">
                     <div className="flex items-center gap-1">
-                      <Clock
+                      <Icon
+                        name="Clock"
                         size={12}
                         className={actividad.estado === 'VENCIDA' ? 'text-red-500' : ''}
                       />

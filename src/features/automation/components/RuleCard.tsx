@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Pencil, Trash2, Power } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { cn } from 'src/lib/utils';
 import { paths } from 'src/routes/paths';
@@ -77,7 +77,7 @@ export function RuleCard({ rule, onToggle, onDelete }: RuleCardProps) {
           className="h-8 px-3 text-xs gap-1.5"
           onClick={() => router.push(paths.automation.ruleEdit(rule.id))}
         >
-          <Pencil size={12} />
+          <Icon name="Pencil" size={12} />
           Editar
         </Button>
         <Button
@@ -86,7 +86,7 @@ export function RuleCard({ rule, onToggle, onDelete }: RuleCardProps) {
           className="h-8 px-3 text-xs gap-1.5"
           onClick={() => onToggle(rule.id)}
         >
-          <Power size={12} />
+          <Icon name="Power" size={12} />
           {rule.enabled ? 'Pausar' : 'Activar'}
         </Button>
         <Button
@@ -95,7 +95,7 @@ export function RuleCard({ rule, onToggle, onDelete }: RuleCardProps) {
           className="h-8 px-3 text-xs gap-1.5 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/60 ml-auto"
           onClick={() => onDelete(rule.id)}
         >
-          <Trash2 size={12} />
+          <Icon name="Trash2" size={12} />
           Eliminar
         </Button>
       </div>

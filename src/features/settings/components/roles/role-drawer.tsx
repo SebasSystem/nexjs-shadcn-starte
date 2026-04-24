@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Check } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import {
   Sheet,
@@ -144,7 +144,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
                                   : 'border-gray-300 bg-white hover:border-blue-400'
                               )}
                             >
-                              {hasAccion(modulo.id, accion) && <Check size={12} strokeWidth={3} />}
+                              {hasAccion(modulo.id, accion) && <Icon name="Check" size={12} strokeWidth={3} />}
                             </button>
                           </td>
                         ))}

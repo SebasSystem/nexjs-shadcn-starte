@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { CheckCircle2, Clock, Send } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   Sheet,
   SheetContent,
@@ -69,8 +69,8 @@ export function BillingDetailDrawer({
   };
 
   const timelineSteps = [
-    { label: 'Creada', date: factura.fechaEmision, done: true, icon: Clock },
-    { label: 'Enviada', date: factura.fechaEmision, done: true, icon: Send },
+    { label: 'Creada', date: factura.fechaEmision, done: true, icon: 'Clock' as const },
+    { label: 'Enviada', date: factura.fechaEmision, done: true, icon: 'Send' as const },
     {
       label:
         factura.estado === 'PAGADA'
@@ -80,7 +80,7 @@ export function BillingDetailDrawer({
             : 'Pendiente de pago',
       date: factura.estado === 'PAGADA' ? factura.fechaVencimiento : '',
       done: factura.estado === 'PAGADA',
-      icon: CheckCircle2,
+      icon: 'CheckCircle2' as const,
       isError: factura.estado === 'VENCIDA',
     },
   ];
@@ -159,7 +159,7 @@ export function BillingDetailDrawer({
                             : 'bg-muted text-muted-foreground'
                       }`}
                     >
-                      <step.icon className="h-3.5 w-3.5" />
+                      <Icon name={step.icon} className="h-3.5 w-3.5" />
                     </div>
                     {i < timelineSteps.length - 1 && <div className="w-px h-6 bg-border/40 mt-1" />}
                   </div>

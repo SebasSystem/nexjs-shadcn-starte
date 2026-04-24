@@ -12,7 +12,7 @@ import { Input } from 'src/shared/components/ui/input';
 import { cn } from 'src/lib/utils';
 import type { Tag, TagForm, TagColor, TagEntity } from '../../types/tags.types';
 import { BadgeColorMap } from './tags-table';
-import { Check } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 
 const COLORS: { value: TagColor; label: string }[] = [
   { value: 'blue', label: 'Azul' },
@@ -96,7 +96,7 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
                   )}
                   title={c.label}
                 >
-                  {color === c.value && <Check className="h-4 w-4" />}
+                  {color === c.value && <Icon name="Check" size={16} />}
                 </button>
               ))}
             </div>
@@ -125,7 +125,7 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
                         : 'border-muted-foreground/30'
                     )}
                   >
-                    {entidades.includes(e.value) && <Check className="h-3 w-3" />}
+                    {entidades.includes(e.value) && <Icon name="Check" size={12} />}
                   </div>
                   {e.label}
                 </button>

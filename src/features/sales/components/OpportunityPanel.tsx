@@ -2,15 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  DollarSign,
-  Calendar,
-  Tag,
-  User,
-  AlertTriangle,
-  CheckSquare,
-  ExternalLink,
-} from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { LinkedInValidationBadge } from 'src/features/automation/components/LinkedInValidationBadge';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -163,7 +155,7 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
       {isLost && opportunity.lostReason && (
         <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 space-y-2">
           <div className="flex items-center gap-2">
-            <AlertTriangle size={14} className="text-destructive shrink-0" />
+            <Icon name="AlertTriangle" size={14} className="text-destructive shrink-0" />
             <span className="text-caption font-bold text-destructive uppercase tracking-wide">
               Razón de pérdida
             </span>
@@ -185,7 +177,7 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-muted/30 p-3 space-y-0.5">
           <div className="flex items-center gap-1.5 text-muted-foreground">
-            <DollarSign size={13} />
+            <Icon name="DollarSign" size={13} />
             <span className="text-caption">Monto estimado</span>
           </div>
           <p className="text-body2 font-bold text-foreground">
@@ -200,7 +192,7 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
 
         <div className="rounded-xl bg-muted/30 p-3 space-y-0.5">
           <div className="flex items-center gap-1.5 text-muted-foreground">
-            <Calendar size={13} />
+            <Icon name="Calendar" size={13} />
             <span className="text-caption">Cierre esperado</span>
           </div>
           <p className="text-body2 font-bold text-foreground">
@@ -235,7 +227,7 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
         {checklistTotal > 0 && (
           <div className="rounded-xl bg-muted/30 p-3 space-y-0.5">
             <div className="flex items-center gap-1.5 text-muted-foreground">
-              <CheckSquare size={13} />
+              <Icon name="CheckSquare" size={13} />
               <span className="text-caption">Checklist</span>
             </div>
             <p className="text-body2 font-bold text-foreground">
@@ -250,14 +242,14 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
       <div className="space-y-2">
         {opportunity.source && (
           <div className="flex items-center gap-2 text-body2">
-            <Tag size={13} className="text-muted-foreground shrink-0" />
+            <Icon name="Tag" size={13} className="text-muted-foreground shrink-0" />
             <span className="text-muted-foreground">Origen:</span>
             <span className="text-foreground font-medium">{opportunity.source}</span>
           </div>
         )}
         {opportunity.owner && (
           <div className="flex items-center gap-2 text-body2">
-            <User size={13} className="text-muted-foreground shrink-0" />
+            <Icon name="User" size={13} className="text-muted-foreground shrink-0" />
             <span className="text-muted-foreground">Responsable:</span>
             <span className="text-foreground font-medium">{opportunity.owner}</span>
           </div>
@@ -291,7 +283,7 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-caption text-primary hover:underline"
           >
-            <ExternalLink size={11} />
+            <Icon name="ExternalLink" size={11} />
             {opportunity.linkedIn.url.replace('https://', '')}
           </a>
         </div>
@@ -398,7 +390,7 @@ export function OpportunityPanel({
                         agingStyle.className
                       )}
                     >
-                      <AlertTriangle size={9} />
+                      <Icon name="AlertTriangle" size={9} />
                       {daysInStage}
                       {agingStyle.label}
                     </span>

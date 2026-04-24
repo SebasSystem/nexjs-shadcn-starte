@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
@@ -99,7 +99,7 @@ export const ContactsView = () => {
         subtitle="Gestiona empresas, personas e instituciones de tu base comercial"
         action={
           <Button color="primary" onClick={handleOpenNew} className="gap-2">
-            <Plus className="h-4 w-4" />
+            <Icon name="Plus" className="h-4 w-4" />
             Nuevo contacto
           </Button>
         }
@@ -135,7 +135,7 @@ export const ContactsView = () => {
             placeholder="Buscar por nombre o email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            leftIcon={<Search className="h-4 w-4" />}
+            leftIcon={<Icon name="Search" className="h-4 w-4" />}
             className="flex-1 max-w-sm"
           />
           <Select value={filterEstado} onValueChange={setFilterEstado}>

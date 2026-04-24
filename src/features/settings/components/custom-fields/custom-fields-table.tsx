@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Pencil, MoreHorizontal, Sliders } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import {
@@ -110,12 +110,12 @@ export function CustomFieldsTable({ campos, onEdit, onDelete }: CustomFieldsTabl
           return (
             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(campo)}>
-                <Pencil className="h-3.5 w-3.5" />
+                <Icon name="Pencil" size={14} />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <MoreHorizontal className="h-3.5 w-3.5" />
+                    <Icon name="MoreHorizontal" size={14} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -143,7 +143,7 @@ export function CustomFieldsTable({ campos, onEdit, onDelete }: CustomFieldsTabl
   if (campos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <Sliders className="h-10 w-10 mb-3 opacity-40" />
+        <Icon name="Sliders" size={40} className="mb-3 opacity-40" />
         <p className="text-sm">No hay campos personalizados configurados.</p>
       </div>
     );

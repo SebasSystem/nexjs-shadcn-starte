@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Pencil, MoreHorizontal, Users } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
@@ -109,12 +109,12 @@ export function UsersTable({ users, onEdit, onToggleEstado, onDelete }: UsersTab
           return (
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(user)}>
-                <Pencil className="h-3.5 w-3.5" />
+                <Icon name="Pencil" size={14} />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <MoreHorizontal className="h-3.5 w-3.5" />
+                    <Icon name="MoreHorizontal" size={14} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -145,7 +145,7 @@ export function UsersTable({ users, onEdit, onToggleEstado, onDelete }: UsersTab
   if (users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <Users className="h-10 w-10 mb-3 opacity-40" />
+        <Icon name="Users" size={40} className="mb-3 opacity-40" />
         <p className="text-body2">No se encontraron usuarios con los filtros aplicados.</p>
       </div>
     );

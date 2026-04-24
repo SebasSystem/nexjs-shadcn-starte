@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Plus, Search, Users, UserCheck, Clock, UserX } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   PageContainer,
   PageHeader,
@@ -78,7 +78,7 @@ export const UsersView = () => {
         subtitle="Gestiona los usuarios y sus accesos al sistema"
         action={
           <Button color="primary" onClick={handleOpenNew} className="gap-2">
-            <Plus className="h-4 w-4" />
+            <Icon name="Plus" size={16} />
             Invitar usuario
           </Button>
         }
@@ -90,7 +90,7 @@ export const UsersView = () => {
           value={stats.total}
           trend="registrados"
           trendUp
-          icon={<Users className="h-5 w-5" />}
+          icon={<Icon name="Users" size={20} />}
           iconClassName="bg-blue-500/10 text-blue-600"
         />
         <StatsCard
@@ -98,7 +98,7 @@ export const UsersView = () => {
           value={stats.activos}
           trend={`${stats.total ? Math.round((stats.activos / stats.total) * 100) : 0}% del total`}
           trendUp
-          icon={<UserCheck className="h-5 w-5" />}
+          icon={<Icon name="UserCheck" size={20} />}
           iconClassName="bg-emerald-500/10 text-emerald-600"
         />
         <StatsCard
@@ -106,7 +106,7 @@ export const UsersView = () => {
           value={stats.pendientes}
           trend={stats.pendientes === 0 ? 'sin pendientes' : `${stats.pendientes} sin activar`}
           trendUp={stats.pendientes === 0}
-          icon={<Clock className="h-5 w-5" />}
+          icon={<Icon name="Clock" size={20} />}
           iconClassName="bg-amber-500/10 text-amber-600"
         />
         <StatsCard
@@ -114,7 +114,7 @@ export const UsersView = () => {
           value={stats.inactivos}
           trend={`${stats.total ? Math.round((stats.inactivos / stats.total) * 100) : 0}% del total`}
           trendUp={false}
-          icon={<UserX className="h-5 w-5" />}
+          icon={<Icon name="UserX" size={20} />}
           iconClassName="bg-gray-500/10 text-gray-500"
         />
       </div>
@@ -125,7 +125,7 @@ export const UsersView = () => {
             placeholder="Buscar por nombre o email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            leftIcon={<Search className="h-4 w-4" />}
+            leftIcon={<Icon name="Search" size={16} />}
             className="flex-1 max-w-sm"
           />
           <div className="flex items-center gap-3">

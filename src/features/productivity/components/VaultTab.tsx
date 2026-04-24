@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useVault } from '../hooks/use-vault';
-import { FileText, Trash2, UploadCloud, File } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { format } from 'date-fns';
 
 export const VaultTab = ({ contactoId }: { contactoId: string }) => {
@@ -29,7 +29,7 @@ export const VaultTab = ({ contactoId }: { contactoId: string }) => {
             <div
               className={`h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 transition-colors ${isUploading ? 'bg-blue-300 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
             >
-              <UploadCloud size={14} />
+              <Icon name="UploadCloud" size={14} />
               {isUploading ? 'Subiendo...' : 'Subir Documento'}
             </div>
             <input
@@ -49,7 +49,7 @@ export const VaultTab = ({ contactoId }: { contactoId: string }) => {
           <div className="p-6 text-center text-sm text-gray-500">Cargando documentos...</div>
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-gray-400">
-            <FileText size={32} className="mb-2 opacity-50" />
+            <Icon name="FileText" size={32} className="mb-2 opacity-50" />
             <span className="text-sm">No hay documentos en la bóveda</span>
           </div>
         ) : (
@@ -61,7 +61,7 @@ export const VaultTab = ({ contactoId }: { contactoId: string }) => {
               >
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 bg-red-50 text-red-500 rounded-lg flex items-center justify-center">
-                    <File size={20} />
+                    <Icon name="File" size={20} />
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
@@ -81,7 +81,7 @@ export const VaultTab = ({ contactoId }: { contactoId: string }) => {
                   className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                   title="Eliminar"
                 >
-                  <Trash2 size={16} />
+                  <Icon name="Trash2" size={16} />
                 </button>
               </div>
             ))}

@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AlertTriangle } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import {
   Sheet,
@@ -200,7 +200,7 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
               {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
               {duplicateWarning && !errors.email && (
                 <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 text-xs">
-                  <AlertTriangle size={13} />
+                  <Icon name="AlertTriangle" size={13} />
                   <span>{duplicateWarning}</span>
                 </div>
               )}

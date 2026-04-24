@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useSimulator } from 'src/features/commissions/hooks/use-simulator';
 import { Button } from 'src/shared/components/ui/button';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { Calculator, RefreshCw, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   useTable,
   TableHeadCustom,
@@ -117,7 +117,7 @@ export const SimulatorView = () => {
         <SectionCard className="flex flex-col gap-6">
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground flex items-center gap-2">
-              <Calculator size={18} className="text-blue-600" /> Parámetros de Simulación
+              <Icon name="Calculator" size={18} className="text-blue-600" /> Parámetros de Simulación
             </h3>
 
             <div className="space-y-2">
@@ -178,7 +178,7 @@ export const SimulatorView = () => {
             onClick={resetForm}
             className="mt-2 w-full md:w-auto self-start"
           >
-            <RefreshCw size={16} className="mr-2" />
+            <Icon name="RefreshCw" size={16} className="mr-2" />
             Nueva Simulación
           </Button>
 
@@ -253,7 +253,7 @@ export const SimulatorView = () => {
               </div>
             ) : (
               <div className="py-12 flex flex-col items-center justify-center text-center">
-                <Calculator size={32} className="text-muted-foreground/30 mb-3" />
+                <Icon name="Calculator" size={32} className="text-muted-foreground/30 mb-3" />
                 <p className="text-muted-foreground">
                   Ingresa un monto para ver la simulación de tramos.
                 </p>
@@ -269,13 +269,13 @@ export const SimulatorView = () => {
                 onClick={() => setAcordeonAbierto(!acordeonAbierto)}
               >
                 <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <Lightbulb size={16} className="text-yellow-500" />
+                  <Icon name="Lightbulb" size={16} className="text-yellow-500" />
                   ¿Cuánto más necesito para subir de tramo?
                 </span>
                 {acordeonAbierto ? (
-                  <ChevronUp size={16} className="text-muted-foreground" />
+                  <Icon name="ChevronUp" size={16} className="text-muted-foreground" />
                 ) : (
-                  <ChevronDown size={16} className="text-muted-foreground" />
+                  <Icon name="ChevronDown" size={16} className="text-muted-foreground" />
                 )}
               </button>
 

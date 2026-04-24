@@ -8,7 +8,7 @@ import { AssignmentDrawer } from 'src/features/commissions/components/assignment
 import { BulkAssignmentDrawer } from 'src/features/commissions/components/assignment/bulk-assignment-drawer';
 import { Button } from 'src/shared/components/ui/button';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { Users, Search } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import type { AsignacionPlan } from 'src/features/commissions/types/commissions.types';
 import type { AssignmentForm } from 'src/features/commissions/schemas/assignment.schema';
 
@@ -59,7 +59,7 @@ export const AssignmentView = () => {
         subtitle="Administra el plan de comisión activo de cada vendedor de tu equipo"
         action={
           <Button variant="outline" color="primary" onClick={() => setIsMasivaOpen(true)}>
-            <Users className="mr-2 h-4 w-4" />
+            <Icon name="Users" className="mr-2 h-4 w-4" />
             Asignación Masiva
           </Button>
         }
@@ -69,7 +69,7 @@ export const AssignmentView = () => {
         {/* Filtros Integrados */}
         <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/10">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Icon name="Search" className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <input
               placeholder="Buscar por vendedor..."
               value={searchTerm}

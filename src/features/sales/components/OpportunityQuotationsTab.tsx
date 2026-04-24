@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { FileText, ArrowRight, Plus } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import { paths } from 'src/routes/paths';
@@ -48,7 +48,7 @@ export function OpportunityQuotationsTab({ opportunity }: OpportunityQuotationsT
       {linked.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-8 text-center">
           <div className="w-12 h-12 rounded-full bg-muted/40 flex items-center justify-center">
-            <FileText size={22} className="text-muted-foreground" />
+            <Icon name="FileText" size={22} className="text-muted-foreground" />
           </div>
           <p className="text-body2 text-muted-foreground">Sin cotizaciones aún</p>
           {!isTerminal && (
@@ -57,7 +57,7 @@ export function OpportunityQuotationsTab({ opportunity }: OpportunityQuotationsT
               color="primary"
               onClick={() => router.push(paths.sales.quotation(opportunity.id))}
             >
-              <Plus size={14} />
+              <Icon name="Plus" size={14} />
               Crear cotización
             </Button>
           )}
@@ -92,7 +92,7 @@ export function OpportunityQuotationsTab({ opportunity }: OpportunityQuotationsT
                   onClick={() => router.push(paths.sales.quotation(q.id))}
                 >
                   Ver
-                  <ArrowRight size={13} />
+                  <Icon name="ArrowRight" size={13} />
                 </Button>
               </div>
             );
@@ -104,7 +104,7 @@ export function OpportunityQuotationsTab({ opportunity }: OpportunityQuotationsT
               className="w-full"
               onClick={() => router.push(paths.sales.quotation(opportunity.id))}
             >
-              <Plus size={14} />
+              <Icon name="Plus" size={14} />
               Nueva cotización
             </Button>
           )}

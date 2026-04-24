@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { PageContainer, PageHeader } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { useTeams } from '../hooks/use-teams';
@@ -72,7 +72,7 @@ export const TeamsView = () => {
         subtitle="Organiza vendedores en equipos y controla qué clientes puede ver cada uno"
         action={
           <Button color="primary" onClick={handleOpenNew} className="gap-2">
-            <Plus className="h-4 w-4" />
+            <Icon name="Plus" size={16} />
             Nuevo equipo
           </Button>
         }

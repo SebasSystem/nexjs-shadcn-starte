@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { SelectField } from 'src/shared/components/ui/select-field';
@@ -85,7 +85,7 @@ export function PipelineView() {
         subtitle="Gestiona y visualiza el avance de tus oportunidades de venta"
         action={
           <Button color="primary" onClick={() => setDrawerOpen(true)}>
-            <Plus size={16} />
+            <Icon name="Plus" size={16} />
             Nueva Oportunidad
           </Button>
         }
@@ -96,7 +96,7 @@ export function PipelineView() {
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <div className="relative flex-1 w-full">
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-muted-foreground">
-              <Search size={16} />
+              <Icon name="Search" size={16} />
             </div>
             <input
               type="text"

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Link2, Unlink, Globe, Phone, MapPin, Building2, UserCheck } from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
@@ -145,12 +145,12 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
           {/* Tab: Info */}
           {tab === 'info' && contacto && (
             <div className="space-y-4">
-              <InfoRow icon={<UserCheck size={15} />} label="Email" value={contacto.email} />
+              <InfoRow icon={<Icon name="UserCheck" size={15} />} label="Email" value={contacto.email} />
               {contacto.telefono && (
-                <InfoRow icon={<Phone size={15} />} label="Teléfono" value={contacto.telefono} />
+                <InfoRow icon={<Icon name="Phone" size={15} />} label="Teléfono" value={contacto.telefono} />
               )}
               <InfoRow
-                icon={<MapPin size={15} />}
+                icon={<Icon name="MapPin" size={15} />}
                 label="Ubicación"
                 value={`${contacto.ciudad ?? ''}${contacto.ciudad ? ', ' : ''}${contacto.pais}`}
               />
@@ -159,21 +159,21 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
                 <>
                   {contacto.nit && (
                     <InfoRow
-                      icon={<Building2 size={15} />}
+                      icon={<Icon name="Building2" size={15} />}
                       label="NIT / RUT"
                       value={contacto.nit}
                     />
                   )}
                   {contacto.sector && (
                     <InfoRow
-                      icon={<Building2 size={15} />}
+                      icon={<Icon name="Building2" size={15} />}
                       label="Sector"
                       value={contacto.sector}
                     />
                   )}
                   {contacto.tamano && (
                     <InfoRow
-                      icon={<Building2 size={15} />}
+                      icon={<Icon name="Building2" size={15} />}
                       label="Tamaño"
                       value={
                         {
@@ -187,7 +187,7 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
                   )}
                   {contacto.sitioWeb && (
                     <InfoRow
-                      icon={<Globe size={15} />}
+                      icon={<Icon name="Globe" size={15} />}
                       label="Sitio web"
                       value={
                         <a
@@ -208,17 +208,17 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
                 <>
                   {contacto.cedula && (
                     <InfoRow
-                      icon={<UserCheck size={15} />}
+                      icon={<Icon name="UserCheck" size={15} />}
                       label="Cédula / ID"
                       value={contacto.cedula}
                     />
                   )}
                   {contacto.cargo && (
-                    <InfoRow icon={<Building2 size={15} />} label="Cargo" value={contacto.cargo} />
+                    <InfoRow icon={<Icon name="Building2" size={15} />} label="Cargo" value={contacto.cargo} />
                   )}
                   {contacto.empresaNombre && (
                     <InfoRow
-                      icon={<Building2 size={15} />}
+                      icon={<Icon name="Building2" size={15} />}
                       label="Empresa"
                       value={contacto.empresaNombre}
                     />
@@ -230,19 +230,19 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
                 <>
                   {contacto.tipoInstitucion && (
                     <InfoRow
-                      icon={<Building2 size={15} />}
+                      icon={<Icon name="Building2" size={15} />}
                       label="Tipo"
                       value={contacto.tipoInstitucion}
                     />
                   )}
                   <InfoRow
-                    icon={<Building2 size={15} />}
+                    icon={<Icon name="Building2" size={15} />}
                     label="Sector público"
                     value={contacto.entidadPublica ? 'Sí' : 'No'}
                   />
                   {contacto.codigoLicitacion && (
                     <InfoRow
-                      icon={<Building2 size={15} />}
+                      icon={<Icon name="Building2" size={15} />}
                       label="Licitación"
                       value={contacto.codigoLicitacion}
                     />
@@ -275,7 +275,7 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
             <div className="space-y-4">
               {contacto.relaciones.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-muted-foreground text-sm text-center">
-                  <Link2 className="h-8 w-8 mb-3 opacity-40" />
+                  <Icon name="Link2" className="h-8 w-8 mb-3 opacity-40" />
                   <p>Sin relaciones vinculadas todavía.</p>
                 </div>
               ) : (
@@ -308,7 +308,7 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
                         className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
                         title="Desvincular"
                       >
-                        <Unlink size={14} />
+                        <Icon name="Unlink" size={14} />
                       </button>
                     </div>
                   ))}
@@ -345,7 +345,7 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
                   disabled={!selectedRelId}
                   className="w-full gap-1.5 bg-blue-600 hover:bg-blue-700"
                 >
-                  <Link2 size={14} /> Vincular
+                  <Icon name="Link2" size={14} /> Vincular
                 </Button>
               </div>
             </div>

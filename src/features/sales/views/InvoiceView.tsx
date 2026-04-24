@@ -2,21 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  ArrowLeft,
-  Download,
-  FileText,
-  Mail,
-  Bell,
-  CheckCircle2,
-  ChevronRight,
-  Box,
-  Clock,
-  Landmark,
-  User,
-  CalendarDays,
-  Receipt,
-} from 'lucide-react';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Card, CardContent } from 'src/shared/components/ui/card';
 import { Badge } from 'src/shared/components/ui/badge';
@@ -88,7 +74,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
     return (
       <PageContainer>
         <div className="flex flex-col items-center justify-center py-20 gap-4 text-muted-foreground">
-          <FileText size={40} className="opacity-30" />
+          <Icon name="FileText" size={40} className="opacity-30" />
           <p className="text-lg font-medium">Factura no encontrada</p>
           <Button variant="outline" onClick={() => router.push(paths.sales.pipeline)}>
             Volver al Pipeline
@@ -116,7 +102,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
       {/* ── Paid banner ────────────────────────────────────────────────── */}
       {isPaid && (
         <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mb-6">
-          <CheckCircle2 size={20} className="text-emerald-500 shrink-0" />
+          <Icon name="CheckCircle2" size={20} className="text-emerald-500 shrink-0" />
           <div>
             <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
               Factura completamente pagada
@@ -134,12 +120,12 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
           onClick={() => router.push(paths.sales.pipeline)}
           className="hover:text-foreground flex items-center gap-1 transition-colors"
         >
-          <ArrowLeft size={14} className="mr-0.5" />
+          <Icon name="ArrowLeft" size={14} className="mr-0.5" />
           Inicio
         </button>
-        <ChevronRight size={14} />
+        <Icon name="ChevronRight" size={14} />
         <span>Facturación</span>
-        <ChevronRight size={14} />
+        <Icon name="ChevronRight" size={14} />
         <span className="text-foreground font-medium">{invoice.id}</span>
       </div>
 
@@ -152,7 +138,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-blue-500/10 text-blue-600 flex items-center justify-center rounded-xl shrink-0">
-                  <FileText size={24} />
+                  <Icon name="FileText" size={24} />
                 </div>
                 <div>
                   <h1 className="text-h4 text-foreground leading-tight tracking-tight mb-0.5">
@@ -230,7 +216,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                     </p>
                   </div>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500 shrink-0">
-                    <Receipt size={18} />
+                    <Icon name="Receipt" size={18} />
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -251,7 +237,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                     </p>
                   </div>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500 shrink-0">
-                    <CheckCircle2 size={18} />
+                    <Icon name="CheckCircle2" size={18} />
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -287,7 +273,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                     </p>
                   </div>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-500/10 text-orange-600 shrink-0">
-                    <Clock size={18} />
+                    <Icon name="Clock" size={18} />
                   </div>
                 </div>
                 <p
@@ -305,7 +291,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
           <div className="bg-card rounded-xl border border-border/50 p-6 shadow-sm">
             <div className="flex justify-between items-center text-sm font-semibold text-foreground mb-3">
               <span className="flex items-center gap-2">
-                <Landmark size={16} className="text-muted-foreground" />
+                <Icon name="Landmark" size={16} className="text-muted-foreground" />
                 Progreso de pago
               </span>
               <span>{paymentPercent}%</span>
@@ -326,7 +312,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
           <SectionCard noPadding className="border-none shadow-card">
             <div className="flex items-center justify-between px-6 py-5 border-b border-border/40">
               <div className="flex items-center gap-2">
-                <Box size={20} className="text-muted-foreground" />
+                <Icon name="Box" size={20} className="text-muted-foreground" />
                 <h2 className="text-base font-semibold text-foreground">Productos Facturados</h2>
               </div>
               <Badge variant="soft" className="bg-muted text-muted-foreground rounded-full px-3">
@@ -485,7 +471,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
               className="w-full text-base py-6 shadow-md shadow-blue-500/20"
               onClick={() => setPaymentDrawerOpen(true)}
             >
-              <CheckCircle2 size={18} className="mr-2" /> Registrar Pago
+              <Icon name="CheckCircle2" size={18} className="mr-2" /> Registrar Pago
             </Button>
           )}
 
@@ -497,7 +483,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
               </h3>
               <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20 mb-6">
                 <div className="flex items-start gap-3">
-                  <Bell size={16} className="text-orange-500 shrink-0 mt-0.5" />
+                  <Icon name="Bell" size={16} className="text-orange-500 shrink-0 mt-0.5" />
                   <div>
                     <span className="text-xs font-bold text-orange-700 dark:text-orange-400 block mb-1">
                       Próximo Recordatorio
@@ -521,25 +507,25 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
               <div className="space-y-1">
                 <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium text-foreground">
                   <div className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
-                    <Download size={15} />
+                    <Icon name="Download" size={15} />
                   </div>
                   Descargar PDF
                 </button>
                 <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium text-foreground">
                   <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-                    <FileText size={15} />
+                    <Icon name="FileText" size={15} />
                   </div>
                   Exportar CSV
                 </button>
                 <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium text-foreground">
                   <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
-                    <Mail size={15} />
+                    <Icon name="Mail" size={15} />
                   </div>
                   Enviar por Email
                 </button>
                 <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium text-foreground">
                   <div className="w-8 h-8 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center shrink-0">
-                    <CalendarDays size={15} />
+                    <Icon name="CalendarDays" size={15} />
                   </div>
                   Programar Recordatorio
                 </button>
@@ -552,7 +538,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
             <CardContent className="p-6">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-900 flex items-center justify-center shrink-0">
-                  <User size={24} />
+                  <Icon name="User" size={24} />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
@@ -581,7 +567,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
 
               <div className="text-center w-full">
                 <button className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center gap-1.5">
-                  Ver ficha completa <ChevronRight size={14} />
+                  Ver ficha completa <Icon name="ChevronRight" size={14} />
                 </button>
               </div>
             </CardContent>
