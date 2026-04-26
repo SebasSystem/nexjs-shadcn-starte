@@ -6,6 +6,7 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Input } from 'src/shared/components/ui/input';
+import { Textarea } from 'src/shared/components/ui/textarea';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
@@ -467,15 +468,12 @@ export function FinanceCPQView() {
 
           {/* Notes */}
           <SectionCard className="p-6">
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Notas y condiciones
-            </label>
-            <textarea
+            <Textarea
+              label="Notas y condiciones"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
               placeholder="Ingresa notas o condiciones comerciales para esta cotización..."
-              className="w-full bg-muted/20 border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none transition-colors"
             />
           </SectionCard>
         </div>

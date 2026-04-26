@@ -6,11 +6,7 @@ import {
   Icon,
   Button,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
   Badge,
 } from 'src/shared/components/ui';
 import {
@@ -297,48 +293,39 @@ export function PartnerOpportunitiesView() {
 
       {/* Table */}
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-center gap-3 px-5 py-4">
-          <div className="relative flex-1 min-w-48">
-            <Icon
-              name="Search"
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
+        <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+          <div className="flex-1 min-w-48">
             <Input
+              label="Buscar"
               placeholder="Buscar por partner, cliente o producto..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              leftIcon={<Icon name="Search" size={15} />}
             />
           </div>
 
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              {Object.entries(PARTNER_OPP_STATUS_CONFIG).map(([key, cfg]) => (
-                <SelectItem key={key} value={key}>
-                  {cfg.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Estado"
+            options={[
+              { value: 'all', label: 'Todos los estados' },
+              ...Object.entries(PARTNER_OPP_STATUS_CONFIG).map(([key, cfg]) => ({
+                value: key,
+                label: cfg.label,
+              })),
+            ]}
+            value={filterStatus}
+            onChange={(v) => setFilterStatus(v as string)}
+          />
 
-          <Select value={filterPartner} onValueChange={setFilterPartner}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="Partner" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los partners</SelectItem>
-              {partners.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Partner"
+            options={[
+              { value: 'all', label: 'Todos los partners' },
+              ...partners.map((p) => ({ value: p.id, label: p.name })),
+            ]}
+            value={filterPartner}
+            onChange={(v) => setFilterPartner(v as string)}
+          />
         </div>
 
         <TableContainer>

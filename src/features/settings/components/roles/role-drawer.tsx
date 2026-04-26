@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
+import { Textarea } from 'src/shared/components/ui/textarea';
 import {
   Sheet,
   SheetContent,
@@ -45,7 +47,6 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
         if (p.moduloId !== moduloId) return p;
         const tiene = p.acciones.includes(accion);
         let newAcciones = tiene ? p.acciones.filter((a) => a !== accion) : [...p.acciones, accion];
-        // "ver" es requerido si hay cualquier otra acción
         if (newAcciones.some((a) => a !== 'ver') && !newAcciones.includes('ver')) {
           newAcciones = ['ver', ...newAcciones];
         }
@@ -80,42 +81,37 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
 
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <div className="py-6 space-y-6">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Nombre del rol *</label>
-              <input
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                placeholder="Ej. Gerente de Zona"
-              />
-            </div>
+            <Input
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              label="Nombre del rol"
+              required
+              placeholder="Ej. Gerente de Zona"
+            />
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Descripción</label>
-              <textarea
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm resize-none"
-                placeholder="Describe brevemente este rol..."
-              />
-            </div>
+            <Textarea
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+              label="Descripción"
+              rows={2}
+              placeholder="Describe brevemente este rol..."
+            />
 
             <div className="space-y-3">
-              <h3 className="text-sm font-bold uppercase text-gray-500 tracking-wider">
+              <h3 className="text-sm font-bold uppercase text-muted-foreground tracking-wider">
                 Permisos por módulo
               </h3>
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="border border-border rounded-lg overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left py-2.5 px-4 font-semibold text-gray-600 w-[40%]">
+                    <tr className="bg-muted/40 border-b border-border">
+                      <th className="text-left py-2.5 px-4 font-semibold text-foreground w-[40%]">
                         Módulo
                       </th>
                       {ACCIONES.map((a) => (
                         <th
                           key={a}
-                          className="text-center py-2.5 px-2 font-semibold text-gray-600 capitalize w-[15%]"
+                          className="text-center py-2.5 px-2 font-semibold text-foreground capitalize w-[15%]"
                         >
                           {a}
                         </th>
@@ -127,11 +123,11 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
                       <tr
                         key={modulo.id}
                         className={cn(
-                          'border-b border-gray-100',
-                          idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'
+                          'border-b border-border/40',
+                          idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'
                         )}
                       >
-                        <td className="py-2.5 px-4 font-medium text-gray-800">{modulo.nombre}</td>
+                        <td className="py-2.5 px-4 font-medium text-foreground">{modulo.nombre}</td>
                         {ACCIONES.map((accion) => (
                           <td key={accion} className="py-2.5 px-2 text-center">
                             <button
@@ -140,11 +136,13 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
                               className={cn(
                                 'w-6 h-6 rounded border-2 flex items-center justify-center mx-auto transition-colors',
                                 hasAccion(modulo.id, accion)
-                                  ? 'bg-blue-600 border-blue-600 text-white'
-                                  : 'border-gray-300 bg-white hover:border-blue-400'
+                                  ? 'bg-primary border-primary text-primary-foreground'
+                                  : 'border-border bg-background hover:border-primary/50'
                               )}
                             >
-                              {hasAccion(modulo.id, accion) && <Icon name="Check" size={12} strokeWidth={3} />}
+                              {hasAccion(modulo.id, accion) && (
+                                <Icon name="Check" size={12} strokeWidth={3} />
+                              )}
                             </button>
                           </td>
                         ))}
@@ -153,7 +151,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
                   </tbody>
                 </table>
               </div>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 * &quot;Ver&quot; se activa automáticamente cuando se asigna cualquier otra acción.
               </p>
             </div>
@@ -168,7 +166,6 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
             type="button"
             onClick={handleSave}
             disabled={!nombre.trim() || isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700"
           >
             {isSubmitting ? 'Guardando...' : 'Guardar Rol'}
           </Button>

@@ -11,6 +11,7 @@ import {
   SheetFooter,
 } from 'src/shared/components/ui/sheet';
 import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from 'src/shared/components/ui/tabs';
@@ -170,14 +171,10 @@ export function TenantDetailDrawer({
                   Esta acción bloqueará el acceso de todos sus usuarios al sistema de forma
                   inmediata.
                 </p>
-                <label className="block text-body2 font-medium text-foreground mb-2">
-                  Escribe &quot;SUSPENDER&quot; para confirmar:
-                </label>
-                <input
-                  type="text"
+                <Input
                   value={textoConfirmacion}
                   onChange={(e) => setTextoConfirmacion(e.target.value)}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+                  label='Escribe "SUSPENDER" para confirmar:'
                   placeholder="SUSPENDER"
                 />
               </div>

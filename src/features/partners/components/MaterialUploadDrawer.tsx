@@ -9,12 +9,7 @@ import {
   SheetFooter,
   Button,
   Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
   Icon,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
@@ -98,55 +93,38 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
             </p>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="mat-title">Título *</Label>
-            <Input
-              id="mat-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ej: Presentación Comercial 2026"
-              className={errors.title ? 'border-error' : ''}
-            />
-            {errors.title && <p className="text-caption text-error">{errors.title}</p>}
-          </div>
+          <Input
+            label="Título *"
+            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Ej: Presentación Comercial 2026"
+            error={errors.title}
+          />
 
-          <div className="space-y-1.5">
-            <Label htmlFor="mat-desc">Descripción</Label>
-            <Textarea
-              id="mat-desc"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Breve descripción del material..."
-              rows={2}
-            />
-          </div>
+          <Textarea
+            label="Descripción"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Breve descripción del material..."
+            rows={2}
+          />
 
-          <div className="space-y-1.5">
-            <Label>Tipo *</Label>
-            <Select value={type} onValueChange={(v) => setType(v as MaterialType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TYPE_OPTIONS.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <SelectField
+            label="Tipo *"
+            required
+            options={TYPE_OPTIONS}
+            value={type}
+            onChange={(v) => setType(v as MaterialType)}
+          />
 
-          <div className="space-y-1.5">
-            <Label htmlFor="mat-tags">Tags</Label>
-            <Input
-              id="mat-tags"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="ventas, demo, Q2 2026"
-            />
-            <p className="text-caption text-muted-foreground">Separados por coma</p>
-          </div>
+          <Input
+            label="Tags"
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            placeholder="ventas, demo, Q2 2026"
+            hint="Separados por coma"
+          />
 
           {/* Zona de subida (solo visual) */}
           <div className="rounded-xl border border-dashed border-border/60 p-8 flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-muted/20 transition-colors">

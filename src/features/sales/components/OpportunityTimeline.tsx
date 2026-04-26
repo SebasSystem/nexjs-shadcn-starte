@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale';
 import { Icon, type IconName } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Textarea } from 'src/shared/components/ui/textarea';
+import { Input } from 'src/shared/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -157,6 +158,7 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
         {activeTab === 'nota' ? (
           <div className="flex flex-col gap-3">
             <Textarea
+              label="Nota"
               placeholder="Escribe una nota sobre esta oportunidad..."
               rows={2}
               value={newNote}
@@ -173,6 +175,7 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
           <div className="flex flex-col gap-3">
             <div className="grid grid-cols-2 gap-3">
               <SelectField
+                label="Tipo"
                 options={[
                   { value: 'llamada', label: 'Llamada' },
                   { value: 'email', label: 'Email' },
@@ -183,14 +186,15 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
                 value={newActivity.type}
                 onChange={(v) => setNewActivity((p) => ({ ...p, type: v as ActivityType }))}
               />
-              <input
+              <Input
+                label="Fecha y hora"
                 type="datetime-local"
-                className="w-full h-10 px-3 text-sm bg-background border border-border/50 rounded-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                 value={newActivity.date}
                 onChange={(e) => setNewActivity((p) => ({ ...p, date: e.target.value }))}
               />
             </div>
             <Textarea
+              label="Detalles"
               placeholder="Resumen o detalles de la actividad..."
               rows={2}
               value={newActivity.notes}

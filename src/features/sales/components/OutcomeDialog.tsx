@@ -128,19 +128,18 @@ export function OutcomeDialog({ open, clientName, onConfirm, onCancel }: Outcome
                 clearable
                 placeholder="Sin competidor identificado"
               />
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">Detalle *</label>
-                <Textarea
-                  placeholder="Contá qué pasó. Cuanto más detalle, mejor para el equipo."
-                  rows={3}
-                  value={reason.detail}
-                  onChange={(e) => {
-                    setReason((p) => ({ ...p, detail: e.target.value }));
-                    setError('');
-                  }}
-                />
-                {error && <p className="text-caption text-destructive">{error}</p>}
-              </div>
+              <Textarea
+                label="Detalle"
+                required
+                placeholder="Contá qué pasó. Cuanto más detalle, mejor para el equipo."
+                rows={3}
+                value={reason.detail}
+                onChange={(e) => {
+                  setReason((p) => ({ ...p, detail: e.target.value }));
+                  setError('');
+                }}
+                error={error}
+              />
             </div>
 
             <DialogFooter>

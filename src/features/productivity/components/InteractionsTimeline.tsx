@@ -4,13 +4,7 @@ import React, { useState } from 'react';
 import { useInteractions } from '../hooks/use-interactions';
 import { Button } from 'src/shared/components/ui/button';
 import { Textarea } from 'src/shared/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from 'src/shared/components/ui/select';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import { Icon } from 'src/shared/components/ui/icon';
 import type { TipoInteraccion } from '../types/productivity.types';
 import { formatDistanceToNow } from 'date-fns';
@@ -42,16 +36,16 @@ export const InteractionsTimeline = ({ contactoId }: { contactoId: string }) => 
       <div className="p-4 border-b border-gray-100 bg-gray-50/50">
         <h4 className="text-sm font-semibold mb-3">Registrar interacción</h4>
         <div className="flex gap-2 mb-2">
-          <Select value={tipo} onValueChange={(v: TipoInteraccion) => setTipo(v)}>
-            <SelectTrigger className="w-[140px] h-8 text-xs bg-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="NOTA">Nota</SelectItem>
-              <SelectItem value="LLAMADA">Llamada</SelectItem>
-              <SelectItem value="CORREO">Correo</SelectItem>
-            </SelectContent>
-          </Select>
+          <SelectField
+            options={[
+              { value: 'NOTA', label: 'Nota' },
+              { value: 'LLAMADA', label: 'Llamada' },
+              { value: 'CORREO', label: 'Correo' },
+            ]}
+            value={tipo}
+            onChange={(v) => setTipo(v as TipoInteraccion)}
+            className="w-[140px]"
+          />
         </div>
         <Textarea
           placeholder="Escribe los detalles aquí..."

@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from 'src/shared/components/ui/button';
+import { FormInput } from 'src/shared/components/ui/form-input';
+import { FormSelectField } from 'src/shared/components/ui/form-select-field';
 import {
   Sheet,
   SheetContent,
@@ -38,6 +40,12 @@ interface UserDrawerProps {
   onSave: (data: Omit<SettingsUser, 'id' | 'creadoEn' | 'ultimoAcceso'>) => Promise<boolean>;
 }
 
+const ESTADO_OPTIONS = [
+  { value: 'ACTIVO', label: 'Activo' },
+  { value: 'PENDIENTE', label: 'Pendiente' },
+  { value: 'INACTIVO', label: 'Inactivo' },
+];
+
 export const UserDrawer: React.FC<UserDrawerProps> = ({
   isOpen,
   onClose,
@@ -47,10 +55,10 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
   onSave,
 }) => {
   const {
-    register,
+    control,
     handleSubmit,
     reset,
-    formState: { errors, isValid, isSubmitting },
+    formState: { isValid, isSubmitting },
   } = useForm<UserForm>({
     resolver: zodResolver(schema),
     mode: 'onChange',
@@ -88,6 +96,12 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
     if (success) onClose();
   };
 
+  const rolOptions = roles.map((r) => ({ value: r.id, label: r.nombre }));
+  const equipoOptions = [
+    { value: '', label: 'Sin equipo' },
+    ...equipos.map((e) => ({ value: e.id, label: e.nombre })),
+  ];
+
   return (
     <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[440px] flex flex-col p-0">
@@ -102,70 +116,46 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
 
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <div className="py-6 space-y-5">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Nombre completo *</label>
-              <input
-                {...register('nombre')}
-                className={`w-full h-10 px-3 border rounded-md text-sm ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Ej. Carlos Mendoza"
-              />
-              {errors.nombre && <p className="text-xs text-red-500">{errors.nombre.message}</p>}
-            </div>
+            <FormInput
+              control={control}
+              name="nombre"
+              label="Nombre completo"
+              required
+              placeholder="Ej. Carlos Mendoza"
+            />
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Email *</label>
-              <input
-                {...register('email')}
-                type="email"
-                className={`w-full h-10 px-3 border rounded-md text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="carlos@empresa.com"
-                disabled={!!user}
-              />
-              {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
-            </div>
+            <FormInput
+              control={control}
+              name="email"
+              type="email"
+              label="Email"
+              required
+              placeholder="carlos@empresa.com"
+              disabled={!!user}
+            />
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Rol *</label>
-              <select
-                {...register('rolId')}
-                className={`w-full h-10 px-3 border rounded-md text-sm bg-white ${errors.rolId ? 'border-red-500' : 'border-gray-300'}`}
-              >
-                <option value="">-- Seleccionar rol --</option>
-                {roles.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.nombre}
-                  </option>
-                ))}
-              </select>
-              {errors.rolId && <p className="text-xs text-red-500">{errors.rolId.message}</p>}
-            </div>
+            <FormSelectField
+              control={control}
+              name="rolId"
+              label="Rol"
+              required
+              options={rolOptions}
+              placeholder="Seleccionar rol..."
+            />
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Equipo</label>
-              <select
-                {...register('equipoId')}
-                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-              >
-                <option value="">Sin equipo</option>
-                {equipos.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FormSelectField
+              control={control}
+              name="equipoId"
+              label="Equipo"
+              options={equipoOptions}
+            />
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Estado</label>
-              <select
-                {...register('estado')}
-                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-              >
-                <option value="ACTIVO">Activo</option>
-                <option value="PENDIENTE">Pendiente</option>
-                <option value="INACTIVO">Inactivo</option>
-              </select>
-            </div>
+            <FormSelectField
+              control={control}
+              name="estado"
+              label="Estado"
+              options={ESTADO_OPTIONS}
+            />
           </div>
         </div>
 
@@ -177,7 +167,6 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
             type="button"
             onClick={handleSubmit(onSubmit)}
             disabled={!isValid || isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700"
           >
             {isSubmitting ? 'Guardando...' : user ? 'Guardar cambios' : 'Invitar usuario'}
           </Button>

@@ -5,6 +5,8 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import { Sheet, SheetContent } from 'src/shared/components/ui/sheet';
 import { EntityTypeBadge } from './entity-type-badge';
 import { ContactStatusBadge } from './contact-status-badge';
@@ -316,34 +318,32 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
               )}
 
               {/* Vincular nueva relación */}
-              <div className="border-t border-gray-100 pt-4 space-y-2">
-                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <div className="border-t border-border/40 pt-4 space-y-2">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Vincular entidad
                 </h4>
-                <select
+                <SelectField
+                  label="Contacto o empresa"
                   value={selectedRelId}
-                  onChange={(e) => setSelectedRelId(e.target.value)}
-                  className="w-full h-9 px-3 border border-gray-300 rounded-md text-sm bg-white"
-                >
-                  <option value="">Buscar contacto o empresa...</option>
-                  {disponibles.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.nombre} ({d.tipo})
-                    </option>
-                  ))}
-                </select>
-                <input
+                  onChange={(val) => setSelectedRelId(val as string)}
+                  options={[
+                    ...disponibles.map((d) => ({ value: d.id, label: `${d.nombre} (${d.tipo})` })),
+                  ]}
+                  placeholder="Buscar contacto o empresa..."
+                  searchable
+                />
+                <Input
                   value={linkingCargo}
                   onChange={(e) => setLinkingCargo(e.target.value)}
                   placeholder="Cargo / rol en la relación (opcional)"
-                  className="w-full h-9 px-3 border border-gray-300 rounded-md text-sm"
+                  size="sm"
                 />
                 <Button
                   type="button"
                   size="sm"
                   onClick={handleAddRelacion}
                   disabled={!selectedRelId}
-                  className="w-full gap-1.5 bg-blue-600 hover:bg-blue-700"
+                  className="w-full gap-1.5"
                 >
                   <Icon name="Link2" size={14} /> Vincular
                 </Button>

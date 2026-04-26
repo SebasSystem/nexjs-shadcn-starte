@@ -232,12 +232,15 @@ export function InvoicesListView() {
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <Input
+          label="Buscar"
           placeholder="Buscar por cliente, ID o vendedor..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          leftIcon={<Icon name="Search" size={15} />}
           className="sm:max-w-xs"
         />
         <SelectField
+          label="Estado"
           value={statusFilter}
           onChange={(v) => setStatusFilter(v as string)}
           options={STATUS_OPTIONS}

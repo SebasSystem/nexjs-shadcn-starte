@@ -10,13 +10,7 @@ import {
 } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from 'src/shared/components/ui/select';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import { useSettingsUsers } from '../hooks/use-settings-users';
 import { useRoles } from '../hooks/use-roles';
 import { useTeams } from '../hooks/use-teams';
@@ -120,40 +114,36 @@ export const UsersView = () => {
       </div>
 
       <SectionCard noPadding>
-        <div className="flex flex-col sm:flex-row gap-3 items-center px-5 py-4">
+        <div className="flex flex-col sm:flex-row gap-3 items-end px-5 py-4">
           <Input
+            label="Buscar"
             placeholder="Buscar por nombre o email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             leftIcon={<Icon name="Search" size={16} />}
             className="flex-1 max-w-sm"
           />
-          <div className="flex items-center gap-3">
-            <Select value={filterRol} onValueChange={setFilterRol}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Rol" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos los roles</SelectItem>
-                {roles.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>
-                    {r.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos</SelectItem>
-                <SelectItem value="ACTIVO">Activo</SelectItem>
-                <SelectItem value="PENDIENTE">Pendiente</SelectItem>
-                <SelectItem value="INACTIVO">Inactivo</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-end gap-3">
+            <SelectField
+              label="Rol"
+              options={[
+                { value: 'ALL', label: 'Todos los roles' },
+                ...roles.map((r) => ({ value: r.id, label: r.nombre })),
+              ]}
+              value={filterRol}
+              onChange={(v) => setFilterRol(v as string)}
+            />
+            <SelectField
+              label="Estado"
+              options={[
+                { value: 'ALL', label: 'Todos' },
+                { value: 'ACTIVO', label: 'Activo' },
+                { value: 'PENDIENTE', label: 'Pendiente' },
+                { value: 'INACTIVO', label: 'Inactivo' },
+              ]}
+              value={filterEstado}
+              onChange={(v) => setFilterEstado(v as string)}
+            />
           </div>
         </div>
         {isLoading ? (

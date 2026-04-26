@@ -9,12 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetFooter,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Label,
+  SelectField,
   Textarea,
 } from 'src/shared/components/ui';
 import { Input } from 'src/shared/components/ui';
@@ -114,9 +109,9 @@ export function StockAdjustmentDrawer({
 
         <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
           {/* Producto */}
-          <div className="space-y-1.5">
-            <Label>Producto *</Label>
-            {preselectedProduct ? (
+          {preselectedProduct ? (
+            <div>
+              <p className="text-sm font-medium mb-1.5">Producto *</p>
               <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5 flex items-center gap-3">
                 <Icon name="Package" size={16} className="text-muted-foreground shrink-0" />
                 <div>
@@ -128,41 +123,35 @@ export function StockAdjustmentDrawer({
                   </p>
                 </div>
               </div>
-            ) : (
-              <>
-                <Select value={productId} onValueChange={setProductId}>
-                  <SelectTrigger className={cn(errors.product && 'border-error')}>
-                    <SelectValue placeholder="Seleccionar producto..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products
-                      .filter((p) => p.status === 'active')
-                      .map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name} — {p.sku}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                {errors.product && <p className="text-caption text-error">{errors.product}</p>}
-              </>
-            )}
-          </div>
+            </div>
+          ) : (
+            <SelectField
+              label="Producto *"
+              required
+              options={products
+                .filter((p) => p.status === 'active')
+                .map((p) => ({ value: p.id, label: `${p.name} — ${p.sku}` }))}
+              value={productId}
+              onChange={(v) => setProductId(v as string)}
+              placeholder="Seleccionar producto..."
+              error={errors.product}
+            />
+          )}
 
           {/* Bodega */}
-          <div className="space-y-1.5">
-            <Label>Bodega a ajustar *</Label>
-            <Select value={warehouse} onValueChange={(v) => setWarehouse(v as 'main' | 'store')}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="main">Bodega Principal</SelectItem>
-                <SelectItem value="store">Tienda</SelectItem>
-              </SelectContent>
-            </Select>
+          <div>
+            <SelectField
+              label="Bodega a ajustar *"
+              required
+              options={[
+                { value: 'main', label: 'Bodega Principal' },
+                { value: 'store', label: 'Tienda' },
+              ]}
+              value={warehouse}
+              onChange={(v) => setWarehouse(v as 'main' | 'store')}
+            />
             {selectedProduct && (
-              <p className="text-caption text-muted-foreground">
+              <p className="text-caption text-muted-foreground mt-1">
                 Stock actual en {warehouse === 'main' ? 'B. Principal' : 'Tienda'}:{' '}
                 <span className="font-semibold text-foreground">{currentInWarehouse} uds</span>
               </p>
@@ -171,7 +160,7 @@ export function StockAdjustmentDrawer({
 
           {/* Tipo de ajuste */}
           <div className="space-y-2">
-            <Label>Tipo de ajuste *</Label>
+            <p className="text-sm font-medium">Tipo de ajuste *</p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setType('add')}
@@ -207,10 +196,10 @@ export function StockAdjustmentDrawer({
           </div>
 
           {/* Cantidad */}
-          <div className="space-y-1.5">
-            <Label htmlFor="adj-qty">Cantidad a ajustar *</Label>
+          <div>
             <Input
-              id="adj-qty"
+              label="Cantidad a ajustar *"
+              required
               type="number"
               min={1}
               value={quantity}
@@ -222,15 +211,12 @@ export function StockAdjustmentDrawer({
                   return n;
                 });
               }}
-              className={cn(errors.quantity && 'border-error')}
+              error={errors.quantity}
             />
-            {errors.quantity && <p className="text-caption text-error">{errors.quantity}</p>}
-
-            {/* Preview */}
             {selectedProduct && qty > 0 && !wouldGoNegative && (
               <div
                 className={cn(
-                  'rounded-lg px-3 py-2.5 mt-1 border',
+                  'rounded-lg px-3 py-2.5 mt-2 border',
                   type === 'add'
                     ? 'bg-success/5 border-success/20'
                     : 'bg-warning/5 border-warning/20'
@@ -252,11 +238,15 @@ export function StockAdjustmentDrawer({
           </div>
 
           {/* Motivo (obligatorio) */}
-          <div className="space-y-1.5">
-            <Label>Motivo del ajuste *</Label>
-            <Select
+          <div>
+            <SelectField
+              label="Motivo del ajuste *"
+              required
+              options={(Object.keys(ADJUSTMENT_REASON_LABELS) as AdjustmentReason[]).map(
+                (key) => ({ value: key, label: ADJUSTMENT_REASON_LABELS[key] })
+              )}
               value={reason}
-              onValueChange={(v) => {
+              onChange={(v) => {
                 setReason(v as AdjustmentReason);
                 setErrors((p) => {
                   const n = { ...p };
@@ -264,48 +254,31 @@ export function StockAdjustmentDrawer({
                   return n;
                 });
               }}
-            >
-              <SelectTrigger className={cn(errors.reason && 'border-error')}>
-                <SelectValue placeholder="Seleccionar motivo..." />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(ADJUSTMENT_REASON_LABELS) as AdjustmentReason[]).map((key) => (
-                  <SelectItem key={key} value={key}>
-                    {ADJUSTMENT_REASON_LABELS[key]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.reason && <p className="text-caption text-error">{errors.reason}</p>}
+              placeholder="Seleccionar motivo..."
+              error={errors.reason}
+            />
 
             {reason === 'other' && (
-              <div className="space-y-1.5 mt-2">
-                <Label htmlFor="reason-other">Describe el motivo *</Label>
-                <Input
-                  id="reason-other"
-                  value={reasonOther}
-                  onChange={(e) => setReasonOther(e.target.value)}
-                  placeholder="Ej: Conteo inicial de apertura..."
-                  className={cn(errors.reasonOther && 'border-error')}
-                />
-                {errors.reasonOther && (
-                  <p className="text-caption text-error">{errors.reasonOther}</p>
-                )}
-              </div>
+              <Input
+                label="Describe el motivo *"
+                required
+                value={reasonOther}
+                onChange={(e) => setReasonOther(e.target.value)}
+                placeholder="Ej: Conteo inicial de apertura..."
+                error={errors.reasonOther}
+                className="mt-2"
+              />
             )}
           </div>
 
           {/* Notas adicionales */}
-          <div className="space-y-1.5">
-            <Label htmlFor="adj-notes">Notas adicionales (opcional)</Label>
-            <Textarea
-              id="adj-notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              placeholder="Observaciones del ajuste..."
-            />
-          </div>
+          <Textarea
+            label="Notas adicionales (opcional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={2}
+            placeholder="Observaciones del ajuste..."
+          />
 
           {/* Resumen */}
           {selectedProduct && qty > 0 && reason && (

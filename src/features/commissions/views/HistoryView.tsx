@@ -25,6 +25,9 @@ import {
   SheetDescription,
   SheetFooter,
 } from 'src/shared/components/ui/sheet';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
 import { toast } from 'sonner';
 
 // Mock detail data por registro
@@ -104,6 +107,7 @@ export const HistoryView = () => {
   // Mini-modal PDF
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [pdfGenerando, setPdfGenerando] = useState(false);
+  const [pdfPeriodo, setPdfPeriodo] = useState('febrero-2025');
   const [pdfOpciones, setPdfOpciones] = useState({
     detalleVentas: true,
     desgloseTramos: true,
@@ -320,35 +324,37 @@ export const HistoryView = () => {
 
       <SectionCard noPadding>
         {/* Filtros Integrados */}
-        <div className="flex gap-4 flex-wrap items-center p-4 bg-muted/10">
-          <div className="relative flex-1 min-w-[200px]">
-            <Icon name="Search" className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <input
+        <div className="flex gap-4 flex-wrap items-end p-4 bg-muted/10">
+          <div className="flex-1 min-w-[200px]">
+            <Input
+              label="Buscar"
               placeholder="Buscar vendedor..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+              leftIcon={<Icon name="Search" size={16} />}
             />
           </div>
-          <select
+          <SelectField
+            label="Periodo"
             value={periodoFilter}
-            onChange={(e) => setPeriodoFilter(e.target.value)}
-            className="border border-input rounded-md px-3 py-2 text-sm bg-background min-w-[150px] focus:outline-none focus:ring-1 focus:ring-ring"
-          >
-            <option value="">Todos los periodos</option>
-            <option value="Febrero 2025">Febrero 2025</option>
-            <option value="Enero 2025">Enero 2025</option>
-          </select>
-          <select
+            onChange={(val) => setPeriodoFilter(val as string)}
+            options={[
+              { value: '', label: 'Todos los periodos' },
+              { value: 'Febrero 2025', label: 'Febrero 2025' },
+              { value: 'Enero 2025', label: 'Enero 2025' },
+            ]}
+          />
+          <SelectField
+            label="Estado"
             value={estadoFilter}
-            onChange={(e) => setEstadoFilter(e.target.value)}
-            className="border border-input rounded-md px-3 py-2 text-sm bg-background min-w-[150px] focus:outline-none focus:ring-1 focus:ring-ring"
-          >
-            <option value="">Todos los estados</option>
-            <option value="PENDIENTE">Pendiente</option>
-            <option value="APROBADO">Aprobado</option>
-            <option value="PAGADO">Pagado</option>
-          </select>
+            onChange={(val) => setEstadoFilter(val as string)}
+            options={[
+              { value: '', label: 'Todos los estados' },
+              { value: 'PENDIENTE', label: 'Pendiente' },
+              { value: 'APROBADO', label: 'Aprobado' },
+              { value: 'PAGADO', label: 'Pagado' },
+            ]}
+          />
           <Button
             variant="ghost"
             size="sm"
@@ -595,36 +601,36 @@ export const HistoryView = () => {
 
           <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
             <div className="py-6 space-y-5">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Periodo</label>
-                <select className="w-full border rounded-md px-3 py-2 text-sm bg-white">
-                  <option>Febrero 2025</option>
-                  <option>Enero 2025</option>
-                  <option>Todos los periodos</option>
-                </select>
-              </div>
+              <SelectField
+                value={pdfPeriodo}
+                onChange={(val) => setPdfPeriodo(val as string)}
+                label="Periodo"
+                options={[
+                  { value: 'febrero-2025', label: 'Febrero 2025' },
+                  { value: 'enero-2025', label: 'Enero 2025' },
+                  { value: 'todos', label: 'Todos los periodos' },
+                ]}
+              />
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Incluir</label>
+                <p className="text-sm font-medium text-foreground">Incluir</p>
                 {[
                   { key: 'detalleVentas', label: 'Detalle de ventas' },
                   { key: 'desgloseTramos', label: 'Desglose por tramos' },
                   { key: 'resumenEjecutivo', label: 'Resumen ejecutivo' },
                 ].map(({ key, label }) => (
-                  <label
-                    key={key}
-                    className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
+                  <div key={key} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`pdf-${key}`}
                       checked={pdfOpciones[key as keyof typeof pdfOpciones]}
-                      onChange={(e) =>
-                        setPdfOpciones((prev) => ({ ...prev, [key]: e.target.checked }))
+                      onCheckedChange={(v) =>
+                        setPdfOpciones((prev) => ({ ...prev, [key]: v as boolean }))
                       }
-                      className="rounded"
                     />
-                    {label}
-                  </label>
+                    <label htmlFor={`pdf-${key}`} className="text-sm text-muted-foreground cursor-pointer">
+                      {label}
+                    </label>
+                  </div>
                 ))}
               </div>
             </div>

@@ -9,15 +9,9 @@ import {
   SheetFooter,
   Button,
   Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
-import { cn } from 'src/lib/utils';
 import { toast } from 'sonner';
 import { MOCK_INTERNAL_USERS } from 'src/_mock/_partners';
 import type { Partner, PartnerOpportunity, PartnerOpportunityStatus } from '../types';
@@ -133,134 +127,86 @@ function OpportunityForm({
       </SheetHeader>
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-        <div className="space-y-1.5">
-          <Label>Partner *</Label>
-          <Select value={partnerId} onValueChange={setPartnerId}>
-            <SelectTrigger className={cn(errors.partnerId && 'border-error')}>
-              <SelectValue placeholder="Seleccioná un partner" />
-            </SelectTrigger>
-            <SelectContent>
-              {activePartners.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.partnerId && <p className="text-caption text-error">{errors.partnerId}</p>}
-        </div>
+        <SelectField
+          label="Partner *"
+          required
+          options={activePartners.map((p) => ({ value: p.id, label: p.name }))}
+          value={partnerId}
+          onChange={(v) => setPartnerId(v as string)}
+          placeholder="Seleccioná un partner"
+          error={errors.partnerId}
+        />
 
-        <div className="space-y-1.5">
-          <Label htmlFor="opp-client">Nombre del cliente *</Label>
-          <Input
-            id="opp-client"
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-            placeholder="Empresa o persona"
-            className={cn(errors.clientName && 'border-error')}
-          />
-          {errors.clientName && <p className="text-caption text-error">{errors.clientName}</p>}
-        </div>
+        <Input
+          label="Nombre del cliente *"
+          required
+          value={clientName}
+          onChange={(e) => setClientName(e.target.value)}
+          placeholder="Empresa o persona"
+          error={errors.clientName}
+        />
 
-        <div className="space-y-1.5">
-          <Label htmlFor="opp-client-email">Email del cliente</Label>
-          <Input
-            id="opp-client-email"
-            type="email"
-            value={clientEmail}
-            onChange={(e) => setClientEmail(e.target.value)}
-            placeholder="contacto@cliente.com (opcional)"
-          />
-        </div>
+        <Input
+          label="Email del cliente"
+          type="email"
+          value={clientEmail}
+          onChange={(e) => setClientEmail(e.target.value)}
+          placeholder="contacto@cliente.com (opcional)"
+        />
 
-        <div className="space-y-1.5">
-          <Label htmlFor="opp-product">Producto / Servicio de interés *</Label>
-          <Input
-            id="opp-product"
-            value={product}
-            onChange={(e) => setProduct(e.target.value)}
-            placeholder="Ej: Módulo CRM completo + inventario"
-            className={cn(errors.product && 'border-error')}
-          />
-          {errors.product && <p className="text-caption text-error">{errors.product}</p>}
-        </div>
+        <Input
+          label="Producto / Servicio de interés *"
+          required
+          value={product}
+          onChange={(e) => setProduct(e.target.value)}
+          placeholder="Ej: Módulo CRM completo + inventario"
+          error={errors.product}
+        />
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="opp-value">Valor estimado *</Label>
-            <Input
-              id="opp-value"
-              type="number"
-              min={0}
-              value={estimatedValue}
-              onChange={(e) => setEstimatedValue(e.target.value)}
-              placeholder="0"
-              className={cn(errors.estimatedValue && 'border-error')}
-            />
-            {errors.estimatedValue && (
-              <p className="text-caption text-error">{errors.estimatedValue}</p>
-            )}
-          </div>
-          <div className="space-y-1.5">
-            <Label>Moneda</Label>
-            <Select value={currency} onValueChange={(v) => setCurrency(v as typeof currency)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CURRENCY_OPTIONS.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Estado</Label>
-          <Select value={status} onValueChange={(v) => setStatus(v as PartnerOpportunityStatus)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Vendedor interno asignado</Label>
-          <Select value={assignedToInternal} onValueChange={setAssignedToInternal}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sin asignar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="unassigned">Sin asignar</SelectItem>
-              {MOCK_INTERNAL_USERS.map((u) => (
-                <SelectItem key={u} value={u}>
-                  {u}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="opp-notes">Notas</Label>
-          <Textarea
-            id="opp-notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Contexto adicional de la oportunidad..."
-            rows={3}
+          <Input
+            label="Valor estimado *"
+            required
+            type="number"
+            min={0}
+            value={estimatedValue}
+            onChange={(e) => setEstimatedValue(e.target.value)}
+            placeholder="0"
+            error={errors.estimatedValue}
+          />
+          <SelectField
+            label="Moneda"
+            options={CURRENCY_OPTIONS.map((c) => ({ value: c, label: c }))}
+            value={currency}
+            onChange={(v) => setCurrency(v as typeof currency)}
           />
         </div>
+
+        <SelectField
+          label="Estado"
+          options={STATUS_OPTIONS}
+          value={status}
+          onChange={(v) => setStatus(v as PartnerOpportunityStatus)}
+        />
+
+        <SelectField
+          label="Vendedor interno asignado"
+          options={[
+            { value: 'unassigned', label: 'Sin asignar' },
+            ...MOCK_INTERNAL_USERS.map((u) => ({ value: u, label: u })),
+          ]}
+          value={assignedToInternal}
+          onChange={(v) => setAssignedToInternal(v as string)}
+          placeholder="Sin asignar"
+        />
+
+        <Textarea
+          label="Notas"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Contexto adicional de la oportunidad..."
+          rows={3}
+        />
       </div>
 
       <SheetFooter className="border-t border-border/60 pt-4 px-4 pb-4">

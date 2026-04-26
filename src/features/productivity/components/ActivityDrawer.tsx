@@ -5,6 +5,7 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { Textarea } from 'src/shared/components/ui/textarea';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import {
   Sheet,
   SheetContent,
@@ -13,13 +14,6 @@ import {
   SheetDescription,
   SheetFooter,
 } from 'src/shared/components/ui/sheet';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from 'src/shared/components/ui/select';
 import { useContacts } from '../../contacts/hooks/use-contacts';
 import type { TipoActividad, Actividad } from '../types/productivity.types';
 
@@ -84,113 +78,65 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <div className="py-5 space-y-6">
             <div className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
-                  Tipo de Actividad
-                </label>
-                <Select value={tipo} onValueChange={(v: TipoActividad) => setTipo(v)}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TAREA">Tarea</SelectItem>
-                    <SelectItem value="RECORDATORIO">Recordatorio</SelectItem>
-                    <SelectItem value="REUNION">Reunión</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <SelectField
+                label="Tipo de Actividad"
+                value={tipo}
+                onChange={(val) => setTipo(val as TipoActividad)}
+                options={[
+                  { value: 'TAREA', label: 'Tarea' },
+                  { value: 'RECORDATORIO', label: 'Recordatorio' },
+                  { value: 'REUNION', label: 'Reunión' },
+                ]}
+              />
 
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
-                  Título (*)
-                </label>
-                <Input
-                  value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
-                  placeholder="Ej. Presentar cotización final"
-                />
-              </div>
+              <Input
+                label="Título"
+                required
+                value={titulo}
+                onChange={(e) => setTitulo(e.target.value)}
+                placeholder="Ej. Presentar cotización final"
+              />
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
-                    Fecha de Vencimiento (*)
-                  </label>
-                  <div className="relative">
-                    <Icon name="Calendar" className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                    <Input
-                      type="date"
-                      value={fecha}
-                      onChange={(e) => setFecha(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
-                    Hora límite
-                  </label>
-                  <div className="relative">
-                    <Icon name="Clock" className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                    <Input type="time" className="pl-9" />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
-                  Asignar a
-                </label>
-                <div className="relative">
-                  <Icon name="User" className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Select value={asignadoA} onValueChange={setAsignadoA}>
-                    <SelectTrigger className="w-full pl-9">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {usuarios.map((u) => (
-                        <SelectItem key={u.id} value={u.nombre}>
-                          {u.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
-                  Asociar a Cliente (Opcional)
-                </label>
-                <div className="relative">
-                  <Icon name="Building2" className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Select value={contactoId} onValueChange={setContactoId}>
-                    <SelectTrigger className="w-full pl-9">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sin cliente asociado</SelectItem>
-                      {contactos.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.nombre} ({c.tipo})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
-                  Descripción / Notas
-                </label>
-                <Textarea
-                  value={descripcion}
-                  onChange={(e) => setDescripcion(e.target.value)}
-                  placeholder="Detalles adicionales sobre lo que se debe hacer..."
-                  className="min-h-[100px] resize-none"
+                <Input
+                  label="Fecha de Vencimiento"
+                  required
+                  type="date"
+                  value={fecha}
+                  onChange={(e) => setFecha(e.target.value)}
+                  leftIcon={<Icon name="Calendar" size={16} />}
+                />
+                <Input
+                  label="Hora límite"
+                  type="time"
+                  leftIcon={<Icon name="Clock" size={16} />}
                 />
               </div>
+
+              <SelectField
+                label="Asignar a"
+                value={asignadoA}
+                onChange={(val) => setAsignadoA(val as string)}
+                options={usuarios.map((u) => ({ value: u.nombre, label: u.nombre }))}
+              />
+
+              <SelectField
+                label="Asociar a Cliente (Opcional)"
+                value={contactoId}
+                onChange={(val) => setContactoId(val as string)}
+                options={[
+                  { value: 'none', label: 'Sin cliente asociado' },
+                  ...contactos.map((c) => ({ value: c.id, label: `${c.nombre} (${c.tipo})` })),
+                ]}
+              />
+
+              <Textarea
+                label="Descripción / Notas"
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
+                placeholder="Detalles adicionales sobre lo que se debe hacer..."
+                className="min-h-[100px] resize-none"
+              />
             </div>
           </div>
         </div>

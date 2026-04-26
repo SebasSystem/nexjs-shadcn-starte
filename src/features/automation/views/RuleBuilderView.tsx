@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
+import { Textarea } from 'src/shared/components/ui/textarea';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { paths } from 'src/routes/paths';
 import { ruleSchema } from '../schemas/rule.schema';
@@ -128,14 +129,12 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
               error={form.formState.errors.name?.message}
               {...form.register('name')}
             />
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-foreground">Descripción (opcional)</label>
-              <textarea
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/20 transition-all min-h-[72px] resize-none"
-                placeholder="¿Para qué sirve esta regla?"
-                {...form.register('description')}
-              />
-            </div>
+            <Textarea
+              label="Descripción (opcional)"
+              placeholder="¿Para qué sirve esta regla?"
+              rows={3}
+              {...form.register('description')}
+            />
           </div>
         </SectionCard>
 

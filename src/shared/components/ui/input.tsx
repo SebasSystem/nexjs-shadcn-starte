@@ -11,10 +11,11 @@ export interface InputProps extends Omit<React.ComponentProps<'input'>, 'size'> 
   error?: string;
   success?: boolean;
   size?: 'sm' | 'md' | 'lg';
+  inputClassName?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, leftIcon, rightIcon, hint, error, success, size = 'md', id, ...props }, ref) => {
+  ({ className, type, label, leftIcon, rightIcon, hint, error, success, size = 'md', id, inputClassName, ...props }, ref) => {
     const generatedId = React.useId();
     const inputId = id ?? generatedId;
     const hintId = `${inputId}-hint`;
@@ -67,6 +68,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               sizeClasses[size],
               leftIcon && 'pl-10',
               (rightIcon || success) && 'pr-10',
+              inputClassName,
               hasError
                 ? 'border-destructive/80 focus-visible:outline-none focus-visible:border-destructive focus-visible:ring-[3px] focus-visible:ring-destructive/20'
                 : success

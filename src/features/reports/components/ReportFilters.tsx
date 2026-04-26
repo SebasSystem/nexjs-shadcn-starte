@@ -3,11 +3,7 @@ import {
   Icon,
   Button,
   Input,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
+  SelectField,
 } from 'src/shared/components/ui';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import { cn } from 'src/lib/utils';
@@ -69,7 +65,7 @@ export function ReportFilters() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
         {/* Período */}
         <div className="md:col-span-6 flex flex-col gap-2">
-          <label className="text-caption font-semibold text-muted-foreground">Período</label>
+          <p className="text-caption font-semibold text-muted-foreground">Período</p>
           <div className="flex flex-wrap items-center gap-2">
             {['Hoy', 'Esta semana', 'Este mes', 'Este trimestre', 'Personalizado'].map((p) => (
               <button
@@ -100,36 +96,30 @@ export function ReportFilters() {
         </div>
 
         {/* Bodega */}
-        <div className="md:col-span-3 flex flex-col gap-2">
-          <label className="text-caption font-semibold text-muted-foreground">Bodega</label>
-          <Select value={warehouse} onValueChange={setWarehouse}>
-            <SelectTrigger className="h-9">
-              <SelectValue placeholder="Seleccione bodega" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="main">Bodega Principal</SelectItem>
-              <SelectItem value="store">Tienda</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="md:col-span-3">
+          <SelectField
+            label="Bodega"
+            options={[
+              { value: 'all', label: 'Todas' },
+              { value: 'main', label: 'Bodega Principal' },
+              { value: 'store', label: 'Tienda' },
+            ]}
+            value={warehouse}
+            onChange={(v) => setWarehouse(v as string)}
+          />
         </div>
 
         {/* Categoría */}
-        <div className="md:col-span-3 flex flex-col gap-2">
-          <label className="text-caption font-semibold text-muted-foreground">Categoría</label>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="h-9">
-              <SelectValue placeholder="Seleccione categoría" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las categorías</SelectItem>
-              {MOCK_CATEGORIES.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="md:col-span-3">
+          <SelectField
+            label="Categoría"
+            options={[
+              { value: 'all', label: 'Todas las categorías' },
+              ...MOCK_CATEGORIES.map((c) => ({ value: c.id, label: c.name })),
+            ]}
+            value={category}
+            onChange={(v) => setCategory(v as string)}
+          />
         </div>
       </div>
     </SectionCard>

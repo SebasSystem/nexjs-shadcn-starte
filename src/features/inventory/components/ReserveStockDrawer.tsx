@@ -10,12 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetFooter,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Label,
+  SelectField,
 } from 'src/shared/components/ui';
 import { cn } from 'src/lib/utils';
 import { useInventory } from '../hooks/useInventory';
@@ -132,28 +127,22 @@ export function ReserveStockDrawer({ open, quote, onClose }: ReserveStockDrawerP
                   <div className="grid grid-cols-3 gap-2">
                     {/* Bodega */}
                     <div className="space-y-1">
-                      <Label className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
                         Bodega
-                      </Label>
-                      <Select
+                      </p>
+                      <SelectField
+                        options={[
+                          { value: 'main', label: `B. Principal (${product?.stockMain ?? 0})` },
+                          { value: 'store', label: `Tienda (${product?.stockStore ?? 0})` },
+                        ]}
                         value={selectedWarehouse}
-                        onValueChange={(v) =>
+                        onChange={(v) =>
                           setWarehouseOverrides((prev) => ({
                             ...prev,
                             [item.productId]: v as 'main' | 'store',
                           }))
                         }
-                      >
-                        <SelectTrigger className="h-7 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="main">
-                            B. Principal ({product?.stockMain ?? 0})
-                          </SelectItem>
-                          <SelectItem value="store">Tienda ({product?.stockStore ?? 0})</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      />
                     </div>
 
                     {/* Solicitado */}

@@ -213,22 +213,19 @@ export function LostReasonsView() {
       <LostReasonHeatmap data={heatmapData} />
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[220px]">
-          <Icon
-            name="Search"
-            size={15}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-          />
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="flex-1 min-w-[220px]">
           <Input
+            label="Buscar"
             placeholder="Buscar deal o cliente..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            leftIcon={<Icon name="Search" size={15} />}
           />
         </div>
         <div className="min-w-[200px]">
           <SelectField
+            label="Razón"
             options={REASON_FILTER_OPTIONS}
             value={reasonFilter}
             onChange={(v) => setReasonFilter(v as string)}
@@ -238,6 +235,7 @@ export function LostReasonsView() {
         </div>
         <div className="min-w-[200px]">
           <SelectField
+            label="Competidor"
             options={COMPETITOR_FILTER_OPTIONS}
             value={competitorFilter}
             onChange={(v) => setCompetitorFilter(v as string)}

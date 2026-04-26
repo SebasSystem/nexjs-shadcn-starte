@@ -5,13 +5,7 @@ import { useActivities } from '../hooks/use-activities';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { Textarea } from 'src/shared/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from 'src/shared/components/ui/select';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import { Icon } from 'src/shared/components/ui/icon';
 import type { TipoActividad, EstadoActividad } from '../types/productivity.types';
 import { format } from 'date-fns';
@@ -69,21 +63,21 @@ export const ActivitiesTab = ({
 
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <Select value={tipo} onValueChange={(v: TipoActividad) => setTipo(v)}>
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="TAREA">Tarea</SelectItem>
-                <SelectItem value="RECORDATORIO">Recordatorio</SelectItem>
-                <SelectItem value="REUNION">Reunión</SelectItem>
-              </SelectContent>
-            </Select>
+            <SelectField
+              label="Tipo"
+              options={[
+                { value: 'TAREA', label: 'Tarea' },
+                { value: 'RECORDATORIO', label: 'Recordatorio' },
+                { value: 'REUNION', label: 'Reunión' },
+              ]}
+              value={tipo}
+              onChange={(v) => setTipo(v as TipoActividad)}
+            />
             <Input
+              label="Fecha"
               type="date"
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
-              className="h-9 text-sm"
             />
           </div>
           <Input

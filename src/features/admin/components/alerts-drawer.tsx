@@ -11,6 +11,7 @@ import {
   SheetFooter,
 } from 'src/shared/components/ui/sheet';
 import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
 import { Switch } from 'src/shared/components/ui/switch';
 import { Alerta } from 'src/features/admin/types/admin.types';
 
@@ -94,36 +95,25 @@ export function AlertsDrawer({ alerta, isOpen, onClose, onSave }: AlertsDrawerPr
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <div>
-            <label className="block text-caption font-medium text-muted-foreground mb-1">
-              Nombre de la alerta *
-            </label>
-            <input
-              type="text"
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-              placeholder="Errores críticos por hora"
-            />
-          </div>
+          <Input
+            label="Nombre de la alerta *"
+            required
+            value={form.nombre}
+            onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+            placeholder="Errores críticos por hora"
+          />
+
+          <Input
+            label="Condición"
+            value={form.condicion}
+            onChange={(e) => setForm({ ...form, condicion: e.target.value })}
+            placeholder="Si errores > 50 en 1h"
+          />
 
           <div>
-            <label className="block text-caption font-medium text-muted-foreground mb-1">
-              Condición
-            </label>
-            <input
-              type="text"
-              value={form.condicion}
-              onChange={(e) => setForm({ ...form, condicion: e.target.value })}
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-              placeholder="Si errores > 50 en 1h"
-            />
-          </div>
-
-          <div>
-            <label className="block text-caption font-medium text-muted-foreground mb-2">
+            <p className="text-caption font-medium text-muted-foreground mb-2">
               Canal de notificación
-            </label>
+            </p>
             <div className="space-y-2">
               {(['EMAIL', 'SLACK', 'PUSH'] as Canal[]).map((c) => (
                 <label

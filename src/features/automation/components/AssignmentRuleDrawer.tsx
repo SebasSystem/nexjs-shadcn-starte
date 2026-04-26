@@ -13,6 +13,7 @@ import {
 } from 'src/shared/components/ui/sheet';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
+import { Textarea } from 'src/shared/components/ui/textarea';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { cn } from 'src/lib/utils';
 import { ASSIGNMENT_RULE_TYPE_LABELS } from '../types';
@@ -140,17 +141,15 @@ export function AssignmentRuleDrawer({
             onChange={(v) => form.setValue('type', v as AssignmentRuleType)}
           />
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground">Descripción (opcional)</label>
-            <textarea
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/20 transition-all min-h-[80px] resize-none"
-              placeholder="Describí el propósito de esta regla..."
-              {...form.register('description')}
-            />
-          </div>
+          <Textarea
+            label="Descripción (opcional)"
+            placeholder="Describí el propósito de esta regla..."
+            rows={3}
+            {...form.register('description')}
+          />
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Usuarios asignables</label>
+            <p className="text-sm font-medium text-foreground">Usuarios asignables</p>
             <div className="space-y-2">
               {MOCK_AUTOMATION_USERS.map((user) => (
                 <label
@@ -176,7 +175,7 @@ export function AssignmentRuleDrawer({
 
           {watchedType === 'geographic' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Mapeo geográfico</label>
+              <p className="text-sm font-medium text-foreground">Mapeo geográfico</p>
               <div className="rounded-xl border border-border/50 overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>

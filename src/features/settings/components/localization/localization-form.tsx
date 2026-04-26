@@ -4,6 +4,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
+import { FormSelectField } from 'src/shared/components/ui/form-select-field';
 import type { ConfigLocalizacion } from '../../types/settings.types';
 
 const ZONAS_HORARIAS = [
@@ -45,6 +46,9 @@ const IDIOMAS = [
   { value: 'en-US', label: 'English (US)' },
 ];
 
+const ZONA_OPTIONS = ZONAS_HORARIAS.map((tz) => ({ value: tz, label: tz }));
+const MONEDA_OPTIONS = MONEDAS.map((m) => ({ value: m.code, label: m.label }));
+
 interface LocalizationFormProps {
   config: ConfigLocalizacion;
   isSaving: boolean;
@@ -53,7 +57,7 @@ interface LocalizationFormProps {
 
 export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormProps) {
   const {
-    register,
+    control,
     handleSubmit,
     formState: { isDirty },
   } = useForm<ConfigLocalizacion>({
@@ -74,73 +78,33 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-xl">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <Icon name="Clock" size={15} className="text-muted-foreground" />
-            Zona horaria
-          </label>
-          <select
-            {...register('zonaHoraria')}
-            className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-          >
-            {ZONAS_HORARIAS.map((tz) => (
-              <option key={tz} value={tz}>
-                {tz}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FormSelectField
+          control={control}
+          name="zonaHoraria"
+          label="Zona horaria"
+          options={ZONA_OPTIONS}
+        />
 
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <Icon name="DollarSign" size={15} className="text-muted-foreground" />
-            Moneda principal
-          </label>
-          <select
-            {...register('moneda')}
-            className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-          >
-            {MONEDAS.map((m) => (
-              <option key={m.code} value={m.code}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FormSelectField
+          control={control}
+          name="moneda"
+          label="Moneda principal"
+          options={MONEDA_OPTIONS}
+        />
 
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <Icon name="Calendar" size={15} className="text-muted-foreground" />
-            Formato de fecha
-          </label>
-          <select
-            {...register('formatoFecha')}
-            className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-          >
-            {FORMATOS_FECHA.map((f) => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FormSelectField
+          control={control}
+          name="formatoFecha"
+          label="Formato de fecha"
+          options={FORMATOS_FECHA}
+        />
 
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-            <Icon name="Languages" size={15} className="text-muted-foreground" />
-            Idioma
-          </label>
-          <select
-            {...register('idioma')}
-            className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-          >
-            {IDIOMAS.map((l) => (
-              <option key={l.value} value={l.value}>
-                {l.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FormSelectField
+          control={control}
+          name="idioma"
+          label="Idioma"
+          options={IDIOMAS}
+        />
       </div>
 
       <div className="flex items-center gap-3">

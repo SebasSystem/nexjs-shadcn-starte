@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import {
   Sheet,
   SheetContent,
@@ -73,6 +75,12 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
   const memberIds = equipo?.miembros.map((m) => m.usuarioId) ?? [];
   const availableUsers = usuarios.filter((u) => !memberIds.includes(u.id) && u.estado === 'ACTIVO');
 
+  const liderOptions = usuarios
+    .filter((u) => u.estado === 'ACTIVO')
+    .map((u) => ({ value: u.id, label: `${u.nombre} (${u.rolNombre})` }));
+
+  const miembroOptions = availableUsers.map((u) => ({ value: u.id, label: u.nombre }));
+
   return (
     <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[480px] flex flex-col p-0">
@@ -83,37 +91,26 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
 
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <div className="py-6 space-y-6">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Nombre del equipo *</label>
-              <input
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                placeholder="Ej. Equipo Norte"
-              />
-            </div>
+            <Input
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              label="Nombre del equipo"
+              required
+              placeholder="Ej. Equipo Norte"
+            />
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Líder del equipo *</label>
-              <select
-                value={liderId}
-                onChange={(e) => setLiderId(e.target.value)}
-                className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-              >
-                <option value="">-- Seleccionar líder --</option>
-                {usuarios
-                  .filter((u) => u.estado === 'ACTIVO')
-                  .map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.nombre} ({u.rolNombre})
-                    </option>
-                  ))}
-              </select>
-            </div>
+            <SelectField
+              value={liderId}
+              onChange={(val) => setLiderId(val as string)}
+              label="Líder del equipo"
+              required
+              options={liderOptions}
+              placeholder="Seleccionar líder..."
+            />
 
             {equipo && (
               <div className="space-y-3">
-                <h3 className="text-sm font-bold uppercase text-gray-500 tracking-wider">
+                <h3 className="text-sm font-bold uppercase text-muted-foreground tracking-wider">
                   Miembros
                 </h3>
 
@@ -122,22 +119,22 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
                     {equipo.miembros.map((miembro) => (
                       <div
                         key={miembro.usuarioId}
-                        className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100"
+                        className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border/40"
                       >
                         <Avatar className="h-8 w-8 shrink-0">
-                          <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
                             {getInitials(miembro.usuarioNombre)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
                           <p className="text-sm font-medium">{miembro.usuarioNombre}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-muted-foreground">
                             {miembro.rolNombre} · {miembro.clientesAsignados} clientes
                           </p>
                         </div>
                         <button
                           onClick={() => onRemoveMember(equipo.id, miembro.usuarioId)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                          className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
                         >
                           <Icon name="Trash2" size={14} />
                         </button>
@@ -145,29 +142,25 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400 italic">Sin miembros todavía.</p>
+                  <p className="text-sm text-muted-foreground italic">Sin miembros todavía.</p>
                 )}
 
                 <div className="flex gap-2">
-                  <select
-                    value={selectedUserId}
-                    onChange={(e) => setSelectedUserId(e.target.value)}
-                    className="flex-1 h-9 px-3 border border-gray-300 rounded-md text-sm bg-white"
-                  >
-                    <option value="">Agregar miembro...</option>
-                    {availableUsers.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.nombre}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex-1">
+                    <SelectField
+                      value={selectedUserId}
+                      onChange={(val) => setSelectedUserId(val as string)}
+                      options={miembroOptions}
+                      placeholder="Agregar miembro..."
+                    />
+                  </div>
                   <Button
                     type="button"
                     size="sm"
                     variant="outline"
                     onClick={handleAddMember}
                     disabled={!selectedUserId}
-                    className="gap-1.5 h-9"
+                    className="gap-1.5 h-10"
                   >
                     <Icon name="UserPlus" size={14} /> Agregar
                   </Button>
@@ -185,7 +178,6 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
             type="button"
             onClick={handleSave}
             disabled={!nombre.trim() || !liderId || isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700"
           >
             {isSubmitting ? 'Guardando...' : 'Guardar Equipo'}
           </Button>

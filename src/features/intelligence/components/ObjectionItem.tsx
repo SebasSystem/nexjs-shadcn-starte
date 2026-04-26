@@ -1,4 +1,4 @@
-import { Button, Label } from 'src/shared/components/ui';
+import { Button } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 import { Icon } from 'src/shared/components/ui';
 import type { UseFormRegister, FieldErrors } from 'react-hook-form';
@@ -36,25 +36,21 @@ export function ObjectionItem({ index, register, errors, onRemove, canRemove }: 
         )}
       </div>
 
-      <div className="space-y-1.5">
-        <Label>El cliente dice...</Label>
-        <Textarea
-          {...register(`objections.${index}.objection`)}
-          placeholder="Ej: Odoo es open source, ¿por qué pagar por su solución?"
-          rows={2}
-        />
-        {objectionError && <p className="text-caption text-destructive">{objectionError}</p>}
-      </div>
+      <Textarea
+        label="El cliente dice..."
+        {...register(`objections.${index}.objection`)}
+        placeholder="Ej: Odoo es open source, ¿por qué pagar por su solución?"
+        rows={2}
+        error={objectionError}
+      />
 
-      <div className="space-y-1.5">
-        <Label>El vendedor responde...</Label>
-        <Textarea
-          {...register(`objections.${index}.response`)}
-          placeholder="Respuesta clara, directa y con evidencia..."
-          rows={3}
-        />
-        {responseError && <p className="text-caption text-destructive">{responseError}</p>}
-      </div>
+      <Textarea
+        label="El vendedor responde..."
+        {...register(`objections.${index}.response`)}
+        placeholder="Respuesta clara, directa y con evidencia..."
+        rows={3}
+        error={responseError}
+      />
     </div>
   );
 }

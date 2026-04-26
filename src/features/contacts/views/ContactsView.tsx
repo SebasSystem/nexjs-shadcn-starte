@@ -5,13 +5,7 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from 'src/shared/components/ui/select';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import { useContacts } from '../hooks/use-contacts';
 import { ContactsTable } from '../components/contacts-table';
 import { ContactDrawer } from '../components/contact-drawer';
@@ -130,25 +124,26 @@ export const ContactsView = () => {
       </div>
 
       <SectionCard noPadding>
-        <div className="flex flex-col sm:flex-row gap-3 items-center px-5 py-4">
+        <div className="flex flex-col sm:flex-row gap-3 items-end px-5 py-4">
           <Input
+            label="Buscar"
             placeholder="Buscar por nombre o email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             leftIcon={<Icon name="Search" className="h-4 w-4" />}
             className="flex-1 max-w-sm"
           />
-          <Select value={filterEstado} onValueChange={setFilterEstado}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Todos los estados</SelectItem>
-              <SelectItem value="ACTIVO">Activo</SelectItem>
-              <SelectItem value="PROSPECTO">Prospecto</SelectItem>
-              <SelectItem value="INACTIVO">Inactivo</SelectItem>
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Estado"
+            options={[
+              { value: 'ALL', label: 'Todos los estados' },
+              { value: 'ACTIVO', label: 'Activo' },
+              { value: 'PROSPECTO', label: 'Prospecto' },
+              { value: 'INACTIVO', label: 'Inactivo' },
+            ]}
+            value={filterEstado}
+            onChange={(v) => setFilterEstado(v as string)}
+          />
         </div>
         {isLoading ? (
           <div className="flex flex-col gap-4 p-5 animate-pulse">

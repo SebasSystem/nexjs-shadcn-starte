@@ -11,6 +11,8 @@ import {
   SheetFooter,
 } from 'src/shared/components/ui/sheet';
 import { Input } from 'src/shared/components/ui/input';
+import { Textarea } from 'src/shared/components/ui/textarea';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import { Icon } from 'src/shared/components/ui/icon';
 import type { Segment, SegmentForm, Rule, FieldType, Operator } from '../../types/segments.types';
 
@@ -88,22 +90,22 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
 
         <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar space-y-6">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 col-span-2">
-              <label className="text-sm font-medium text-foreground">Nombre del Segmento *</label>
+            <div className="col-span-2">
               <Input
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
+                label="Nombre del Segmento"
+                required
                 placeholder="Ej. Clientes VIP sin compras"
               />
             </div>
-            <div className="space-y-2 col-span-2">
-              <label className="text-sm font-medium text-foreground">Descripción</label>
-              <textarea
+            <div className="col-span-2">
+              <Textarea
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
+                label="Descripción"
                 rows={2}
                 placeholder="Opcional. Describe la finalidad de este segmento."
-                className="w-full text-sm flex min-h-[60px] rounded-md border border-input bg-transparent px-3 py-2 shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               />
             </div>
           </div>
@@ -119,7 +121,7 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
                   onClick={() => setLogica('AND')}
                   className={`px-3 py-1 text-xs font-bold rounded ${
                     logica === 'AND'
-                      ? 'bg-blue-600 text-white shadow-sm'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:bg-muted'
                   }`}
                 >
@@ -144,48 +146,37 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
                   {index > 0 && (
                     <div className="absolute -top-7 left-4 h-6 w-px bg-border/80 flex items-center justify-center">
                       <span
-                        className={`text-[9px] font-bold px-1 rounded-sm -ml-3 mt-4 ${logica === 'AND' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}
+                        className={`text-[9px] font-bold px-1 rounded-sm -ml-3 mt-4 ${logica === 'AND' ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-700'}`}
                       >
                         {logica}
                       </span>
                     </div>
                   )}
                   <div className="flex items-center gap-3 bg-card p-3 rounded-lg border border-border shadow-sm z-10">
-                    <select
-                      className="h-9 w-1/3 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                      value={regla.field}
-                      onChange={(e) => updateRule(regla.id, 'field', e.target.value)}
-                    >
-                      {FIELDS.map((f) => (
-                        <option key={f.value} value={f.value}>
-                          {f.label}
-                        </option>
-                      ))}
-                    </select>
-
-                    <select
-                      className="h-9 w-1/3 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                      value={regla.operator}
-                      onChange={(e) => updateRule(regla.id, 'operator', e.target.value)}
-                    >
-                      {OPERATORS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-
+                    <div className="w-1/3">
+                      <SelectField
+                        options={FIELDS}
+                        value={regla.field}
+                        onChange={(val) => updateRule(regla.id, 'field', val as string)}
+                      />
+                    </div>
+                    <div className="w-1/3">
+                      <SelectField
+                        options={OPERATORS}
+                        value={regla.operator}
+                        onChange={(val) => updateRule(regla.id, 'operator', val as string)}
+                      />
+                    </div>
                     <Input
-                      className="h-9 flex-1"
+                      className="flex-1"
                       placeholder="Valor a buscar..."
                       value={regla.value}
                       onChange={(e) => updateRule(regla.id, 'value', e.target.value)}
                     />
-
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
                       onClick={() => removeRule(regla.id)}
                       disabled={reglas.length === 1}
                     >

@@ -92,9 +92,9 @@ export function SelectField({
   const getLabel = (val: string) => options.find((o) => o.value === val)?.label ?? val;
 
   return (
-    <div className={cn('flex w-full flex-col gap-1.5', className)}>
+    <div className={cn('flex flex-col gap-1.5', className)}>
       {label && (
-        <label htmlFor={id} className="text-sm font-medium text-foreground">
+        <label htmlFor={id} className="text-sm font-medium leading-none text-foreground">
           {label}
           {required && <span className="ml-1 text-destructive">*</span>}
         </label>
@@ -110,7 +110,7 @@ export function SelectField({
             aria-controls={listboxId}
             aria-invalid={!!error}
             className={cn(
-              'flex min-h-10 w-full items-center justify-between rounded-lg border bg-background px-3 py-2 shadow-sm',
+              'flex min-h-10 w-full min-w-44 items-center justify-between rounded-lg border bg-background px-3 py-2 shadow-sm',
               'text-sm transition-all duration-200 cursor-pointer',
               'disabled:cursor-not-allowed disabled:opacity-50 select-none',
               error

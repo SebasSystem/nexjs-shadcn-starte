@@ -12,7 +12,6 @@ import {
   SheetFooter,
   Button,
   Input,
-  Label,
   SelectField,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
@@ -116,35 +115,32 @@ export function LostDealDrawer({ open, item, onClose, onCreate, onUpdate }: Prop
 
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <form id="lost-deal-form" onSubmit={handleSubmit(onSubmit)} className="py-6 space-y-5">
-            <div className="space-y-1.5">
-              <Label>Nombre del deal *</Label>
-              <Input {...register('opportunityName')} placeholder="Ej: Distribuidora Andina ERP" />
-              {errors.opportunityName && (
-                <p className="text-caption text-destructive">{errors.opportunityName.message}</p>
-              )}
-            </div>
+            <Input
+              label="Nombre del deal"
+              required
+              {...register('opportunityName')}
+              placeholder="Ej: Distribuidora Andina ERP"
+              error={errors.opportunityName?.message}
+            />
 
-            <div className="space-y-1.5">
-              <Label>Cliente *</Label>
-              <Input {...register('clientName')} placeholder="Nombre de la empresa o persona" />
-              {errors.clientName && (
-                <p className="text-caption text-destructive">{errors.clientName.message}</p>
-              )}
-            </div>
+            <Input
+              label="Cliente"
+              required
+              {...register('clientName')}
+              placeholder="Nombre de la empresa o persona"
+              error={errors.clientName?.message}
+            />
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Monto *</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  {...register('amount', { valueAsNumber: true })}
-                  placeholder="0"
-                />
-                {errors.amount && (
-                  <p className="text-caption text-destructive">{errors.amount.message}</p>
-                )}
-              </div>
+              <Input
+                label="Monto"
+                required
+                type="number"
+                min={0}
+                {...register('amount', { valueAsNumber: true })}
+                placeholder="0"
+                error={errors.amount?.message}
+              />
               <Controller
                 name="currency"
                 control={control}
@@ -190,33 +186,30 @@ export function LostDealDrawer({ open, item, onClose, onCreate, onUpdate }: Prop
               )}
             />
 
-            <div className="space-y-1.5">
-              <Label>Detalle *</Label>
-              <Textarea
-                {...register('lostReasonDetail')}
-                placeholder="Contá qué pasó con el mayor detalle posible. Esto ayuda al equipo a aprender."
-                rows={4}
-              />
-              {errors.lostReasonDetail && (
-                <p className="text-caption text-destructive">{errors.lostReasonDetail.message}</p>
-              )}
-            </div>
+            <Textarea
+              label="Detalle"
+              required
+              {...register('lostReasonDetail')}
+              placeholder="Contá qué pasó con el mayor detalle posible. Esto ayuda al equipo a aprender."
+              rows={4}
+              error={errors.lostReasonDetail?.message}
+            />
 
-            <div className="space-y-1.5">
-              <Label>Fecha de pérdida *</Label>
-              <Input type="date" {...register('lostDate')} />
-              {errors.lostDate && (
-                <p className="text-caption text-destructive">{errors.lostDate.message}</p>
-              )}
-            </div>
+            <Input
+              label="Fecha de pérdida"
+              required
+              type="date"
+              {...register('lostDate')}
+              error={errors.lostDate?.message}
+            />
 
-            <div className="space-y-1.5">
-              <Label>Vendedor responsable *</Label>
-              <Input {...register('salesRepName')} placeholder="Nombre del rep" />
-              {errors.salesRepName && (
-                <p className="text-caption text-destructive">{errors.salesRepName.message}</p>
-              )}
-            </div>
+            <Input
+              label="Vendedor responsable"
+              required
+              {...register('salesRepName')}
+              placeholder="Nombre del rep"
+              error={errors.salesRepName?.message}
+            />
           </form>
         </div>
 

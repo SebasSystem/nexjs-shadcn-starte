@@ -7,11 +7,7 @@ import {
   Icon,
   Button,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
 } from 'src/shared/components/ui';
 import {
   useTable,
@@ -244,34 +240,29 @@ export function ProjectsView() {
 
       {/* Table */}
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-center gap-3 px-5 py-4">
-          <div className="relative flex-1 min-w-48">
-            <Icon
-              name="Search"
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
+        <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+          <div className="flex-1 min-w-48">
             <Input
+              label="Buscar"
               placeholder="Buscar por proyecto o cliente..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              leftIcon={<Icon name="Search" size={15} />}
             />
           </div>
 
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              {Object.entries(PROJECT_STATUS_CONFIG).map(([key, cfg]) => (
-                <SelectItem key={key} value={key}>
-                  {cfg.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Estado"
+            options={[
+              { value: 'all', label: 'Todos los estados' },
+              ...Object.entries(PROJECT_STATUS_CONFIG).map(([key, cfg]) => ({
+                value: key,
+                label: cfg.label,
+              })),
+            ]}
+            value={filterStatus}
+            onChange={(v) => setFilterStatus(v as string)}
+          />
         </div>
 
         <TableContainer>

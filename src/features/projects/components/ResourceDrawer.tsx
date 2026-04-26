@@ -9,12 +9,7 @@ import {
   SheetFooter,
   Button,
   Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
 } from 'src/shared/components/ui';
 import { cn } from 'src/lib/utils';
 import { toast } from 'sonner';
@@ -89,67 +84,48 @@ export function ResourceDrawer({ open, onClose, onAssign }: Props) {
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-          <div className="space-y-1.5">
-            <Label>Persona *</Label>
-            <Select value={selectedConsultant} onValueChange={setSelectedConsultant}>
-              <SelectTrigger className={cn(errors.consultant && 'border-error')}>
-                <SelectValue placeholder="Seleccioná un consultor/técnico" />
-              </SelectTrigger>
-              <SelectContent>
-                {MOCK_CONSULTANTS.map((c) => (
-                  <SelectItem key={c.email} value={c.name}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.consultant && <p className="text-caption text-error">{errors.consultant}</p>}
-          </div>
+          <SelectField
+            label="Persona *"
+            required
+            options={MOCK_CONSULTANTS.map((c) => ({ value: c.name, label: c.name }))}
+            value={selectedConsultant}
+            onChange={(v) => setSelectedConsultant(v as string)}
+            placeholder="Seleccioná un consultor/técnico"
+            error={errors.consultant}
+          />
 
           {consultant && (
-            <div className="space-y-1.5">
-              <Label>Email</Label>
-              <Input value={consultant.email} readOnly className="bg-muted/30 cursor-default" />
-            </div>
+            <Input
+              label="Email"
+              value={consultant.email}
+              readOnly
+              className={cn('bg-muted/30 cursor-default')}
+            />
           )}
 
-          <div className="space-y-1.5">
-            <Label>Rol en el proyecto *</Label>
-            <Select value={role} onValueChange={(v) => setRole(v as ResourceRole)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ROLE_OPTIONS.map((r) => (
-                  <SelectItem key={r.value} value={r.value}>
-                    {r.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <SelectField
+            label="Rol en el proyecto *"
+            required
+            options={ROLE_OPTIONS}
+            value={role}
+            onChange={(v) => setRole(v as ResourceRole)}
+          />
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="res-start">Fecha inicio *</Label>
-              <Input
-                id="res-start"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className={cn(errors.startDate && 'border-error')}
-              />
-              {errors.startDate && <p className="text-caption text-error">{errors.startDate}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="res-end">Fecha fin</Label>
-              <Input
-                id="res-end"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
+            <Input
+              label="Fecha inicio *"
+              required
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              error={errors.startDate}
+            />
+            <Input
+              label="Fecha fin"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
           </div>
         </div>
 

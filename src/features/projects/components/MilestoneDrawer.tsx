@@ -9,15 +9,9 @@ import {
   SheetFooter,
   Button,
   Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
-import { cn } from 'src/lib/utils';
 import { toast } from 'sonner';
 import type { Milestone, MilestoneStatus } from '../types';
 
@@ -79,68 +73,48 @@ function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
       </SheetHeader>
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-        <div className="space-y-1.5">
-          <Label htmlFor="ms-name">Nombre del hito *</Label>
-          <Input
-            id="ms-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Ej: Kick-off con el cliente"
-            className={cn(errors.name && 'border-error')}
-          />
-          {errors.name && <p className="text-caption text-error">{errors.name}</p>}
-        </div>
+        <Input
+          label="Nombre del hito *"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Ej: Kick-off con el cliente"
+          error={errors.name}
+        />
 
-        <div className="space-y-1.5">
-          <Label htmlFor="ms-desc">Descripción</Label>
-          <Textarea
-            id="ms-desc"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Detalles del hito (opcional)..."
-            rows={2}
-          />
-        </div>
+        <Textarea
+          label="Descripción"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Detalles del hito (opcional)..."
+          rows={2}
+        />
 
-        <div className="space-y-1.5">
-          <Label htmlFor="ms-assigned">Responsable *</Label>
-          <Input
-            id="ms-assigned"
-            value={assignedTo}
-            onChange={(e) => setAssignedTo(e.target.value)}
-            placeholder="Nombre del responsable"
-            className={cn(errors.assignedTo && 'border-error')}
-          />
-          {errors.assignedTo && <p className="text-caption text-error">{errors.assignedTo}</p>}
-        </div>
+        <Input
+          label="Responsable *"
+          required
+          value={assignedTo}
+          onChange={(e) => setAssignedTo(e.target.value)}
+          placeholder="Nombre del responsable"
+          error={errors.assignedTo}
+        />
 
-        <div className="space-y-1.5">
-          <Label htmlFor="ms-due">Fecha límite *</Label>
-          <Input
-            id="ms-due"
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className={cn(errors.dueDate && 'border-error')}
-          />
-          {errors.dueDate && <p className="text-caption text-error">{errors.dueDate}</p>}
-        </div>
+        <Input
+          label="Fecha límite *"
+          required
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          error={errors.dueDate}
+        />
 
-        <div className="space-y-1.5">
-          <Label>Estado *</Label>
-          <Select value={status} onValueChange={(v) => setStatus(v as MilestoneStatus)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <SelectField
+          label="Estado *"
+          required
+          options={STATUS_OPTIONS}
+          value={status}
+          onChange={(v) => setStatus(v as MilestoneStatus)}
+        />
       </div>
 
       <SheetFooter className="border-t border-border/60 pt-4 px-4 pb-4">

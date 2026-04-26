@@ -11,13 +11,7 @@ import { TenantDetailDrawer } from 'src/features/admin/components/tenant-detail-
 import { TenantFormDrawer } from 'src/features/admin/components/tenant-form-drawer';
 import { Tenant } from 'src/features/admin/types/admin.types';
 import { Input } from 'src/shared/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from 'src/shared/components/ui/select';
+import { SelectField } from 'src/shared/components/ui/select-field';
 
 export const TenantsView = () => {
   const { tenants, isLoading, createTenant, updateTenant, suspendTenant } = useTenants();
@@ -86,8 +80,9 @@ export const TenantsView = () => {
       />
 
       <SectionCard noPadding className="flex flex-col shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-4 items-center px-5 py-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-end px-5 py-4">
           <Input
+            label="Buscar"
             placeholder="Buscar por nombre o dominio..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -95,32 +90,31 @@ export const TenantsView = () => {
             className="flex-1 w-full max-w-sm"
           />
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Select value={filterPlan} onValueChange={setFilterPlan}>
-              <SelectTrigger className="w-[140px] shadow-sm">
-                <SelectValue placeholder="Plan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos los planes</SelectItem>
-                <SelectItem value="Starter">Starter</SelectItem>
-                <SelectItem value="Pro">Pro</SelectItem>
-                <SelectItem value="Business">Business</SelectItem>
-                <SelectItem value="Enterprise">Enterprise</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
-              <SelectTrigger className="w-[140px] border-border/40 shadow-sm">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos los estados</SelectItem>
-                <SelectItem value="ACTIVO">Activo</SelectItem>
-                <SelectItem value="TRIAL">Trial</SelectItem>
-                <SelectItem value="VENCIDO">Vencido</SelectItem>
-                <SelectItem value="SUSPENDIDO">Suspendido</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-end gap-3 w-full sm:w-auto">
+            <SelectField
+              label="Plan"
+              options={[
+                { value: 'ALL', label: 'Todos los planes' },
+                { value: 'Starter', label: 'Starter' },
+                { value: 'Pro', label: 'Pro' },
+                { value: 'Business', label: 'Business' },
+                { value: 'Enterprise', label: 'Enterprise' },
+              ]}
+              value={filterPlan}
+              onChange={(v) => setFilterPlan(v as string)}
+            />
+            <SelectField
+              label="Estado"
+              options={[
+                { value: 'ALL', label: 'Todos los estados' },
+                { value: 'ACTIVO', label: 'Activo' },
+                { value: 'TRIAL', label: 'Trial' },
+                { value: 'VENCIDO', label: 'Vencido' },
+                { value: 'SUSPENDIDO', label: 'Suspendido' },
+              ]}
+              value={filterEstado}
+              onChange={(v) => setFilterEstado(v as string)}
+            />
 
             {activeFiltersCount > 0 && (
               <Button

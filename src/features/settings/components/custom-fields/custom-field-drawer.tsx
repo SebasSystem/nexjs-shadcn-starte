@@ -1,11 +1,15 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
+import { FormInput } from 'src/shared/components/ui/form-input';
+import { FormSelectField } from 'src/shared/components/ui/form-select-field';
+import { Input } from 'src/shared/components/ui/input';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
 import {
   Sheet,
   SheetContent,
@@ -36,6 +40,21 @@ interface CustomFieldDrawerProps {
   onSave: (data: Omit<CampoPersonalizado, 'id' | 'creadoEn'>) => Promise<boolean>;
 }
 
+const TIPO_OPTIONS = [
+  { value: 'texto', label: 'Texto' },
+  { value: 'numero', label: 'Número' },
+  { value: 'fecha', label: 'Fecha' },
+  { value: 'select', label: 'Lista de opciones' },
+  { value: 'booleano', label: 'Sí / No' },
+];
+
+const MODULO_OPTIONS = [
+  { value: 'contactos', label: 'Contactos' },
+  { value: 'empresas', label: 'Empresas' },
+  { value: 'oportunidades', label: 'Oportunidades' },
+  { value: 'productos', label: 'Productos' },
+];
+
 export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
   isOpen,
   onClose,
@@ -46,12 +65,11 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
   const [nuevaOpcion, setNuevaOpcion] = useState('');
 
   const {
-    register,
+    control,
     handleSubmit,
     reset,
-    control,
     setValue,
-    formState: { errors, isValid, isSubmitting },
+    formState: { isValid, isSubmitting },
   } = useForm<CampoForm>({
     resolver: zodResolver(schema),
     mode: 'onChange',
@@ -66,7 +84,7 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
       const slug = etiquetaWatched
         .toLowerCase()
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[̀-ͯ]/g, '')
         .replace(/\s+/g, '_')
         .replace(/[^a-z_]/g, '');
       setValue('nombre', slug, { shouldValidate: true });
@@ -116,90 +134,72 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
 
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <div className="py-6 space-y-5">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
-                Etiqueta (visible al usuario) *
-              </label>
-              <input
-                {...register('etiqueta')}
-                className={`w-full h-10 px-3 border rounded-md text-sm ${errors.etiqueta ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Ej. Código de Licitación"
-              />
-              {errors.etiqueta && <p className="text-xs text-red-500">{errors.etiqueta.message}</p>}
-            </div>
+            <FormInput
+              control={control}
+              name="etiqueta"
+              label="Etiqueta (visible al usuario)"
+              required
+              placeholder="Ej. Código de Licitación"
+            />
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
-                Nombre técnico *{' '}
-                <span className="text-xs font-normal text-gray-400">(solo minúsculas y _)</span>
-              </label>
-              <input
-                {...register('nombre')}
-                className={`w-full h-10 px-3 border rounded-md text-sm font-mono ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="codigo_licitacion"
-              />
-              {errors.nombre && <p className="text-xs text-red-500">{errors.nombre.message}</p>}
-            </div>
+            <FormInput
+              control={control}
+              name="nombre"
+              label="Nombre técnico"
+              required
+              hint="Solo minúsculas y guiones bajos"
+              placeholder="codigo_licitacion"
+            />
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Tipo de dato *</label>
-                <select
-                  {...register('tipo')}
-                  className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-                >
-                  <option value="texto">Texto</option>
-                  <option value="numero">Número</option>
-                  <option value="fecha">Fecha</option>
-                  <option value="select">Lista de opciones</option>
-                  <option value="booleano">Sí / No</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Módulo *</label>
-                <select
-                  {...register('modulo')}
-                  className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-                >
-                  <option value="contactos">Contactos</option>
-                  <option value="empresas">Empresas</option>
-                  <option value="oportunidades">Oportunidades</option>
-                  <option value="productos">Productos</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="requerido"
-                {...register('requerido')}
-                className="w-4 h-4 rounded border-gray-300 text-blue-600"
+              <FormSelectField
+                control={control}
+                name="tipo"
+                label="Tipo de dato"
+                required
+                options={TIPO_OPTIONS}
               />
-              <label
-                htmlFor="requerido"
-                className="text-sm font-medium text-gray-700 cursor-pointer"
-              >
-                Campo requerido
-              </label>
+              <FormSelectField
+                control={control}
+                name="modulo"
+                label="Módulo"
+                required
+                options={MODULO_OPTIONS}
+              />
             </div>
+
+            <Controller
+              control={control}
+              name="requerido"
+              render={({ field }) => (
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="requerido"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                  <label htmlFor="requerido" className="text-sm font-medium cursor-pointer">
+                    Campo requerido
+                  </label>
+                </div>
+              )}
+            />
 
             {tipoWatched === 'select' && (
-              <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-700">Opciones de la lista</h4>
+              <div className="space-y-3 bg-muted/40 p-4 rounded-lg border border-border/40">
+                <h4 className="text-sm font-semibold text-foreground">Opciones de la lista</h4>
                 {opciones.length > 0 ? (
                   <div className="space-y-1.5">
                     {opciones.map((op) => (
                       <div
                         key={op}
-                        className="flex items-center justify-between gap-2 bg-white px-3 py-2 rounded border border-gray-200 text-sm"
+                        className="flex items-center justify-between gap-2 bg-background px-3 py-2 rounded border border-border/40 text-sm"
                       >
                         <span>{op}</span>
                         <button
                           type="button"
                           onClick={() => setOpciones((prev) => prev.filter((o) => o !== op))}
-                          className="text-gray-400 hover:text-red-600 transition-colors"
+                          className="text-muted-foreground hover:text-destructive transition-colors"
                         >
                           <Icon name="Trash2" size={13} />
                         </button>
@@ -207,16 +207,18 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-400 italic">Sin opciones todavía.</p>
+                  <p className="text-xs text-muted-foreground italic">Sin opciones todavía.</p>
                 )}
                 <div className="flex gap-2">
-                  <input
-                    value={nuevaOpcion}
-                    onChange={(e) => setNuevaOpcion(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addOpcion())}
-                    placeholder="Ej. VIP"
-                    className="flex-1 h-8 px-3 border border-gray-300 rounded text-sm"
-                  />
+                  <div className="flex-1">
+                    <Input
+                      value={nuevaOpcion}
+                      onChange={(e) => setNuevaOpcion(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addOpcion())}
+                      placeholder="Ej. VIP"
+                      size="sm"
+                    />
+                  </div>
                   <Button
                     type="button"
                     size="sm"
@@ -240,7 +242,6 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
             type="button"
             onClick={handleSubmit(onSubmit)}
             disabled={!isValid || isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700"
           >
             {isSubmitting ? 'Guardando...' : 'Guardar Campo'}
           </Button>

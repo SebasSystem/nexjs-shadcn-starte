@@ -7,6 +7,8 @@ import { AssignmentsTable } from 'src/features/commissions/components/assignment
 import { AssignmentDrawer } from 'src/features/commissions/components/assignment/assignment-drawer';
 import { BulkAssignmentDrawer } from 'src/features/commissions/components/assignment/bulk-assignment-drawer';
 import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Icon } from 'src/shared/components/ui/icon';
 import type { AsignacionPlan } from 'src/features/commissions/types/commissions.types';
@@ -67,26 +69,27 @@ export const AssignmentView = () => {
 
       <SectionCard noPadding>
         {/* Filtros Integrados */}
-        <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/10">
-          <div className="relative flex-1">
-            <Icon name="Search" className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <input
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4 p-4 bg-muted/10">
+          <div className="flex-1">
+            <Input
+              label="Buscar"
               placeholder="Buscar por vendedor..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm border border-input rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+              leftIcon={<Icon name="Search" size={16} />}
             />
           </div>
-          <select
-            className="border border-input rounded-md px-3 py-2 text-sm bg-background focus:outline-none focus:ring-1 focus:ring-ring"
+          <SelectField
+            label="Equipo"
             value={equipoFilter}
-            onChange={(e) => setEquipoFilter(e.target.value)}
-          >
-            <option value="">Todos los equipos</option>
-            <option value="Ventas Directas">Ventas Directas</option>
-            <option value="Mayoristas">Mayoristas</option>
-            <option value="KAM">KAM</option>
-          </select>
+            onChange={(val) => setEquipoFilter(val as string)}
+            options={[
+              { value: '', label: 'Todos los equipos' },
+              { value: 'Ventas Directas', label: 'Ventas Directas' },
+              { value: 'Mayoristas', label: 'Mayoristas' },
+              { value: 'KAM', label: 'KAM' },
+            ]}
+          />
         </div>
 
         <AssignmentsTable

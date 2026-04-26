@@ -91,6 +91,7 @@ export function ConditionBlock({ form, groupIndex }: ConditionBlockProps) {
 
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <Input
+                  label="Campo"
                   placeholder="Campo (ej: source)"
                   value={form.watch(`conditionGroups.${groupIndex}.conditions.${index}.field`)}
                   onChange={(e) =>
@@ -101,6 +102,7 @@ export function ConditionBlock({ form, groupIndex }: ConditionBlockProps) {
                   }
                 />
                 <SelectField
+                  label="Operador"
                   options={OPERATOR_OPTIONS}
                   value={operator}
                   onChange={(v) =>
@@ -112,6 +114,7 @@ export function ConditionBlock({ form, groupIndex }: ConditionBlockProps) {
                 />
                 {!hideValue ? (
                   <Input
+                    label="Valor"
                     placeholder="Valor"
                     value={String(
                       form.watch(`conditionGroups.${groupIndex}.conditions.${index}.value`) ?? ''

@@ -5,11 +5,7 @@ import {
   Icon,
   Button,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
 } from 'src/shared/components/ui';
 import {
   PageContainer,
@@ -107,34 +103,29 @@ export function PartnerPortalView() {
       {/* Content */}
       <SectionCard>
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 mb-5">
-          <div className="relative flex-1 min-w-48">
-            <Icon
-              name="Search"
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
+        <div className="flex flex-wrap items-end gap-3 mb-5">
+          <div className="flex-1 min-w-48">
             <Input
+              label="Buscar"
               placeholder="Buscar por título o tags..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              leftIcon={<Icon name="Search" size={15} />}
             />
           </div>
 
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los tipos</SelectItem>
-              {Object.entries(MATERIAL_TYPE_CONFIG).map(([key, cfg]) => (
-                <SelectItem key={key} value={key}>
-                  {cfg.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Tipo"
+            options={[
+              { value: 'all', label: 'Todos los tipos' },
+              ...Object.entries(MATERIAL_TYPE_CONFIG).map(([key, cfg]) => ({
+                value: key,
+                label: cfg.label,
+              })),
+            ]}
+            value={filterType}
+            onChange={(v) => setFilterType(v as string)}
+          />
         </div>
 
         {/* Grid */}

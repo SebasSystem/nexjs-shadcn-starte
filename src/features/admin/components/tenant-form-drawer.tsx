@@ -12,6 +12,9 @@ import {
   SheetFooter,
 } from 'src/shared/components/ui/sheet';
 import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
 import { Tenant, PlanSaaS } from 'src/features/admin/types/admin.types';
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -24,7 +27,9 @@ interface TenantFormDrawerProps {
   onSave: (data: Partial<Tenant>) => Promise<void>;
 }
 
-const PAISES = ['México', 'Colombia', 'España', 'Argentina', 'Chile', 'Perú', 'Otro'];
+const PAISES_OPTIONS = ['México', 'Colombia', 'España', 'Argentina', 'Chile', 'Perú', 'Otro'].map(
+  (p) => ({ value: p, label: p })
+);
 
 export function TenantFormDrawer({
   tenant,
@@ -35,6 +40,7 @@ export function TenantFormDrawer({
 }: TenantFormDrawerProps) {
   const isEditing = !!tenant;
   const [isSaving, setIsSaving] = useState(false);
+  const [sendCredentials, setSendCredentials] = useState(true);
 
   const [form, setForm] = useState({
     nombre: '',
@@ -106,6 +112,11 @@ export function TenantFormDrawer({
     }
   };
 
+  const planOptions = [
+    { value: '', label: 'Seleccionar plan...' },
+    ...planes.map((p) => ({ value: p.id, label: `${p.nombre} — $${p.precio}/mes` })),
+  ];
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-full sm:max-w-[520px] p-0 flex flex-col">
@@ -119,97 +130,63 @@ export function TenantFormDrawer({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-          {/* Sección 1: Información general */}
+          {/* Información general */}
           <div>
-            <h3 className="text-body2 font-semibold text-foreground mb-4">Información general</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Información general</h3>
             <div className="space-y-3">
-              <div>
-                <label className="block text-caption font-medium text-muted-foreground mb-1">
-                  Nombre de empresa *
-                </label>
-                <input
-                  type="text"
-                  value={form.nombre}
-                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="Acme Corporation"
-                />
-              </div>
-              <div>
-                <label className="block text-caption font-medium text-muted-foreground mb-1">
-                  Dominio *
-                </label>
-                <input
-                  type="text"
-                  value={form.dominio}
-                  onChange={(e) => setForm({ ...form, dominio: e.target.value })}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="acme.tucrm.com"
-                />
-              </div>
-              <div>
-                <label className="block text-caption font-medium text-muted-foreground mb-1">
-                  País *
-                </label>
-                <select
-                  value={form.pais}
-                  onChange={(e) => setForm({ ...form, pais: e.target.value })}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background"
-                >
-                  {PAISES.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-caption font-medium text-muted-foreground mb-1">
-                  Email de contacto *
-                </label>
-                <input
-                  type="email"
-                  value={form.emailContacto}
-                  onChange={(e) => setForm({ ...form, emailContacto: e.target.value })}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="admin@empresa.com"
-                />
-              </div>
+              <Input
+                value={form.nombre}
+                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                label="Nombre de empresa"
+                required
+                placeholder="Acme Corporation"
+              />
+              <Input
+                value={form.dominio}
+                onChange={(e) => setForm({ ...form, dominio: e.target.value })}
+                label="Dominio"
+                required
+                placeholder="acme.tucrm.com"
+              />
+              <SelectField
+                value={form.pais}
+                onChange={(val) => setForm({ ...form, pais: val as string })}
+                label="País"
+                required
+                options={PAISES_OPTIONS}
+              />
+              <Input
+                type="email"
+                value={form.emailContacto}
+                onChange={(e) => setForm({ ...form, emailContacto: e.target.value })}
+                label="Email de contacto"
+                required
+                placeholder="admin@empresa.com"
+              />
             </div>
           </div>
 
-          {/* Sección 2: Suscripción */}
+          {/* Suscripción */}
           <div>
-            <h3 className="text-body2 font-semibold text-foreground mb-4">Suscripción</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Suscripción</h3>
             <div className="space-y-3">
-              <div>
-                <label className="block text-caption font-medium text-muted-foreground mb-1">
-                  Plan *
-                </label>
-                <select
-                  value={form.planId}
-                  onChange={(e) => setForm({ ...form, planId: e.target.value })}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background"
-                >
-                  <option value="">Seleccionar plan...</option>
-                  {planes.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nombre} — ${p.precio}/mes
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SelectField
+                value={form.planId}
+                onChange={(val) => setForm({ ...form, planId: val as string })}
+                label="Plan"
+                required
+                options={planOptions}
+              />
 
-              {/* Preview plan */}
               {selectedPlan && (
                 <div className="rounded-xl bg-muted/50 border border-border/40 p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Icon name="Package" className="h-4 w-4 text-blue-600" />
-                    <span className="font-semibold text-body2 text-foreground">
+                    <Icon name="Package" className="h-4 w-4 text-primary" />
+                    <span className="font-semibold text-sm text-foreground">
                       {selectedPlan.nombre} — ${selectedPlan.precio}/mes
                     </span>
                   </div>
-                  <p className="text-caption text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {selectedPlan.features.limiteUsuarios ?? 'Ilimitados'} usuarios ·{' '}
                     {selectedPlan.features.almacenamientoGB ?? 'Ilimitado'} GB ·{' '}
                     {selectedPlan.features.apiCallsMes
@@ -221,69 +198,54 @@ export function TenantFormDrawer({
               )}
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-caption font-medium text-muted-foreground mb-1">
-                    Fecha de inicio
-                  </label>
-                  <input
-                    type="date"
-                    value={form.fechaInicio}
-                    onChange={(e) => setForm({ ...form, fechaInicio: e.target.value })}
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background"
-                  />
-                </div>
-                <div>
-                  <label className="block text-caption font-medium text-muted-foreground mb-1">
-                    Días de trial
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={form.diasTrial}
-                    onChange={(e) => setForm({ ...form, diasTrial: parseInt(e.target.value) || 0 })}
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
-                </div>
+                <Input
+                  type="date"
+                  value={form.fechaInicio}
+                  onChange={(e) => setForm({ ...form, fechaInicio: e.target.value })}
+                  label="Fecha de inicio"
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  value={String(form.diasTrial)}
+                  onChange={(e) => setForm({ ...form, diasTrial: parseInt(e.target.value) || 0 })}
+                  label="Días de trial"
+                />
               </div>
             </div>
           </div>
 
-          {/* Sección 3: Admin inicial (solo en creación) */}
+          {/* Admin inicial (solo en creación) */}
           {!isEditing && (
             <div>
-              <h3 className="text-body2 font-semibold text-foreground mb-4">
+              <h3 className="text-sm font-semibold text-foreground mb-4">
                 Admin inicial del tenant
               </h3>
               <div className="space-y-3">
-                <div>
-                  <label className="block text-caption font-medium text-muted-foreground mb-1">
-                    Nombre del admin *
-                  </label>
-                  <input
-                    type="text"
-                    value={form.adminNombre}
-                    onChange={(e) => setForm({ ...form, adminNombre: e.target.value })}
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    placeholder="Juan Pérez"
-                  />
-                </div>
-                <div>
-                  <label className="block text-caption font-medium text-muted-foreground mb-1">
-                    Email del admin *
-                  </label>
-                  <input
-                    type="email"
-                    value={form.adminEmail}
-                    onChange={(e) => setForm({ ...form, adminEmail: e.target.value })}
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    placeholder="admin@empresa.com"
-                  />
-                </div>
+                <Input
+                  value={form.adminNombre}
+                  onChange={(e) => setForm({ ...form, adminNombre: e.target.value })}
+                  label="Nombre del admin"
+                  required
+                  placeholder="Juan Pérez"
+                />
+                <Input
+                  type="email"
+                  value={form.adminEmail}
+                  onChange={(e) => setForm({ ...form, adminEmail: e.target.value })}
+                  label="Email del admin"
+                  required
+                  placeholder="admin@empresa.com"
+                />
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="sendCredentials" defaultChecked className="rounded" />
+                  <Checkbox
+                    id="sendCredentials"
+                    checked={sendCredentials}
+                    onCheckedChange={(v) => setSendCredentials(v as boolean)}
+                  />
                   <label
                     htmlFor="sendCredentials"
-                    className="text-caption text-muted-foreground cursor-pointer"
+                    className="text-sm text-muted-foreground cursor-pointer"
                   >
                     Enviar credenciales por email
                   </label>

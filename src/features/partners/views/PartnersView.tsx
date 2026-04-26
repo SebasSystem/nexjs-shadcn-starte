@@ -6,11 +6,7 @@ import {
   Icon,
   Button,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
   Badge,
 } from 'src/shared/components/ui';
 import {
@@ -216,48 +212,42 @@ export function PartnersView() {
 
       {/* Table */}
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-center gap-3 px-5 py-4">
-          <div className="relative flex-1 min-w-48">
-            <Icon
-              name="Search"
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
+        <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+          <div className="flex-1 min-w-48">
             <Input
+              label="Buscar"
               placeholder="Buscar por nombre o región..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              leftIcon={<Icon name="Search" size={15} />}
             />
           </div>
 
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los tipos</SelectItem>
-              {Object.entries(PARTNER_TYPE_CONFIG).map(([key, cfg]) => (
-                <SelectItem key={key} value={key}>
-                  {cfg.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Tipo"
+            options={[
+              { value: 'all', label: 'Todos los tipos' },
+              ...Object.entries(PARTNER_TYPE_CONFIG).map(([key, cfg]) => ({
+                value: key,
+                label: cfg.label,
+              })),
+            ]}
+            value={filterType}
+            onChange={(v) => setFilterType(v as string)}
+          />
 
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {Object.entries(PARTNER_STATUS_CONFIG).map(([key, cfg]) => (
-                <SelectItem key={key} value={key}>
-                  {cfg.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Estado"
+            options={[
+              { value: 'all', label: 'Todos' },
+              ...Object.entries(PARTNER_STATUS_CONFIG).map(([key, cfg]) => ({
+                value: key,
+                label: cfg.label,
+              })),
+            ]}
+            value={filterStatus}
+            onChange={(v) => setFilterStatus(v as string)}
+          />
         </div>
 
         <TableContainer>

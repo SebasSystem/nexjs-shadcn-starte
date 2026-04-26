@@ -3,6 +3,9 @@
 import React, { useState } from 'react';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
 import {
   Sheet,
   SheetContent,
@@ -84,12 +87,24 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
   const puedeAvanzarPaso2 = !!planId && !!fechaInicio;
   const nombresSeleccionados = MOCK_VENDEDORES.filter((v) => selectedVendedores.includes(v.id));
 
+  const equipoOptions = [
+    { value: '', label: 'Todos los equipos' },
+    ...equipos.map((eq) => ({ value: eq, label: eq })),
+  ];
+
+  const planOptions = [
+    { value: '', label: '-- Seleccionar Plan --' },
+    ...planesDisponibles
+      .filter((p) => p.estado === 'ACTIVO')
+      .map((p) => ({ value: p.id, label: `${p.nombre} (${p.tipo})` })),
+  ];
+
   return (
     <Sheet open={isOpen} onOpenChange={(v) => !v && handleClose()}>
       <SheetContent side="right" className="sm:max-w-[480px] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
           <div className="flex items-center gap-3">
-            <Icon name="Users" size={20} className="text-blue-600 shrink-0" />
+            <Icon name="Users" size={20} className="text-primary shrink-0" />
             <div>
               <SheetTitle>Asignación Masiva</SheetTitle>
               <SheetDescription>Asigna un plan a varios vendedores a la vez</SheetDescription>
@@ -98,7 +113,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
         </SheetHeader>
 
         {/* Indicador de pasos */}
-        <div className="flex items-center gap-0 px-6 py-3 border-b bg-white shrink-0">
+        <div className="flex items-center gap-0 px-6 py-3 border-b bg-background shrink-0">
           {[
             { n: 1, label: 'Vendedores' },
             { n: 2, label: 'Plan' },
@@ -108,18 +123,18 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
               <div className="flex items-center gap-1.5">
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    paso >= n ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+                    paso >= n ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {n}
                 </div>
                 <span
-                  className={`text-xs font-medium ${paso >= n ? 'text-blue-700' : 'text-gray-400'}`}
+                  className={`text-xs font-medium ${paso >= n ? 'text-primary' : 'text-muted-foreground'}`}
                 >
                   {label}
                 </span>
               </div>
-              {i < 2 && <div className="flex-1 h-px bg-gray-200 mx-2" />}
+              {i < 2 && <div className="flex-1 h-px bg-border mx-2" />}
             </React.Fragment>
           ))}
         </div>
@@ -128,56 +143,51 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
           {/* PASO 1: Seleccionar vendedores */}
           {paso === 1 && (
             <div className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Filtrar por equipo</label>
-                <select
-                  value={equipoFiltro}
-                  onChange={(e) => setEquipoFiltro(e.target.value)}
-                  className="w-full border rounded-md px-3 py-2 text-sm bg-white"
-                >
-                  <option value="">Todos los equipos</option>
-                  {equipos.map((eq) => (
-                    <option key={eq} value={eq}>
-                      {eq}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SelectField
+                value={equipoFiltro}
+                onChange={(val) => setEquipoFiltro(val as string)}
+                label="Filtrar por equipo"
+                options={equipoOptions}
+              />
 
-              <div className="border rounded-lg overflow-hidden">
-                <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50 border-b">
-                  <input
-                    type="checkbox"
+              <div className="border border-border rounded-lg overflow-hidden">
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-muted/40 border-b border-border">
+                  <Checkbox
+                    id="seleccionarTodos"
                     checked={vendedoresFiltrados.every((v) => selectedVendedores.includes(v.id))}
-                    onChange={toggleTodos}
+                    onCheckedChange={toggleTodos}
                   />
-                  <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                  <label
+                    htmlFor="seleccionarTodos"
+                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wide cursor-pointer"
+                  >
                     Seleccionar todos ({vendedoresFiltrados.length})
-                  </span>
+                  </label>
                 </div>
                 {vendedoresFiltrados.map((v) => (
                   <label
                     key={v.id}
-                    className="flex items-center gap-3 px-4 py-3 border-b last:border-0 hover:bg-blue-50/40 cursor-pointer transition-colors"
+                    htmlFor={`vend-${v.id}`}
+                    className="flex items-center gap-3 px-4 py-3 border-b border-border/40 last:border-0 hover:bg-primary/5 cursor-pointer transition-colors"
                   >
-                    <input
-                      type="checkbox"
+                    <Checkbox
+                      id={`vend-${v.id}`}
                       checked={selectedVendedores.includes(v.id)}
-                      onChange={() => toggleVendedor(v.id)}
+                      onCheckedChange={() => toggleVendedor(v.id)}
                     />
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
                       {v.nombre.charAt(0)}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-800">{v.nombre}</p>
-                      <p className="text-xs text-gray-500">{v.equipo}</p>
+                      <p className="text-sm font-medium text-foreground">{v.nombre}</p>
+                      <p className="text-xs text-muted-foreground">{v.equipo}</p>
                     </div>
                   </label>
                 ))}
               </div>
 
               {selectedVendedores.length > 0 && (
-                <p className="text-sm text-blue-700 font-medium">
+                <p className="text-sm text-primary font-medium">
                   {selectedVendedores.length} vendedor(es) seleccionado(s)
                 </p>
               )}
@@ -187,36 +197,27 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
           {/* PASO 2: Seleccionar plan y fechas */}
           {paso === 2 && (
             <div className="space-y-5">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Plan de Comisión *</label>
-                <select
-                  value={planId}
-                  onChange={(e) => setPlanId(e.target.value)}
-                  className="w-full border rounded-md px-3 py-2 text-sm bg-white"
-                >
-                  <option value="">-- Seleccionar Plan --</option>
-                  {planesDisponibles
-                    .filter((p) => p.estado === 'ACTIVO')
-                    .map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nombre} ({p.tipo})
-                      </option>
-                    ))}
-                </select>
-              </div>
+              <SelectField
+                value={planId}
+                onChange={(val) => setPlanId(val as string)}
+                label="Plan de Comisión"
+                required
+                options={planOptions}
+              />
 
               {planSeleccionado && (
-                <div className="bg-gray-50 border rounded-lg p-4 text-sm space-y-1">
-                  <p className="font-semibold text-gray-800">{planSeleccionado.nombre}</p>
-                  <p className="text-gray-600">
-                    Tipo: <span className="font-medium">{planSeleccionado.tipo}</span>
+                <div className="bg-muted/40 border border-border/40 rounded-lg p-4 text-sm space-y-1">
+                  <p className="font-semibold text-foreground">{planSeleccionado.nombre}</p>
+                  <p className="text-muted-foreground">
+                    Tipo: <span className="font-medium text-foreground">{planSeleccionado.tipo}</span>
                   </p>
-                  <p className="text-gray-600">
-                    Base: <span className="font-medium">{planSeleccionado.porcentajeBase}%</span>
+                  <p className="text-muted-foreground">
+                    Base:{' '}
+                    <span className="font-medium text-foreground">{planSeleccionado.porcentajeBase}%</span>
                   </p>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     Tramos:{' '}
-                    <span className="font-medium">
+                    <span className="font-medium text-foreground">
                       {planSeleccionado.tramos.length} configurados
                     </span>
                   </p>
@@ -224,24 +225,19 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
               )}
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Vigencia Inicio *</label>
-                  <input
-                    type="date"
-                    value={fechaInicio}
-                    onChange={(e) => setFechaInicio(e.target.value)}
-                    className="w-full h-10 px-3 border rounded-md text-sm"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Vigencia Fin</label>
-                  <input
-                    type="date"
-                    value={fechaFin}
-                    onChange={(e) => setFechaFin(e.target.value)}
-                    className="w-full h-10 px-3 border rounded-md text-sm text-gray-500"
-                  />
-                </div>
+                <Input
+                  type="date"
+                  value={fechaInicio}
+                  onChange={(e) => setFechaInicio(e.target.value)}
+                  label="Vigencia Inicio"
+                  required
+                />
+                <Input
+                  type="date"
+                  value={fechaFin}
+                  onChange={(e) => setFechaFin(e.target.value)}
+                  label="Vigencia Fin"
+                />
               </div>
             </div>
           )}
@@ -249,21 +245,27 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
           {/* PASO 3: Resumen y confirmación */}
           {paso === 3 && (
             <div className="space-y-5">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
-                <p className="text-sm font-bold text-blue-800">Resumen de Asignación</p>
-                <p className="text-sm text-blue-700">
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
+                <p className="text-sm font-bold text-foreground">Resumen de Asignación</p>
+                <p className="text-sm text-muted-foreground">
                   Asignarás el plan{' '}
-                  <span className="font-semibold">&quot;{planSeleccionado?.nombre}&quot;</span> a{' '}
-                  <span className="font-semibold">{selectedVendedores.length} vendedor(es)</span>
+                  <span className="font-semibold text-foreground">
+                    &quot;{planSeleccionado?.nombre}&quot;
+                  </span>{' '}
+                  a{' '}
+                  <span className="font-semibold text-foreground">
+                    {selectedVendedores.length} vendedor(es)
+                  </span>
                   {fechaInicio && (
                     <>
-                      , vigente desde el <span className="font-semibold">{fechaInicio}</span>
+                      , vigente desde el{' '}
+                      <span className="font-semibold text-foreground">{fechaInicio}</span>
                     </>
                   )}
                   {fechaFin && (
                     <>
                       {' '}
-                      hasta el <span className="font-semibold">{fechaFin}</span>
+                      hasta el <span className="font-semibold text-foreground">{fechaFin}</span>
                     </>
                   )}
                   {!fechaFin && ' de forma indefinida'}.
@@ -271,18 +273,18 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
               </div>
 
               <div>
-                <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
                   Vendedores
                 </p>
                 <div className="space-y-2">
                   {nombresSeleccionados.map((v) => (
                     <div key={v.id} className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
                         {v.nombre.charAt(0)}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-800">{v.nombre}</p>
-                        <p className="text-xs text-gray-500">{v.equipo}</p>
+                        <p className="text-sm font-medium text-foreground">{v.nombre}</p>
+                        <p className="text-xs text-muted-foreground">{v.equipo}</p>
                       </div>
                     </div>
                   ))}
@@ -305,29 +307,17 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
 
           {paso < 3 ? (
             <Button
-              className="bg-blue-600 hover:bg-blue-700"
               disabled={paso === 1 ? !puedeAvanzarPaso1 : !puedeAvanzarPaso2}
               onClick={() => setPaso((p) => (p + 1) as 1 | 2 | 3)}
             >
               Siguiente <Icon name="ChevronRight" size={16} className="ml-1" />
             </Button>
           ) : (
-            <Button
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={handleConfirmar}
-              disabled={guardando}
-            >
+            <Button onClick={handleConfirmar} disabled={guardando}>
               {guardando ? (
                 <span className="flex items-center gap-2">
                   <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
                   Guardando...

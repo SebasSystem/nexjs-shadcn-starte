@@ -11,7 +11,6 @@ import {
   SheetDescription,
   SheetFooter,
   Button,
-  Label,
   SelectField,
 } from 'src/shared/components/ui';
 import { Textarea, Input } from 'src/shared/components/ui';
@@ -161,17 +160,14 @@ export function BattlecardDrawer({ open, item, onClose, onCreate, onUpdate }: Pr
                 )}
               />
 
-              <div className="space-y-1.5">
-                <Label>Posicionamiento (una línea) *</Label>
-                <Textarea
-                  {...register('summary')}
-                  placeholder="¿En una oración: por qué ganamos frente a este competidor?"
-                  rows={3}
-                />
-                {errors.summary && (
-                  <p className="text-caption text-destructive">{errors.summary.message}</p>
-                )}
-              </div>
+              <Textarea
+                label="Posicionamiento (una línea)"
+                required
+                {...register('summary')}
+                placeholder="¿En una oración: por qué ganamos frente a este competidor?"
+                rows={3}
+                error={errors.summary?.message}
+              />
             </div>
 
             <hr className="border-border/40" />

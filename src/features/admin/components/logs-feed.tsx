@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
 import { LogEntry } from 'src/features/admin/types/admin.types';
 
 interface LogsFeedProps {
@@ -88,14 +89,12 @@ export function LogsFeed({ logs }: LogsFeedProps) {
             </button>
           ))}
         </div>
-        <div className="relative flex-1 min-w-[200px]">
-          <Icon name="Search" className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <input
-            type="text"
+        <div className="flex-1 min-w-[200px]">
+          <Input
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar en mensajes..."
-            className="w-full pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+            leftIcon={<Icon name="Search" size={14} />}
           />
         </div>
       </div>

@@ -12,13 +12,8 @@ import {
   SheetHeader,
   SheetTitle,
   SheetFooter,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
   Switch,
-  Label,
 } from 'src/shared/components/ui';
 import {
   useTable,
@@ -134,82 +129,54 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-          {/* Nombre */}
-          <div className="space-y-1.5">
-            <Label htmlFor="prod-name">Nombre del producto *</Label>
-            <Input
-              id="prod-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ej: Camiseta Básica XL"
-              className={cn(errors.name && 'border-error focus-visible:border-error')}
-            />
-            {errors.name && <p className="text-caption text-error">{errors.name}</p>}
-          </div>
+          <Input
+            label="Nombre del producto *"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ej: Camiseta Básica XL"
+            error={errors.name}
+          />
 
-          {/* SKU */}
-          <div className="space-y-1.5">
-            <Label htmlFor="prod-sku">SKU / Código *</Label>
-            <Input
-              id="prod-sku"
-              value={sku}
-              onChange={(e) => setSku(e.target.value)}
-              placeholder="Ej: SKU-001-XL"
-              className={cn(errors.sku && 'border-error focus-visible:border-error')}
-            />
-            {errors.sku && <p className="text-caption text-error">{errors.sku}</p>}
-          </div>
+          <Input
+            label="SKU / Código *"
+            required
+            value={sku}
+            onChange={(e) => setSku(e.target.value)}
+            placeholder="Ej: SKU-001-XL"
+            error={errors.sku}
+          />
 
-          {/* Categoría */}
-          <div className="space-y-1.5">
-            <Label>Categoría</Label>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccionar categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                {MOCK_CATEGORIES.map((c) => (
-                  <SelectItem key={c.id} value={c.name}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <SelectField
+            label="Categoría"
+            options={MOCK_CATEGORIES.map((c) => ({ value: c.name, label: c.name }))}
+            value={category}
+            onChange={(v) => setCategory(v as string)}
+            placeholder="Seleccionar categoría"
+          />
 
-          {/* Unidad */}
-          <div className="space-y-1.5">
-            <Label>Unidad de medida</Label>
-            <Select value={unit} onValueChange={setUnit}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {['Unidad', 'Caja', 'Par', 'Pack', 'Kg', 'L'].map((u) => (
-                  <SelectItem key={u} value={u}>
-                    {u}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <SelectField
+            label="Unidad de medida"
+            options={['Unidad', 'Caja', 'Par', 'Pack', 'Kg', 'L'].map((u) => ({
+              value: u,
+              label: u,
+            }))}
+            value={unit}
+            onChange={(v) => setUnit(v as string)}
+          />
 
-          {/* Stock mínimo */}
-          <div className="space-y-1.5">
-            <Label htmlFor="prod-min">Stock mínimo (umbral de alerta)</Label>
-            <Input
-              id="prod-min"
-              type="number"
-              min={0}
-              value={minStock}
-              onChange={(e) => setMinStock(e.target.value)}
-            />
-          </div>
+          <Input
+            label="Stock mínimo (umbral de alerta)"
+            type="number"
+            min={0}
+            value={minStock}
+            onChange={(e) => setMinStock(e.target.value)}
+          />
 
-          {/* Estado */}
+          {/* Estado toggle */}
           <div className="flex items-center justify-between py-1">
             <div>
-              <Label>Estado</Label>
+              <p className="text-sm font-medium leading-none">Estado</p>
               <p className="text-caption text-muted-foreground mt-0.5">
                 {active ? 'Activo' : 'Inactivo'}
               </p>
@@ -222,34 +189,22 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
             <div className="rounded-xl border border-border/60 p-4 space-y-4 bg-muted/20">
               <p className="text-subtitle2 text-foreground font-semibold">Stock inicial</p>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="stock-main">Bodega Principal</Label>
-                  <Input
-                    id="stock-main"
-                    type="number"
-                    min={0}
-                    value={stockMain}
-                    onChange={(e) => setStockMain(e.target.value)}
-                    className={cn(errors.stockMain && 'border-error')}
-                  />
-                  {errors.stockMain && (
-                    <p className="text-caption text-error">{errors.stockMain}</p>
-                  )}
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="stock-store">Tienda</Label>
-                  <Input
-                    id="stock-store"
-                    type="number"
-                    min={0}
-                    value={stockStore}
-                    onChange={(e) => setStockStore(e.target.value)}
-                    className={cn(errors.stockStore && 'border-error')}
-                  />
-                  {errors.stockStore && (
-                    <p className="text-caption text-error">{errors.stockStore}</p>
-                  )}
-                </div>
+                <Input
+                  label="Bodega Principal"
+                  type="number"
+                  min={0}
+                  value={stockMain}
+                  onChange={(e) => setStockMain(e.target.value)}
+                  error={errors.stockMain}
+                />
+                <Input
+                  label="Tienda"
+                  type="number"
+                  min={0}
+                  value={stockStore}
+                  onChange={(e) => setStockStore(e.target.value)}
+                  error={errors.stockStore}
+                />
               </div>
               <p className="text-caption text-muted-foreground">
                 El stock podrá ajustarse después desde la vista de movimientos.
@@ -484,58 +439,50 @@ export function ProductsView() {
 
       {/* Filters + Table */}
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-center gap-3 px-5 py-4">
-          <div className="relative flex-1 min-w-48">
-            <Icon
-              name="Search"
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
+        <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+          <div className="flex-1 min-w-48">
             <Input
+              label="Buscar"
               placeholder="Buscar por nombre o SKU..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              leftIcon={<Icon name="Search" size={15} />}
             />
           </div>
 
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Categoría" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las categorías</SelectItem>
-              {MOCK_CATEGORIES.map((c) => (
-                <SelectItem key={c.id} value={c.name}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Categoría"
+            options={[
+              { value: 'all', label: 'Todas las categorías' },
+              ...MOCK_CATEGORIES.map((c) => ({ value: c.name, label: c.name })),
+            ]}
+            value={filterCategory}
+            onChange={(v) => setFilterCategory(v as string)}
+          />
 
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              <SelectItem value="available">Activo</SelectItem>
-              <SelectItem value="out_of_stock">Sin stock</SelectItem>
-              <SelectItem value="low_stock">Stock bajo</SelectItem>
-              <SelectItem value="inactive">Inactivo</SelectItem>
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Estado"
+            options={[
+              { value: 'all', label: 'Todos los estados' },
+              { value: 'available', label: 'Activo' },
+              { value: 'out_of_stock', label: 'Sin stock' },
+              { value: 'low_stock', label: 'Stock bajo' },
+              { value: 'inactive', label: 'Inactivo' },
+            ]}
+            value={filterStatus}
+            onChange={(v) => setFilterStatus(v as string)}
+          />
 
-          <Select value={filterWarehouse} onValueChange={setFilterWarehouse}>
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder="Bodega" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              <SelectItem value="main">Principal</SelectItem>
-              <SelectItem value="store">Tienda</SelectItem>
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Bodega"
+            options={[
+              { value: 'all', label: 'Todas' },
+              { value: 'main', label: 'Principal' },
+              { value: 'store', label: 'Tienda' },
+            ]}
+            value={filterWarehouse}
+            onChange={(v) => setFilterWarehouse(v as string)}
+          />
         </div>
 
         <TableContainer>

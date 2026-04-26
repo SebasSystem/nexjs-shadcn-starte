@@ -12,13 +12,7 @@ import { BillingTable } from 'src/features/admin/components/billing-table';
 import { BillingDetailDrawer } from 'src/features/admin/components/billing-detail-drawer';
 import { Factura } from 'src/features/admin/types/admin.types';
 import { Input } from 'src/shared/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from 'src/shared/components/ui/select';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 
@@ -101,8 +95,9 @@ export const BillingView = () => {
       </div>
 
       <SectionCard noPadding className="flex flex-col shadow-sm border border-border/40">
-        <div className="flex flex-col sm:flex-row gap-4 items-center px-5 py-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-end px-5 py-4">
           <Input
+            label="Buscar"
             placeholder="Buscar tenant..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -110,43 +105,41 @@ export const BillingView = () => {
             className="flex-1 w-full max-w-sm"
           />
 
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
-              <SelectTrigger className="w-[140px] shadow-sm">
-                <SelectValue placeholder="Periodo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos los periodos</SelectItem>
-                <SelectItem value="Marzo 2025">Marzo 2025</SelectItem>
-                <SelectItem value="Febrero 2025">Febrero 2025</SelectItem>
-                <SelectItem value="Enero 2025">Enero 2025</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterEstado} onValueChange={setFilterEstado}>
-              <SelectTrigger className="w-[140px] shadow-sm">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos los estados</SelectItem>
-                <SelectItem value="PAGADA">Pagada</SelectItem>
-                <SelectItem value="PENDIENTE">Pendiente</SelectItem>
-                <SelectItem value="VENCIDA">Vencida</SelectItem>
-                <SelectItem value="CANCELADA">Cancelada</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterPlan} onValueChange={setFilterPlan}>
-              <SelectTrigger className="w-[140px] bg-card border-border/40 shadow-sm">
-                <SelectValue placeholder="Plan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Todos los planes</SelectItem>
-                <SelectItem value="Starter">Starter</SelectItem>
-                <SelectItem value="Pro">Pro</SelectItem>
-                <SelectItem value="Business">Business</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-wrap items-end gap-3 w-full sm:w-auto">
+            <SelectField
+              label="Periodo"
+              options={[
+                { value: 'ALL', label: 'Todos los periodos' },
+                { value: 'Marzo 2025', label: 'Marzo 2025' },
+                { value: 'Febrero 2025', label: 'Febrero 2025' },
+                { value: 'Enero 2025', label: 'Enero 2025' },
+              ]}
+              value={filterPeriodo}
+              onChange={(v) => setFilterPeriodo(v as string)}
+            />
+            <SelectField
+              label="Estado"
+              options={[
+                { value: 'ALL', label: 'Todos los estados' },
+                { value: 'PAGADA', label: 'Pagada' },
+                { value: 'PENDIENTE', label: 'Pendiente' },
+                { value: 'VENCIDA', label: 'Vencida' },
+                { value: 'CANCELADA', label: 'Cancelada' },
+              ]}
+              value={filterEstado}
+              onChange={(v) => setFilterEstado(v as string)}
+            />
+            <SelectField
+              label="Plan"
+              options={[
+                { value: 'ALL', label: 'Todos los planes' },
+                { value: 'Starter', label: 'Starter' },
+                { value: 'Pro', label: 'Pro' },
+                { value: 'Business', label: 'Business' },
+              ]}
+              value={filterPlan}
+              onChange={(v) => setFilterPlan(v as string)}
+            />
 
             {activeFiltersCount > 0 && (
               <Button

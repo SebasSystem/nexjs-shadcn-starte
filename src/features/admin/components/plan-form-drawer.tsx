@@ -11,7 +11,10 @@ import {
   SheetFooter,
 } from 'src/shared/components/ui/sheet';
 import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import { Switch } from 'src/shared/components/ui/switch';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
 import { PlanSaaS, TierPlan, SoportePlan } from 'src/features/admin/types/admin.types';
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -33,6 +36,14 @@ const MODULOS = [
 ];
 
 const TIERS: TierPlan[] = ['STARTER', 'PRO', 'BUSINESS', 'ENTERPRISE'];
+
+const TIER_OPTIONS = TIERS.map((t) => ({ value: t, label: t }));
+
+const SOPORTE_OPTIONS = [
+  { value: 'EMAIL', label: 'Solo Email' },
+  { value: 'EMAIL_CHAT', label: 'Email + Chat' },
+  { value: 'DEDICADO', label: 'Soporte Dedicado' },
+];
 
 export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawerProps) {
   const isEditing = !!plan;
@@ -152,61 +163,39 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-          {/* Sección 1: Información general */}
+          {/* Información general */}
           <div>
-            <h3 className="text-body2 font-semibold text-foreground mb-4">Información general</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Información general</h3>
             <div className="space-y-3">
-              <div>
-                <label className="block text-caption font-medium text-muted-foreground mb-1">
-                  Nombre del plan *
-                </label>
-                <input
-                  type="text"
-                  value={form.nombre}
-                  onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  placeholder="Plan Pro"
+              <Input
+                value={form.nombre}
+                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                label="Nombre del plan"
+                required
+                placeholder="Plan Pro"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <SelectField
+                  value={form.tier}
+                  onChange={(val) => setForm({ ...form, tier: val as TierPlan })}
+                  label="Tier"
+                  required
+                  options={TIER_OPTIONS}
+                />
+                <Input
+                  type="number"
+                  min={0}
+                  value={String(form.precio)}
+                  onChange={(e) =>
+                    setForm({ ...form, precio: parseFloat(e.target.value) || 0 })
+                  }
+                  label="Precio mensual (USD)"
+                  required
+                  leftIcon={<span className="text-muted-foreground text-sm">$</span>}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-caption font-medium text-muted-foreground mb-1">
-                    Tier *
-                  </label>
-                  <select
-                    value={form.tier}
-                    onChange={(e) => setForm({ ...form, tier: e.target.value as TierPlan })}
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background"
-                  >
-                    {TIERS.map((t) => (
-                      <option key={t} value={t}>
-                        {t}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-caption font-medium text-muted-foreground mb-1">
-                    Precio mensual (USD) *
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                      $
-                    </span>
-                    <input
-                      type="number"
-                      min={0}
-                      value={form.precio}
-                      onChange={(e) =>
-                        setForm({ ...form, precio: parseFloat(e.target.value) || 0 })
-                      }
-                      className="w-full border border-border rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                  </div>
-                </div>
-              </div>
               <div className="flex items-center justify-between">
-                <label className="text-body2 font-medium text-foreground">Estado activo</label>
+                <p className="text-sm font-medium text-foreground">Estado activo</p>
                 <Switch
                   checked={form.estado === 'ACTIVO'}
                   onCheckedChange={(checked) =>
@@ -217,123 +206,115 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
             </div>
           </div>
 
-          {/* Sección 2: Límites */}
+          {/* Límites */}
           <div>
-            <h3 className="text-body2 font-semibold text-foreground mb-4">Límites</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Límites</h3>
             <div className="space-y-3">
-              {/* Usuarios */}
               <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <label className="block text-caption font-medium text-muted-foreground mb-1">
-                    Límite usuarios
-                  </label>
-                  <input
+                  <Input
                     type="number"
                     min={1}
-                    value={form.limiteUsuarios}
+                    value={String(form.limiteUsuarios)}
                     disabled={form.ilimitadoUsuarios}
                     onChange={(e) =>
                       setForm({ ...form, limiteUsuarios: parseInt(e.target.value) || 1 })
                     }
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-40"
+                    label="Límite usuarios"
                   />
                 </div>
-                <label className="flex items-center gap-1.5 text-caption text-muted-foreground mt-5 cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex items-center gap-1.5 mt-5">
+                  <Checkbox
+                    id="ilimitadoUsuarios"
                     checked={form.ilimitadoUsuarios}
-                    onChange={(e) => setForm({ ...form, ilimitadoUsuarios: e.target.checked })}
-                    className="rounded"
+                    onCheckedChange={(v) => setForm({ ...form, ilimitadoUsuarios: v as boolean })}
                   />
-                  Ilimitado
-                </label>
+                  <label htmlFor="ilimitadoUsuarios" className="text-xs text-muted-foreground cursor-pointer">
+                    Ilimitado
+                  </label>
+                </div>
               </div>
 
-              {/* Almacenamiento */}
               <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <label className="block text-caption font-medium text-muted-foreground mb-1">
-                    Almacenamiento (GB)
-                  </label>
-                  <input
+                  <Input
                     type="number"
                     min={1}
-                    value={form.almacenamientoGB}
+                    value={String(form.almacenamientoGB)}
                     disabled={form.ilimitadoAlmacenamiento}
                     onChange={(e) =>
                       setForm({ ...form, almacenamientoGB: parseInt(e.target.value) || 1 })
                     }
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-40"
+                    label="Almacenamiento (GB)"
                   />
                 </div>
-                <label className="flex items-center gap-1.5 text-caption text-muted-foreground mt-5 cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex items-center gap-1.5 mt-5">
+                  <Checkbox
+                    id="ilimitadoAlmacenamiento"
                     checked={form.ilimitadoAlmacenamiento}
-                    onChange={(e) =>
-                      setForm({ ...form, ilimitadoAlmacenamiento: e.target.checked })
+                    onCheckedChange={(v) =>
+                      setForm({ ...form, ilimitadoAlmacenamiento: v as boolean })
                     }
-                    className="rounded"
                   />
-                  Ilimitado
-                </label>
+                  <label htmlFor="ilimitadoAlmacenamiento" className="text-xs text-muted-foreground cursor-pointer">
+                    Ilimitado
+                  </label>
+                </div>
               </div>
 
-              {/* API */}
               <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <label className="block text-caption font-medium text-muted-foreground mb-1">
-                    API calls/mes
-                  </label>
-                  <input
+                  <Input
                     type="number"
                     min={1000}
                     step={1000}
-                    value={form.apiCallsMes}
+                    value={String(form.apiCallsMes)}
                     disabled={form.ilimitadoApi}
                     onChange={(e) =>
                       setForm({ ...form, apiCallsMes: parseInt(e.target.value) || 1000 })
                     }
-                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-40"
+                    label="API calls/mes"
                   />
                 </div>
-                <label className="flex items-center gap-1.5 text-caption text-muted-foreground mt-5 cursor-pointer">
-                  <input
-                    type="checkbox"
+                <div className="flex items-center gap-1.5 mt-5">
+                  <Checkbox
+                    id="ilimitadoApi"
                     checked={form.ilimitadoApi}
-                    onChange={(e) => setForm({ ...form, ilimitadoApi: e.target.checked })}
-                    className="rounded"
+                    onCheckedChange={(v) => setForm({ ...form, ilimitadoApi: v as boolean })}
                   />
-                  Ilimitado
-                </label>
+                  <label htmlFor="ilimitadoApi" className="text-xs text-muted-foreground cursor-pointer">
+                    Ilimitado
+                  </label>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Módulos */}
           <div>
-            <h3 className="text-body2 font-semibold text-foreground mb-4">Módulos incluidos</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Módulos incluidos</h3>
             <div className="grid grid-cols-2 gap-2">
               {MODULOS.map((m) => (
-                <label
-                  key={m.key}
-                  className="flex items-center gap-2 text-body2 text-foreground cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
+                <div key={m.key} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`modulo-${m.key}`}
                     checked={form.modulos.includes(m.key)}
-                    onChange={() => toggleModulo(m.key)}
-                    className="rounded"
+                    onCheckedChange={() => toggleModulo(m.key)}
                   />
-                  {m.label}
-                </label>
+                  <label
+                    htmlFor={`modulo-${m.key}`}
+                    className="text-sm text-foreground cursor-pointer"
+                  >
+                    {m.label}
+                  </label>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Opciones booleanas */}
+          {/* Opciones avanzadas */}
           <div>
-            <h3 className="text-body2 font-semibold text-foreground mb-4">Opciones avanzadas</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Opciones avanzadas</h3>
             <div className="space-y-3">
               {[
                 { key: 'customDomain', label: 'Custom Domain' },
@@ -341,7 +322,7 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
                 { key: 'reportesAvanzados', label: 'Reportes Avanzados' },
               ].map(({ key, label }) => (
                 <div key={key} className="flex items-center justify-between">
-                  <span className="text-body2 text-foreground">{label}</span>
+                  <span className="text-sm text-foreground">{label}</span>
                   <Switch
                     checked={form[key as keyof typeof form] as boolean}
                     onCheckedChange={(checked) => setForm({ ...form, [key]: checked })}
@@ -353,28 +334,12 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
 
           {/* Soporte */}
           <div>
-            <h3 className="text-body2 font-semibold text-foreground mb-4">Tipo de soporte</h3>
-            <div className="space-y-2">
-              {[
-                { value: 'EMAIL', label: 'Solo Email' },
-                { value: 'EMAIL_CHAT', label: 'Email + Chat' },
-                { value: 'DEDICADO', label: 'Soporte Dedicado' },
-              ].map((opt) => (
-                <label
-                  key={opt.value}
-                  className="flex items-center gap-2 text-body2 text-foreground cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name="soporte"
-                    value={opt.value}
-                    checked={form.soporte === opt.value}
-                    onChange={() => setForm({ ...form, soporte: opt.value as SoportePlan })}
-                  />
-                  {opt.label}
-                </label>
-              ))}
-            </div>
+            <h3 className="text-sm font-semibold text-foreground mb-4">Tipo de soporte</h3>
+            <SelectField
+              value={form.soporte}
+              onChange={(val) => setForm({ ...form, soporte: val as SoportePlan })}
+              options={SOPORTE_OPTIONS}
+            />
           </div>
         </div>
 

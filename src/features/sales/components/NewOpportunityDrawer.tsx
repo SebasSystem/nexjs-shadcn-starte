@@ -214,18 +214,14 @@ export function NewOpportunityDrawer({ open, onClose, onSave }: NewOpportunityDr
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5 pt-2">
-                <label className="text-sm font-medium text-foreground">
-                  Notas Iniciales (Opcional)
-                </label>
-                <Textarea
-                  placeholder="Ej: Nos escribió por Instagram preguntando por licencias..."
-                  rows={3}
-                  value={form.notes}
-                  onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-                  className="bg-muted/30 focus:bg-background transition-colors"
-                />
-              </div>
+              <Textarea
+                label="Notas Iniciales (Opcional)"
+                placeholder="Ej: Nos escribió por Instagram preguntando por licencias..."
+                rows={3}
+                value={form.notes}
+                onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
+                className="bg-muted/30 focus:bg-background transition-colors pt-2"
+              />
             </div>
           </div>
         </div>

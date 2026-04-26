@@ -5,6 +5,7 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { SelectField } from 'src/shared/components/ui/select-field';
+import { Input } from 'src/shared/components/ui/input';
 import { PipelineColumn } from '../components/PipelineColumn';
 import { NewOpportunityDrawer } from '../components/NewOpportunityDrawer';
 import { OpportunityPanel } from '../components/OpportunityPanel';
@@ -93,22 +94,20 @@ export function PipelineView() {
 
       {/* Filtros */}
       <SectionCard className="mb-6">
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="relative flex-1 w-full">
-            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-muted-foreground">
-              <Icon name="Search" size={16} />
-            </div>
-            <input
-              type="text"
-              className="w-full h-10 pl-10 pr-4 text-sm bg-muted/30 border border-border/50 rounded-lg outline-none focus:bg-background focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+          <div className="flex-1 w-full">
+            <Input
+              label="Buscar"
               placeholder="Buscar por cliente o contacto..."
               value={filters.search}
               onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
+              leftIcon={<Icon name="Search" size={16} />}
             />
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
             <div className="w-full sm:w-48">
               <SelectField
+                label="Origen"
                 options={[{ value: '', label: 'Cualquier origen' }, ...ORIGIN_OPTIONS]}
                 value={filters.source}
                 onChange={(v) => setFilters((p) => ({ ...p, source: v as string }))}
@@ -116,6 +115,7 @@ export function PipelineView() {
             </div>
             <div className="w-full sm:w-48">
               <SelectField
+                label="Producto"
                 options={[{ value: '', label: 'Cualquier producto' }, ...MAIN_PRODUCTS]}
                 value={filters.mainProduct}
                 onChange={(v) => setFilters((p) => ({ ...p, mainProduct: v as string }))}

@@ -9,12 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetFooter,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Label,
+  SelectField,
   Textarea,
 } from 'src/shared/components/ui';
 import { Input } from 'src/shared/components/ui';
@@ -128,38 +123,31 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
         <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
           {/* Campos de cabecera */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5 col-span-2">
-              <Label>Bodega de destino *</Label>
-              <Select value={warehouse} onValueChange={(v) => setWarehouse(v as 'main' | 'store')}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="main">Bodega Principal</SelectItem>
-                  <SelectItem value="store">Tienda</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <SelectField
+              label="Bodega de destino *"
+              required
+              className="col-span-2"
+              options={[
+                { value: 'main', label: 'Bodega Principal' },
+                { value: 'store', label: 'Tienda' },
+              ]}
+              value={warehouse}
+              onChange={(v) => setWarehouse(v as 'main' | 'store')}
+            />
 
-            <div className="space-y-1.5">
-              <Label htmlFor="order-ref">Nº orden de compra</Label>
-              <Input
-                id="order-ref"
-                value={orderRef}
-                onChange={(e) => setOrderRef(e.target.value)}
-                placeholder="Ej: OC-2026-045"
-              />
-            </div>
+            <Input
+              label="Nº orden de compra"
+              value={orderRef}
+              onChange={(e) => setOrderRef(e.target.value)}
+              placeholder="Ej: OC-2026-045"
+            />
 
-            <div className="space-y-1.5">
-              <Label htmlFor="receipt-notes">Observaciones</Label>
-              <Input
-                id="receipt-notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Opcional..."
-              />
-            </div>
+            <Input
+              label="Observaciones"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Opcional..."
+            />
           </div>
 
           {/* Lista de productos */}
@@ -188,34 +176,18 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
                     <div className="flex items-start gap-2">
                       {/* Selector de producto */}
                       <div className="flex-1 space-y-1">
-                        <Select
+                        <SelectField
+                          options={activeProducts.map((p) => ({
+                            value: p.id,
+                            label: `${p.name} — ${p.sku}`,
+                          }))}
                           value={item.productId}
-                          onValueChange={(v) => updateItem(index, 'productId', v)}
-                        >
-                          <SelectTrigger
-                            className={cn(
-                              (errors[`item-${index}-productId`] || errors[`item-${index}-dup`]) &&
-                                'border-error'
-                            )}
-                          >
-                            <SelectValue placeholder="Seleccionar producto..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {activeProducts.map((p) => (
-                              <SelectItem key={p.id} value={p.id}>
-                                {p.name} — {p.sku}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {errors[`item-${index}-dup`] && (
-                          <p className="text-caption text-warning">{errors[`item-${index}-dup`]}</p>
-                        )}
-                        {errors[`item-${index}-productId`] && (
-                          <p className="text-caption text-error">
-                            {errors[`item-${index}-productId`]}
-                          </p>
-                        )}
+                          onChange={(v) => updateItem(index, 'productId', v as string)}
+                          placeholder="Seleccionar producto..."
+                          error={
+                            errors[`item-${index}-dup`] || errors[`item-${index}-productId`]
+                          }
+                        />
                         {selectedProduct && (
                           <p className="text-caption text-muted-foreground">
                             {selectedProduct.sku} · {selectedProduct.unit} · Stock actual:{' '}
@@ -280,14 +252,11 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
 
           {/* Notas finales */}
           {notes === '' && (
-            <div className="space-y-1.5">
-              <Label htmlFor="receipt-textarea-notes">Notas adicionales (opcional)</Label>
-              <Textarea
-                id="receipt-textarea-notes"
-                rows={2}
-                placeholder="Observaciones generales de la recepción..."
-              />
-            </div>
+            <Textarea
+              label="Notas adicionales (opcional)"
+              rows={2}
+              placeholder="Observaciones generales de la recepción..."
+            />
           )}
         </div>
 

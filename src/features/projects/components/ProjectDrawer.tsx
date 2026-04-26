@@ -9,15 +9,9 @@ import {
   SheetFooter,
   Button,
   Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
-import { cn } from 'src/lib/utils';
 import { toast } from 'sonner';
 import { MOCK_CONSULTANTS } from 'src/_mock/_projects';
 import type { Project, ProjectStatus } from '../types';
@@ -144,103 +138,69 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
       </SheetHeader>
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-        <div className="space-y-1.5">
-          <Label htmlFor="proj-name">Nombre del proyecto *</Label>
-          <Input
-            id="proj-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Ej: Onboarding ERP — Cliente XYZ"
-            className={cn(errors.name && 'border-error focus-visible:border-error')}
-          />
-          {errors.name && <p className="text-caption text-error">{errors.name}</p>}
-        </div>
+        <Input
+          label="Nombre del proyecto *"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Ej: Onboarding ERP — Cliente XYZ"
+          error={errors.name}
+        />
 
-        <div className="space-y-1.5">
-          <Label>Cliente *</Label>
-          <Select value={clientId} onValueChange={setClientId}>
-            <SelectTrigger className={cn(errors.clientId && 'border-error')}>
-              <SelectValue placeholder="Seleccioná un cliente" />
-            </SelectTrigger>
-            <SelectContent>
-              {MOCK_CLIENTS.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.clientId && <p className="text-caption text-error">{errors.clientId}</p>}
-        </div>
+        <SelectField
+          label="Cliente *"
+          required
+          options={MOCK_CLIENTS.map((c) => ({ value: c.id, label: c.name }))}
+          value={clientId}
+          onChange={(v) => setClientId(v as string)}
+          placeholder="Seleccioná un cliente"
+          error={errors.clientId}
+        />
 
-        <div className="space-y-1.5">
-          <Label>Manager responsable *</Label>
-          <Select value={manager} onValueChange={setManager}>
-            <SelectTrigger className={cn(errors.manager && 'border-error')}>
-              <SelectValue placeholder="Seleccioná el manager" />
-            </SelectTrigger>
-            <SelectContent>
-              {MOCK_CONSULTANTS.map((c) => (
-                <SelectItem key={c.email} value={c.name}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.manager && <p className="text-caption text-error">{errors.manager}</p>}
-        </div>
+        <SelectField
+          label="Manager responsable *"
+          required
+          options={MOCK_CONSULTANTS.map((c) => ({ value: c.name, label: c.name }))}
+          value={manager}
+          onChange={(v) => setManager(v as string)}
+          placeholder="Seleccioná el manager"
+          error={errors.manager}
+        />
 
-        <div className="space-y-1.5">
-          <Label>Estado *</Label>
-          <Select value={status} onValueChange={(v) => setStatus(v as ProjectStatus)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <SelectField
+          label="Estado *"
+          required
+          options={STATUS_OPTIONS}
+          value={status}
+          onChange={(v) => setStatus(v as ProjectStatus)}
+        />
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="proj-start">Fecha inicio *</Label>
-            <Input
-              id="proj-start"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className={cn(errors.startDate && 'border-error')}
-            />
-            {errors.startDate && <p className="text-caption text-error">{errors.startDate}</p>}
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="proj-end">Fin estimado *</Label>
-            <Input
-              id="proj-end"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className={cn(errors.endDate && 'border-error')}
-            />
-            {errors.endDate && <p className="text-caption text-error">{errors.endDate}</p>}
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="proj-desc">Descripción</Label>
-          <Textarea
-            id="proj-desc"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Contexto del proyecto, objetivos principales..."
-            rows={3}
+          <Input
+            label="Fecha inicio *"
+            required
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            error={errors.startDate}
+          />
+          <Input
+            label="Fin estimado *"
+            required
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            error={errors.endDate}
           />
         </div>
+
+        <Textarea
+          label="Descripción"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Contexto del proyecto, objetivos principales..."
+          rows={3}
+        />
 
         {showDangerZone && (
           <div className="rounded-xl border border-error/20 p-4 bg-error/5">

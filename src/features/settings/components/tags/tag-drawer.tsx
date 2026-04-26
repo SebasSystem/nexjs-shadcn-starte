@@ -70,17 +70,16 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-6 custom-scrollbar space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Nombre de la etiqueta *</label>
-            <Input
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Ej. VIP, Lista Negra, Referido..."
-            />
-          </div>
+          <Input
+            label="Nombre de la etiqueta"
+            required
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            placeholder="Ej. VIP, Lista Negra, Referido..."
+          />
 
           <div className="space-y-3">
-            <label className="text-sm font-medium text-foreground">Color visual *</label>
+            <p className="text-sm font-medium text-foreground">Color visual *</p>
             <div className="flex flex-wrap gap-3">
               {COLORS.map((c) => (
                 <button
@@ -103,7 +102,7 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-medium text-foreground">Aplicable en módulos *</label>
+            <p className="text-sm font-medium text-foreground">Aplicable en módulos *</p>
             <div className="grid grid-cols-2 gap-3">
               {ENTITIES.map((e) => (
                 <button

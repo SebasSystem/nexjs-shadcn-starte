@@ -6,11 +6,7 @@ import {
   Icon,
   Button,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
 } from 'src/shared/components/ui';
 import {
   useTable,
@@ -232,44 +228,36 @@ export function WarehousesView() {
 
       {/* Comparative table */}
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-center gap-3 px-5 py-4">
-          <div className="relative flex-1 min-w-48">
-            <Icon
-              name="Search"
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
+        <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+          <div className="flex-1 min-w-48">
             <Input
+              label="Buscar"
               placeholder="Buscar por nombre o SKU..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              leftIcon={<Icon name="Search" size={15} />}
             />
           </div>
 
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Categoría" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              {MOCK_CATEGORIES.map((c) => (
-                <SelectItem key={c.id} value={c.name}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Categoría"
+            options={[
+              { value: 'all', label: 'Todas' },
+              ...MOCK_CATEGORIES.map((c) => ({ value: c.name, label: c.name })),
+            ]}
+            value={filterCategory}
+            onChange={(v) => setFilterCategory(v as string)}
+          />
 
-          <Select value={filterStock} onValueChange={setFilterStock}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="Stock" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los productos</SelectItem>
-              <SelectItem value="with_stock">Solo con stock</SelectItem>
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Stock"
+            options={[
+              { value: 'all', label: 'Todos los productos' },
+              { value: 'with_stock', label: 'Solo con stock' },
+            ]}
+            value={filterStock}
+            onChange={(v) => setFilterStock(v as string)}
+          />
         </div>
 
         <TableContainer>

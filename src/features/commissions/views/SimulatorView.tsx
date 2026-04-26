@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { useSimulator } from 'src/features/commissions/hooks/use-simulator';
 import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Icon } from 'src/shared/components/ui/icon';
 import {
@@ -121,22 +122,17 @@ export const SimulatorView = () => {
             </h3>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Ventas acumuladas en el periodo
-                <p className="text-xs font-normal text-muted-foreground mt-1 mb-2">
-                  Ingresa las ventas ya realizadas en el mes actual
-                </p>
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-muted-foreground font-medium">$</span>
-                <input
-                  type="number"
-                  value={ventasAcumuladas || ''}
-                  onChange={(e) => setVentasAcumuladas(Number(e.target.value))}
-                  placeholder="0.00"
-                  className="w-full h-11 pl-8 pr-3 border border-border/40 rounded-lg bg-background focus:ring-2 focus:ring-blue-500 text-lg transition-shadow"
-                />
-              </div>
+              <Input
+                label="Ventas acumuladas en el periodo"
+                hint="Ingresa las ventas ya realizadas en el mes actual"
+                type="number"
+                value={ventasAcumuladas || ''}
+                onChange={(e) => setVentasAcumuladas(Number(e.target.value))}
+                placeholder="0.00"
+                size="lg"
+                leftIcon={<span className="text-muted-foreground font-medium">$</span>}
+                inputClassName="text-lg"
+              />
               {/* Indicador de tramo actual — feedback inmediato */}
               {tramoActual && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg text-sm transition-colors">
@@ -154,22 +150,17 @@ export const SimulatorView = () => {
             </div>
 
             <div className="space-y-2 pt-4 border-t border-border/40">
-              <label className="text-sm font-bold text-blue-900">
-                Venta hipotética a simular
-                <p className="text-xs font-normal text-blue-700/70 mt-1 mb-2">
-                  ¿Cuánto más esperas vender?
-                </p>
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-2.5 text-blue-600 font-bold">$</span>
-                <input
-                  type="number"
-                  value={ventaHipotetica || ''}
-                  onChange={(e) => setVentaHipotetica(Number(e.target.value))}
-                  placeholder="0.00"
-                  className="w-full h-12 pl-8 pr-3 border-2 border-blue-300 bg-blue-50 rounded-lg text-xl font-bold text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
-                />
-              </div>
+              <Input
+                label="Venta hipotética a simular"
+                hint="¿Cuánto más esperas vender?"
+                type="number"
+                value={ventaHipotetica || ''}
+                onChange={(e) => setVentaHipotetica(Number(e.target.value))}
+                placeholder="0.00"
+                size="lg"
+                leftIcon={<span className="text-blue-600 font-bold">$</span>}
+                inputClassName="border-2 border-blue-300 bg-blue-50 text-xl font-bold text-blue-900 focus:ring-blue-500"
+              />
             </div>
           </div>
 

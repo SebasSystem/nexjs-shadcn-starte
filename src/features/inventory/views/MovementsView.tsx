@@ -7,11 +7,7 @@ import {
   Badge,
   Button,
   Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectField,
 } from 'src/shared/components/ui';
 import {
   useTable,
@@ -379,46 +375,42 @@ export function MovementsView() {
       </div>
 
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-center gap-3 px-5 py-4">
-          <div className="relative flex-1 min-w-48">
-            <Icon
-              name="Search"
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
+        <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+          <div className="flex-1 min-w-48">
             <Input
+              label="Buscar"
               placeholder="Buscar por producto, cotización..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              leftIcon={<Icon name="Search" size={15} />}
             />
           </div>
 
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Tipo de movimiento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los tipos</SelectItem>
-              <SelectItem value="transfer">Traslados</SelectItem>
-              <SelectItem value="receipt">Entradas de mercancía</SelectItem>
-              <SelectItem value="adjustment_add">Ajuste positivo</SelectItem>
-              <SelectItem value="adjustment_sub">Ajuste negativo</SelectItem>
-              <SelectItem value="reservation">Reservas B2B</SelectItem>
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Tipo de movimiento"
+            options={[
+              { value: 'all', label: 'Todos los tipos' },
+              { value: 'transfer', label: 'Traslados' },
+              { value: 'receipt', label: 'Entradas de mercancía' },
+              { value: 'adjustment_add', label: 'Ajuste positivo' },
+              { value: 'adjustment_sub', label: 'Ajuste negativo' },
+              { value: 'reservation', label: 'Reservas B2B' },
+            ]}
+            value={filterType}
+            onChange={(v) => setFilterType(v as string)}
+          />
 
-          <Select value={filterFrom} onValueChange={setFilterFrom}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="Bodega origen" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Cualquier origen</SelectItem>
-              <SelectItem value="main">B. Principal</SelectItem>
-              <SelectItem value="store">Tienda</SelectItem>
-              <SelectItem value="external">Externo</SelectItem>
-            </SelectContent>
-          </Select>
+          <SelectField
+            label="Bodega origen"
+            options={[
+              { value: 'all', label: 'Cualquier origen' },
+              { value: 'main', label: 'B. Principal' },
+              { value: 'store', label: 'Tienda' },
+              { value: 'external', label: 'Externo' },
+            ]}
+            value={filterFrom}
+            onChange={(v) => setFilterFrom(v as string)}
+          />
         </div>
 
         <TableContainer>

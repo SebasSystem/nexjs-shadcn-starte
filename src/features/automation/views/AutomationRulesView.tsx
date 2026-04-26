@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
 import {
   PageContainer,
   PageHeader,
@@ -83,20 +84,13 @@ export function AutomationRulesView() {
 
       <SectionCard noPadding>
         <div className="p-5 border-b border-border/40">
-          <div className="relative">
-            <Icon
-              name="Search"
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-            />
-            <input
-              type="text"
-              className="w-full h-10 pl-10 pr-4 text-sm bg-muted/30 border border-border/50 rounded-lg outline-none focus:bg-background focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-              placeholder="Buscar reglas..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          <Input
+            label="Buscar"
+            placeholder="Buscar reglas..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            leftIcon={<Icon name="Search" size={15} />}
+          />
         </div>
 
         <div className="overflow-x-auto">

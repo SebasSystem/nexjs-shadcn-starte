@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
+import { FormInput } from 'src/shared/components/ui/form-input';
+import { FormSelectField } from 'src/shared/components/ui/form-select-field';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
 import {
   Sheet,
   SheetContent,
@@ -49,6 +52,31 @@ interface ContactDrawerProps {
   empresas: Contacto[];
   onSave: (form: ContactoForm) => Promise<boolean>;
 }
+
+const ESTADO_OPTIONS = [
+  { value: 'ACTIVO', label: 'Activo' },
+  { value: 'PROSPECTO', label: 'Prospecto' },
+  { value: 'INACTIVO', label: 'Inactivo' },
+];
+
+const TAMANO_OPTIONS = [
+  { value: '', label: 'Sin especificar' },
+  { value: 'MICRO', label: 'Micro (<10)' },
+  { value: 'PEQUENA', label: 'Pequeña (10-50)' },
+  { value: 'MEDIANA', label: 'Mediana (50-200)' },
+  { value: 'GRANDE', label: 'Grande (200+)' },
+];
+
+const TIPO_INSTITUCION_OPTIONS = [
+  { value: '', label: 'Seleccionar...' },
+  { value: 'Ministerio', label: 'Ministerio' },
+  { value: 'Alcaldía', label: 'Alcaldía / Municipio' },
+  { value: 'Gobernación', label: 'Gobernación' },
+  { value: 'Universidad Pública', label: 'Universidad Pública' },
+  { value: 'Hospital Público', label: 'Hospital Público' },
+  { value: 'Empresa Pública', label: 'Empresa Pública' },
+  { value: 'Otro', label: 'Otro' },
+];
 
 export const ContactDrawer: React.FC<ContactDrawerProps> = ({
   isOpen,
@@ -125,6 +153,11 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
     if (success) onClose();
   };
 
+  const empresaOptions = [
+    { value: '', label: 'Sin empresa' },
+    ...empresas.map((e) => ({ value: e.id, label: e.nombre })),
+  ];
+
   return (
     <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[500px] flex flex-col p-0">
@@ -139,9 +172,9 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
 
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <div className="py-6 space-y-5">
-            {/* Tipo de entidad */}
+            {/* Tipo de entidad — custom radio cards, se mantiene */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Tipo de entidad *</label>
+              <p className="text-sm font-medium text-foreground">Tipo de entidad *</p>
               <div className="grid grid-cols-3 gap-2">
                 {(['B2B', 'B2C', 'B2G'] as TipoEntidad[]).map((t) => {
                   const labels = { B2B: 'Empresa', B2C: 'Persona', B2G: 'Institución' };
@@ -150,20 +183,14 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
                     <label
                       key={t}
                       className={`flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                        isActive
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                        isActive ? 'border-primary bg-primary/5' : 'border-border hover:border-border/80'
                       }`}
                     >
                       <input type="radio" {...register('tipo')} value={t} className="sr-only" />
-                      <span
-                        className={`text-xs font-bold ${isActive ? 'text-blue-600' : 'text-gray-500'}`}
-                      >
+                      <span className={`text-xs font-bold ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                         {t}
                       </span>
-                      <span
-                        className={`text-sm font-medium mt-0.5 ${isActive ? 'text-blue-700' : 'text-gray-700'}`}
-                      >
+                      <span className={`text-sm font-medium mt-0.5 ${isActive ? 'text-primary' : 'text-foreground'}`}>
                         {labels[t]}
                       </span>
                     </label>
@@ -172,34 +199,27 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
               </div>
             </div>
 
-            {/* Campos base */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Nombre *</label>
-              <input
-                {...register('nombre')}
-                className={`w-full h-10 px-3 border rounded-md text-sm ${errors.nombre ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder={
-                  tipo === 'B2B'
-                    ? 'Razón social'
-                    : tipo === 'B2C'
-                      ? 'Nombre completo'
-                      : 'Nombre de la institución'
-                }
-              />
-              {errors.nombre && <p className="text-xs text-red-500">{errors.nombre.message}</p>}
-            </div>
+            <FormInput
+              control={control}
+              name="nombre"
+              label="Nombre"
+              required
+              placeholder={
+                tipo === 'B2B' ? 'Razón social' : tipo === 'B2C' ? 'Nombre completo' : 'Nombre de la institución'
+              }
+            />
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">Email *</label>
-              <input
-                {...register('email')}
+            <div>
+              <FormInput
+                control={control}
+                name="email"
                 type="email"
-                className={`w-full h-10 px-3 border rounded-md text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                label="Email"
+                required
                 placeholder="correo@ejemplo.com"
               />
-              {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
               {duplicateWarning && !errors.email && (
-                <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 text-xs">
+                <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 text-xs mt-1.5">
                   <Icon name="AlertTriangle" size={13} />
                   <span>{duplicateWarning}</span>
                 </div>
@@ -207,185 +227,90 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Teléfono</label>
-                <input
-                  {...register('telefono')}
-                  className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                  placeholder="+57 300 000 0000"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Estado</label>
-                <select
-                  {...register('estado')}
-                  className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-                >
-                  <option value="ACTIVO">Activo</option>
-                  <option value="PROSPECTO">Prospecto</option>
-                  <option value="INACTIVO">Inactivo</option>
-                </select>
-              </div>
+              <FormInput control={control} name="telefono" label="Teléfono" placeholder="+57 300 000 0000" />
+              <FormSelectField control={control} name="estado" label="Estado" options={ESTADO_OPTIONS} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">País *</label>
-                <input
-                  {...register('pais')}
-                  className={`w-full h-10 px-3 border rounded-md text-sm ${errors.pais ? 'border-red-500' : 'border-gray-300'}`}
-                  placeholder="Colombia"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Ciudad</label>
-                <input
-                  {...register('ciudad')}
-                  className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                  placeholder="Bogotá"
-                />
-              </div>
+              <FormInput control={control} name="pais" label="País" required placeholder="Colombia" />
+              <FormInput control={control} name="ciudad" label="Ciudad" placeholder="Bogotá" />
             </div>
 
             {/* Campos B2B */}
             {tipo === 'B2B' && (
-              <div className="space-y-4 pt-2 border-t border-gray-100">
-                <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider">
+              <div className="space-y-4 pt-2 border-t border-border/40">
+                <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                   Datos de Empresa
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">NIT / RUT</label>
-                    <input
-                      {...register('nit')}
-                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                      placeholder="900.123.456-7"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Sector</label>
-                    <input
-                      {...register('sector')}
-                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                      placeholder="Tecnología"
-                    />
-                  </div>
+                  <FormInput control={control} name="nit" label="NIT / RUT" placeholder="900.123.456-7" />
+                  <FormInput control={control} name="sector" label="Sector" placeholder="Tecnología" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Tamaño</label>
-                    <select
-                      {...register('tamano')}
-                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-                    >
-                      <option value="">Sin especificar</option>
-                      <option value="MICRO">Micro (&lt;10)</option>
-                      <option value="PEQUENA">Pequeña (10-50)</option>
-                      <option value="MEDIANA">Mediana (50-200)</option>
-                      <option value="GRANDE">Grande (200+)</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Sitio web</label>
-                    <input
-                      {...register('sitioWeb')}
-                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                      placeholder="https://empresa.com"
-                    />
-                  </div>
+                  <FormSelectField control={control} name="tamano" label="Tamaño" options={TAMANO_OPTIONS} />
+                  <FormInput control={control} name="sitioWeb" label="Sitio web" placeholder="https://empresa.com" />
                 </div>
               </div>
             )}
 
             {/* Campos B2C */}
             {tipo === 'B2C' && (
-              <div className="space-y-4 pt-2 border-t border-gray-100">
-                <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider">
+              <div className="space-y-4 pt-2 border-t border-border/40">
+                <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                   Datos de Persona
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Cédula / ID</label>
-                    <input
-                      {...register('cedula')}
-                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                      placeholder="12.345.678"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Cargo</label>
-                    <input
-                      {...register('cargo')}
-                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                      placeholder="Director Comercial"
-                    />
-                  </div>
+                  <FormInput control={control} name="cedula" label="Cédula / ID" placeholder="12.345.678" />
+                  <FormInput control={control} name="cargo" label="Cargo" placeholder="Director Comercial" />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Empresa vinculada</label>
-                  <select
-                    {...register('empresaId')}
-                    className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-                  >
-                    <option value="">Sin empresa</option>
-                    {empresas.map((e) => (
-                      <option key={e.id} value={e.id}>
-                        {e.nombre}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <FormSelectField
+                  control={control}
+                  name="empresaId"
+                  label="Empresa vinculada"
+                  options={empresaOptions}
+                />
               </div>
             )}
 
             {/* Campos B2G */}
             {tipo === 'B2G' && (
-              <div className="space-y-4 pt-2 border-t border-gray-100">
-                <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider">
+              <div className="space-y-4 pt-2 border-t border-border/40">
+                <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
                   Datos de Institución
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Tipo de institución</label>
-                    <select
-                      {...register('tipoInstitucion')}
-                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm bg-white"
-                    >
-                      <option value="">Seleccionar...</option>
-                      <option value="Ministerio">Ministerio</option>
-                      <option value="Alcaldía">Alcaldía / Municipio</option>
-                      <option value="Gobernación">Gobernación</option>
-                      <option value="Universidad Pública">Universidad Pública</option>
-                      <option value="Hospital Público">Hospital Público</option>
-                      <option value="Empresa Pública">Empresa Pública</option>
-                      <option value="Otro">Otro</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">
-                      Código de Licitación
-                    </label>
-                    <input
-                      {...register('codigoLicitacion')}
-                      className="w-full h-10 px-3 border border-gray-300 rounded-md text-sm"
-                      placeholder="LIC-2025-001"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="entidadPublica"
-                    {...register('entidadPublica')}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600"
+                  <FormSelectField
+                    control={control}
+                    name="tipoInstitucion"
+                    label="Tipo de institución"
+                    options={TIPO_INSTITUCION_OPTIONS}
                   />
-                  <label
-                    htmlFor="entidadPublica"
-                    className="text-sm font-medium text-gray-700 cursor-pointer"
-                  >
-                    Entidad del sector público
-                  </label>
+                  <FormInput
+                    control={control}
+                    name="codigoLicitacion"
+                    label="Código de Licitación"
+                    placeholder="LIC-2025-001"
+                  />
                 </div>
+                <Controller
+                  control={control}
+                  name="entidadPublica"
+                  render={({ field }) => (
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        id="entidadPublica"
+                        checked={field.value ?? false}
+                        onCheckedChange={field.onChange}
+                      />
+                      <label
+                        htmlFor="entidadPublica"
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        Entidad del sector público
+                      </label>
+                    </div>
+                  )}
+                />
               </div>
             )}
           </div>
@@ -399,7 +324,6 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
             type="button"
             onClick={handleSubmit(onSubmit)}
             disabled={!isValid || isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700"
           >
             {isSubmitting ? 'Guardando...' : contacto ? 'Guardar cambios' : 'Crear contacto'}
           </Button>
