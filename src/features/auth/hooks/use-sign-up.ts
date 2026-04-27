@@ -1,10 +1,14 @@
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { signUpSchema, type SignUpFormValues } from '../schemas/sign-up.schema';
 import { signUp } from '../services/auth.service';
+import { paths } from 'src/routes/paths';
 
 export function useSignUp() {
+  const router = useRouter();
+
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -20,10 +24,12 @@ export function useSignUp() {
     try {
       const { confirmPassword: _, ...payload } = values;
       await signUp(payload);
-      // TODO: redirigir al login o al dashboard post-registro
-    } catch (error) {
-      console.error('Error al registrarse:', error);
-      // TODO: mostrar error al usuario
+      router.push(paths.auth.jwt.signIn);
+    } catch (err) {
+      const body = err as { message?: string };
+      form.setError('root', {
+        message: body?.message ?? 'No pudimos crear tu cuenta. Intentá de nuevo.',
+      });
     }
   };
 

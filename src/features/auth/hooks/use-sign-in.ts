@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -8,40 +9,50 @@ import { signInWithPassword } from '../services/auth.service';
 
 export function useSignIn() {
   const { checkUserSession } = useAuthContext();
+  const [needsTwoFactor, setNeedsTwoFactor] = useState(false);
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
       email: '',
       password: '',
+      twoFactorCode: '',
     },
   });
 
   const onSubmit = async (values: SignInFormValues) => {
     try {
-      // 1. Llamar al endpoint de login y guardar tokens
-      await signInWithPassword(values);
-
-      // 2. Traer init/data y actualizar el AuthContext
-      await checkUserSession?.();
-
-      // 3. El redireccionamiento es manejado globalmente por el GuestGuard
-      // que detecta que authenticated === true y usa router.replace() automáticamente.
-    } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      form.setError('root', {
-        type: 'manual',
-        message:
-          typeof error === 'string'
-            ? error
-            : (error as Error)?.message || 'Credenciales incorrectas. Inténtalo de nuevo.',
+      await signInWithPassword({
+        email: values.email,
+        password: values.password,
+        twoFactorCode: values.twoFactorCode || undefined,
       });
+
+      await checkUserSession?.();
+    } catch (error) {
+      const err = error as Error & { code?: string };
+      const message = typeof error === 'string' ? error : err?.message || 'Credenciales incorrectas. Inténtalo de nuevo.';
+
+      if (err?.code === 'TWO_FACTOR_REQUIRED') {
+        setNeedsTwoFactor(true);
+        form.clearErrors();
+      } else {
+        form.setError('root', { type: 'manual', message });
+      }
     }
+  };
+
+  const resetTwoFactor = () => {
+    setNeedsTwoFactor(false);
+    form.resetField('twoFactorCode');
+    form.clearErrors();
   };
 
   return {
     form,
     onSubmit: form.handleSubmit(onSubmit),
     isSubmitting: form.formState.isSubmitting,
+    needsTwoFactor,
+    resetTwoFactor,
   };
 }

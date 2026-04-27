@@ -40,7 +40,7 @@ export function HeaderUserButton({ user }: Props) {
     router.push(paths.auth.jwt.signIn);
   };
 
-  const displayName = user?.displayName || user?.names || 'Usuario';
+  const displayName = user?.name || 'Usuario';
   const email = user?.email ?? '';
   const initials = getInitials(displayName);
 

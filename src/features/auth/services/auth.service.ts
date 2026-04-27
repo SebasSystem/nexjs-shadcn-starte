@@ -1,42 +1,117 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
 import { setSession } from 'src/shared/auth/context/jwt/utils';
-import { MOCK_LOGIN_RESPONSE, getMockInitDataByEmail, MOCK_CREDENTIALS } from 'src/_mock/_auth';
 
-// ⚠️ MOCK ONLY — clave para seleccionar el perfil correcto en getInitData
-const MOCK_EMAIL_KEY = '_mock_email';
+type AuthError = Error & { code: string };
 
-const VALID_MOCK_EMAILS = Object.values(MOCK_CREDENTIALS);
+function makeAuthError(message: string, code: string): AuthError {
+  const err = new Error(message) as AuthError;
+  err.code = code;
+  return err;
+}
+
+type BackendErrorResponse = {
+  success?: boolean;
+  message?: string;
+  errors?: Record<string, string[]>;
+  two_factor_required?: boolean;
+  data?: unknown;
+};
+
+function isTwoFactorSignal(data: BackendErrorResponse): boolean {
+  return !!data?.errors?.two_factor_code || data?.two_factor_required === true;
+}
 
 export const signInWithPassword = async ({
   email,
   password,
+  twoFactorCode,
 }: {
   email: string;
   password: string;
+  twoFactorCode?: string;
 }) => {
-  // ⚠️ MODO MOCK — reemplazar por la llamada real cuando el backend esté listo:
-  // const res = await axiosInstance.post(endpoints.auth.login, { email, password });
-  // const { accessToken, refreshToken } = res.data;
+  try {
+    const res = await axiosInstance.post(endpoints.auth.login, {
+      email,
+      password,
+      ...(twoFactorCode ? { two_factor_code: twoFactorCode } : {}),
+    });
 
-  // ⚠️ MOCK ONLY — validar credenciales contra usuarios mock
-  if (!VALID_MOCK_EMAILS.includes(email) || password !== 'admin123') {
-    throw new Error('Credenciales incorrectas. Verificá el usuario y la contraseña.');
+    const payload = res.data?.data ?? res.data;
+    const { token, user } = payload;
+
+    if (user?.locked_until) {
+      const lockedDate = new Date(user.locked_until);
+      if (lockedDate > new Date()) {
+        throw makeAuthError(
+          `Cuenta bloqueada hasta ${lockedDate.toLocaleString('es')}`,
+          'ACCOUNT_LOCKED'
+        );
+      }
+    }
+
+    if (token) {
+      setSession(token);
+    }
+
+    return { token, user };
+  } catch (err) {
+    // The axios interceptor unwraps error.response.data before rejecting,
+    // so `err` may already BE the backend response body (not an axios error object).
+    const maybeAlreadyAuthErr = err as AuthError;
+    if (maybeAlreadyAuthErr?.code) throw err; // already a typed AuthError (e.g. ACCOUNT_LOCKED)
+
+    const responseBody = err as BackendErrorResponse;
+    if (isTwoFactorSignal(responseBody)) {
+      throw makeAuthError('Se requiere código de verificación 2FA.', 'TWO_FACTOR_REQUIRED');
+    }
+
+    throw err;
   }
+};
 
-  const { accessToken, refreshToken } = MOCK_LOGIN_RESPONSE;
+export const getUserAccess = async (uid: string): Promise<string[]> => {
+  const res = await axiosInstance.get(endpoints.auth.userAccess(uid));
+  const payload = res.data?.data ?? res.data;
+  const { effective_permissions } = payload;
+  return (effective_permissions ?? []).map((p: { key: string }) => p.key);
+};
 
-  if (accessToken) {
-    setSession(accessToken);
+export const getInitData = async () => {
+  const meRes = await axiosInstance.get(endpoints.auth.me);
+  const user = meRes.data?.data ?? meRes.data;
+  const permissions = await getUserAccess(user.uid);
+  return { user, permissions };
+};
+
+export const signOut = async () => {
+  try {
+    await axiosInstance.post(endpoints.auth.logout);
+  } catch {
+    // best-effort — server may already have invalidated the token
   }
+  setSession(null);
+};
 
-  if (refreshToken) {
-    sessionStorage.setItem('refreshToken', refreshToken);
-  }
+export const forgotPassword = async (email: string): Promise<void> => {
+  await axiosInstance.post(endpoints.auth.forgotPassword, { email });
+};
 
-  // ⚠️ MOCK ONLY — guardar email para seleccionar módulos correctos
-  sessionStorage.setItem(MOCK_EMAIL_KEY, email);
-
-  return MOCK_LOGIN_RESPONSE;
+export const resetPassword = async ({
+  email,
+  token,
+  password,
+}: {
+  email: string;
+  token: string;
+  password: string;
+}): Promise<void> => {
+  await axiosInstance.post(endpoints.auth.resetPassword, {
+    email,
+    token,
+    password,
+    password_confirmation: password,
+  });
 };
 
 export const signUp = async ({
@@ -59,20 +134,4 @@ export const signUp = async ({
   const { accessToken } = res.data;
   sessionStorage.setItem('accessToken', accessToken);
   return res.data;
-};
-
-export const signOut = async () => {
-  setSession(null);
-  sessionStorage.removeItem('refreshToken');
-  sessionStorage.removeItem('jwt_access_token');
-  sessionStorage.removeItem(MOCK_EMAIL_KEY);
-};
-
-export const getInitData = async () => {
-  // ⚠️ MODO MOCK — reemplazar por la llamada real cuando el backend esté listo:
-  // const res = await axiosInstance.get(endpoints.auth.me);
-  // return res.data;
-
-  const email = sessionStorage.getItem(MOCK_EMAIL_KEY) ?? '';
-  return getMockInitDataByEmail(email);
 };

@@ -30,16 +30,8 @@ export function jwtDecode(token: string) {
   }
 }
 
-export const isValidToken = (accessToken: string) => {
-  if (!accessToken) return false;
-
-  const decoded = jwtDecode(accessToken);
-  // Si el JWT es válido pero no podemos sacar el exp, asumimos es válido
-  if (!decoded || !decoded.exp) return true;
-
-  // Fecha actual en segundos
-  const currentTime = Date.now() / 1000;
-  return decoded.exp > currentTime;
+export const isValidToken = (accessToken: string): boolean => {
+  return !!accessToken && accessToken.length > 0;
 };
 
 let expiredTimer: ReturnType<typeof setTimeout> | undefined;
@@ -87,13 +79,7 @@ export function setSession(accessToken: string | null) {
   if (accessToken) {
     sessionStorage.setItem(JWT_STORAGE_KEY, accessToken);
     sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-
     axiosInstance.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-
-    const decodedToken = jwtDecode(accessToken);
-    if (decodedToken?.exp) {
-      tokenExpired(decodedToken.exp);
-    }
   } else {
     sessionStorage.removeItem(JWT_STORAGE_KEY);
     sessionStorage.removeItem(ACCESS_TOKEN_KEY);

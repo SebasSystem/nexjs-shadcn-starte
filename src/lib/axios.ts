@@ -27,7 +27,8 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (typeof window !== 'undefined' && error?.response?.status === 401) {
+    const isLoginRequest = error?.config?.url?.includes('/login');
+    if (typeof window !== 'undefined' && error?.response?.status === 401 && !isLoginRequest) {
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('refreshToken');
       sessionStorage.removeItem('jwt_access_token');
@@ -54,9 +55,13 @@ export const fetcher = async (args: string | [string, AxiosRequestConfig]) => {
 
 export const endpoints = {
   auth: {
-    me: '/auth/init-data',
-    login: '/auth/login',
+    login: '/login',
+    me: '/me',
+    logout: '/logout',
     register: '/auth/register',
+    forgotPassword: '/forgot-password',
+    resetPassword: '/reset-password',
+    userAccess: (uid: string) => `/users/${uid}/access`,
   },
   users: '/users',
   roles: '/roles',

@@ -2,117 +2,162 @@
 
 import { useMemo } from 'react';
 import { Icon, type IconName } from 'src/shared/components/ui';
+import { paths } from 'src/routes/paths';
 import type { NavSectionData } from '../components/layouts/dashboard/nav-section';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Tipos provenientes del backend (user.modules)
-// ─────────────────────────────────────────────────────────────────────────────
-export type BackendNavItem = {
-  id: string;
-  name: string;
-  icon: string;
-  path: string;
-  order: number;
-  itemparentId: string | null;
-  permissions: string[];
-  moduleId: string;
-  children: BackendNavItem[];
-};
-
-export type BackendModule = {
-  moduleId: string;
-  subheader: string;
-  order: number;
-  items: BackendNavItem[];
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Mapa de íconos: string del backend → nombre de icono registrado
-// ─────────────────────────────────────────────────────────────────────────────
-const ICON_MAP: Record<string, IconName> = {
-  dashboard: 'LayoutDashboard',
-  products: 'Package',
-  table: 'List',
-  stock: 'Layers',
-  overview: 'LayoutGrid',
-  category: 'Tag',
-  warehouse: 'Warehouse',
-  inventory: 'BarChart2',
-  movements: 'ArrowLeftRight',
-  entry: 'LogIn',
-  exit: 'LogOut',
-  transfer: 'RefreshCcw',
-  reservations: 'CalendarDays',
-  calendar: 'CalendarDays',
-  b2b: 'Users',
-  clients: 'Users',
-  orders: 'ShoppingCart',
-  pricelist: 'DollarSign',
-  reports: 'FileText',
-  sales: 'TrendingUp',
-  Settings: 'Settings',
-  tenants: 'Building2',
-  plans: 'CreditCard',
-  billing: 'Activity',
-  telemetry: 'BarChart3',
-  shieldCheck: 'ShieldCheck',
-  globe: 'Globe',
-  // Proyectos
-  FolderKanban: 'FolderKanban',
-  // Partners / PRM
-  Handshake: 'Handshake',
-  ClipboardList: 'ClipboardList',
-  FolderOpen: 'FolderOpen',
-  // Reportes
-  LayoutDashboard: 'LayoutDashboard',
-  PieChart: 'PieChart',
-  // Inteligencia Competitiva
-  Swords: 'Swords',
-  TrendingDown: 'TrendingDown',
-  // Automatización
-  Zap: 'Zap',
-  UserCheck: 'UserCheck',
-};
-
-const DEFAULT_ICON_NAME = 'Menu' as const;
-
-function resolveIcon(iconName?: string | null): React.ReactNode {
-  const name = iconName && ICON_MAP[iconName] ? ICON_MAP[iconName] : DEFAULT_ICON_NAME;
-  return <Icon name={name} size={18} />;
-}
-
 import type { NavItemProps } from '../components/layouts/dashboard/nav-item';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Convertir ítems del backend → formato NavItemProps
-// Solo procesa el nivel raíz (sin hijos por ahora);
-// si tiene children, usamos el primer nivel de hijos como ítems sueltos bajo el mismo subheader.
+// Static nav config — each item optionally requires a permission key.
+// Items without requiredPermission are always visible.
 // ─────────────────────────────────────────────────────────────────────────────
-function convertItems(items: BackendNavItem[]): NavItemProps[] {
-  if (!items?.length) return [];
+type StaticNavItem = {
+  title: string;
+  path: string;
+  icon: IconName;
+  requiredPermission?: string;
+  children?: StaticNavItem[];
+};
 
-  const sorted = [...items].sort((a, b) => a.order - b.order);
+type StaticSection = {
+  subheader: string;
+  requiredPermission?: string;
+  items: StaticNavItem[];
+};
 
-  return sorted.map((item) => ({
-    title: item.name,
-    path: item.path,
-    icon: resolveIcon(item.icon),
-    ...(item.children?.length ? { children: convertItems(item.children) } : {}),
-  }));
+const NAV_CONFIG: StaticSection[] = [
+  {
+    subheader: 'General',
+    items: [
+      { title: 'Dashboard', path: paths.dashboard.root, icon: 'LayoutDashboard', requiredPermission: 'dashboard.read' },
+    ],
+  },
+  {
+    subheader: 'Comercial',
+    items: [
+      { title: 'Pipeline', path: paths.sales.pipeline, icon: 'TrendingUp', requiredPermission: 'opportunities.read' },
+      { title: 'Contactos', path: paths.contacts.root, icon: 'Users', requiredPermission: 'contacts.read' },
+      { title: 'Proyectos', path: paths.projects.root, icon: 'FolderKanban', requiredPermission: 'crm-entities.read' },
+      { title: 'Partners', path: paths.partners.root, icon: 'Handshake', requiredPermission: 'crm-entities.read' },
+      {
+        title: 'Finanzas',
+        path: paths.sales.finance.root,
+        icon: 'DollarSign',
+        requiredPermission: 'finance.read',
+        children: [
+          { title: 'Cotizaciones', path: paths.sales.finance.quotation, icon: 'FileText' },
+          { title: 'Facturas', path: paths.sales.finance.invoice, icon: 'FileText' },
+          { title: 'Reglas de crédito', path: paths.sales.finance.creditRules, icon: 'ShieldCheck' },
+          { title: 'Multi-moneda', path: paths.sales.finance.multiCurrency, icon: 'Globe' },
+        ],
+      },
+    ],
+  },
+  {
+    subheader: 'Inventario',
+    items: [
+      { title: 'Productos', path: paths.inventory.products, icon: 'Package', requiredPermission: 'inventory.read' },
+      { title: 'Stock', path: paths.inventory.stock, icon: 'Layers', requiredPermission: 'inventory.read' },
+      { title: 'Bodegas', path: paths.inventory.warehouses.root, icon: 'Warehouse', requiredPermission: 'inventory.read' },
+      { title: 'Movimientos', path: paths.inventory.warehouses.movements, icon: 'ArrowLeftRight', requiredPermission: 'inventory.read' },
+    ],
+  },
+  {
+    subheader: 'Reportes',
+    items: [
+      { title: 'Inventario', path: paths.reports.inventory, icon: 'PieChart', requiredPermission: 'inventory.report' },
+      { title: 'Ventas', path: paths.reports.sales, icon: 'BarChart2', requiredPermission: 'opportunities.read' },
+    ],
+  },
+  {
+    subheader: 'Inteligencia',
+    items: [
+      { title: 'Battlecards', path: paths.intelligence.battlecards, icon: 'Swords', requiredPermission: 'crm-entities.read' },
+      { title: 'Razones de pérdida', path: paths.intelligence.lostReasons, icon: 'TrendingDown', requiredPermission: 'opportunities.read' },
+    ],
+  },
+  {
+    subheader: 'Automatización',
+    items: [
+      { title: 'Reglas', path: paths.automation.rules, icon: 'Zap', requiredPermission: 'crm-entities.manage' },
+      { title: 'Asignación', path: paths.automation.assignment, icon: 'UserCheck', requiredPermission: 'crm-entities.manage' },
+    ],
+  },
+  {
+    subheader: 'Agenda',
+    items: [
+      { title: 'Calendario', path: paths.schedule.root, icon: 'CalendarDays', requiredPermission: 'activities.read' },
+    ],
+  },
+  {
+    subheader: 'RR.HH.',
+    items: [
+      {
+        title: 'Comisiones',
+        path: paths.hr.commissions.root,
+        icon: 'CreditCard',
+        requiredPermission: 'commissions.read',
+        children: [
+          { title: 'Planes', path: paths.hr.commissions.plans, icon: 'ClipboardList' },
+          { title: 'Asignación', path: paths.hr.commissions.assignment, icon: 'UserCheck' },
+          { title: 'Dashboard', path: paths.hr.commissions.dashboard, icon: 'LayoutDashboard' },
+          { title: 'Historial', path: paths.hr.commissions.history, icon: 'List' },
+        ],
+      },
+    ],
+  },
+  {
+    subheader: 'Configuración',
+    items: [
+      { title: 'Usuarios', path: paths.settings.users, icon: 'Users', requiredPermission: 'users.manage' },
+      { title: 'Roles', path: paths.settings.roles, icon: 'ShieldCheck', requiredPermission: 'users.manage' },
+      { title: 'Equipos', path: paths.settings.teams, icon: 'Users', requiredPermission: 'users.manage' },
+      { title: 'Etiquetas', path: paths.settings.tags, icon: 'Tag', requiredPermission: 'tags.manage' },
+    ],
+  },
+  {
+    subheader: 'Admin SaaS',
+    items: [
+      { title: 'Tenants', path: paths.admin.tenants, icon: 'Building2', requiredPermission: 'plans.manage' },
+      { title: 'Planes', path: paths.admin.plans, icon: 'CreditCard', requiredPermission: 'plans.manage' },
+      { title: 'Facturación', path: paths.admin.billing, icon: 'Activity', requiredPermission: 'plans.manage' },
+      { title: 'Telemetría', path: paths.admin.telemetry, icon: 'BarChart3', requiredPermission: 'metrics.read' },
+    ],
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Build NavItemProps from static config, filtering by permissions
+// ─────────────────────────────────────────────────────────────────────────────
+function buildNavItems(
+  items: StaticNavItem[],
+  hasPermission: (key: string) => boolean
+): NavItemProps[] {
+  return items
+    .filter((item) => !item.requiredPermission || hasPermission(item.requiredPermission))
+    .map((item) => ({
+      title: item.title,
+      path: item.path,
+      icon: <Icon name={item.icon} size={18} />,
+      ...(item.children?.length
+        ? { children: buildNavItems(item.children, hasPermission) }
+        : {}),
+    }));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook principal
 // ─────────────────────────────────────────────────────────────────────────────
-export function useNavData(modules?: BackendModule[]): NavSectionData[] {
+export function useNavData(hasPermission: (key: string) => boolean = () => true): NavSectionData[] {
   return useMemo(() => {
-    if (!modules?.length) return [];
-
-    const sorted = [...modules].sort((a, b) => a.order - b.order);
-
-    return sorted.map((mod) => ({
-      subheader: mod.subheader,
-      items: convertItems(mod.items),
-    }));
-  }, [modules]);
+    return NAV_CONFIG
+      .map((section) => ({
+        subheader: section.subheader,
+        items: buildNavItems(section.items, hasPermission),
+      }))
+      .filter((section) => section.items.length > 0);
+  }, [hasPermission]);
 }
+
+// Keep BackendModule export for any lingering imports (no-op compatibility shim)
+export type BackendModule = Record<string, unknown>;
+export type BackendNavItem = Record<string, unknown>;

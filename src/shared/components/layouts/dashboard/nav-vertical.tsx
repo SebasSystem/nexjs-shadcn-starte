@@ -5,6 +5,7 @@ import { NavSection, NavSectionData } from './nav-section';
 import { Icon } from 'src/shared/components/ui';
 import { Scrollbar } from 'src/shared/components/Scrollbar';
 import { Logo } from 'src/shared/components/Logo';
+import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
 
 type Props = {
   navData: NavSectionData[];
@@ -14,6 +15,8 @@ type Props = {
 
 export function NavVertical({ navData, onClose }: Props) {
   const { navLayout, setNavLayout } = useUiStore();
+  const { user } = useAuthContext();
+  const initials = user?.name ? user.name.split(' ').slice(0, 2).map((n) => n[0]?.toUpperCase() ?? '').join('') : 'U';
   const isMini = !onClose && navLayout === 'mini';
 
   return (
@@ -79,15 +82,15 @@ export function NavVertical({ navData, onClose }: Props) {
         className={`h-14 border-t border-sidebar-border flex items-center px-3 shrink-0 ${isMini ? 'justify-center' : 'gap-3'}`}
       >
         <div className="size-8 rounded-full bg-sidebar-accent text-sidebar-foreground flex items-center justify-center shrink-0 shadow-inner">
-          <span className="text-[0.75rem] font-bold">A</span>
+          <span className="text-[0.75rem] font-bold">{initials}</span>
         </div>
         {!isMini && (
           <div className="flex flex-col min-w-0">
             <span className="text-xs font-semibold text-sidebar-foreground truncate leading-tight">
-              Admin System
+              {user?.name || 'Usuario'}
             </span>
             <span className="text-[0.6875rem] text-sidebar-foreground/60 truncate">
-              admin@gmail.com
+              {user?.email || ''}
             </span>
           </div>
         )}

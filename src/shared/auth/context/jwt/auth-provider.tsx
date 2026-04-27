@@ -9,7 +9,7 @@ import { getInitData } from 'src/features/auth/services/auth.service';
 type Props = { children: ReactNode };
 
 export function AuthProvider({ children }: Props) {
-  const [state, setState] = useState<AuthState>({ user: null, loading: true });
+  const [state, setState] = useState<AuthState>({ user: null, loading: true, permissions: [] });
 
   const checkUserSession = useCallback(async () => {
     try {
@@ -19,51 +19,55 @@ export function AuthProvider({ children }: Props) {
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken);
 
-        // Llamar al endpoint /auth/init-data
-        const response = await getInitData();
-        const profileData = response?.data || response;
+        const { user, permissions } = await getInitData();
 
-        if (profileData && Object.keys(profileData).length > 0) {
-          const dataRecord = profileData as Record<string, unknown>;
+        if (user?.uid) {
           setState({
             user: {
-              ...dataRecord,
-              accessToken,
-              displayName: (dataRecord.names || dataRecord.name || dataRecord.firstName) as string,
-              roles: (dataRecord.roles as object[]) || [],
-              modules: (dataRecord.modules as object[]) || [],
-            } as unknown as AuthState['user'],
+              uid: user.uid,
+              name: user.name ?? user.names ?? '',
+              email: user.email ?? '',
+              tenant_uid: user.tenant_uid,
+              two_factor_enabled: user.two_factor_enabled,
+              permissions,
+            },
+            permissions,
             loading: false,
           });
         } else {
-          // Si el endpoint responde pero no hay datos válidos (raro si es 200)
-          setState({ user: null, loading: false });
+          setState({ user: null, loading: false, permissions: [] });
         }
       } else {
-        setState({ user: null, loading: false });
+        setState({ user: null, loading: false, permissions: [] });
       }
     } catch (error) {
-      console.error(error);
-      setState({ user: null, loading: false });
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Auth] Session check failed:', (error as Error)?.message ?? 'Unknown error');
+      }
+      setState({ user: null, loading: false, permissions: [] });
     }
   }, []);
 
   useEffect(() => {
-    const init = async () => {
-      await checkUserSession();
-    };
-    init();
+    checkUserSession();
   }, [checkUserSession]);
+
+  const hasPermission = useCallback(
+    (key: string) => state.permissions.includes(key),
+    [state.permissions]
+  );
 
   const memoizedValue = useMemo(
     () => ({
       user: state.user,
       loading: state.loading,
+      permissions: state.permissions,
+      hasPermission,
       authenticated: state.user !== null,
       unauthenticated: state.user === null,
       checkUserSession,
     }),
-    [state.user, state.loading, checkUserSession]
+    [state.user, state.loading, state.permissions, hasPermission, checkUserSession]
   );
 
   return <AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>;
