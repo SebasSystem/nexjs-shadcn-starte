@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { RegistroComision } from '../types/commissions.types';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+import type { RegistroComision } from '../types/commissions.types';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

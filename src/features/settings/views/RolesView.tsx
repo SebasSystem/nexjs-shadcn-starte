@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
-import { useRoles } from '../hooks/use-roles';
-import { RolesTable } from '../components/roles/roles-table';
+import { Icon } from 'src/shared/components/ui/icon';
+
 import { RoleDrawer } from '../components/roles/role-drawer';
+import { RolesTable } from '../components/roles/roles-table';
+import { useRoles } from '../hooks/use-roles';
 import type { Rol } from '../types/settings.types';
 
 export const RolesView = () => {

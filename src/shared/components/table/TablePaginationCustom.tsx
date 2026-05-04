@@ -1,7 +1,5 @@
 import { Table } from '@tanstack/react-table';
 import { Icon } from 'src/shared/components/ui';
-
-import { Switch } from 'src/shared/components/ui/switch';
 import { Button } from 'src/shared/components/ui/button';
 import {
   Select,
@@ -10,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from 'src/shared/components/ui/select';
+import { Switch } from 'src/shared/components/ui/switch';
 
 interface Props<TData> {
   table: Table<TData>;

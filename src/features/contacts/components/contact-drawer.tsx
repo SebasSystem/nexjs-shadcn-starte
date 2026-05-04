@@ -1,22 +1,23 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Icon } from 'src/shared/components/ui/icon';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Button } from 'src/shared/components/ui/button';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
 import { FormInput } from 'src/shared/components/ui/form-input';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
-import { Checkbox } from 'src/shared/components/ui/checkbox';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
+import { z } from 'zod';
+
 import { contactsService } from '../services/contacts.service';
 import type { Contacto, ContactoForm, TipoEntidad } from '../types/contacts.types';
 
@@ -183,14 +184,20 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
                     <label
                       key={t}
                       className={`flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                        isActive ? 'border-primary bg-primary/5' : 'border-border hover:border-border/80'
+                        isActive
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-border/80'
                       }`}
                     >
                       <input type="radio" {...register('tipo')} value={t} className="sr-only" />
-                      <span className={`text-xs font-bold ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                      <span
+                        className={`text-xs font-bold ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
+                      >
                         {t}
                       </span>
-                      <span className={`text-sm font-medium mt-0.5 ${isActive ? 'text-primary' : 'text-foreground'}`}>
+                      <span
+                        className={`text-sm font-medium mt-0.5 ${isActive ? 'text-primary' : 'text-foreground'}`}
+                      >
                         {labels[t]}
                       </span>
                     </label>
@@ -205,7 +212,11 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
               label="Nombre"
               required
               placeholder={
-                tipo === 'B2B' ? 'Razón social' : tipo === 'B2C' ? 'Nombre completo' : 'Nombre de la institución'
+                tipo === 'B2B'
+                  ? 'Razón social'
+                  : tipo === 'B2C'
+                    ? 'Nombre completo'
+                    : 'Nombre de la institución'
               }
             />
 
@@ -227,12 +238,28 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <FormInput control={control} name="telefono" label="Teléfono" placeholder="+57 300 000 0000" />
-              <FormSelectField control={control} name="estado" label="Estado" options={ESTADO_OPTIONS} />
+              <FormInput
+                control={control}
+                name="telefono"
+                label="Teléfono"
+                placeholder="+57 300 000 0000"
+              />
+              <FormSelectField
+                control={control}
+                name="estado"
+                label="Estado"
+                options={ESTADO_OPTIONS}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <FormInput control={control} name="pais" label="País" required placeholder="Colombia" />
+              <FormInput
+                control={control}
+                name="pais"
+                label="País"
+                required
+                placeholder="Colombia"
+              />
               <FormInput control={control} name="ciudad" label="Ciudad" placeholder="Bogotá" />
             </div>
 
@@ -243,12 +270,32 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
                   Datos de Empresa
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <FormInput control={control} name="nit" label="NIT / RUT" placeholder="900.123.456-7" />
-                  <FormInput control={control} name="sector" label="Sector" placeholder="Tecnología" />
+                  <FormInput
+                    control={control}
+                    name="nit"
+                    label="NIT / RUT"
+                    placeholder="900.123.456-7"
+                  />
+                  <FormInput
+                    control={control}
+                    name="sector"
+                    label="Sector"
+                    placeholder="Tecnología"
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <FormSelectField control={control} name="tamano" label="Tamaño" options={TAMANO_OPTIONS} />
-                  <FormInput control={control} name="sitioWeb" label="Sitio web" placeholder="https://empresa.com" />
+                  <FormSelectField
+                    control={control}
+                    name="tamano"
+                    label="Tamaño"
+                    options={TAMANO_OPTIONS}
+                  />
+                  <FormInput
+                    control={control}
+                    name="sitioWeb"
+                    label="Sitio web"
+                    placeholder="https://empresa.com"
+                  />
                 </div>
               </div>
             )}
@@ -260,8 +307,18 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
                   Datos de Persona
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <FormInput control={control} name="cedula" label="Cédula / ID" placeholder="12.345.678" />
-                  <FormInput control={control} name="cargo" label="Cargo" placeholder="Director Comercial" />
+                  <FormInput
+                    control={control}
+                    name="cedula"
+                    label="Cédula / ID"
+                    placeholder="12.345.678"
+                  />
+                  <FormInput
+                    control={control}
+                    name="cargo"
+                    label="Cargo"
+                    placeholder="Director Comercial"
+                  />
                 </div>
                 <FormSelectField
                   control={control}

@@ -1,4 +1,5 @@
 import { MOCK_CONTACTOS } from 'src/_mock/_contacts';
+
 import type { Contacto, ContactoForm, TipoEntidad } from '../types/contacts.types';
 
 let _contactos: Contacto[] = [...MOCK_CONTACTOS];

@@ -1,7 +1,7 @@
 'use client';
 
-import { merge } from 'es-toolkit';
 import type { ApexOptions } from 'apexcharts';
+import { merge } from 'es-toolkit';
 import { useTheme } from 'next-themes';
 import { useUiStore } from 'src/store/ui.store';
 

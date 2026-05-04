@@ -1,37 +1,31 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
-import { Badge } from 'src/shared/components/ui/badge';
-import { Input } from 'src/shared/components/ui/input';
-import { SelectField } from 'src/shared/components/ui/select-field';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { formatMoney } from 'src/lib/currency';
+import { paths } from 'src/routes/paths';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
-  useTable,
+  Table,
+  TableBody,
+  TableCell,
   TableContainer,
   TableHeadCustom,
   TablePaginationCustom,
-  Table,
-  TableBody,
   TableRow,
-  TableCell,
+  useTable,
 } from 'src/shared/components/table';
-import { paths } from 'src/routes/paths';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
+
 import { useSalesContext } from '../context/SalesContext';
 import type { Quotation } from '../types/sales.types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
 
 function calcQuotationTotal(q: Quotation): number {
   return q.products.reduce((sum, p) => sum + p.unitPrice * p.qty * (1 - p.discount / 100), 0);
@@ -112,7 +106,10 @@ export function QuotationsListView() {
         header: 'Total',
         cell: ({ row }) => (
           <span className="font-semibold text-foreground">
-            {formatCurrency(calcQuotationTotal(row.original))}
+            {formatMoney(calcQuotationTotal(row.original), {
+              scope: 'tenant',
+              maximumFractionDigits: 0,
+            })}
           </span>
         ),
       }),

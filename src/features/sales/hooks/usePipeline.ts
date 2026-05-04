@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useSalesContext } from '../context/SalesContext';
 import { PIPELINE_STAGES } from 'src/_mock/_sales';
-import { STAGE_PROBABILITY, computeLeadScore } from '../config/pipeline.config';
-import type { StageId, Opportunity } from 'src/features/sales/types/sales.types';
+import type { Opportunity, StageId } from 'src/features/sales/types/sales.types';
+
+import { computeLeadScore, STAGE_PROBABILITY } from '../config/pipeline.config';
+import { useSalesContext } from '../context/SalesContext';
 
 export function usePipeline() {
   const { opportunities, addOpportunity, moveOpportunity } = useSalesContext();

@@ -1,11 +1,11 @@
 import type {
+  MaterialType,
   Partner,
   PartnerOpportunity,
-  PortalMaterial,
-  PartnerType,
-  PartnerStatus,
   PartnerOpportunityStatus,
-  MaterialType,
+  PartnerStatus,
+  PartnerType,
+  PortalMaterial,
 } from 'src/features/partners/types';
 
 // ─── Status configs ───────────────────────────────────────────────────────────

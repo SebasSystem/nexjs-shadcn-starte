@@ -1,31 +1,26 @@
 'use client';
 
-import { useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import {
-  Icon,
-  Button,
-  Input,
-  SelectField,
-  Badge,
-} from 'src/shared/components/ui';
-import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-} from 'src/shared/components/table';
+import { useMemo, useState } from 'react';
+import { PARTNER_STATUS_CONFIG, PARTNER_TYPE_CONFIG } from 'src/_mock/_partners';
 import {
   PageContainer,
   PageHeader,
   SectionCard,
   StatsCard,
 } from 'src/shared/components/layouts/page';
-import { PARTNER_STATUS_CONFIG, PARTNER_TYPE_CONFIG } from 'src/_mock/_partners';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
+} from 'src/shared/components/table';
+import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+
 import { PartnerDrawer } from '../components/PartnerDrawer';
 import { usePartners } from '../hooks/usePartners';
 import type { Partner } from '../types';

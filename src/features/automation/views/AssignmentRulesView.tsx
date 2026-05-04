@@ -1,15 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
-import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { ASSIGNMENT_RULE_TYPE_LABELS } from '../types';
-import { RuleStatusBadge } from '../components/RuleStatusBadge';
-import { AssignmentRuleDrawer } from '../components/AssignmentRuleDrawer';
-import { useAutomation } from '../hooks/useAutomation';
 import { MOCK_AUTOMATION_USERS } from 'src/_mock/_automation';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+
+import { AssignmentRuleDrawer } from '../components/AssignmentRuleDrawer';
+import { RuleStatusBadge } from '../components/RuleStatusBadge';
+import { useAutomation } from '../hooks/useAutomation';
 import type { AssignmentRule } from '../types';
+import { ASSIGNMENT_RULE_TYPE_LABELS } from '../types';
 
 function getUserNames(userIds: string[]): string {
   if (userIds.length === 0) return '—';

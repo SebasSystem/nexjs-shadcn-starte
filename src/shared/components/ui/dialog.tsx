@@ -1,11 +1,12 @@
 'use client';
 
-import * as React from 'react';
-import { Icon } from './icon';
 import { Dialog as DialogPrimitive } from 'radix-ui';
+import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/shared/components/ui/button';
+
+import { Icon } from './icon';
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -64,7 +65,10 @@ function DialogContent({
             data-slot="dialog-close"
             className="absolute right-4 top-4 rounded-md p-1.5 opacity-70 ring-offset-background transition-opacity hover:opacity-100 hover:bg-muted focus:outline-none focus:ring-[3px] focus:ring-primary/20 cursor-pointer disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
           >
-            <Icon name="X" className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+            <Icon
+              name="X"
+              className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+            />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}

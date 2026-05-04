@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
-import { useTags } from '../hooks/use-tags';
-import { TagsTable } from '../components/tags/tags-table';
+
 import { TagDrawer } from '../components/tags/tag-drawer';
+import { TagsTable } from '../components/tags/tags-table';
+import { useTags } from '../hooks/use-tags';
 import type { Tag, TagForm } from '../types/tags.types';
 
 export const TagsView = () => {

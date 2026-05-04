@@ -1,11 +1,12 @@
 'use client';
 
-import { useUiStore } from 'src/store/ui.store';
-import { NavSection, NavSectionData } from './nav-section';
-import { Icon } from 'src/shared/components/ui';
-import { Scrollbar } from 'src/shared/components/Scrollbar';
-import { Logo } from 'src/shared/components/Logo';
 import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
+import { Logo } from 'src/shared/components/Logo';
+import { Scrollbar } from 'src/shared/components/Scrollbar';
+import { Icon } from 'src/shared/components/ui';
+import { useUiStore } from 'src/store/ui.store';
+
+import { NavSection, NavSectionData } from './nav-section';
 
 type Props = {
   navData: NavSectionData[];
@@ -16,7 +17,13 @@ type Props = {
 export function NavVertical({ navData, onClose }: Props) {
   const { navLayout, setNavLayout } = useUiStore();
   const { user } = useAuthContext();
-  const initials = user?.name ? user.name.split(' ').slice(0, 2).map((n) => n[0]?.toUpperCase() ?? '').join('') : 'U';
+  const initials = user?.name
+    ? user.name
+        .split(' ')
+        .slice(0, 2)
+        .map((n) => n[0]?.toUpperCase() ?? '')
+        .join('')
+    : 'U';
   const isMini = !onClose && navLayout === 'mini';
 
   return (

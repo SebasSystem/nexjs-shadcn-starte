@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
 import { PageContainer, PageHeader } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
-import { useTeams } from '../hooks/use-teams';
-import { useSettingsUsers } from '../hooks/use-settings-users';
-import { TeamsTable } from '../components/teams/teams-table';
+import { Icon } from 'src/shared/components/ui/icon';
+
 import { TeamDrawer } from '../components/teams/team-drawer';
+import { TeamsTable } from '../components/teams/teams-table';
+import { useSettingsUsers } from '../hooks/use-settings-users';
+import { useTeams } from '../hooks/use-teams';
 import type { Equipo, MiembroEquipo } from '../types/settings.types';
 
 export const TeamsView = () => {

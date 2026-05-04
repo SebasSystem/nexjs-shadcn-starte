@@ -1,20 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
+import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
-import { Textarea } from 'src/shared/components/ui/textarea';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
-import { cn } from 'src/lib/utils';
-import type { Rol, AccionPermiso, PermisoModulo } from '../../types/settings.types';
+import { Textarea } from 'src/shared/components/ui/textarea';
+
+import type { AccionPermiso, PermisoModulo, Rol } from '../../types/settings.types';
 
 const MODULOS = [
   { id: 'm1', nombre: 'Inventario' },
@@ -162,11 +163,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={!nombre.trim() || isSubmitting}
-          >
+          <Button type="button" onClick={handleSave} disabled={!nombre.trim() || isSubmitting}>
             {isSubmitting ? 'Guardando...' : 'Guardar Rol'}
           </Button>
         </SheetFooter>

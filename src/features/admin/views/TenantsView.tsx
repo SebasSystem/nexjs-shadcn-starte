@@ -1,20 +1,28 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { useTenants } from 'src/features/admin/hooks/use-tenants';
-import { usePlansAdmin } from 'src/features/admin/hooks/use-plans-admin';
-import { Button } from 'src/shared/components/ui/button';
-import { Icon } from 'src/shared/components/ui/icon';
-import { TenantsTable } from 'src/features/admin/components/tenants-table';
+import React, { useMemo, useState } from 'react';
 import { TenantDetailDrawer } from 'src/features/admin/components/tenant-detail-drawer';
 import { TenantFormDrawer } from 'src/features/admin/components/tenant-form-drawer';
+import { TenantsTable } from 'src/features/admin/components/tenants-table';
+import { usePlansAdmin } from 'src/features/admin/hooks/use-plans-admin';
+import { useTenants } from 'src/features/admin/hooks/use-tenants';
 import { Tenant } from 'src/features/admin/types/admin.types';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
 export const TenantsView = () => {
-  const { tenants, isLoading, createTenant, updateTenant, suspendTenant } = useTenants();
+  const {
+    tenants,
+    isLoading,
+    createTenant,
+    updateTenant,
+    suspendTenant,
+    activateTenant,
+    createTenantUser,
+  } = useTenants();
   const { planes } = usePlansAdmin();
 
   const [search, setSearch] = useState('');
@@ -24,13 +32,15 @@ export const TenantsView = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [confirmSuspend, setConfirmSuspend] = useState<Tenant | null>(null);
+  const [confirmText, setConfirmText] = useState('');
 
   const filteredTenants = useMemo(() => {
     return tenants.filter((t) => {
       const matchSearch =
         t.nombre.toLowerCase().includes(search.toLowerCase()) ||
         t.dominio.toLowerCase().includes(search.toLowerCase());
-      const matchPlan = filterPlan === 'ALL' || t.planNombre.includes(filterPlan);
+      const matchPlan = filterPlan === 'ALL' || t.plan_nombre.includes(filterPlan);
       const matchEstado = filterEstado === 'ALL' || t.estado === filterEstado;
       return matchSearch && matchPlan && matchEstado;
     });
@@ -56,14 +66,25 @@ export const TenantsView = () => {
 
   const handleFormSave = async (data: Partial<Tenant>) => {
     if (selectedTenant) {
-      await updateTenant(selectedTenant.id, data);
+      await updateTenant(selectedTenant.uid, data);
     } else {
       await createTenant(data as unknown as Tenant);
     }
   };
 
   const handleSuspend = async (tenant: Tenant) => {
-    await suspendTenant(tenant.id);
+    setConfirmSuspend(tenant);
+    setConfirmText('');
+  };
+
+  const handleConfirmSuspend = async () => {
+    if (!confirmSuspend || confirmText !== 'SUSPENDER') return;
+    await suspendTenant(confirmSuspend.uid);
+    setConfirmSuspend(null);
+  };
+
+  const handleActivate = async (tenant: Tenant) => {
+    await activateTenant(tenant.uid);
   };
 
   return (
@@ -95,10 +116,7 @@ export const TenantsView = () => {
               label="Plan"
               options={[
                 { value: 'ALL', label: 'Todos los planes' },
-                { value: 'Starter', label: 'Starter' },
-                { value: 'Pro', label: 'Pro' },
-                { value: 'Business', label: 'Business' },
-                { value: 'Enterprise', label: 'Enterprise' },
+                ...planes.map((p) => ({ value: p.name, label: p.name })),
               ]}
               value={filterPlan}
               onChange={(v) => setFilterPlan(v as string)}
@@ -133,26 +151,14 @@ export const TenantsView = () => {
             )}
           </div>
         </div>
-        {isLoading ? (
-          <div className="flex flex-col gap-4 p-5 animate-pulse">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-muted/40 rounded-lg w-full" />
-            ))}
-          </div>
-        ) : (
-          <>
-            <TenantsTable
-              tenants={filteredTenants}
-              onEdit={handleOpenEdit}
-              onViewDetail={handleOpenDetail}
-              onSuspend={handleSuspend}
-            />
-            {/* Mock pagination */}
-            <div className="border-t border-border/40 p-4 flex items-center justify-between text-sm text-muted-foreground">
-              <p>Mostrando {filteredTenants.length} tenants</p>
-            </div>
-          </>
-        )}
+        <TenantsTable
+          tenants={filteredTenants}
+          isLoading={isLoading}
+          onEdit={handleOpenEdit}
+          onViewDetail={handleOpenDetail}
+          onSuspend={handleSuspend}
+          onActivate={handleActivate}
+        />
       </SectionCard>
 
       <TenantFormDrawer
@@ -168,7 +174,43 @@ export const TenantsView = () => {
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
         onSuspend={handleSuspend}
+        onActivate={handleActivate}
+        onCreateUser={createTenantUser}
       />
+
+      {confirmSuspend && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-background rounded-2xl shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <Icon name="AlertTriangle" className="h-6 w-6 text-red-600 shrink-0" />
+              <h3 className="font-semibold text-red-700 text-body2">
+                ¿Suspender a &quot;{confirmSuspend.nombre}&quot;?
+              </h3>
+            </div>
+            <p className="text-body2 text-muted-foreground mb-5">
+              Esta acción bloqueará el acceso de todos sus usuarios al sistema de forma inmediata.
+            </p>
+            <Input
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              label='Escribe "SUSPENDER" para confirmar:'
+              placeholder="SUSPENDER"
+            />
+            <div className="flex justify-between mt-6">
+              <Button variant="outline" onClick={() => setConfirmSuspend(null)}>
+                Cancelar
+              </Button>
+              <Button
+                className="bg-red-600 hover:bg-red-700 text-white"
+                disabled={confirmText !== 'SUSPENDER'}
+                onClick={handleConfirmSuspend}
+              >
+                Confirmar Suspensión
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </PageContainer>
   );
 };

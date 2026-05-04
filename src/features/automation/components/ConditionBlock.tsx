@@ -1,16 +1,17 @@
 'use client';
 
-import { useFieldArray } from 'react-hook-form';
 import type { UseFormReturn } from 'react-hook-form';
-import { Icon } from 'src/shared/components/ui/icon';
+import { useFieldArray } from 'react-hook-form';
+import { cn } from 'src/lib/utils';
+import { SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-import { SectionCard } from 'src/shared/components/layouts/page';
-import { cn } from 'src/lib/utils';
-import { CONDITION_OPERATOR_LABELS } from '../types';
+
 import type { RuleFormData } from '../schemas/rule.schema';
 import type { ConditionOperator } from '../types';
+import { CONDITION_OPERATOR_LABELS } from '../types';
 
 const OPERATOR_OPTIONS = (Object.keys(CONDITION_OPERATOR_LABELS) as ConditionOperator[]).map(
   (key) => ({

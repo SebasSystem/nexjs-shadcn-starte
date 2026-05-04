@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
+import React, { useMemo, useState } from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
-import { useCustomFields } from '../hooks/use-custom-fields';
-import { CustomFieldsTable } from '../components/custom-fields/custom-fields-table';
+import { Icon } from 'src/shared/components/ui/icon';
+
 import { CustomFieldDrawer } from '../components/custom-fields/custom-field-drawer';
+import { CustomFieldsTable } from '../components/custom-fields/custom-fields-table';
+import { useCustomFields } from '../hooks/use-custom-fields';
 import type { CampoPersonalizado, ModuloCampo } from '../types/settings.types';
 
 const MODULO_LABELS: Record<ModuloCampo, string> = {

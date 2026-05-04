@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+
 import type { PlanComision } from '../types/commissions.types';
 
 // Simulamos que el usuario logueado en el simulador ya tiene este plan activo

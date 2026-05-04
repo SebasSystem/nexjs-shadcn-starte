@@ -1,6 +1,17 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import type ApexCharts from 'apexcharts';
+import React, { useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { TenantDetailDrawer } from 'src/features/admin/components/tenant-detail-drawer';
+import { TenantStatusBadge } from 'src/features/admin/components/tenant-status-badge';
+import { useDashboard } from 'src/features/admin/hooks/use-dashboard';
+import { useTenants } from 'src/features/admin/hooks/use-tenants';
+import { Tenant } from 'src/features/admin/types/admin.types';
+import { formatMoney } from 'src/lib/currency';
+import { formatRelative } from 'src/lib/date';
+import { Chart } from 'src/shared/components/chart';
 import {
   PageContainer,
   PageHeader,
@@ -8,30 +19,24 @@ import {
   SectionCardHeader,
   StatsCard,
 } from 'src/shared/components/layouts/page';
-import { useTenants } from 'src/features/admin/hooks/use-tenants';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
-import { Chart } from 'src/shared/components/chart';
-import type ApexCharts from 'apexcharts';
-import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
-import { Badge } from 'src/shared/components/ui/badge';
-import { TenantDetailDrawer } from 'src/features/admin/components/tenant-detail-drawer';
-import { TenantStatusBadge } from 'src/features/admin/components/tenant-status-badge';
-import { Tenant } from 'src/features/admin/types/admin.types';
 import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
   Table,
   TableBody,
-  TableRow,
   TableCell,
   TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  TableSkeleton,
+  useTable,
 } from 'src/shared/components/table';
-import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 
 function getInitials(nombre: string) {
-  return nombre
+  return (nombre ?? '')
     .split(' ')
     .slice(0, 2)
     .map((w) => w[0])
@@ -39,22 +44,12 @@ function getInitials(nombre: string) {
     .toUpperCase();
 }
 
-function formatRelative(dateStr: string) {
-  const now = new Date();
-  const d = new Date(dateStr);
-  const diffMs = now.getTime() - d.getTime();
-  const diffH = Math.floor(diffMs / 3600000);
-  if (diffH < 1) return 'Hace menos de 1h';
-  if (diffH < 24) return `Hace ${diffH}h`;
-  const diffD = Math.floor(diffH / 24);
-  if (diffD < 30) return `Hace ${diffD}d`;
-  return `Hace ${Math.floor(diffD / 30)} mes(es)`;
-}
-
 const columnHelper = createColumnHelper<Tenant>();
 
 export const DashboardAdminView = () => {
-  const { tenants, isLoading, refetch, suspendTenant } = useTenants();
+  const { data, isLoading, refetch } = useDashboard();
+  const { suspendTenant, activateTenant, createTenantUser } = useTenants();
+  const [isRefetching, setIsRefetching] = useState(false);
 
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -65,7 +60,13 @@ export const DashboardAdminView = () => {
   };
 
   const handleSuspend = async (tenant: Tenant) => {
-    await suspendTenant(tenant.id);
+    await suspendTenant(tenant.uid);
+    refetch();
+  };
+
+  const handleActivate = async (tenant: Tenant) => {
+    await activateTenant(tenant.uid);
+    refetch();
   };
 
   const COLUMNS = useMemo(
@@ -89,7 +90,7 @@ export const DashboardAdminView = () => {
           );
         },
       }),
-      columnHelper.accessor('planNombre', {
+      columnHelper.accessor('plan_nombre', {
         header: 'Plan',
         cell: (info) => (
           <Badge variant="outline" className="text-xs">
@@ -97,26 +98,30 @@ export const DashboardAdminView = () => {
           </Badge>
         ),
       }),
-      columnHelper.accessor('totalUsuarios', {
+      columnHelper.accessor('total_usuarios', {
         header: 'Usuarios',
         cell: (info) => {
           const t = info.row.original;
           return (
             <p className="text-sm text-foreground">
-              {t.totalUsuarios} / {t.limiteUsuarios}
+              {t.total_usuarios} / {t.limite_usuarios}
             </p>
           );
         },
       }),
       columnHelper.accessor('mrr', {
         header: 'MRR',
-        cell: (info) => <span className="font-medium text-foreground">${info.getValue()}</span>,
+        cell: (info) => (
+          <span className="font-medium text-foreground">
+            {formatMoney(info.getValue(), { scope: 'platform', maximumFractionDigits: 0 })}
+          </span>
+        ),
       }),
       columnHelper.accessor('estado', {
         header: 'Estado',
         cell: (info) => <TenantStatusBadge estado={info.getValue()} />,
       }),
-      columnHelper.accessor('ultimoAcceso', {
+      columnHelper.accessor('last_access_at', {
         header: 'Último acceso',
         cell: (info) => (
           <span className="text-sm text-muted-foreground">{formatRelative(info.getValue())}</span>
@@ -155,28 +160,29 @@ export const DashboardAdminView = () => {
     dataLabels: { enabled: false },
     stroke: { curve: 'smooth', width: 2 },
     xaxis: {
-      categories: ['Oct', 'Nov', 'Dic', 'Ene', 'Feb', 'Mar'],
+      categories: data.mrr_history.map((h) => h.mes),
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
-    yaxis: { labels: { formatter: (value: number) => `$${value.toLocaleString()}` } },
-    tooltip: { y: { formatter: (value: number) => `$${value.toLocaleString()}` } },
+    yaxis: {
+      labels: {
+        formatter: (value: number) =>
+          formatMoney(value, { scope: 'platform', maximumFractionDigits: 0 }),
+      },
+    },
+    tooltip: {
+      y: {
+        formatter: (value: number) =>
+          formatMoney(value, { scope: 'platform', maximumFractionDigits: 0 }),
+      },
+    },
+    noData: { text: 'Pendiente: GET /admin/dashboard con mrr_history[]' },
   };
 
-  const chartSeries = [{ name: 'MRR', data: [12000, 14500, 15200, 16800, 17200, 18420] }];
-
-  const tenantsEnRiesgo = useMemo(() => {
-    return tenants.filter((t) => t.estado === 'VENCIDO' || t.estado === 'SUSPENDIDO').slice(0, 5);
-  }, [tenants]);
-
-  const tenantsRecientes = useMemo(() => {
-    return [...tenants]
-      .sort((a, b) => new Date(b.creadoEn).getTime() - new Date(a.creadoEn).getTime())
-      .slice(0, 10);
-  }, [tenants]);
+  const chartSeries = [{ name: 'MRR', data: data.mrr_history.map((h) => h.valor) }];
 
   const { table, dense, onChangeDense } = useTable({
-    data: tenantsRecientes,
+    data: data.tenants_recientes,
     columns: COLUMNS,
     defaultRowsPerPage: 10,
   });
@@ -184,18 +190,32 @@ export const DashboardAdminView = () => {
   if (isLoading) {
     return (
       <PageContainer>
-        <div className="flex flex-col gap-6 animate-pulse">
-          <div className="h-10 bg-gray-100 w-1/3 rounded-md mb-4" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 bg-gray-100 rounded-xl" />
-            ))}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div className="h-80 bg-gray-100 rounded-xl" />
-            <div className="h-80 bg-gray-100 rounded-xl" />
-          </div>
+        <PageHeader
+          title="Dashboard Global"
+          subtitle="Vista general del sistema y estado de todos los tenants"
+        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 bg-muted/40 rounded-xl animate-pulse" />
+          ))}
         </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+          <div className="lg:col-span-7 h-80 bg-muted/40 rounded-xl animate-pulse" />
+          <div className="lg:col-span-5 h-80 bg-muted/40 rounded-xl animate-pulse" />
+        </div>
+        <SectionCard noPadding className="mt-6">
+          <div className="p-5">
+            <h2 className="text-h6 text-foreground">Tenants Recientes</h2>
+          </div>
+          <TableContainer>
+            <Table>
+              <TableHeadCustom table={table} />
+              <TableBody>
+                <TableSkeleton rows={10} columns={7} />
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </SectionCard>
       </PageContainer>
     );
   }
@@ -206,40 +226,56 @@ export const DashboardAdminView = () => {
         title="Dashboard Global"
         subtitle="Vista general del sistema y estado de todos los tenants"
         action={
-          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
-            <Icon name="RefreshCw" className="h-4 w-4" />
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isRefetching}
+            onClick={async () => {
+              setIsRefetching(true);
+              await refetch();
+              setIsRefetching(false);
+              toast.success('Dashboard actualizado');
+            }}
+            className="gap-2"
+          >
+            <Icon name="RefreshCw" className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
             Actualizar
           </Button>
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Tenants Activos"
-          value={tenants.filter((t) => t.estado === 'ACTIVO').length}
-          trend="+3 este mes"
+          value={data.tenants_activos}
+          trend={`${data.tenants_trial} en trial`}
           icon={<Icon name="Building2" className="h-5 w-5" />}
           iconClassName="bg-blue-500/10 text-blue-600"
         />
         <StatsCard
-          title="Ingreso Mensual (MRR)"
-          value="$18,420"
-          trend="+12% vs mes anterior"
+          title="MRR Total"
+          value={formatMoney(data.mrr_total, { scope: 'platform', maximumFractionDigits: 0 })}
+          trend={
+            data.mrr_growth_percent !== 0
+              ? `${data.mrr_growth_percent > 0 ? '+' : ''}${data.mrr_growth_percent}% vs mes anterior`
+              : 'Sin datos de crecimiento'
+          }
+          trendUp={data.mrr_growth_percent >= 0}
           icon={<Icon name="TrendingUp" className="h-5 w-5" />}
           iconClassName="bg-emerald-500/10 text-emerald-600"
         />
         <StatsCard
           title="Facturas Vencidas"
-          value="7"
-          trend="3 críticas"
+          value={data.facturas_vencidas !== 0 ? data.facturas_vencidas : '—'}
+          trend={data.facturas_vencidas !== 0 ? 'requieren atención' : 'Pendiente de backend'}
           trendUp={false}
           icon={<Icon name="AlertCircle" className="h-5 w-5" />}
           iconClassName="bg-amber-500/10 text-amber-600"
         />
         <StatsCard
           title="Errores Críticos (24h)"
-          value="2"
-          trend="↓ vs ayer"
+          value={data.errores_criticos_24h !== 0 ? data.errores_criticos_24h : '—'}
+          trend={data.errores_criticos_24h !== 0 ? 'en las últimas 24h' : 'Pendiente de backend'}
           trendUp={false}
           icon={<Icon name="Activity" className="h-5 w-5" />}
           iconClassName="bg-red-500/10 text-red-600"
@@ -260,21 +296,24 @@ export const DashboardAdminView = () => {
               title="Requieren Atención"
               action={
                 <Badge variant="soft" className="ml-2 bg-red-100 text-red-700 border-transparent">
-                  {tenantsEnRiesgo.length}
+                  {data.tenants_en_riesgo.length}
                 </Badge>
               }
             />
             <div className="flex-1 overflow-y-auto pr-2 pb-2 space-y-3">
-              {tenantsEnRiesgo.length === 0 ? (
+              {data.tenants_en_riesgo.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center p-6 text-muted-foreground">
-                  <Icon name="CheckCircle2" className="h-10 w-10 text-emerald-500 mb-3 opacity-80" />
+                  <Icon
+                    name="CheckCircle2"
+                    className="h-10 w-10 text-emerald-500 mb-3 opacity-80"
+                  />
                   <p className="text-body2 font-medium">Todo en orden</p>
                   <p className="text-caption mt-1">No hay tenants en riesgo actualmente.</p>
                 </div>
               ) : (
-                tenantsEnRiesgo.map((tenant) => (
+                data.tenants_en_riesgo.map((tenant) => (
                   <div
-                    key={tenant.id}
+                    key={tenant.uid}
                     className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors"
                   >
                     <div className="flex items-center gap-3">
@@ -293,7 +332,9 @@ export const DashboardAdminView = () => {
                         <p className="font-semibold text-foreground text-sm">{tenant.nombre}</p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <TenantStatusBadge estado={tenant.estado} />
-                          <span className="text-xs text-muted-foreground">{tenant.planNombre}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {tenant.plan_nombre}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -347,6 +388,8 @@ export const DashboardAdminView = () => {
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
         onSuspend={handleSuspend}
+        onActivate={handleActivate}
+        onCreateUser={createTenantUser}
       />
     </PageContainer>
   );

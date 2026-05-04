@@ -14,8 +14,7 @@ function Textarea({ className, label, hint, error, id, required, ...props }: Tex
   const hintId = `${textareaId}-hint`;
   const errorId = `${textareaId}-error`;
   const hasError = !!error;
-  const describedBy =
-    [hint && hintId, hasError && errorId].filter(Boolean).join(' ') || undefined;
+  const describedBy = [hint && hintId, hasError && errorId].filter(Boolean).join(' ') || undefined;
 
   return (
     <div className="flex w-full flex-col gap-1.5">

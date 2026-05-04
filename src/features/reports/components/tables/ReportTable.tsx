@@ -1,26 +1,26 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import {
-  Icon,
-  Badge,
-  Input,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-} from 'src/shared/components/ui';
-import type { IconName } from 'src/shared/components/ui/icon';
-import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
-  TableContainer,
-} from 'src/shared/components/table';
+import React, { useMemo, useState } from 'react';
 import { StockBadge } from 'src/features/inventory/components/StockBadge';
 import { cn } from 'src/lib/utils';
 import { SectionCard } from 'src/shared/components/layouts/page';
+import {
+  TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  useTable,
+} from 'src/shared/components/table';
+import {
+  Badge,
+  Icon,
+  Input,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from 'src/shared/components/ui';
+import type { IconName } from 'src/shared/components/ui/icon';
 
 const getCellIcon = (id: string): IconName | undefined => {
   const l = id.toLowerCase();

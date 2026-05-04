@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { MOCK_PROJECTS } from 'src/_mock/_projects';
-import type { Project, Milestone, ProjectResource, ProjectStatus } from '../types';
+
+import type { Milestone, Project, ProjectResource, ProjectStatus } from '../types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -1,42 +1,43 @@
 'use client';
 
-import { useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import {
-  Icon,
-  Badge,
-  Button,
-  Input,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-  SelectField,
-  Switch,
-} from 'src/shared/components/ui';
-import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-} from 'src/shared/components/table';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { MOCK_CATEGORIES } from 'src/_mock/_inventories';
+import { cn } from 'src/lib/utils';
 import {
   PageContainer,
   PageHeader,
   SectionCard,
   StatsCard,
 } from 'src/shared/components/layouts/page';
-import { cn } from 'src/lib/utils';
-import { MOCK_CATEGORIES } from 'src/_mock/_inventories';
-import { StockBadge } from '../components/StockBadge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
+} from 'src/shared/components/table';
+import {
+  Badge,
+  Button,
+  Icon,
+  Input,
+  SelectField,
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  Switch,
+} from 'src/shared/components/ui';
 import { ACTION_ICONS } from 'src/shared/constants/app-icons';
-import { useInventory, type RichProduct } from '../hooks/useInventory';
-import { toast } from 'sonner';
+
+import { StockBadge } from '../components/StockBadge';
+import { type RichProduct, useInventory } from '../hooks/useInventory';
 
 // ─── Column helper ────────────────────────────────────────────────────────────
 

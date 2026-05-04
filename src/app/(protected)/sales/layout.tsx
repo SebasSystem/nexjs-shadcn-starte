@@ -1,5 +1,5 @@
-import { SalesProvider } from 'src/features/sales/context/SalesContext';
 import { type ReactNode } from 'react';
+import { SalesProvider } from 'src/features/sales/context/SalesContext';
 
 /**
  * Layout del route group de Sales.

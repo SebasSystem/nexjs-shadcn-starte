@@ -1,9 +1,9 @@
 import type {
-  Interaccion,
   Actividad,
   Documento,
-  TipoActividad,
   EstadoActividad,
+  Interaccion,
+  TipoActividad,
 } from '../types/productivity.types';
 
 // Mock initial data

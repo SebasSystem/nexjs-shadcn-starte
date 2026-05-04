@@ -1,33 +1,29 @@
 'use client';
 
-import { useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import {
-  Icon,
-  Button,
-  Input,
-  SelectField,
-} from 'src/shared/components/ui';
-import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-} from 'src/shared/components/table';
+import { useMemo, useState } from 'react';
+import { MOCK_CATEGORIES, type Product } from 'src/_mock/_inventories';
+import { cn } from 'src/lib/utils';
 import {
   PageContainer,
   PageHeader,
   SectionCard,
   StatsCard,
 } from 'src/shared/components/layouts/page';
-import { cn } from 'src/lib/utils';
-import { MOCK_CATEGORIES, type Product } from 'src/_mock/_inventories';
-import { TransferDrawer } from '../components/TransferDrawer';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
+} from 'src/shared/components/table';
+import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+
 import { GoodsReceiptDrawer } from '../components/GoodsReceiptDrawer';
+import { TransferDrawer } from '../components/TransferDrawer';
 import { useInventory } from '../hooks/useInventory';
 
 // ─── Column helper ────────────────────────────────────────────────────────────

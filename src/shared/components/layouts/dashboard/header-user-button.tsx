@@ -1,5 +1,11 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+import { signOut } from 'src/features/auth/services/auth.service';
+import { cn } from 'src/lib/utils';
+import { paths } from 'src/routes/paths';
+import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
+import type { AuthUser } from 'src/shared/auth/types';
 import { Icon } from 'src/shared/components/ui';
 import {
   DropdownMenu,
@@ -9,12 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from 'src/shared/components/ui';
-import { signOut } from 'src/features/auth/services/auth.service';
-import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
-import { useRouter } from 'next/navigation';
-import { paths } from 'src/routes/paths';
-import type { AuthUser } from 'src/shared/auth/types';
-import { cn } from 'src/lib/utils';
 
 type Props = {
   user: AuthUser | null;

@@ -2,10 +2,18 @@ import axiosInstance, { endpoints } from 'src/lib/axios';
 import { setSession } from 'src/shared/auth/context/jwt/utils';
 
 type AuthError = Error & { code: string };
+type SetupError = AuthError & { setupToken: string };
 
 function makeAuthError(message: string, code: string): AuthError {
   const err = new Error(message) as AuthError;
   err.code = code;
+  return err;
+}
+
+function makeSetupError(message: string, setupToken: string): SetupError {
+  const err = new Error(message) as SetupError;
+  err.code = 'TWO_FACTOR_SETUP_REQUIRED';
+  err.setupToken = setupToken;
   return err;
 }
 
@@ -38,8 +46,7 @@ export const signInWithPassword = async ({
     });
 
     const payload = res.data?.data ?? res.data;
-    const { token, user } = payload;
-
+    const { token, user, requires_two_factor_setup } = payload;
     if (user?.locked_until) {
       const lockedDate = new Date(user.locked_until);
       if (lockedDate > new Date()) {
@@ -50,16 +57,19 @@ export const signInWithPassword = async ({
       }
     }
 
+    // 2FA setup required — token is temporary, do NOT set as session yet
+    if (requires_two_factor_setup) {
+      throw makeSetupError('Debes configurar 2FA antes de acceder.', token);
+    }
+
     if (token) {
       setSession(token);
     }
 
     return { token, user };
   } catch (err) {
-    // The axios interceptor unwraps error.response.data before rejecting,
-    // so `err` may already BE the backend response body (not an axios error object).
     const maybeAlreadyAuthErr = err as AuthError;
-    if (maybeAlreadyAuthErr?.code) throw err; // already a typed AuthError (e.g. ACCOUNT_LOCKED)
+    if (maybeAlreadyAuthErr?.code) throw err;
 
     const responseBody = err as BackendErrorResponse;
     if (isTwoFactorSignal(responseBody)) {
@@ -68,6 +78,37 @@ export const signInWithPassword = async ({
 
     throw err;
   }
+};
+
+// GET /2fa/setup — returns secret and otpauth_url to generate QR
+export const getTwoFactorSetupData = async (
+  setupToken: string
+): Promise<{ otpauthUrl: string; secret: string }> => {
+  const res = await axiosInstance.get(endpoints.auth.twoFactor.setup, {
+    headers: { Authorization: `Bearer ${setupToken}` },
+  });
+  const payload = res.data?.data ?? res.data;
+  return {
+    otpauthUrl: payload.otpauth_url as string,
+    secret: (payload.secret ?? '') as string,
+  };
+};
+
+// POST /2fa/confirm
+export const confirmTwoFactorSetup = async (
+  setupToken: string,
+  code: string
+): Promise<{ token: string; recoveryCodes: string[] }> => {
+  const res = await axiosInstance.post(
+    endpoints.auth.twoFactor.confirm,
+    { code },
+    { headers: { Authorization: `Bearer ${setupToken}` } }
+  );
+  const payload = res.data?.data ?? res.data;
+  return {
+    token: payload.token as string,
+    recoveryCodes: (payload.recovery_codes ?? []) as string[],
+  };
 };
 
 export const getUserAccess = async (uid: string): Promise<string[]> => {

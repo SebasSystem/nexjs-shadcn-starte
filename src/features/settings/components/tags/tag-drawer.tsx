@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
+import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
-import { Input } from 'src/shared/components/ui/input';
-import { cn } from 'src/lib/utils';
-import type { Tag, TagForm, TagColor, TagEntity } from '../../types/tags.types';
+
+import type { Tag, TagColor, TagEntity, TagForm } from '../../types/tags.types';
 import { BadgeColorMap } from './tags-table';
-import { Icon } from 'src/shared/components/ui/icon';
 
 const COLORS: { value: TagColor; label: string }[] = [
   { value: 'blue', label: 'Azul' },

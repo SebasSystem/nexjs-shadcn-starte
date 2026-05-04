@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
+import React, { useMemo, useState } from 'react';
 import {
   PageContainer,
   PageHeader,
@@ -9,13 +8,15 @@ import {
   StatsCard,
 } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-import { useSettingsUsers } from '../hooks/use-settings-users';
-import { useRoles } from '../hooks/use-roles';
-import { useTeams } from '../hooks/use-teams';
-import { UsersTable } from '../components/users/users-table';
+
 import { UserDrawer } from '../components/users/user-drawer';
+import { UsersTable } from '../components/users/users-table';
+import { useRoles } from '../hooks/use-roles';
+import { useSettingsUsers } from '../hooks/use-settings-users';
+import { useTeams } from '../hooks/use-teams';
 import type { SettingsUser } from '../types/settings.types';
 
 export const UsersView = () => {

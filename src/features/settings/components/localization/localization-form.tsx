@@ -3,8 +3,9 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from 'src/shared/components/ui/button';
-import { Icon } from 'src/shared/components/ui/icon';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
+import { Icon } from 'src/shared/components/ui/icon';
+
 import type { ConfigLocalizacion } from '../../types/settings.types';
 
 const ZONAS_HORARIAS = [
@@ -99,12 +100,7 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
           options={FORMATOS_FECHA}
         />
 
-        <FormSelectField
-          control={control}
-          name="idioma"
-          label="Idioma"
-          options={IDIOMAS}
-        />
+        <FormSelectField control={control} name="idioma" label="Idioma" options={IDIOMAS} />
       </div>
 
       <div className="flex items-center gap-3">

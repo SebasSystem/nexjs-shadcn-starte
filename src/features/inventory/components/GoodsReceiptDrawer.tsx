@@ -1,21 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { cn } from 'src/lib/utils';
 import {
-  Icon,
   Button,
+  Icon,
+  SelectField,
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetFooter,
-  SelectField,
   Textarea,
 } from 'src/shared/components/ui';
 import { Input } from 'src/shared/components/ui';
-import { cn } from 'src/lib/utils';
+
 import { useInventory } from '../hooks/useInventory';
-import { toast } from 'sonner';
 
 interface ReceiptItem {
   productId: string;
@@ -184,9 +185,7 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
                           value={item.productId}
                           onChange={(v) => updateItem(index, 'productId', v as string)}
                           placeholder="Seleccionar producto..."
-                          error={
-                            errors[`item-${index}-dup`] || errors[`item-${index}-productId`]
-                          }
+                          error={errors[`item-${index}-dup`] || errors[`item-${index}-productId`]}
                         />
                         {selectedProduct && (
                           <p className="text-caption text-muted-foreground">

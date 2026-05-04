@@ -1,8 +1,17 @@
 'use client';
 
-import { useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Icon } from 'src/shared/components/ui/icon';
+import { useMemo } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
+} from 'src/shared/components/table';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Button } from 'src/shared/components/ui/button';
 import {
@@ -12,19 +21,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from 'src/shared/components/ui/dropdown-menu';
-import { EntityTypeBadge } from './entity-type-badge';
-import { ContactStatusBadge } from './contact-status-badge';
+import { Icon } from 'src/shared/components/ui/icon';
+
 import type { Contacto } from '../types/contacts.types';
-import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-} from 'src/shared/components/table';
+import { ContactStatusBadge } from './contact-status-badge';
+import { EntityTypeBadge } from './entity-type-badge';
 
 function getInitials(nombre: string) {
   return nombre

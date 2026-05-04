@@ -1,26 +1,27 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
-import { Badge } from 'src/shared/components/ui/badge';
+import dynamic from 'next/dynamic';
+import { useMemo, useState } from 'react';
+import { formatMoney } from 'src/lib/currency';
 import {
   PageContainer,
   PageHeader,
-  StatsCard,
   SectionCard,
+  StatsCard,
 } from 'src/shared/components/layouts/page';
 import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
   Table,
   TableBody,
-  TableRow,
   TableCell,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 
 const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
@@ -84,15 +85,6 @@ const DATE_FILTERS = ['Esta semana', 'Este mes', 'Último trimestre'];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatMXN(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 type StatusKey = 'pagada' | 'pendiente' | 'vencida' | 'parcial';
 
 const STATUS_CONFIG: Record<
@@ -126,14 +118,13 @@ const chartOptions: ApexCharts.ApexOptions = {
   yaxis: {
     labels: {
       style: { colors: '#94a3b8', fontSize: '12px' },
-      formatter: (val: number) => `$${(val / 1000).toFixed(0)}K`,
+      formatter: (val: number) => `${(val / 1000).toFixed(0)}K`,
     },
   },
   grid: { borderColor: 'rgba(148,163,184,0.1)', strokeDashArray: 4 },
   tooltip: {
     y: {
-      formatter: (val: number) =>
-        new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(val),
+      formatter: (val: number) => formatMoney(val, { maximumFractionDigits: 0 }),
     },
   },
   theme: { mode: 'dark' },
@@ -166,7 +157,7 @@ export function FinanceDashboardView() {
         header: () => <div className="text-right w-full">Monto</div>,
         cell: (info) => (
           <div className="text-right font-semibold text-foreground">
-            {formatMXN(info.getValue())}
+            {formatMoney(info.getValue(), { maximumFractionDigits: 0 })}
           </div>
         ),
       }),
@@ -231,7 +222,7 @@ export function FinanceDashboardView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         <StatsCard
           title="Ventas del Mes"
-          value={formatMXN(842300)}
+          value={formatMoney(842300, { maximumFractionDigits: 0 })}
           trend="+12% vs mes anterior"
           trendUp={true}
           icon={<Icon name="TrendingUp" size={20} />}
@@ -240,14 +231,14 @@ export function FinanceDashboardView() {
         <StatsCard
           title="Facturas Pendientes"
           value="23 facturas"
-          trend={`${formatMXN(187500)} pendiente`}
+          trend={`${formatMoney(187500, { maximumFractionDigits: 0 })} pendiente`}
           trendUp={false}
           icon={<Icon name="Clock" size={20} />}
           iconClassName="bg-amber-500/10 text-amber-500"
         />
         <StatsCard
           title="Cartera Vencida"
-          value={formatMXN(43200)}
+          value={formatMoney(43200, { maximumFractionDigits: 0 })}
           trend="3 clientes en mora"
           trendUp={false}
           icon={<Icon name="AlertCircle" size={20} />}

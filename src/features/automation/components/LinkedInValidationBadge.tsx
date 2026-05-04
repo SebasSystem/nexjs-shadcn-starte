@@ -1,15 +1,16 @@
 'use client';
 
-import { Icon } from 'src/shared/components/ui/icon';
 import { cn } from 'src/lib/utils';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from 'src/shared/components/ui/tooltip';
-import { VALIDATION_STATUS_LABELS } from '../types';
+
 import type { LinkedInProfile } from '../types';
+import { VALIDATION_STATUS_LABELS } from '../types';
 
 interface LinkedInValidationBadgeProps {
   profile: LinkedInProfile;

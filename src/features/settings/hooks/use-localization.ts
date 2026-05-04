@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import { localizationService } from '../services/localization.service';
 import type { ConfigLocalizacion } from '../types/settings.types';
 

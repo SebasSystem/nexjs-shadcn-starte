@@ -1,4 +1,3 @@
-import type { BadgeColor } from 'src/shared/components/ui';
 import type {
   Battlecard,
   Competitor,
@@ -6,6 +5,7 @@ import type {
   LostDeal,
   LostReasonCategory,
 } from 'src/features/intelligence/types';
+import type { BadgeColor } from 'src/shared/components/ui';
 
 // ─── Config visual ────────────────────────────────────────────────────────────
 

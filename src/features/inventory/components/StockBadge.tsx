@@ -1,5 +1,5 @@
-import { Badge } from 'src/shared/components/ui';
 import type { StockStatus } from 'src/_mock/_inventories';
+import { Badge } from 'src/shared/components/ui';
 
 interface StockBadgeProps {
   status: StockStatus;

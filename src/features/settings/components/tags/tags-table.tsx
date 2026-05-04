@@ -1,18 +1,20 @@
+import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import React, { useMemo } from 'react';
+import { formatDate } from 'src/lib/date';
 import {
   Table,
   TableBody,
   TableCell,
-  TableRow,
-  TableHeadCustom,
-  useTable,
-  TablePaginationCustom,
   TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
 import { Button } from 'src/shared/components/ui/button';
-import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import type { Tag, TagColor, TagEntity } from '../../types/tags.types';
 import { Icon } from 'src/shared/components/ui/icon';
+
+import type { Tag, TagColor, TagEntity } from '../../types/tags.types';
 
 interface TagsTableProps {
   tags: Tag[];
@@ -80,11 +82,7 @@ export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) 
         header: 'Fecha de Creación',
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
-            {new Date(info.getValue() as string).toLocaleDateString('es-MX', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
+            {formatDate(info.getValue() as string)}
           </span>
         ),
       }),

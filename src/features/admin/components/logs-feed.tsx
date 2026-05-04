@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { LogEntry } from 'src/features/admin/types/admin.types';
+import { formatDate, formatTime } from 'src/lib/date';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
-import { LogEntry } from 'src/features/admin/types/admin.types';
 
 interface LogsFeedProps {
   logs: LogEntry[];
@@ -30,32 +31,26 @@ export function LogsFeed({ logs }: LogsFeedProps) {
 
   const counts = useMemo(() => {
     return {
-      ERROR: logs.filter((l) => l.nivel === 'ERROR').length,
-      WARN: logs.filter((l) => l.nivel === 'WARN').length,
-      INFO: logs.filter((l) => l.nivel === 'INFO').length,
+      ERROR: logs.filter((l) => l.level === 'ERROR').length,
+      WARN: logs.filter((l) => l.level === 'WARN').length,
+      INFO: logs.filter((l) => l.level === 'INFO').length,
     };
   }, [logs]);
 
   const filtered = useMemo(() => {
     return logs.filter((l) => {
-      if (filtroNivel !== 'ALL' && l.nivel !== filtroNivel) return false;
+      if (filtroNivel !== 'ALL' && l.level !== filtroNivel) return false;
       if (
         busqueda &&
-        !l.mensaje.toLowerCase().includes(busqueda.toLowerCase()) &&
-        !l.tenantNombre.toLowerCase().includes(busqueda.toLowerCase())
+        !l.message.toLowerCase().includes(busqueda.toLowerCase()) &&
+        !l.tenant_nombre.toLowerCase().includes(busqueda.toLowerCase())
       )
         return false;
       return true;
     });
   }, [logs, filtroNivel, busqueda]);
 
-  const formatTimestamp = (ts: string) => {
-    return new Date(ts).toLocaleTimeString('es-MX', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  };
+  const formatTimestamp = (ts: string) => `${formatDate(ts)} ${formatTime(ts)}`;
 
   return (
     <div>
@@ -107,20 +102,20 @@ export function LogsFeed({ logs }: LogsFeedProps) {
           </div>
         ) : (
           filtered.map((log) => {
-            const config = nivelConfig[log.nivel];
+            const config = nivelConfig[log.level];
             return (
               <div
-                key={log.id}
+                key={log.uid}
                 className={`flex items-start gap-4 px-4 py-2.5 font-mono text-xs ${config.rowClass}`}
               >
                 <span className="text-muted-foreground shrink-0 w-[70px]">
                   {formatTimestamp(log.timestamp)}
                 </span>
-                <span className={`shrink-0 w-[46px] ${config.badgeClass}`}>{log.nivel}</span>
+                <span className={`shrink-0 w-[46px] ${config.badgeClass}`}>{log.level}</span>
                 <span className="text-blue-600 shrink-0 w-[130px] truncate">
-                  {log.tenantNombre}
+                  {log.tenant_nombre}
                 </span>
-                <span className="text-foreground/80 flex-1 break-all">{log.mensaje}</span>
+                <span className="text-foreground/80 flex-1 break-all">{log.message}</span>
               </div>
             );
           })

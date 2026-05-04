@@ -1,6 +1,7 @@
 import React from 'react';
-import { cn } from 'src/lib/utils';
 import { PIPELINE_STAGES } from 'src/_mock/_sales';
+import { cn } from 'src/lib/utils';
+
 import type { StageId } from '../types/sales.types';
 
 const ACTIVE_STAGES: StageId[] = ['leads', 'contactado', 'negociacion', 'cerrado'];

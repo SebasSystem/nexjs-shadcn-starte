@@ -1,19 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { MOCK_CONSULTANTS } from 'src/_mock/_projects';
+import { cn } from 'src/lib/utils';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
   Button,
   Input,
   SelectField,
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui';
-import { cn } from 'src/lib/utils';
-import { toast } from 'sonner';
-import { MOCK_CONSULTANTS } from 'src/_mock/_projects';
+
 import type { ProjectResource, ResourceRole } from '../types';
 
 const ROLE_OPTIONS: { value: ResourceRole; label: string }[] = [

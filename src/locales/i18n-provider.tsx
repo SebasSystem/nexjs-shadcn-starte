@@ -1,11 +1,12 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
 import i18next from 'i18next';
-import { I18nextProvider, initReactI18next } from 'react-i18next';
-import resourcesToBackend from 'i18next-resources-to-backend';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import { fallbackLng, supportedLngs, i18nResourceLoader } from './locales-config';
+import resourcesToBackend from 'i18next-resources-to-backend';
+import { ReactNode, useEffect, useState } from 'react';
+import { I18nextProvider, initReactI18next } from 'react-i18next';
+
+import { fallbackLng, i18nResourceLoader, supportedLngs } from './locales-config';
 
 // Inicialización de la librería en el cliente
 i18next

@@ -1,21 +1,22 @@
 'use client';
 
-import React, { useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { type PlanComision } from '../../types/commissions.types';
-import { Icon } from 'src/shared/components/ui/icon';
 import { format } from 'date-fns';
+import React, { useMemo } from 'react';
 import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
   Table,
   TableBody,
-  TableRow,
   TableCell,
   TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
+import { Icon } from 'src/shared/components/ui/icon';
 import { SectionCard } from 'src/shared/components/ui/section-card';
+
+import { type PlanComision } from '../../types/commissions.types';
 
 interface PlansTableProps {
   planes: PlanComision[];
@@ -41,7 +42,11 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
           const plan = info.row.original;
           return (
             <div className="text-muted-foreground w-4">
-              {expandedId === plan.id ? <Icon name="ChevronDown" size={18} /> : <Icon name="ChevronRight" size={18} />}
+              {expandedId === plan.id ? (
+                <Icon name="ChevronDown" size={18} />
+              ) : (
+                <Icon name="ChevronRight" size={18} />
+              )}
             </div>
           );
         },

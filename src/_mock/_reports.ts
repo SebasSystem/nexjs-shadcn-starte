@@ -1,12 +1,14 @@
 import {
-  MOCK_PRODUCTS,
+  getProductAvailable,
+  getProductStockStatus,
   MOCK_CATEGORIES,
   MOCK_MOVEMENTS,
-  getProductStockStatus,
-  getProductAvailable,
+  MOCK_PRODUCTS,
   StockStatus,
 } from 'src/_mock/_inventories';
 import { MOCK_QUOTES } from 'src/_mock/_quotes';
+import { formatMoney } from 'src/lib/currency';
+import { formatDate } from 'src/lib/date';
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
 
@@ -154,7 +156,7 @@ export const mockInventoryMovements = () => {
             : m.type === 'adjustment_sub'
               ? 'Ajuste (-)'
               : 'Ajuste (+)',
-      fecha: new Date(m.date).toLocaleDateString('es-CO'),
+      fecha: formatDate(m.date),
       producto: richProducts.find((p) => p.id === m.productId)?.name || m.productId,
       bodega: m.from || m.to || m.adjustmentWarehouse || '-',
       referencia: m.receiptOrderRef || m.comment || '-',
@@ -240,9 +242,9 @@ export const mockInventoryB2B = () => {
       id: i.productId + Math.random(),
       producto: richProducts.find((p) => p.id === i.productId)?.name || i.productId,
       cliente: i.client,
-      fecha: new Date(i.date).toLocaleDateString('es-CO'),
+      fecha: formatDate(i.date),
       cantidad: i.quantity,
-      precio: (i.quantity * 100).toLocaleString('es-CO', { style: 'currency', currency: 'COP' }),
+      precio: formatMoney(i.quantity * 100, { scope: 'tenant', maximumFractionDigits: 0 }),
       estadoCotizacion:
         i.quoteStatus === 'approved'
           ? 'Aprobada'
@@ -259,11 +261,15 @@ export const mockSalesStatus = () => {
   const tableData = MOCK_QUOTES.map((q) => ({
     id: q.id,
     cliente: q.clientName,
-    fecha: new Date(q.createdAt).toLocaleDateString('es-CO'),
+    fecha: formatDate(q.createdAt),
     ítems: q.items.length,
-    total: q.items
-      .reduce((s, i) => s + i.quantity * 100, 0)
-      .toLocaleString('es-CO', { style: 'currency', currency: 'COP' }),
+    total: formatMoney(
+      q.items.reduce((s, i) => s + i.quantity * 100, 0),
+      {
+        scope: 'tenant',
+        maximumFractionDigits: 0,
+      }
+    ),
     ejecutivo: 'Ana Ejecutiva',
     statusBadge: {
       label:
@@ -367,7 +373,7 @@ export const mockSalesDistributors = () => {
         rechazadas: q.filter((x) => x.status === 'rejected').length,
         pendientes: q.filter((x) => x.status === 'sent').length,
         unidades: q.flatMap((x) => x.items).reduce((s, i) => s + i.quantity, 0),
-        últimaActividad: new Date(q[0]?.createdAt || Date.now()).toLocaleDateString('es-CO'),
+        últimaActividad: formatDate(q[0]?.createdAt || Date.now()),
       };
     })
     .sort((a, b) => b.cotizaciones - a.cotizaciones);

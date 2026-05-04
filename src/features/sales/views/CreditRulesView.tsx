@@ -1,22 +1,23 @@
 'use client';
 
-import { useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
-import { Input } from 'src/shared/components/ui/input';
-import { Switch } from 'src/shared/components/ui/switch';
-import { Badge } from 'src/shared/components/ui/badge';
+import { useMemo, useState } from 'react';
+import { formatMoney } from 'src/lib/currency';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
   Table,
   TableBody,
-  TableRow,
   TableCell,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { Switch } from 'src/shared/components/ui/switch';
 
 // ─── Types & Mock Data ───────────────────────────────────────────────────────
 
@@ -62,15 +63,6 @@ const CREDIT_EXCEPTIONS: CreditException[] = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatMXN(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 // ─── Column helper ────────────────────────────────────────────────────────────
 
 const columnHelper = createColumnHelper<CreditException>();
@@ -106,7 +98,7 @@ export function CreditRulesView() {
         header: () => <div className="text-right w-full">Límite Especial</div>,
         cell: (info) => (
           <div className="text-right font-semibold text-foreground">
-            {formatMXN(info.getValue())} MXN
+            {formatMoney(info.getValue(), { maximumFractionDigits: 0, currencyDisplay: 'code' })}
           </div>
         ),
       }),
@@ -174,7 +166,7 @@ export function CreditRulesView() {
             type="number"
             value={maxAmount}
             onChange={(e) => setMaxAmount(e.target.value)}
-            hint="Límite de crédito disponible por cliente (MXN)"
+            hint="Límite de crédito disponible por cliente"
           />
         </div>
 

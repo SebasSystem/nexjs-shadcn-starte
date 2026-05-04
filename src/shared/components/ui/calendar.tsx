@@ -1,11 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { Icon } from './icon';
-import { DayPicker, getDefaultClassNames, type DayButton } from 'react-day-picker';
+import { type DayButton, DayPicker, getDefaultClassNames } from 'react-day-picker';
 
 import { cn } from '@/lib/utils';
+
 import { Button, buttonVariants } from './button';
+import { Icon } from './icon';
 
 function Calendar({
   className,
@@ -111,7 +112,7 @@ function Calendar({
         Root: ({ className, rootRef, ...props }) => {
           return <div data-slot="calendar" ref={rootRef} className={cn(className)} {...props} />;
         },
-        Chevron: ({ className, orientation, ...props }) => {
+        Chevron: ({ className, orientation }) => {
           if (orientation === 'left') {
             return <Icon name="ChevronLeft" className={cn('size-4', className)} />;
           }

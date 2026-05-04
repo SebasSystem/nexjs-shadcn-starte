@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
   Button,
   Checkbox,
   Icon,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from 'src/shared/components/ui';
 
 export interface ExportColumn {

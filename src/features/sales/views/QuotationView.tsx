@@ -1,28 +1,22 @@
 'use client';
 
-import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Icon } from 'src/shared/components/ui/icon';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from 'src/shared/components/ui/button';
-import { Input } from 'src/shared/components/ui/input';
-import { Badge } from 'src/shared/components/ui/badge';
-import { Card, CardContent } from 'src/shared/components/ui/card';
-import { PageContainer } from 'src/shared/components/layouts/page';
+import type { ProductLine, Quotation } from 'src/features/sales/types/sales.types';
+import { formatMoney } from 'src/lib/currency';
 import { paths } from 'src/routes/paths';
-import { useSalesContext } from '../context/SalesContext';
+import { PageContainer } from 'src/shared/components/layouts/page';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
+import { Card, CardContent } from 'src/shared/components/ui/card';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+
 import { OpportunityTimeline } from '../components/OpportunityTimeline';
-import type { Quotation, ProductLine } from 'src/features/sales/types/sales.types';
+import { useSalesContext } from '../context/SalesContext';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
 
 function calcLineTotal(line: ProductLine): number {
   return line.unitPrice * line.qty * (1 - line.discount / 100);
@@ -453,7 +447,11 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right font-bold text-foreground">
-                          {formatCurrency(calcLineTotal(line))}
+                          {formatMoney(calcLineTotal(line), {
+                            scope: 'tenant',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </td>
                         <td className="px-4 py-4">
                           <button
@@ -488,19 +486,32 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="font-semibold text-foreground">
-                    {formatCurrency(totals.subtotal)}
+                    {formatMoney(totals.subtotal, {
+                      scope: 'tenant',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-muted-foreground">Descuento Total</span>
                   <span className="font-semibold text-emerald-500">
-                    -{formatCurrency(totals.discount)}
+                    -
+                    {formatMoney(totals.discount, {
+                      scope: 'tenant',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="border-t border-border/40 pt-4 mt-2 flex justify-between items-center">
                   <span className="font-bold text-foreground">Total Final</span>
                   <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-                    {formatCurrency(totals.total)}
+                    {formatMoney(totals.total, {
+                      scope: 'tenant',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
               </div>

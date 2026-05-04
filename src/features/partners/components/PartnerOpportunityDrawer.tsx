@@ -1,19 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { MOCK_INTERNAL_USERS } from 'src/_mock/_partners';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
   Button,
   Input,
   SelectField,
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
-import { toast } from 'sonner';
-import { MOCK_INTERNAL_USERS } from 'src/_mock/_partners';
+
 import type { Partner, PartnerOpportunity, PartnerOpportunityStatus } from '../types';
 
 const STATUS_OPTIONS: { value: PartnerOpportunityStatus; label: string }[] = [

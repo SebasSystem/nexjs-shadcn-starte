@@ -1,7 +1,7 @@
 'use client';
 
-import { Badge } from 'src/shared/components/ui/badge';
 import { EstadoTenant } from 'src/features/admin/types/admin.types';
+import { Badge } from 'src/shared/components/ui/badge';
 
 interface TenantStatusBadgeProps {
   estado: EstadoTenant;

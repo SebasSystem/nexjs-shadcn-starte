@@ -1,5 +1,6 @@
-import { Badge } from 'src/shared/components/ui';
 import { MILESTONE_STATUS_CONFIG } from 'src/_mock/_projects';
+import { Badge } from 'src/shared/components/ui';
+
 import type { MilestoneStatus } from '../types';
 
 interface Props {

@@ -2,17 +2,18 @@
 
 import { useState } from 'react';
 import {
-  Icon,
   Button,
+  Icon,
+  SelectField,
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetFooter,
-  SelectField,
   Textarea,
 } from 'src/shared/components/ui';
 import { Input } from 'src/shared/components/ui';
+
 import { useInventory } from '../hooks/useInventory';
 
 interface TransferDrawerProps {

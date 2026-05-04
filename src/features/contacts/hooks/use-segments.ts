@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import type { Segment, SegmentForm } from '../types/segments.types';
 
 const MOCK_SEGMENTS: Segment[] = [

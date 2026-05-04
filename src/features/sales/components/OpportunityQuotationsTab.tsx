@@ -1,10 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Icon } from 'src/shared/components/ui/icon';
+import { formatMoney } from 'src/lib/currency';
+import { paths } from 'src/routes/paths';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
-import { paths } from 'src/routes/paths';
+import { Icon } from 'src/shared/components/ui/icon';
+
 import { useSalesContext } from '../context/SalesContext';
 import type { Opportunity } from '../types/sales.types';
 
@@ -23,15 +25,6 @@ const STATUS_LABEL: Record<string, string> = {
   rechazada: 'Rechazada',
   convertida: 'Convertida',
 };
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 interface OpportunityQuotationsTabProps {
   opportunity: Opportunity;
@@ -83,7 +76,7 @@ export function OpportunityQuotationsTab({ opportunity }: OpportunityQuotationsT
                   </div>
                   <span className="text-caption text-muted-foreground">{q.date}</span>
                   <span className="text-caption font-semibold text-foreground">
-                    {formatCurrency(total)}
+                    {formatMoney(total, { scope: 'tenant', maximumFractionDigits: 0 })}
                   </span>
                 </div>
                 <Button

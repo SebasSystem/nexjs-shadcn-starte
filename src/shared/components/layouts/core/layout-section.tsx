@@ -1,7 +1,8 @@
 'use client';
 
-import { ReactNode, useRef, useState, useCallback } from 'react';
+import { ReactNode, useCallback, useRef, useState } from 'react';
 import { useUiStore } from 'src/store/ui.store';
+
 import { layoutClasses } from './classes';
 
 type Props = {

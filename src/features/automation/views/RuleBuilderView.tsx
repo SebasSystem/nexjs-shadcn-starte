@@ -1,22 +1,23 @@
 'use client';
 
-import { useEffect, useId, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Icon } from 'src/shared/components/ui/icon';
+import { useRouter } from 'next/navigation';
+import { useEffect, useId, useRef } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { paths } from 'src/routes/paths';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { Textarea } from 'src/shared/components/ui/textarea';
-import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { paths } from 'src/routes/paths';
-import { ruleSchema } from '../schemas/rule.schema';
-import { TriggerBlock } from '../components/TriggerBlock';
-import { ConditionBlock } from '../components/ConditionBlock';
+
 import { ActionBlock } from '../components/ActionBlock';
+import { ConditionBlock } from '../components/ConditionBlock';
+import { TriggerBlock } from '../components/TriggerBlock';
 import { useAutomation } from '../hooks/useAutomation';
 import type { RuleFormData } from '../schemas/rule.schema';
-import type { TriggerSource, TriggerEvent } from '../types';
+import { ruleSchema } from '../schemas/rule.schema';
+import type { TriggerEvent, TriggerSource } from '../types';
 
 interface RuleBuilderViewProps {
   ruleId?: string;

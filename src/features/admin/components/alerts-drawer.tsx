@@ -1,84 +1,116 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { AlertaFormData, alertaSchema } from 'src/features/admin/schemas/alerta.schema';
+import { Alerta } from 'src/features/admin/types/admin.types';
+import { Button } from 'src/shared/components/ui/button';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
+import { FormInput } from 'src/shared/components/ui/form-input';
+import { FormSelectField } from 'src/shared/components/ui/form-select-field';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
-import { Button } from 'src/shared/components/ui/button';
-import { Input } from 'src/shared/components/ui/input';
 import { Switch } from 'src/shared/components/ui/switch';
-import { Alerta } from 'src/features/admin/types/admin.types';
 
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const METRICAS = [
+  { value: 'errores', label: 'Errores' },
+  { value: 'warnings', label: 'Warnings' },
+  { value: 'latencia', label: 'Latencia' },
+  { value: 'uptime', label: 'Uptime' },
+];
+const OPERADORES = [
+  { value: '>', label: 'Mayor que (>)' },
+  { value: '<', label: 'Menor que (<)' },
+  { value: '>=', label: 'Mayor o igual (>=)' },
+  { value: '<=', label: 'Menor o igual (<=)' },
+];
+const PERIODOS = [
+  { value: '1h', label: 'Última hora' },
+  { value: '6h', label: 'Últimas 6 horas' },
+  { value: '24h', label: 'Últimas 24 horas' },
+  { value: '7d', label: 'Últimos 7 días' },
+];
+const CANALES = ['EMAIL', 'SLACK', 'PUSH'] as const;
 
 interface AlertsDrawerProps {
   alerta: Alerta | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: Omit<Alerta, 'id'>) => Promise<void>;
+  onSave: (data: Omit<Alerta, 'uid'>) => Promise<void>;
 }
-
-type Canal = 'EMAIL' | 'SLACK' | 'PUSH';
 
 export function AlertsDrawer({ alerta, isOpen, onClose, onSave }: AlertsDrawerProps) {
   const isEditing = !!alerta;
-  const [isSaving, setIsSaving] = useState(false);
-
-  const [form, setForm] = useState({
-    nombre: '',
-    condicion: '',
-    canal: [] as Canal[],
-    estado: 'ACTIVO' as 'ACTIVO' | 'INACTIVO',
+  const {
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { isSubmitting },
+  } = useForm<AlertaFormData>({
+    resolver: zodResolver(alertaSchema),
+    defaultValues: {
+      nombre: '',
+      metric: 'errores',
+      operator: '>',
+      value: 50,
+      period: '1h',
+      canal: ['EMAIL'],
+      estado: 'ACTIVO',
+    },
   });
+  const canal = watch('canal');
 
   useEffect(() => {
-    if (alerta) {
-      setForm({
-        nombre: alerta.nombre,
-        condicion: alerta.condicion,
-        canal: alerta.canal,
-        estado: alerta.estado,
-      });
-    } else {
-      setForm({
-        nombre: '',
-        condicion: '',
-        canal: ['EMAIL'],
-        estado: 'ACTIVO',
-      });
-    }
-  }, [alerta, isOpen]);
+    if (isOpen)
+      reset(
+        alerta
+          ? {
+              nombre: alerta.nombre,
+              metric: alerta.metric,
+              operator: alerta.operator,
+              value: alerta.value,
+              period: alerta.period,
+              canal: alerta.canales,
+              estado: alerta.estado,
+            }
+          : {
+              nombre: '',
+              metric: 'errores',
+              operator: '>',
+              value: 50,
+              period: '1h',
+              canal: ['EMAIL'],
+              estado: 'ACTIVO',
+            }
+      );
+  }, [alerta, isOpen, reset]);
 
-  const toggleCanal = (c: Canal) => {
-    setForm((prev) => ({
-      ...prev,
-      canal: prev.canal.includes(c) ? prev.canal.filter((x) => x !== c) : [...prev.canal, c],
-    }));
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
+  const onSubmit = async (data: AlertaFormData) => {
     try {
-      await delay(800);
       await onSave({
-        nombre: form.nombre,
-        condicion: form.condicion,
-        canal: form.canal,
-        estado: form.estado,
-        ultimaActivacion: alerta?.ultimaActivacion ?? null,
+        nombre: data.nombre,
+        metric: data.metric,
+        operator: data.operator,
+        value: data.value,
+        period: data.period,
+        canales: data.canal,
+        estado: data.estado,
+        last_triggered_at: alerta?.last_triggered_at ?? null,
       });
-      toast.success(isEditing ? 'Alerta actualizada.' : 'Alerta creada correctamente.');
+      toast.success(isEditing ? 'Alerta actualizada.' : 'Alerta creada.');
       onClose();
     } catch {
-      toast.error('Error al procesar. Intenta nuevamente.');
-    } finally {
-      setIsSaving(false);
+      toast.error('Error al procesar.');
     }
   };
 
@@ -88,76 +120,73 @@ export function AlertsDrawer({ alerta, isOpen, onClose, onSave }: AlertsDrawerPr
         <SheetHeader className="px-6 py-5 border-b border-border/40">
           <SheetTitle>{isEditing ? 'Editar Alerta' : 'Nueva Alerta'}</SheetTitle>
           <SheetDescription>
-            {isEditing
-              ? 'Modifica la configuración de la alerta'
-              : 'Configura una nueva regla de alerta'}
+            {isEditing ? 'Modifica la configuración' : 'Configura una nueva regla de alerta'}
           </SheetDescription>
         </SheetHeader>
-
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <Input
-            label="Nombre de la alerta *"
-            required
-            value={form.nombre}
-            onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-            placeholder="Errores críticos por hora"
-          />
-
-          <Input
-            label="Condición"
-            value={form.condicion}
-            onChange={(e) => setForm({ ...form, condicion: e.target.value })}
-            placeholder="Si errores > 50 en 1h"
-          />
-
-          <div>
-            <p className="text-caption font-medium text-muted-foreground mb-2">
-              Canal de notificación
-            </p>
-            <div className="space-y-2">
-              {(['EMAIL', 'SLACK', 'PUSH'] as Canal[]).map((c) => (
-                <label
-                  key={c}
-                  className="flex items-center gap-2 text-body2 text-foreground cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={form.canal.includes(c)}
-                    onChange={() => toggleCanal(c)}
-                    className="rounded"
-                  />
-                  {c === 'EMAIL'
-                    ? 'Email'
-                    : c === 'SLACK'
-                      ? 'Slack (webhook)'
-                      : 'Push notification'}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-body2 font-medium text-foreground">Estado</p>
-              <p className="text-caption text-muted-foreground">Activar o desactivar esta alerta</p>
-            </div>
-            <Switch
-              checked={form.estado === 'ACTIVO'}
-              onCheckedChange={(checked) =>
-                setForm({ ...form, estado: checked ? 'ACTIVO' : 'INACTIVO' })
-              }
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+            <FormInput
+              control={control}
+              name="nombre"
+              label="Nombre de la alerta"
+              required
+              placeholder="Errores críticos"
             />
+            <div className="grid grid-cols-2 gap-3">
+              <FormSelectField control={control} name="metric" label="Métrica" options={METRICAS} />
+              <FormSelectField control={control} name="period" label="Período" options={PERIODOS} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <FormSelectField
+                control={control}
+                name="operator"
+                label="Operador"
+                options={OPERADORES}
+              />
+              <FormInput control={control} name="value" label="Valor" type="number" />
+            </div>
+            <div>
+              <p className="text-caption font-medium text-muted-foreground mb-2">
+                Canales de notificación
+              </p>
+              <div className="space-y-2">
+                {CANALES.map((c) => (
+                  <label key={c} className="flex items-center gap-2 text-body2 cursor-pointer">
+                    <Checkbox
+                      checked={canal.includes(c)}
+                      onCheckedChange={() =>
+                        setValue(
+                          'canal',
+                          canal.includes(c) ? canal.filter((x) => x !== c) : [...canal, c],
+                          { shouldValidate: true }
+                        )
+                      }
+                    />
+                    {c}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-body2 font-medium">Estado</p>
+                <p className="text-caption text-muted-foreground">Activar o desactivar</p>
+              </div>
+              <Switch
+                checked={watch('estado') === 'ACTIVO'}
+                onCheckedChange={(c) => setValue('estado', c ? 'ACTIVO' : 'INACTIVO')}
+              />
+            </div>
           </div>
-        </div>
-
-        <SheetFooter className="border-t border-border/40 px-6 py-4">
-          <Button variant="outline" onClick={onClose} disabled={isSaving}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSave} disabled={isSaving || !form.nombre}>
-            {isSaving ? 'Guardando...' : 'Guardar Alerta'}
-          </Button>
-        </SheetFooter>
+          <SheetFooter className="border-t border-border/40 px-6 py-4">
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+              Cancelar
+            </Button>
+            <Button type="submit" color="primary" disabled={isSubmitting}>
+              {isSubmitting ? 'Guardando...' : 'Guardar Alerta'}
+            </Button>
+          </SheetFooter>
+        </form>
       </SheetContent>
     </Sheet>
   );

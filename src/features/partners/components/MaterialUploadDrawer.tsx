@@ -1,20 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
   Button,
+  Icon,
   Input,
   SelectField,
-  Icon,
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
-import { toast } from 'sonner';
-import type { PortalMaterial, MaterialType } from '../types';
+
+import type { MaterialType, PortalMaterial } from '../types';
 
 const TYPE_OPTIONS: { value: MaterialType; label: string }[] = [
   { value: 'deck', label: 'Presentación' },

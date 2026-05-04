@@ -1,19 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
+import { MOCK_COMPETITORS } from 'src/_mock/_intelligence';
+import { Button } from 'src/shared/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from 'src/shared/components/ui/dialog';
-import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { Textarea } from 'src/shared/components/ui/textarea';
-import { MOCK_COMPETITORS } from 'src/_mock/_intelligence';
+
 import { LOST_REASON_OPTIONS } from '../config/pipeline.config';
 import type { LostReasonInfo } from '../types/sales.types';
 

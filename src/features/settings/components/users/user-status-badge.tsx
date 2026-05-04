@@ -1,4 +1,5 @@
 import { Badge } from 'src/shared/components/ui/badge';
+
 import type { EstadoUsuario } from '../../types/settings.types';
 
 const CONFIG: Record<EstadoUsuario, { label: string; color: 'success' | 'warning' | 'default' }> = {

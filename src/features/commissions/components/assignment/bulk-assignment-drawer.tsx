@@ -1,21 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
+import { toast } from 'sonner';
 import { Button } from 'src/shared/components/ui/button';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-import { Checkbox } from 'src/shared/components/ui/checkbox';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
+
 import type { PlanComision } from '../../types/commissions.types';
-import { toast } from 'sonner';
 
 const MOCK_VENDEDORES = [
   { id: 'vend-1', nombre: 'Carlos Martínez', equipo: 'Ventas Norte' },
@@ -123,7 +124,9 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
               <div className="flex items-center gap-1.5">
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    paso >= n ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                    paso >= n
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {n}
@@ -209,11 +212,14 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
                 <div className="bg-muted/40 border border-border/40 rounded-lg p-4 text-sm space-y-1">
                   <p className="font-semibold text-foreground">{planSeleccionado.nombre}</p>
                   <p className="text-muted-foreground">
-                    Tipo: <span className="font-medium text-foreground">{planSeleccionado.tipo}</span>
+                    Tipo:{' '}
+                    <span className="font-medium text-foreground">{planSeleccionado.tipo}</span>
                   </p>
                   <p className="text-muted-foreground">
                     Base:{' '}
-                    <span className="font-medium text-foreground">{planSeleccionado.porcentajeBase}%</span>
+                    <span className="font-medium text-foreground">
+                      {planSeleccionado.porcentajeBase}%
+                    </span>
                   </p>
                   <p className="text-muted-foreground">
                     Tramos:{' '}
@@ -317,7 +323,14 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
               {guardando ? (
                 <span className="flex items-center gap-2">
                   <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
                   Guardando...

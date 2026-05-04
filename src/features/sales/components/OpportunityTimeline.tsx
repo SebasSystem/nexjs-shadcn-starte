@@ -1,12 +1,11 @@
 'use client';
 
-import { useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Icon, type IconName } from 'src/shared/components/ui/icon';
+import { useState } from 'react';
+import type { ActivityType, Opportunity } from 'src/features/sales/types/sales.types';
+import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
-import { Textarea } from 'src/shared/components/ui/textarea';
-import { Input } from 'src/shared/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -15,10 +14,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from 'src/shared/components/ui/dialog';
-import { useSalesContext } from '../context/SalesContext';
-import type { Opportunity, ActivityType } from 'src/features/sales/types/sales.types';
-import { cn } from 'src/lib/utils';
+import { Icon, type IconName } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
+import { Textarea } from 'src/shared/components/ui/textarea';
+
+import { useSalesContext } from '../context/SalesContext';
 
 interface OpportunityTimelineProps {
   opportunity: Opportunity;

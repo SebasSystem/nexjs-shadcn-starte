@@ -1,10 +1,11 @@
 'use client';
 
-import * as React from 'react';
-import { Icon } from './icon';
 import { Dialog as SheetPrimitive } from 'radix-ui';
+import * as React from 'react';
 
 import { cn } from '@/lib/utils';
+
+import { Icon } from './icon';
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
@@ -70,7 +71,10 @@ function SheetContent({
         {children}
         {showCloseButton && (
           <SheetPrimitive.Close className="absolute right-4 top-4 rounded-md p-1.5 opacity-70 ring-offset-background transition-opacity hover:opacity-100 hover:bg-muted focus:outline-none focus:ring-[3px] focus:ring-primary/20 cursor-pointer disabled:pointer-events-none data-[state=open]:bg-secondary">
-            <Icon name="X" className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+            <Icon
+              name="X"
+              className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+            />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
         )}
@@ -127,11 +131,11 @@ function SheetDescription({
 
 export {
   Sheet,
-  SheetTrigger,
   SheetClose,
   SheetContent,
-  SheetHeader,
-  SheetFooter,
-  SheetTitle,
   SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
 };

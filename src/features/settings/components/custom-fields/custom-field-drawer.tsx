@@ -1,24 +1,25 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Icon } from 'src/shared/components/ui/icon';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Button } from 'src/shared/components/ui/button';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
 import { FormInput } from 'src/shared/components/ui/form-input';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
-import { Checkbox } from 'src/shared/components/ui/checkbox';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
-import type { CampoPersonalizado, TipoCampo, ModuloCampo } from '../../types/settings.types';
+import { z } from 'zod';
+
+import type { CampoPersonalizado, ModuloCampo, TipoCampo } from '../../types/settings.types';
 
 const schema = z.object({
   etiqueta: z.string().min(2, 'Requerido'),
@@ -173,11 +174,7 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
               name="requerido"
               render={({ field }) => (
                 <div className="flex items-center gap-3">
-                  <Checkbox
-                    id="requerido"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
+                  <Checkbox id="requerido" checked={field.value} onCheckedChange={field.onChange} />
                   <label htmlFor="requerido" className="text-sm font-medium cursor-pointer">
                     Campo requerido
                   </label>

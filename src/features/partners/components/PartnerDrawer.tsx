@@ -1,19 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
   Button,
   Input,
   SelectField,
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
-import { toast } from 'sonner';
-import type { Partner, PartnerType, PartnerStatus } from '../types';
+
+import type { Partner, PartnerStatus, PartnerType } from '../types';
 
 const TYPE_OPTIONS: { value: PartnerType; label: string }[] = [
   { value: 'distributor', label: 'Distribuidor' },

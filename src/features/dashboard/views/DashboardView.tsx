@@ -1,35 +1,34 @@
 'use client';
 
-import Link from 'next/link';
-import {
-  Icon,
-  type IconName,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-  Avatar,
-  AvatarFallback,
-  Badge,
-} from 'src/shared/components/ui';
-import { Button } from 'src/shared/components/ui/button';
-import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
-  TableContainer,
-} from 'src/shared/components/table';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Chart, useChart } from 'src/shared/components/chart';
-import { paths } from 'src/routes/paths';
-
+import Link from 'next/link';
 import { cn } from 'src/lib/utils';
+import { paths } from 'src/routes/paths';
+import { Chart, useChart } from 'src/shared/components/chart';
 import {
   PageContainer,
   PageHeader,
   SectionCard,
   SectionCardHeader,
 } from 'src/shared/components/layouts/page';
+import {
+  TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  useTable,
+} from 'src/shared/components/table';
+import {
+  Avatar,
+  AvatarFallback,
+  Badge,
+  Icon,
+  type IconName,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from 'src/shared/components/ui';
+import { Button } from 'src/shared/components/ui/button';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 const KPIS: {

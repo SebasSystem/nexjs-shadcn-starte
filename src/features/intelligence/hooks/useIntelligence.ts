@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { MOCK_BATTLECARDS, MOCK_COMPETITORS, MOCK_LOST_DEALS } from 'src/_mock/_intelligence';
+
 import type {
   Battlecard,
   HeatmapCell,

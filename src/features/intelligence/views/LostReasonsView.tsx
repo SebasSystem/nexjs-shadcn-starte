@@ -1,30 +1,32 @@
 'use client';
 
-import { useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Icon, Button, Input, Badge, SelectField } from 'src/shared/components/ui';
+import { useMemo, useState } from 'react';
+import { LOST_REASON_LABELS, LOST_REASON_OPTIONS, MOCK_COMPETITORS } from 'src/_mock/_intelligence';
+import { formatMoney } from 'src/lib/currency';
+import { formatDate } from 'src/lib/date';
 import {
   PageContainer,
   PageHeader,
-  StatsCard,
   SectionCard,
+  StatsCard,
 } from 'src/shared/components/layouts/page';
 import {
-  useTable,
+  Table,
+  TableBody,
+  TableCell,
   TableContainer,
   TableHeadCustom,
   TablePaginationCustom,
-  Table,
-  TableBody,
   TableRow,
-  TableCell,
+  useTable,
 } from 'src/shared/components/table';
-import { LOST_REASON_LABELS, LOST_REASON_OPTIONS, MOCK_COMPETITORS } from 'src/_mock/_intelligence';
-import { LostReasonHeatmap } from '../components/LostReasonHeatmap';
+import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+
 import { LostDealDrawer } from '../components/LostDealDrawer';
+import { LostReasonHeatmap } from '../components/LostReasonHeatmap';
 import { useIntelligence } from '../hooks/useIntelligence';
 import type { LostDeal, LostReasonCategory } from '../types';
-
 const col = createColumnHelper<LostDeal>();
 
 const COMPETITOR_FILTER_OPTIONS = [
@@ -34,14 +36,6 @@ const COMPETITOR_FILTER_OPTIONS = [
 ];
 
 const REASON_FILTER_OPTIONS = [{ value: '', label: 'Todas las razones' }, ...LOST_REASON_OPTIONS];
-
-function formatAmount(amount: number, currency: string) {
-  return new Intl.NumberFormat('es', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 export function LostReasonsView() {
   const { lostDeals, stats, heatmapData, createLostDeal, updateLostDeal, deleteLostDeal } =
@@ -68,7 +62,10 @@ export function LostReasonsView() {
         header: 'Monto',
         cell: (info) => (
           <span className="text-body2 font-semibold text-foreground">
-            {formatAmount(info.getValue(), info.row.original.currency)}
+            {formatMoney(info.getValue(), {
+              currency: info.row.original.currency,
+              maximumFractionDigits: 0,
+            })}
           </span>
         ),
       }),
@@ -94,13 +91,7 @@ export function LostReasonsView() {
       col.accessor('lostDate', {
         header: 'Fecha',
         cell: (info) => (
-          <span className="text-caption text-muted-foreground">
-            {new Date(info.getValue()).toLocaleDateString('es', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-            })}
-          </span>
+          <span className="text-caption text-muted-foreground">{formatDate(info.getValue())}</span>
         ),
       }),
       col.accessor('salesRepName', {

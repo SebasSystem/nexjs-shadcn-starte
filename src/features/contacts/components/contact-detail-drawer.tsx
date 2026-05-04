@@ -1,19 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { Sheet, SheetContent } from 'src/shared/components/ui/sheet';
-import { EntityTypeBadge } from './entity-type-badge';
-import { ContactStatusBadge } from './contact-status-badge';
-import { InteractionsTimeline } from '../../productivity/components/InteractionsTimeline';
+
 import { ActivitiesTab } from '../../productivity/components/ActivitiesTab';
+import { InteractionsTimeline } from '../../productivity/components/InteractionsTimeline';
 import { VaultTab } from '../../productivity/components/VaultTab';
 import type { Contacto } from '../types/contacts.types';
+import { ContactStatusBadge } from './contact-status-badge';
+import { EntityTypeBadge } from './entity-type-badge';
 
 function getInitials(nombre: string) {
   return nombre
@@ -147,9 +148,17 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
           {/* Tab: Info */}
           {tab === 'info' && contacto && (
             <div className="space-y-4">
-              <InfoRow icon={<Icon name="UserCheck" size={15} />} label="Email" value={contacto.email} />
+              <InfoRow
+                icon={<Icon name="UserCheck" size={15} />}
+                label="Email"
+                value={contacto.email}
+              />
               {contacto.telefono && (
-                <InfoRow icon={<Icon name="Phone" size={15} />} label="Teléfono" value={contacto.telefono} />
+                <InfoRow
+                  icon={<Icon name="Phone" size={15} />}
+                  label="Teléfono"
+                  value={contacto.telefono}
+                />
               )}
               <InfoRow
                 icon={<Icon name="MapPin" size={15} />}
@@ -216,7 +225,11 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
                     />
                   )}
                   {contacto.cargo && (
-                    <InfoRow icon={<Icon name="Building2" size={15} />} label="Cargo" value={contacto.cargo} />
+                    <InfoRow
+                      icon={<Icon name="Building2" size={15} />}
+                      label="Cargo"
+                      value={contacto.cargo}
+                    />
                   )}
                   {contacto.empresaNombre && (
                     <InfoRow

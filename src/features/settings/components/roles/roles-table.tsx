@@ -1,7 +1,17 @@
 'use client';
 
+import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useMemo } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
+} from 'src/shared/components/table';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import {
@@ -11,18 +21,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from 'src/shared/components/ui/dropdown-menu';
+import { Icon } from 'src/shared/components/ui/icon';
+
 import type { Rol } from '../../types/settings.types';
-import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-} from 'src/shared/components/table';
-import { createColumnHelper, flexRender } from '@tanstack/react-table';
 
 const columnHelper = createColumnHelper<Rol>();
 

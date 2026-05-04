@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { useAgendaItems } from '../hooks/use-agenda-items';
-import { ActivityDrawer } from '../components/ActivityDrawer';
-import { format, isToday, isPast, isTomorrow, isThisWeek } from 'date-fns';
+import { format, isPast, isThisWeek, isToday, isTomorrow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
+import { useRouter } from 'next/navigation';
+import React, { useMemo, useState } from 'react';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Badge } from 'src/shared/components/ui/badge';
-import type { Actividad, EstadoActividad, ActividadSource } from '../types/productivity.types';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+
+import { ActivityDrawer } from '../components/ActivityDrawer';
+import { useAgendaItems } from '../hooks/use-agenda-items';
+import type { Actividad, ActividadSource, EstadoActividad } from '../types/productivity.types';
 
 // ─── Source badge config ──────────────────────────────────────────────────────
 
@@ -31,12 +32,22 @@ const SOURCE_CONFIG: Record<ActividadSource, { label: string; className: string 
 const getEstadoIcon = (estado: EstadoActividad) => {
   switch (estado) {
     case 'PENDIENTE':
-      return <Icon name="Circle" size={20} className="text-gray-300 hover:text-blue-500 transition-colors" />;
+      return (
+        <Icon
+          name="Circle"
+          size={20}
+          className="text-gray-300 hover:text-blue-500 transition-colors"
+        />
+      );
     case 'COMPLETADA':
       return <Icon name="CheckCircle2" size={20} className="text-emerald-500" />;
     case 'VENCIDA':
       return (
-        <Icon name="AlertCircle" size={20} className="text-red-500 hover:text-red-600 transition-colors" />
+        <Icon
+          name="AlertCircle"
+          size={20}
+          className="text-red-500 hover:text-red-600 transition-colors"
+        />
       );
   }
 };

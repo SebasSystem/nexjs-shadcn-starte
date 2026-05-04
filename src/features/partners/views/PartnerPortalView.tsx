@@ -1,19 +1,16 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import {
-  Icon,
-  Button,
-  Input,
-  SelectField,
-} from 'src/shared/components/ui';
+import { useMemo, useState } from 'react';
+import { MATERIAL_TYPE_CONFIG } from 'src/_mock/_partners';
+import { formatDate } from 'src/lib/date';
 import {
   PageContainer,
   PageHeader,
   SectionCard,
   StatsCard,
 } from 'src/shared/components/layouts/page';
-import { MATERIAL_TYPE_CONFIG } from 'src/_mock/_partners';
+import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+
 import { MaterialCard } from '../components/MaterialCard';
 import { MaterialUploadDrawer } from '../components/MaterialUploadDrawer';
 import { usePartners } from '../hooks/usePartners';
@@ -57,14 +54,7 @@ export function PartnerPortalView() {
     },
     {
       title: 'Última actualización',
-      value:
-        materialStats.lastUpdated !== '—'
-          ? new Date(materialStats.lastUpdated).toLocaleDateString('es', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-            })
-          : '—',
+      value: materialStats.lastUpdated !== '—' ? formatDate(materialStats.lastUpdated) : '—',
       trend: 'del portal',
       trendUp: true,
       icon: <Icon name="Clock" size={18} />,

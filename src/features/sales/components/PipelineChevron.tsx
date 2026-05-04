@@ -1,6 +1,6 @@
 'use client';
 
-import { STAGE_PROBABILITY, STAGE_ACCENT_COLORS } from '../config/pipeline.config';
+import { STAGE_ACCENT_COLORS, STAGE_PROBABILITY } from '../config/pipeline.config';
 import type { PipelineStage } from '../types/sales.types';
 
 interface PipelineChevronProps {

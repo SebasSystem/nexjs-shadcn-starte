@@ -1,10 +1,12 @@
 'use client';
 
-import { ReactNode, useEffect, useState, useMemo, useCallback } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { getInitData } from 'src/features/auth/services/auth.service';
+import { localizationService } from 'src/features/settings/services/localization.service';
+import { AuthState } from 'src/shared/auth/types';
+
 import { AuthContext } from '../auth-context';
 import { isValidToken, setSession } from './utils';
-import { AuthState } from 'src/shared/auth/types';
-import { getInitData } from 'src/features/auth/services/auth.service';
 
 type Props = { children: ReactNode };
 
@@ -22,6 +24,11 @@ export function AuthProvider({ children }: Props) {
         const { user, permissions } = await getInitData();
 
         if (user?.uid) {
+          // Inicializar configuración global de fecha/moneda para toda la app (Local Storage)
+          await localizationService.get().catch(() => {
+            // Silencioso: si falla, usa el fallback predeterminado
+          });
+
           setState({
             user: {
               uid: user.uid,
@@ -49,7 +56,10 @@ export function AuthProvider({ children }: Props) {
   }, []);
 
   useEffect(() => {
-    checkUserSession();
+    async function init() {
+      await checkUserSession();
+    }
+    init();
   }, [checkUserSession]);
 
   const hasPermission = useCallback(

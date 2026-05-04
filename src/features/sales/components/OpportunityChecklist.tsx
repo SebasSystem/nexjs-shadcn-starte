@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
 import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
+
 import { useSalesContext } from '../context/SalesContext';
 import type { Opportunity } from '../types/sales.types';
 

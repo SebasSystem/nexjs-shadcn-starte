@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
-import { useVault } from '../hooks/use-vault';
-import { Icon } from 'src/shared/components/ui/icon';
 import { format } from 'date-fns';
+import React from 'react';
+import { Icon } from 'src/shared/components/ui/icon';
+
+import { useVault } from '../hooks/use-vault';
 
 export const VaultTab = ({ contactoId }: { contactoId: string }) => {
   const { data, isLoading, isUploading, uploadFile, deleteFile } = useVault(contactoId);

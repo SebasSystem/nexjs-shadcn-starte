@@ -1,19 +1,19 @@
 'use client';
 
+import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import React, { useMemo } from 'react';
 import { useDashboardCommissions } from 'src/features/commissions/hooks/use-dashboard';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { Icon } from 'src/shared/components/ui/icon';
 import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
   Table,
   TableBody,
-  TableRow,
   TableCell,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
-import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import { Icon } from 'src/shared/components/ui/icon';
 
 type VentaPeriodo = {
   id: string;

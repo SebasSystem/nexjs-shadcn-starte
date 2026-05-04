@@ -1,7 +1,7 @@
 import type { AxiosRequestConfig } from 'axios';
 import axios from 'axios';
-import { paths } from 'src/routes/paths';
 import { CONFIG } from 'src/global-config';
+import { paths } from 'src/routes/paths';
 
 // ----------------------------------------------------------------------
 
@@ -62,7 +62,57 @@ export const endpoints = {
     forgotPassword: '/forgot-password',
     resetPassword: '/reset-password',
     userAccess: (uid: string) => `/users/${uid}/access`,
+    twoFactor: {
+      setup: '/2fa/setup', // GET → { secret, otpauth_url }
+      confirm: '/2fa/confirm', // POST { code } → { token, recovery_codes[] }
+    },
   },
-  users: '/users',
-  roles: '/roles',
+  users: {
+    list: '/users',
+    create: '/users',
+    show: (uid: string) => `/users/${uid}`,
+    update: (uid: string) => `/users/${uid}`,
+    delete: (uid: string) => `/users/${uid}`,
+    access: (uid: string) => `/users/${uid}/access`,
+    assignRole: (uid: string) => `/users/${uid}/roles`,
+    removeRole: (uid: string, roleUid: string) => `/users/${uid}/roles/${roleUid}`,
+    assignPermission: (uid: string) => `/users/${uid}/permissions`,
+    removePermission: (uid: string, permUid: string) => `/users/${uid}/permissions/${permUid}`,
+    assignManager: (uid: string) => `/users/${uid}/manager`,
+  },
+  rbac: {
+    roles: '/rbac/roles',
+    role: (uid: string) => `/rbac/roles/${uid}`,
+    permissions: '/rbac/permissions',
+  },
+  plans: {
+    list: '/plans',
+    create: '/plans',
+    update: (uid: string) => `/plans/${uid}`,
+  },
+  admin: {
+    dashboard: '/admin/dashboard',
+    tenants: {
+      list: '/admin/tenants',
+      create: '/admin/tenants',
+      show: (uid: string) => `/admin/tenants/${uid}`,
+      update: (uid: string) => `/admin/tenants/${uid}`,
+      suspend: (uid: string) => `/admin/tenants/${uid}/suspend`,
+      activate: (uid: string) => `/admin/tenants/${uid}/activate`,
+      createUser: (uid: string) => `/admin/tenants/${uid}/users`,
+      users: (uid: string) => `/admin/tenants/${uid}/users`,
+    },
+    billing: {
+      list: '/admin/billing',
+      markPaid: (uid: string) => `/admin/billing/${uid}/mark-paid`,
+      markPaidBulk: '/admin/billing/mark-paid-bulk',
+    },
+    telemetry: {
+      logs: '/admin/telemetry/logs',
+      stats: '/admin/telemetry/stats',
+      alerts: '/admin/telemetry/alerts',
+      alert: (uid: string) => `/admin/telemetry/alerts/${uid}`,
+      toggleAlert: (uid: string) => `/admin/telemetry/alerts/${uid}/toggle`,
+    },
+  },
 };

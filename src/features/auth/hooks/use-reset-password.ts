@@ -1,10 +1,13 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-
-import { resetPasswordSchema, type ResetPasswordFormValues } from '../schemas/reset-password.schema';
-import { resetPassword } from '../services/auth.service';
 import { paths } from 'src/routes/paths';
+
+import {
+  type ResetPasswordFormValues,
+  resetPasswordSchema,
+} from '../schemas/reset-password.schema';
+import { resetPassword } from '../services/auth.service';
 
 export function useResetPassword() {
   const router = useRouter();
@@ -27,7 +30,9 @@ export function useResetPassword() {
       await resetPassword({ email, token, password: values.password });
       router.push(`${paths.auth.jwt.signIn}?passwordReset=1`);
     } catch {
-      form.setError('root', { message: 'No pudimos restablecer tu contraseña. El enlace puede haber expirado.' });
+      form.setError('root', {
+        message: 'No pudimos restablecer tu contraseña. El enlace puede haber expirado.',
+      });
     }
   };
 

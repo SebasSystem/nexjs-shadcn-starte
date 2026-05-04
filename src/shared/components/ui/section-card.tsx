@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
-import { Icon } from './icon';
 import { cn } from 'src/lib/utils';
+
+import { Icon } from './icon';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SectionCard — tarjeta de sección reutilizable

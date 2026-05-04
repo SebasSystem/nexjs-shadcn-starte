@@ -1,10 +1,10 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-
-import { signUpSchema, type SignUpFormValues } from '../schemas/sign-up.schema';
-import { signUp } from '../services/auth.service';
 import { paths } from 'src/routes/paths';
+
+import { type SignUpFormValues, signUpSchema } from '../schemas/sign-up.schema';
+import { signUp } from '../services/auth.service';
 
 export function useSignUp() {
   const router = useRouter();

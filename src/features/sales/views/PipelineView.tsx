@@ -1,20 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
+import type { LostReasonInfo, Opportunity, StageId } from 'src/features/sales/types/sales.types';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { SelectField } from 'src/shared/components/ui/select-field';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
-import { PipelineColumn } from '../components/PipelineColumn';
+import { SelectField } from 'src/shared/components/ui/select-field';
+
 import { NewOpportunityDrawer } from '../components/NewOpportunityDrawer';
 import { OpportunityPanel } from '../components/OpportunityPanel';
 import { OutcomeDialog } from '../components/OutcomeDialog';
 import { PipelineChevron } from '../components/PipelineChevron';
-import { usePipeline } from '../hooks/usePipeline';
-import { useOpportunityPanel } from '../hooks/useOpportunityPanel';
+import { PipelineColumn } from '../components/PipelineColumn';
 import { useSalesContext } from '../context/SalesContext';
-import type { Opportunity, StageId, LostReasonInfo } from 'src/features/sales/types/sales.types';
+import { useOpportunityPanel } from '../hooks/useOpportunityPanel';
+import { usePipeline } from '../hooks/usePipeline';
 
 const ORIGIN_OPTIONS = [
   { value: 'Web', label: 'Sitio Web' },

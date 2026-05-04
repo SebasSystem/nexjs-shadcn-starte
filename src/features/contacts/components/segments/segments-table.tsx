@@ -1,19 +1,21 @@
+import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import React, { useMemo } from 'react';
+import { formatDate } from 'src/lib/date';
 import {
   Table,
   TableBody,
   TableCell,
-  TableRow,
-  TableHeadCustom,
-  useTable,
-  TablePaginationCustom,
   TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
-import { Button } from 'src/shared/components/ui/button';
 import { Badge } from 'src/shared/components/ui/badge';
-import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import type { Segment } from '../../types/segments.types';
+import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
+
+import type { Segment } from '../../types/segments.types';
 
 interface SegmentsTableProps {
   segments: Segment[];
@@ -88,7 +90,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
         header: 'Modificado',
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
-            {new Date(info.getValue() as string).toLocaleDateString('es-MX')}
+            {formatDate(info.getValue() as string)}
           </span>
         ),
       }),

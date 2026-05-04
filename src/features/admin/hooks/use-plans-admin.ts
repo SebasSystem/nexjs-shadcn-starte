@@ -1,17 +1,22 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { PlanSaaS } from 'src/features/admin/types/admin.types';
+import { useCallback, useEffect, useState } from 'react';
 import { plansService } from 'src/features/admin/services/plans.service';
+import { PlanSaaS } from 'src/features/admin/types/admin.types';
+import { cache } from 'src/lib/cache';
+
+const CACHE_KEY = 'admin:plans';
 
 export function usePlansAdmin() {
-  const [planes, setPlanes] = useState<PlanSaaS[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const cached = cache.get<PlanSaaS[]>(CACHE_KEY);
+  const [planes, setPlanes] = useState<PlanSaaS[]>(cached ?? []);
+  const [isLoading, setIsLoading] = useState(!cached);
 
   const fetchPlanes = useCallback(async () => {
-    setIsLoading(true);
+    setIsLoading(!cached);
     try {
       const data = await plansService.getAll();
+      cache.set(CACHE_KEY, data);
       setPlanes(data);
     } finally {
       setIsLoading(false);
@@ -23,25 +28,21 @@ export function usePlansAdmin() {
   }, [fetchPlanes]);
 
   const createPlan = useCallback(
-    async (data: Omit<PlanSaaS, 'id' | 'creadoEn' | 'totalTenants'>) => {
-      const newPlan = await plansService.create(data);
-      setPlanes((prev) => [...prev, newPlan]);
-      return newPlan;
+    async (data: Omit<PlanSaaS, 'uid' | 'created_at' | 'total_tenants'>) => {
+      const created = await plansService.create(data);
+      cache.invalidate(CACHE_KEY);
+      setPlanes((prev) => [...prev, created]);
+      return created;
     },
     []
   );
 
-  const updatePlan = useCallback(async (id: string, data: Partial<PlanSaaS>) => {
-    const updated = await plansService.update(id, data);
-    setPlanes((prev) => prev.map((p) => (p.id === id ? updated : p)));
+  const updatePlan = useCallback(async (uid: string, data: Partial<PlanSaaS>) => {
+    const updated = await plansService.update(uid, data);
+    cache.invalidate(CACHE_KEY);
+    setPlanes((prev) => prev.map((p) => (p.uid === uid ? updated : p)));
     return updated;
   }, []);
 
-  return {
-    planes,
-    isLoading,
-    refetch: fetchPlanes,
-    createPlan,
-    updatePlan,
-  };
+  return { planes, isLoading, refetch: fetchPlanes, createPlan, updatePlan };
 }

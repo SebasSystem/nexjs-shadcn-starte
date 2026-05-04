@@ -1,21 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { QUOTE_STATUS_CONFIG, type QuoteMock } from 'src/_mock/_quotes';
+import { cn } from 'src/lib/utils';
 import {
-  Icon,
-  Button,
   Badge,
+  Button,
+  Icon,
+  SelectField,
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetFooter,
-  SelectField,
 } from 'src/shared/components/ui';
-import { cn } from 'src/lib/utils';
+
 import { useInventory } from '../hooks/useInventory';
-import { type QuoteMock, QUOTE_STATUS_CONFIG } from 'src/_mock/_quotes';
-import { toast } from 'sonner';
 
 interface ReserveStockDrawerProps {
   open: boolean;

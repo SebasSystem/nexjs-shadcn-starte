@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { MOCK_AUTOMATION_RULES, MOCK_ASSIGNMENT_RULES } from 'src/_mock/_automation';
-import type { AutomationRule, AssignmentRule } from '../types';
+import { useMemo, useState } from 'react';
+import { MOCK_ASSIGNMENT_RULES, MOCK_AUTOMATION_RULES } from 'src/_mock/_automation';
+
+import type { AssignmentRule, AutomationRule } from '../types';
 
 export function useAutomation() {
   const [rules, setRules] = useState<AutomationRule[]>(MOCK_AUTOMATION_RULES);

@@ -1,6 +1,7 @@
-import { Icon, Button } from 'src/shared/components/ui';
-import { SectionCard } from 'src/shared/components/layouts/page';
 import { cn } from 'src/lib/utils';
+import { SectionCard } from 'src/shared/components/layouts/page';
+import { Button, Icon } from 'src/shared/components/ui';
+
 import type { Battlecard } from '../types';
 
 interface Props {

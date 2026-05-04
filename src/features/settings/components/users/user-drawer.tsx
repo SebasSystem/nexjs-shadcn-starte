@@ -1,21 +1,22 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Button } from 'src/shared/components/ui/button';
 import { FormInput } from 'src/shared/components/ui/form-input';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
-import type { SettingsUser, EstadoUsuario } from '../../types/settings.types';
+import { z } from 'zod';
+
+import type { EstadoUsuario, SettingsUser } from '../../types/settings.types';
 import type { Rol } from '../../types/settings.types';
 import type { Equipo } from '../../types/settings.types';
 

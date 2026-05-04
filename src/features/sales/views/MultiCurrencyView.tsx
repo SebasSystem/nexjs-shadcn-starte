@@ -1,21 +1,22 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
-import { Badge } from 'src/shared/components/ui/badge';
-import { SelectField } from 'src/shared/components/ui/select-field';
+import { useCallback, useMemo, useState } from 'react';
+import { formatMoney, getCurrencyPreferences } from 'src/lib/currency';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
   Table,
   TableBody,
-  TableRow,
   TableCell,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { SelectField } from 'src/shared/components/ui/select-field';
 
 // ─── Types & Mock Data ───────────────────────────────────────────────────────
 
@@ -36,12 +37,12 @@ const INITIAL_CURRENCIES: CurrencyRow[] = [
     lastUpdate: '2024-01-15',
     status: 'active',
   },
-  { code: 'COP', name: 'Peso mexicano', rate: '17.15', lastUpdate: '2024-01-15', status: 'active' },
+  { code: 'MXN', name: 'Peso mexicano', rate: '17.15', lastUpdate: '2024-01-15', status: 'active' },
 ];
 
 const BASE_CURRENCY_OPTIONS = [
-  { value: 'COP', label: 'USD — Dólar estadounidense' },
-  { value: 'COP', label: 'MXN — Peso mexicano' },
+  { value: 'USD', label: 'USD — Dólar estadounidense' },
+  { value: 'MXN', label: 'MXN — Peso mexicano' },
   { value: 'EUR', label: 'EUR — Euro' },
   { value: 'COP', label: 'COP — Peso colombiano' },
 ];
@@ -53,7 +54,7 @@ const columnHelper = createColumnHelper<CurrencyRow>();
 // ─── View ─────────────────────────────────────────────────────────────────────
 
 export function MultiCurrencyView() {
-  const [baseCurrency, setBaseCurrency] = useState('COP');
+  const [baseCurrency, setBaseCurrency] = useState(() => getCurrencyPreferences('tenant').currency);
   const [currencies, setCurrencies] = useState<CurrencyRow[]>(INITIAL_CURRENCIES);
 
   const updateRate = useCallback((code: string, value: string) => {
@@ -209,11 +210,25 @@ export function MultiCurrencyView() {
               </Badge>
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">COP 1,000.00</p>
+              <p className="text-2xl font-bold text-foreground">
+                {formatMoney(1000, {
+                  scope: 'tenant',
+                  currencyDisplay: 'code',
+                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 2,
+                })}
+              </p>
               <p className="text-xs text-muted-foreground mt-0.5">Moneda base</p>
             </div>
             <div className="pt-2 border-t border-border/40">
-              <p className="text-lg font-semibold text-foreground">COP 4,000,000.00</p>
+              <p className="text-lg font-semibold text-foreground">
+                {formatMoney(4000000, {
+                  scope: 'tenant',
+                  currencyDisplay: 'code',
+                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 2,
+                })}
+              </p>
               <p className="text-xs text-muted-foreground mt-0.5">Equivalente</p>
             </div>
           </SectionCard>

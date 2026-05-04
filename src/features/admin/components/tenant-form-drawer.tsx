@@ -1,23 +1,30 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { TenantFormData, tenantSchema } from 'src/features/admin/schemas/tenant.schema';
+import { PlanSaaS, Tenant } from 'src/features/admin/types/admin.types';
+import { formatMoney } from 'src/lib/currency';
+import { Button } from 'src/shared/components/ui/button';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
+import { FormInput } from 'src/shared/components/ui/form-input';
+import { FormSelectField } from 'src/shared/components/ui/form-select-field';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
-import { Button } from 'src/shared/components/ui/button';
-import { Input } from 'src/shared/components/ui/input';
-import { SelectField } from 'src/shared/components/ui/select-field';
-import { Checkbox } from 'src/shared/components/ui/checkbox';
-import { Tenant, PlanSaaS } from 'src/features/admin/types/admin.types';
 
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const PAISES = ['México', 'Colombia', 'España', 'Argentina', 'Chile', 'Perú', 'Otro'].map((p) => ({
+  value: p,
+  label: p,
+}));
 
 interface TenantFormDrawerProps {
   tenant: Tenant | null;
@@ -27,10 +34,6 @@ interface TenantFormDrawerProps {
   onSave: (data: Partial<Tenant>) => Promise<void>;
 }
 
-const PAISES_OPTIONS = ['México', 'Colombia', 'España', 'Argentina', 'Chile', 'Perú', 'Otro'].map(
-  (p) => ({ value: p, label: p })
-);
-
 export function TenantFormDrawer({
   tenant,
   planes,
@@ -39,230 +42,227 @@ export function TenantFormDrawer({
   onSave,
 }: TenantFormDrawerProps) {
   const isEditing = !!tenant;
-  const [isSaving, setIsSaving] = useState(false);
-  const [sendCredentials, setSendCredentials] = useState(true);
-
-  const [form, setForm] = useState({
-    nombre: '',
-    dominio: '',
-    pais: 'México',
-    emailContacto: '',
-    planId: '',
-    diasTrial: 0,
-    fechaInicio: new Date().toISOString().split('T')[0],
-    adminNombre: '',
-    adminEmail: '',
+  const {
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    formState: { isSubmitting },
+  } = useForm<TenantFormData>({
+    resolver: zodResolver(tenantSchema),
+    defaultValues: {
+      nombre: '',
+      dominio: '',
+      pais: 'México',
+      email_contacto: '',
+      plan_uid: '',
+      fecha_inicio: new Date().toISOString().split('T')[0],
+      dias_trial: 0,
+      admin_nombre: '',
+      admin_email: '',
+    },
   });
 
-  useEffect(() => {
-    if (tenant) {
-      setForm({
-        nombre: tenant.nombre,
-        dominio: tenant.dominio,
-        pais: tenant.pais,
-        emailContacto: tenant.emailContacto,
-        planId: tenant.planId,
-        diasTrial: 0,
-        fechaInicio: tenant.creadoEn,
-        adminNombre: '',
-        adminEmail: '',
-      });
-    } else {
-      setForm({
-        nombre: '',
-        dominio: '',
-        pais: 'México',
-        emailContacto: '',
-        planId: '',
-        diasTrial: 0,
-        fechaInicio: new Date().toISOString().split('T')[0],
-        adminNombre: '',
-        adminEmail: '',
-      });
-    }
-  }, [tenant, isOpen]);
-
-  const selectedPlan = planes.find((p) => p.id === form.planId);
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      await delay(800);
-      const planSeleccionado = planes.find((p) => p.id === form.planId);
-      await onSave({
-        nombre: form.nombre,
-        dominio: form.dominio,
-        pais: form.pais,
-        emailContacto: form.emailContacto,
-        planId: form.planId,
-        planNombre: planSeleccionado?.nombre || '',
-        mrr: planSeleccionado?.precio || 0,
-        estado: 'ACTIVO',
-        totalUsuarios: 1,
-        limiteUsuarios: planSeleccionado?.features.limiteUsuarios || 5,
-        almacenamientoUsadoGB: 0,
-        limiteAlmacenamientoGB: planSeleccionado?.features.almacenamientoGB || 10,
-      });
-      toast.success(isEditing ? 'Tenant actualizado exitosamente.' : 'Tenant creado exitosamente.');
-      onClose();
-    } catch {
-      toast.error('Error al procesar. Intenta nuevamente.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const planUid = watch('plan_uid');
+  const selectedPlan = planes.find((p) => p.uid === planUid);
 
   const planOptions = [
     { value: '', label: 'Seleccionar plan...' },
-    ...planes.map((p) => ({ value: p.id, label: `${p.nombre} — $${p.precio}/mes` })),
+    ...planes.map((p) => ({
+      value: p.uid,
+      label: `${p.name} — ${formatMoney(p.price, { scope: 'platform', maximumFractionDigits: 0 })}/mes`,
+    })),
   ];
+
+  useEffect(() => {
+    if (isOpen) {
+      reset(
+        tenant
+          ? {
+              nombre: tenant.nombre,
+              dominio: tenant.dominio,
+              pais: tenant.pais,
+              email_contacto: tenant.email_contacto,
+              plan_uid: tenant.plan_uid,
+              fecha_inicio: tenant.created_at?.split('T')[0] ?? '',
+              dias_trial: 0,
+              admin_nombre: '',
+              admin_email: '',
+            }
+          : {
+              nombre: '',
+              dominio: '',
+              pais: 'México',
+              email_contacto: '',
+              plan_uid: '',
+              fecha_inicio: new Date().toISOString().split('T')[0],
+              dias_trial: 0,
+              admin_nombre: '',
+              admin_email: '',
+            }
+      );
+    }
+  }, [tenant, isOpen, reset]);
+
+  const onSubmit = async (data: TenantFormData) => {
+    const plan = planes.find((p) => p.uid === data.plan_uid);
+    try {
+      await onSave({
+        nombre: data.nombre,
+        dominio: data.dominio,
+        pais: data.pais,
+        email_contacto: data.email_contacto,
+        plan_uid: data.plan_uid,
+        plan_nombre: plan?.name ?? '',
+        mrr: plan?.price ?? 0,
+        estado: 'ACTIVO',
+        total_usuarios: 1,
+        limite_usuarios: plan?.max_users ?? 5,
+        almacenamiento_usado_gb: 0,
+        limite_almacenamiento_gb: plan?.features.storage_gb ?? 10,
+      });
+      toast.success(isEditing ? 'Tenant actualizado.' : 'Tenant creado.');
+      onClose();
+    } catch {
+      toast.error('Error al procesar.');
+    }
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-full sm:max-w-[520px] p-0 flex flex-col">
         <SheetHeader className="px-6 py-5 border-b border-border/40">
-          <SheetTitle>{isEditing ? `Editar Tenant: ${tenant.nombre}` : 'Nuevo Tenant'}</SheetTitle>
+          <SheetTitle>{isEditing ? `Editar Tenant: ${tenant?.nombre}` : 'Nuevo Tenant'}</SheetTitle>
           <SheetDescription>
             {isEditing
               ? 'Modifica los datos del tenant'
               : 'Completa la información para crear un nuevo tenant'}
           </SheetDescription>
         </SheetHeader>
-
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-          {/* Información general */}
-          <div>
-            <h3 className="text-sm font-semibold text-foreground mb-4">Información general</h3>
-            <div className="space-y-3">
-              <Input
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                label="Nombre de empresa"
-                required
-                placeholder="Acme Corporation"
-              />
-              <Input
-                value={form.dominio}
-                onChange={(e) => setForm({ ...form, dominio: e.target.value })}
-                label="Dominio"
-                required
-                placeholder="acme.tucrm.com"
-              />
-              <SelectField
-                value={form.pais}
-                onChange={(val) => setForm({ ...form, pais: val as string })}
-                label="País"
-                required
-                options={PAISES_OPTIONS}
-              />
-              <Input
-                type="email"
-                value={form.emailContacto}
-                onChange={(e) => setForm({ ...form, emailContacto: e.target.value })}
-                label="Email de contacto"
-                required
-                placeholder="admin@empresa.com"
-              />
-            </div>
-          </div>
-
-          {/* Suscripción */}
-          <div>
-            <h3 className="text-sm font-semibold text-foreground mb-4">Suscripción</h3>
-            <div className="space-y-3">
-              <SelectField
-                value={form.planId}
-                onChange={(val) => setForm({ ...form, planId: val as string })}
-                label="Plan"
-                required
-                options={planOptions}
-              />
-
-              {selectedPlan && (
-                <div className="rounded-xl bg-muted/50 border border-border/40 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon name="Package" className="h-4 w-4 text-primary" />
-                    <span className="font-semibold text-sm text-foreground">
-                      {selectedPlan.nombre} — ${selectedPlan.precio}/mes
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {selectedPlan.features.limiteUsuarios ?? 'Ilimitados'} usuarios ·{' '}
-                    {selectedPlan.features.almacenamientoGB ?? 'Ilimitado'} GB ·{' '}
-                    {selectedPlan.features.apiCallsMes
-                      ? `${(selectedPlan.features.apiCallsMes / 1000).toFixed(0)}k`
-                      : 'Ilimitadas'}{' '}
-                    API calls/mes
-                  </p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  type="date"
-                  value={form.fechaInicio}
-                  onChange={(e) => setForm({ ...form, fechaInicio: e.target.value })}
-                  label="Fecha de inicio"
-                />
-                <Input
-                  type="number"
-                  min={0}
-                  value={String(form.diasTrial)}
-                  onChange={(e) => setForm({ ...form, diasTrial: parseInt(e.target.value) || 0 })}
-                  label="Días de trial"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Admin inicial (solo en creación) */}
-          {!isEditing && (
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-4">
-                Admin inicial del tenant
-              </h3>
+              <h3 className="text-sm font-semibold mb-4">Información general</h3>
               <div className="space-y-3">
-                <Input
-                  value={form.adminNombre}
-                  onChange={(e) => setForm({ ...form, adminNombre: e.target.value })}
-                  label="Nombre del admin"
+                <FormInput
+                  control={control}
+                  name="nombre"
+                  label="Nombre de empresa"
                   required
-                  placeholder="Juan Pérez"
+                  placeholder="Acme Corporation"
                 />
-                <Input
-                  type="email"
-                  value={form.adminEmail}
-                  onChange={(e) => setForm({ ...form, adminEmail: e.target.value })}
-                  label="Email del admin"
+                <FormInput
+                  control={control}
+                  name="dominio"
+                  label="Dominio"
                   required
+                  placeholder="acme.tucrm.com"
+                />
+                <FormSelectField
+                  control={control}
+                  name="pais"
+                  label="País"
+                  required
+                  options={PAISES}
+                />
+                <FormInput
+                  control={control}
+                  name="email_contacto"
+                  label="Email de contacto"
+                  type="email"
                   placeholder="admin@empresa.com"
                 />
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="sendCredentials"
-                    checked={sendCredentials}
-                    onCheckedChange={(v) => setSendCredentials(v as boolean)}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold mb-4">Suscripción</h3>
+              <div className="space-y-3">
+                <FormSelectField
+                  control={control}
+                  name="plan_uid"
+                  label="Plan"
+                  required
+                  options={planOptions}
+                />
+                {selectedPlan && (
+                  <div className="rounded-xl bg-muted/50 border border-border/40 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icon name="Package" className="h-4 w-4 text-primary" />
+                      <span className="font-semibold text-sm">
+                        {selectedPlan.name} —{' '}
+                        {formatMoney(selectedPlan.price, {
+                          scope: 'platform',
+                          maximumFractionDigits: 0,
+                        })}
+                        /mes
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedPlan.max_users ?? 'Ilimitados'} usuarios ·{' '}
+                      {selectedPlan.features.storage_gb ?? 'Ilimitado'} GB ·{' '}
+                      {selectedPlan.features.api_calls_month
+                        ? `${(selectedPlan.features.api_calls_month / 1000).toFixed(0)}k`
+                        : 'Ilimitadas'}{' '}
+                      API calls/mes
+                    </p>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3">
+                  <FormInput
+                    control={control}
+                    name="fecha_inicio"
+                    label="Fecha de inicio"
+                    type="date"
                   />
-                  <label
-                    htmlFor="sendCredentials"
-                    className="text-sm text-muted-foreground cursor-pointer"
-                  >
-                    Enviar credenciales por email
-                  </label>
+                  <FormInput
+                    control={control}
+                    name="dias_trial"
+                    label="Días de trial"
+                    type="number"
+                  />
                 </div>
               </div>
             </div>
-          )}
-        </div>
-
-        <SheetFooter className="border-t border-border/40 px-6 py-4">
-          <Button variant="outline" onClick={onClose} disabled={isSaving}>
-            Cancelar
-          </Button>
-          <Button onClick={handleSave} disabled={isSaving || !form.nombre || !form.planId}>
-            {isSaving ? 'Guardando...' : 'Guardar Tenant'}
-          </Button>
-        </SheetFooter>
+            {!isEditing && (
+              <div>
+                <h3 className="text-sm font-semibold mb-4">Admin inicial del tenant</h3>
+                <div className="space-y-3">
+                  <FormInput
+                    control={control}
+                    name="admin_nombre"
+                    label="Nombre del admin"
+                    placeholder="Juan Pérez"
+                  />
+                  <FormInput
+                    control={control}
+                    name="admin_email"
+                    label="Email del admin"
+                    type="email"
+                    placeholder="admin@empresa.com"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="sendCredentials" defaultChecked />
+                    <label
+                      htmlFor="sendCredentials"
+                      className="text-sm text-muted-foreground cursor-pointer"
+                    >
+                      Enviar credenciales por email
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <SheetFooter className="border-t border-border/40 px-6 py-4">
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+              Cancelar
+            </Button>
+            <Button type="submit" color="primary" disabled={isSubmitting}>
+              {isSubmitting ? 'Guardando...' : 'Guardar Tenant'}
+            </Button>
+          </SheetFooter>
+        </form>
       </SheetContent>
     </Sheet>
   );

@@ -1,14 +1,14 @@
-import { useState } from 'react';
 import {
-  useReactTable,
+  ColumnDef,
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  SortingState,
   PaginationState,
   RowSelectionState,
-  ColumnDef,
+  SortingState,
+  useReactTable,
 } from '@tanstack/react-table';
+import { useState } from 'react';
 
 interface UseTableProps<TData> {
   data: TData[];

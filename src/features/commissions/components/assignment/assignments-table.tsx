@@ -1,21 +1,22 @@
 'use client';
 
-import React, { useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import type { AsignacionPlan } from '../../types/commissions.types';
 import { format } from 'date-fns';
+import React, { useMemo } from 'react';
 import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
   Table,
   TableBody,
-  TableRow,
   TableCell,
   TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
+
+import type { AsignacionPlan } from '../../types/commissions.types';
 
 interface AssignmentsTableProps {
   asignaciones: AsignacionPlan[];

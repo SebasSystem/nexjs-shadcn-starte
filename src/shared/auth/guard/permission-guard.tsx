@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
+
 import { useAuthContext } from '../hooks/use-auth-context';
 
 type Props = {

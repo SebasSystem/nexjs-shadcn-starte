@@ -1,23 +1,24 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useEffect } from 'react';
+import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { Button } from 'src/shared/components/ui/button';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Input } from 'src/shared/components/ui/input';
 import { FormInput } from 'src/shared/components/ui/form-input';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
+
+import { type PlanComisionForm, planComisionSchema } from '../../schemas/plan.schema';
 import { type PlanComision } from '../../types/commissions.types';
-import { planComisionSchema, type PlanComisionForm } from '../../schemas/plan.schema';
 
 interface PlanDrawerProps {
   isOpen: boolean;
@@ -142,7 +143,10 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                 {...register('rolesAplicables', {
                   setValueAs: (v) =>
                     typeof v === 'string'
-                      ? v.split(',').map((s) => s.trim()).filter(Boolean)
+                      ? v
+                          .split(',')
+                          .map((s) => s.trim())
+                          .filter(Boolean)
                       : v,
                 })}
                 label="Roles Aplicables"
@@ -160,12 +164,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                   label="Vigencia Inicio"
                   required
                 />
-                <FormInput
-                  control={control}
-                  name="fechaFin"
-                  type="date"
-                  label="Vigencia Fin"
-                />
+                <FormInput control={control} name="fechaFin" type="date" label="Vigencia Fin" />
               </div>
             </section>
 
@@ -230,9 +229,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                   </div>
                 ))}
               </div>
-              {errors.tramos && (
-                <p className="text-xs text-destructive">{errors.tramos.message}</p>
-              )}
+              {errors.tramos && <p className="text-xs text-destructive">{errors.tramos.message}</p>}
 
               <Button
                 type="button"

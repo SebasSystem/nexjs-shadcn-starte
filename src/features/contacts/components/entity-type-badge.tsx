@@ -1,4 +1,5 @@
 import { Badge } from 'src/shared/components/ui/badge';
+
 import type { TipoEntidad } from '../types/contacts.types';
 
 const CONFIG: Record<TipoEntidad, { label: string; color: 'info' | 'success' | 'warning' }> = {

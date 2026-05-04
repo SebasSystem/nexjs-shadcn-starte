@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+
 import { teamsService } from '../services/teams.service';
 import type { Equipo, MiembroEquipo } from '../types/settings.types';
 

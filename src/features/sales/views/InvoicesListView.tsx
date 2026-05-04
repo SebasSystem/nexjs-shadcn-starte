@@ -1,45 +1,36 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
-import { Badge } from 'src/shared/components/ui/badge';
-import { Input } from 'src/shared/components/ui/input';
-import { SelectField } from 'src/shared/components/ui/select-field';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { formatMoney } from 'src/lib/currency';
+import { formatDate } from 'src/lib/date';
+import { paths } from 'src/routes/paths';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
-  useTable,
+  Table,
+  TableBody,
+  TableCell,
   TableContainer,
   TableHeadCustom,
   TablePaginationCustom,
-  Table,
-  TableBody,
   TableRow,
-  TableCell,
+  useTable,
 } from 'src/shared/components/table';
-import { paths } from 'src/routes/paths';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
+
 import { useSalesContext } from '../context/SalesContext';
 import type { Invoice } from '../types/sales.types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatDate(dateStr: string): string {
+function formatDateLocal(dateStr: string): string {
   try {
-    return new Date(dateStr + 'T12:00:00').toLocaleDateString('es-CO', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
+    return formatDate(dateStr + 'T12:00:00', { month: 'short' });
   } catch {
     return dateStr;
   }
@@ -124,7 +115,7 @@ export function InvoicesListView() {
       col.accessor('issueDate', {
         header: 'Emisión',
         cell: (info) => (
-          <span className="text-muted-foreground">{formatDate(info.getValue())}</span>
+          <span className="text-muted-foreground">{formatDateLocal(info.getValue())}</span>
         ),
       }),
       col.accessor('dueDate', {
@@ -133,7 +124,7 @@ export function InvoicesListView() {
           const overdue = isOverdue(row.original);
           return (
             <span className={overdue ? 'text-red-500 font-medium' : 'text-muted-foreground'}>
-              {formatDate(row.original.dueDate)}
+              {formatDateLocal(row.original.dueDate)}
               {overdue && <Icon name="AlertTriangle" size={12} className="inline ml-1" />}
             </span>
           );
@@ -142,13 +133,17 @@ export function InvoicesListView() {
       col.accessor('total', {
         header: 'Total',
         cell: (info) => (
-          <span className="font-semibold text-foreground">{formatCurrency(info.getValue())}</span>
+          <span className="font-semibold text-foreground">
+            {formatMoney(info.getValue(), { scope: 'tenant', maximumFractionDigits: 0 })}
+          </span>
         ),
       }),
       col.accessor('totalPaid', {
         header: 'Pagado',
         cell: (info) => (
-          <span className="text-emerald-600 font-medium">{formatCurrency(info.getValue())}</span>
+          <span className="text-emerald-600 font-medium">
+            {formatMoney(info.getValue(), { scope: 'tenant', maximumFractionDigits: 0 })}
+          </span>
         ),
       }),
       col.display({
@@ -160,7 +155,7 @@ export function InvoicesListView() {
             <span
               className={balance > 0 ? 'text-orange-500 font-semibold' : 'text-muted-foreground'}
             >
-              {formatCurrency(balance)}
+              {formatMoney(balance, { scope: 'tenant', maximumFractionDigits: 0 })}
             </span>
           );
         },
@@ -224,7 +219,9 @@ export function InvoicesListView() {
           <span className="font-medium text-red-700 dark:text-red-400">
             {overdueCount} factura{overdueCount !== 1 ? 's' : ''} vencida
             {overdueCount !== 1 ? 's' : ''} — saldo en mora:{' '}
-            <strong>{formatCurrency(pendingBalance)}</strong>
+            <strong>
+              {formatMoney(pendingBalance, { scope: 'tenant', maximumFractionDigits: 0 })}
+            </strong>
           </span>
         </div>
       )}

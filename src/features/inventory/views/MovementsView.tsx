@@ -1,38 +1,33 @@
 'use client';
 
-import { Fragment, useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import { Fragment, useMemo, useState } from 'react';
 import {
-  Icon,
-  Badge,
-  Button,
-  Input,
-  SelectField,
-} from 'src/shared/components/ui';
-import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-} from 'src/shared/components/table';
+  ADJUSTMENT_REASON_LABELS,
+  MOVEMENT_TYPE_CONFIG,
+  type WarehouseMovement,
+} from 'src/_mock/_inventories';
+import { cn } from 'src/lib/utils';
 import {
   PageContainer,
   PageHeader,
   SectionCard,
   StatsCard,
 } from 'src/shared/components/layouts/page';
-import { cn } from 'src/lib/utils';
 import {
-  MOVEMENT_TYPE_CONFIG,
-  ADJUSTMENT_REASON_LABELS,
-  type WarehouseMovement,
-} from 'src/_mock/_inventories';
-import { TransferDrawer } from '../components/TransferDrawer';
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
+} from 'src/shared/components/table';
+import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+
 import { GoodsReceiptDrawer } from '../components/GoodsReceiptDrawer';
+import { TransferDrawer } from '../components/TransferDrawer';
 import { useInventory } from '../hooks/useInventory';
 
 // ─── Column helper ────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import type {
+  MilestoneStatus,
   Project,
   ProjectStatus,
-  MilestoneStatus,
   ResourceRole,
 } from 'src/features/projects/types';
 

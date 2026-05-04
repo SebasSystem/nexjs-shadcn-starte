@@ -1,8 +1,8 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { useUiStore } from 'src/store/ui.store';
 import { Icon } from 'src/shared/components/ui';
+import { useUiStore } from 'src/store/ui.store';
 
 type Props = {
   children?: ReactNode;

@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { PlanComision } from '../types/commissions.types';
-import { planesService } from '../services/plans.service';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+import { planesService } from '../services/plans.service';
+import type { PlanComision } from '../types/commissions.types';
 
 export const usePlans = () => {
   const [planes, setPlanes] = useState<PlanComision[]>([]);

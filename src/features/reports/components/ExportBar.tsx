@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Icon } from 'src/shared/components/ui';
-import { FieldSelector, ExportColumn } from './FieldSelector';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { Button, Icon } from 'src/shared/components/ui';
+
+import { ExportColumn, FieldSelector } from './FieldSelector';
 
 interface ExportBarProps {
   columns?: ExportColumn[];

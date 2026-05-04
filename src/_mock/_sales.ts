@@ -1,10 +1,10 @@
 // ─── PIPELINE ────────────────────────────────────────────────────────────────
 
 import type {
-  PipelineStage,
-  Opportunity,
-  Quotation,
   Invoice,
+  Opportunity,
+  PipelineStage,
+  Quotation,
 } from 'src/features/sales/types/sales.types';
 
 export const PIPELINE_STAGES: PipelineStage[] = [

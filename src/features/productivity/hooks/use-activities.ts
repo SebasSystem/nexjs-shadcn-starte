@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { Actividad, EstadoActividad } from '../types/productivity.types';
-import { ProductivityService } from '../services/productivity.service';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+import { ProductivityService } from '../services/productivity.service';
+import type { Actividad, EstadoActividad } from '../types/productivity.types';
 
 export const useActivities = (contactoId?: string) => {
   const [data, setData] = useState<Actividad[]>([]);

@@ -1,28 +1,22 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
-import { Card, CardContent } from 'src/shared/components/ui/card';
-import { Badge } from 'src/shared/components/ui/badge';
-import { SectionCard, PageContainer } from 'src/shared/components/layouts/page';
-import { RegisterPaymentDrawer } from '../components/RegisterPaymentDrawer';
-import { useInvoice } from '../hooks/useInvoice';
-import { paths } from 'src/routes/paths';
-import type { Payment } from 'src/features/sales/types/sales.types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import type { Payment } from 'src/features/sales/types/sales.types';
+import { formatMoney } from 'src/lib/currency';
+import { paths } from 'src/routes/paths';
+import { PageContainer, SectionCard } from 'src/shared/components/layouts/page';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
+import { Card, CardContent } from 'src/shared/components/ui/card';
+import { Icon } from 'src/shared/components/ui/icon';
+
+import { RegisterPaymentDrawer } from '../components/RegisterPaymentDrawer';
+import { useInvoice } from '../hooks/useInvoice';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
 
 function formatDate(dateStr: string): string {
   try {
@@ -212,7 +206,11 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                       Total Factura
                     </p>
                     <p className="text-2xl font-bold text-foreground">
-                      {formatCurrency(invoice.total)}
+                      {formatMoney(invoice.total, {
+                        scope: 'tenant',
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </p>
                   </div>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500 shrink-0">
@@ -220,7 +218,12 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Base imponible: {formatCurrency(baseImponible)}
+                  Base imponible:{' '}
+                  {formatMoney(baseImponible, {
+                    scope: 'tenant',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
               </CardContent>
             </Card>
@@ -233,7 +236,11 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                       Total Pagado
                     </p>
                     <p className="text-2xl font-bold text-foreground">
-                      {formatCurrency(invoice.totalPaid)}
+                      {formatMoney(invoice.totalPaid, {
+                        scope: 'tenant',
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </p>
                   </div>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500 shrink-0">
@@ -269,7 +276,11 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                         pendingBalance > 0 ? 'text-orange-600' : 'text-foreground'
                       }`}
                     >
-                      {formatCurrency(pendingBalance)}
+                      {formatMoney(pendingBalance, {
+                        scope: 'tenant',
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </p>
                   </div>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-orange-500/10 text-orange-600 shrink-0">
@@ -303,8 +314,22 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
               />
             </div>
             <div className="flex justify-between text-xs text-muted-foreground mt-2 font-medium">
-              <span>Pagado: {formatCurrency(invoice.totalPaid)}</span>
-              <span>Total: {formatCurrency(invoice.total)}</span>
+              <span>
+                Pagado:{' '}
+                {formatMoney(invoice.totalPaid, {
+                  scope: 'tenant',
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+              <span>
+                Total:{' '}
+                {formatMoney(invoice.total, {
+                  scope: 'tenant',
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
             </div>
           </div>
 
@@ -366,7 +391,11 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                       </td>
                       <td className="px-6 py-4 text-right text-muted-foreground">{p.qty}</td>
                       <td className="px-6 py-4 text-right text-muted-foreground">
-                        {formatCurrency(p.unitPrice)}
+                        {formatMoney(p.unitPrice, {
+                          scope: 'tenant',
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </td>
                       <td className="px-6 py-4 text-right text-muted-foreground">{p.discount}%</td>
                       <td className="px-6 py-4 text-right">
@@ -375,7 +404,11 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right font-bold text-foreground">
-                        {formatCurrency(p.subtotal)}
+                        {formatMoney(p.subtotal, {
+                          scope: 'tenant',
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </td>
                     </tr>
                   ))}
@@ -388,17 +421,31 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                 <div className="flex items-center justify-between text-sm py-1.5 text-muted-foreground">
                   <span>Base Imponible:</span>
                   <span className="font-medium text-foreground">
-                    {formatCurrency(baseImponible)}
+                    {formatMoney(baseImponible, {
+                      scope: 'tenant',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm py-1.5 text-muted-foreground">
                   <span>IVA (21%):</span>
-                  <span className="font-medium text-foreground">{formatCurrency(totalIva)}</span>
+                  <span className="font-medium text-foreground">
+                    {formatMoney(totalIva, {
+                      scope: 'tenant',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/60">
                   <span className="text-base font-bold text-foreground">Total:</span>
                   <span className="text-lg font-bold text-blue-600">
-                    {formatCurrency(invoice.total)}
+                    {formatMoney(invoice.total, {
+                      scope: 'tenant',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
               </div>
@@ -448,7 +495,11 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right font-bold text-emerald-600">
-                          {formatCurrency(payment.amount)}
+                          {formatMoney(payment.amount, {
+                            scope: 'tenant',
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </td>
                         <td className="px-6 py-4 text-muted-foreground font-mono text-xs">
                           {payment.reference || '-'}
@@ -556,7 +607,11 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                 <div className="flex justify-between items-center text-slate-300">
                   <span>Deuda total:</span>
                   <span className="font-medium text-orange-400">
-                    {formatCurrency(pendingBalance)}
+                    {formatMoney(pendingBalance, {
+                      scope: 'tenant',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-slate-300">

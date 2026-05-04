@@ -1,16 +1,17 @@
 'use client';
 
-import { useFieldArray } from 'react-hook-form';
 import type { UseFormReturn } from 'react-hook-form';
-import { Icon } from 'src/shared/components/ui/icon';
+import { useFieldArray } from 'react-hook-form';
+import { MOCK_ASSIGNMENT_RULES, MOCK_AUTOMATION_USERS } from 'src/_mock/_automation';
+import { SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-import { SectionCard } from 'src/shared/components/layouts/page';
-import { ACTION_TYPE_LABELS } from '../types';
-import { MOCK_ASSIGNMENT_RULES, MOCK_AUTOMATION_USERS } from 'src/_mock/_automation';
+
 import type { RuleFormData } from '../schemas/rule.schema';
 import type { ActionType } from '../types';
+import { ACTION_TYPE_LABELS } from '../types';
 
 const ACTION_OPTIONS = (Object.keys(ACTION_TYPE_LABELS) as ActionType[]).map((key) => ({
   value: key,

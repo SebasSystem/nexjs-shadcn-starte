@@ -1,25 +1,26 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-  Button,
-  SelectField,
-} from 'src/shared/components/ui';
-import { Textarea, Input } from 'src/shared/components/ui';
-import { Icon } from 'src/shared/components/ui';
+import { useEffect } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { MOCK_COMPETITORS } from 'src/_mock/_intelligence';
-import { battlecardSchema, type BattlecardFormData } from '../schemas/battlecard.schema';
-import { ObjectionItem } from './ObjectionItem';
+import {
+  Button,
+  SelectField,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from 'src/shared/components/ui';
+import { Input, Textarea } from 'src/shared/components/ui';
+import { Icon } from 'src/shared/components/ui';
+
+import { type BattlecardFormData, battlecardSchema } from '../schemas/battlecard.schema';
 import type { Battlecard } from '../types';
+import { ObjectionItem } from './ObjectionItem';
 
 interface Props {
   open: boolean;

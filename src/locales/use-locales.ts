@@ -1,6 +1,6 @@
-import { useTranslation } from 'react-i18next';
-import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { allLangs, fallbackLng } from './locales-config';
 

@@ -1,25 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import type { Opportunity, PipelineStage, StageId } from 'src/features/sales/types/sales.types';
+import { formatMoney } from 'src/lib/currency';
 import { cn } from 'src/lib/utils';
+
 import { STAGE_PROBABILITY } from '../config/pipeline.config';
 import { OpportunityCard } from './OpportunityCard';
-import type { PipelineStage, Opportunity, StageId } from 'src/features/sales/types/sales.types';
 
 interface PipelineColumnProps {
   stage: PipelineStage;
   opportunities: Opportunity[];
   onCardDrop: (oppId: string, targetStage: StageId) => void;
   onOpenPanel: (id: string) => void;
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
 }
 
 export function PipelineColumn({
@@ -49,11 +42,11 @@ export function PipelineColumn({
         {opportunities.length > 0 && (
           <div className="text-right">
             <p className="text-[10px] font-medium text-muted-foreground leading-tight">
-              {formatCurrency(totalValue)}
+              {formatMoney(totalValue, { maximumFractionDigits: 0 })}
             </p>
             {!isTerminal && (
               <p className="text-[9px] text-muted-foreground/50 leading-tight">
-                {formatCurrency(weightedValue)} pond.
+                {formatMoney(weightedValue, { maximumFractionDigits: 0 })} pond.
               </p>
             )}
           </div>

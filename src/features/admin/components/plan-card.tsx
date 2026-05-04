@@ -1,22 +1,23 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Badge } from 'src/shared/components/ui/badge';
-import { Button } from 'src/shared/components/ui/button';
+import { PlanSaaS, TierPlan } from 'src/features/admin/types/admin.types';
+import { formatMoney } from 'src/lib/currency';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from 'src/shared/components/ui/accordion';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from 'src/shared/components/ui/dropdown-menu';
-import { PlanSaaS, TierPlan } from 'src/features/admin/types/admin.types';
+import { Icon } from 'src/shared/components/ui/icon';
 
 interface PlanCardProps {
   plan: PlanSaaS;
@@ -51,7 +52,6 @@ const soporteLabel: Record<string, string> = {
   EMAIL_CHAT: 'Email + Chat',
   DEDICADO: 'Soporte Dedicado',
 };
-
 const moduloLabel: Record<string, string> = {
   ventas: 'Ventas',
   inventario: 'Inventario',
@@ -63,23 +63,23 @@ const moduloLabel: Record<string, string> = {
 
 export function PlanCard({ plan, onEdit }: PlanCardProps) {
   const router = useRouter();
-  const config = tierConfig[plan.tier];
+  const config = tierConfig[plan.tier] ?? tierConfig.STARTER;
+  const f = plan.features;
 
   return (
     <div className={`bg-card rounded-2xl shadow-card overflow-hidden ${config.border}`}>
       <div className="p-5">
-        {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             <Badge variant="soft" className={config.badgeClass}>
               {config.label}
             </Badge>
-            {plan.estado !== 'ACTIVO' && (
+            {plan.status !== 'ACTIVO' && (
               <Badge
                 variant="soft"
                 className="bg-gray-100 text-gray-500 border-transparent text-xs"
               >
-                {plan.estado}
+                {plan.status}
               </Badge>
             )}
           </div>
@@ -100,14 +100,13 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
             </DropdownMenu>
           </div>
         </div>
-
-        <h3 className="text-h6 font-bold text-foreground">{plan.nombre}</h3>
+        <h3 className="text-h6 font-bold text-foreground">{plan.name}</h3>
         <p className="text-body2 text-muted-foreground mb-4">
-          <span className="text-2xl font-bold text-foreground">${plan.precio}</span> / mes por
-          tenant
+          <span className="text-2xl font-bold text-foreground">
+            {formatMoney(plan.price, { scope: 'platform', maximumFractionDigits: 0 })}
+          </span>{' '}
+          / mes por tenant
         </p>
-
-        {/* Features Accordion */}
         <Accordion type="single" collapsible defaultValue="features">
           <AccordionItem value="features" className="border-0">
             <AccordionTrigger className="py-2 text-body2 font-semibold text-foreground hover:no-underline">
@@ -119,57 +118,49 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
                   <Icon name="Users" className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">Usuarios:</span>
                   <span className="font-medium text-foreground">
-                    {plan.features.limiteUsuarios === null
-                      ? 'Ilimitados'
-                      : `hasta ${plan.features.limiteUsuarios}`}
+                    {plan.max_users === null ? 'Ilimitados' : `hasta ${plan.max_users}`}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-body2">
                   <Icon name="HardDrive" className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">Almacenamiento:</span>
                   <span className="font-medium text-foreground">
-                    {plan.features.almacenamientoGB === null
-                      ? 'Ilimitado'
-                      : `${plan.features.almacenamientoGB} GB`}
+                    {f.storage_gb === null ? 'Ilimitado' : `${f.storage_gb} GB`}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-body2">
                   <Icon name="Zap" className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">API calls/mes:</span>
                   <span className="font-medium text-foreground">
-                    {plan.features.apiCallsMes === null
+                    {f.api_calls_month === null
                       ? 'Ilimitadas'
-                      : plan.features.apiCallsMes >= 1000000
-                        ? `${(plan.features.apiCallsMes / 1000000).toFixed(0)}M`
-                        : `${(plan.features.apiCallsMes / 1000).toFixed(0)}k`}
+                      : f.api_calls_month >= 1000000
+                        ? `${(f.api_calls_month / 1000000).toFixed(0)}M`
+                        : `${(f.api_calls_month / 1000).toFixed(0)}k`}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-body2">
                   <Icon name="Headphones" className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <span className="text-muted-foreground">Soporte:</span>
                   <span className="font-medium text-foreground">
-                    {soporteLabel[plan.features.soporte]}
+                    {soporteLabel[f.support_type]}
                   </span>
                 </div>
-
-                {/* Modules */}
                 <div className="pt-1">
                   <p className="text-caption font-semibold text-muted-foreground mb-1.5">
                     Módulos:
                   </p>
                   <div className="flex flex-wrap gap-1">
-                    {plan.features.modulos.map((m) => (
+                    {f.modules.map((m) => (
                       <Badge key={m} variant="outline" className="text-xs">
                         {moduloLabel[m] || m}
                       </Badge>
                     ))}
                   </div>
                 </div>
-
-                {/* Booleans */}
                 <div className="grid grid-cols-2 gap-1 pt-1">
                   <div className="flex items-center gap-1.5 text-caption">
-                    {plan.features.customDomain ? (
+                    {f.custom_domain ? (
                       <Icon name="CheckCircle2" className="h-3.5 w-3.5 text-emerald-500" />
                     ) : (
                       <Icon name="XCircle" className="h-3.5 w-3.5 text-muted-foreground/40" />
@@ -177,7 +168,7 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
                     <span className="text-muted-foreground">Custom Domain</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-caption">
-                    {plan.features.sso ? (
+                    {f.sso ? (
                       <Icon name="CheckCircle2" className="h-3.5 w-3.5 text-emerald-500" />
                     ) : (
                       <Icon name="XCircle" className="h-3.5 w-3.5 text-muted-foreground/40" />
@@ -185,17 +176,17 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
                     <span className="text-muted-foreground">SSO</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-caption">
-                    {plan.features.reportesAvanzados ? (
+                    {f.advanced_reports ? (
                       <Icon name="CheckCircle2" className="h-3.5 w-3.5 text-emerald-500" />
                     ) : (
                       <Icon name="XCircle" className="h-3.5 w-3.5 text-muted-foreground/40" />
                     )}
                     <span className="text-muted-foreground">Reportes avanzados</span>
                   </div>
-                  {plan.features.slaUptime && (
+                  {f.sla_uptime && (
                     <div className="flex items-center gap-1.5 text-caption">
                       <Icon name="CheckCircle2" className="h-3.5 w-3.5 text-emerald-500" />
-                      <span className="text-muted-foreground">SLA {plan.features.slaUptime}%</span>
+                      <span className="text-muted-foreground">SLA {f.sla_uptime}%</span>
                     </div>
                   )}
                 </div>
@@ -203,11 +194,9 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-
-        {/* Footer */}
         <div className="border-t border-border/40 pt-4 mt-3">
           <p className="text-body2 text-muted-foreground mb-2">
-            <span className="font-semibold text-foreground">{plan.totalTenants}</span> tenants
+            <span className="font-semibold text-foreground">{plan.total_tenants}</span> tenants
             activos
           </p>
           <Button

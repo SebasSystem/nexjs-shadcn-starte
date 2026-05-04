@@ -1,10 +1,11 @@
 'use client';
 
 import { SectionCard } from 'src/shared/components/layouts/page';
-import { SelectField } from 'src/shared/components/ui/select-field';
 import { Input } from 'src/shared/components/ui/input';
-import { TRIGGER_SOURCE_LABELS, TRIGGER_EVENT_LABELS, TRIGGERS_BY_SOURCE } from '../types';
-import type { TriggerSource, TriggerEvent } from '../types';
+import { SelectField } from 'src/shared/components/ui/select-field';
+
+import type { TriggerEvent, TriggerSource } from '../types';
+import { TRIGGER_EVENT_LABELS, TRIGGER_SOURCE_LABELS, TRIGGERS_BY_SOURCE } from '../types';
 
 const SOURCE_OPTIONS = (Object.keys(TRIGGER_SOURCE_LABELS) as TriggerSource[]).map((key) => ({
   value: key,

@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { Documento } from '../types/productivity.types';
-import { ProductivityService } from '../services/productivity.service';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+import { ProductivityService } from '../services/productivity.service';
+import type { Documento } from '../types/productivity.types';
 
 export const useVault = (contactoId: string) => {
   const [data, setData] = useState<Documento[]>([]);

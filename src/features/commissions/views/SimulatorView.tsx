@@ -1,20 +1,20 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import React, { useMemo, useState } from 'react';
 import { useSimulator } from 'src/features/commissions/hooks/use-simulator';
-import { Button } from 'src/shared/components/ui/button';
-import { Input } from 'src/shared/components/ui/input';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { Icon } from 'src/shared/components/ui/icon';
 import {
-  useTable,
-  TableHeadCustom,
   Table,
   TableBody,
-  TableRow,
   TableCell,
+  TableHeadCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
-import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
 
 type TramoDesglose = {
   tramoInfo: string;
@@ -118,7 +118,8 @@ export const SimulatorView = () => {
         <SectionCard className="flex flex-col gap-6">
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground flex items-center gap-2">
-              <Icon name="Calculator" size={18} className="text-blue-600" /> Parámetros de Simulación
+              <Icon name="Calculator" size={18} className="text-blue-600" /> Parámetros de
+              Simulación
             </h3>
 
             <div className="space-y-2">

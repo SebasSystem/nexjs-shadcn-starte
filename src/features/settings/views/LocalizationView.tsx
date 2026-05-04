@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { useLocalization } from '../hooks/use-localization';
+
 import { LocalizationForm } from '../components/localization/localization-form';
+import { useLocalization } from '../hooks/use-localization';
 
 export const LocalizationView = () => {
   const { config, isLoading, isSaving, saveConfig } = useLocalization();

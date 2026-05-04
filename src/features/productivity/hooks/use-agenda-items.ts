@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
 import { isPast, isToday } from 'date-fns';
-import { ProductivityService } from '../services/productivity.service';
-import { MOCK_OPPORTUNITIES } from 'src/_mock/_sales';
-import { MOCK_PROJECTS } from 'src/_mock/_projects';
-import type { Actividad, EstadoActividad } from '../types/productivity.types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { MOCK_PROJECTS } from 'src/_mock/_projects';
+import { MOCK_OPPORTUNITIES } from 'src/_mock/_sales';
+
+import { ProductivityService } from '../services/productivity.service';
+import type { Actividad, EstadoActividad } from '../types/productivity.types';
 
 // ─── Map pipeline activity type → TipoActividad ──────────────────────────────
 

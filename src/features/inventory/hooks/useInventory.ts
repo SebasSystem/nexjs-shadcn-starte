@@ -1,19 +1,19 @@
 import { useMemo } from 'react';
+import { toast } from 'sonner';
 import {
-  getProductStockStatus,
   getProductAvailable,
-  MOCK_PRODUCTS,
+  getProductStockStatus,
   MOCK_MOVEMENTS,
+  MOCK_PRODUCTS,
   type Product,
   type StockStatus,
 } from 'src/_mock/_inventories';
 import {
-  QUOTE_STATUS_CONFIG,
-  MOCK_QUOTES,
   getQuotesByProduct,
+  MOCK_QUOTES,
+  QUOTE_STATUS_CONFIG,
   type QuoteMock,
 } from 'src/_mock/_quotes';
-import { toast } from 'sonner';
 
 export type RichProduct = Product & {
   reserved: number;

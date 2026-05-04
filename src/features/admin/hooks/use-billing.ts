@@ -1,17 +1,22 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Factura } from 'src/features/admin/types/admin.types';
+import { useCallback, useEffect, useState } from 'react';
 import { billingService } from 'src/features/admin/services/billing.service';
+import { Factura } from 'src/features/admin/types/admin.types';
+import { cache } from 'src/lib/cache';
+
+const CACHE_KEY = 'admin:billing';
 
 export function useBilling() {
-  const [facturas, setFacturas] = useState<Factura[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const cached = cache.get<Factura[]>(CACHE_KEY);
+  const [facturas, setFacturas] = useState<Factura[]>(cached ?? []);
+  const [isLoading, setIsLoading] = useState(!cached);
 
   const fetchFacturas = useCallback(async () => {
-    setIsLoading(true);
+    setIsLoading(!cached);
     try {
       const data = await billingService.getAll();
+      cache.set(CACHE_KEY, data);
       setFacturas(data);
     } finally {
       setIsLoading(false);
@@ -22,28 +27,24 @@ export function useBilling() {
     fetchFacturas();
   }, [fetchFacturas]);
 
-  const marcarPagada = useCallback(async (id: string) => {
-    const updated = await billingService.marcarPagada(id);
-    setFacturas((prev) => prev.map((f) => (f.id === id ? updated : f)));
+  const marcarPagada = useCallback(async (uid: string) => {
+    const updated = await billingService.marcarPagada(uid);
+    cache.invalidate(CACHE_KEY);
+    setFacturas((prev) => prev.map((f) => (f.uid === uid ? updated : f)));
     return updated;
   }, []);
 
-  const marcarPagadas = useCallback(async (ids: string[]) => {
-    const updated = await billingService.marcarPagadas(ids);
+  const marcarPagadas = useCallback(async (uids: string[]) => {
+    const updated = await billingService.marcarPagadas(uids);
+    cache.invalidate(CACHE_KEY);
     setFacturas((prev) =>
       prev.map((f) => {
-        const found = updated.find((u) => u.id === f.id);
+        const found = updated.find((u: Factura) => u.uid === f.uid);
         return found || f;
       })
     );
     return updated;
   }, []);
 
-  return {
-    facturas,
-    isLoading,
-    refetch: fetchFacturas,
-    marcarPagada,
-    marcarPagadas,
-  };
+  return { facturas, isLoading, refetch: fetchFacturas, marcarPagada, marcarPagadas };
 }

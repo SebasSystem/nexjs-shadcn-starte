@@ -1,18 +1,24 @@
 'use client';
 
 import React, { useState } from 'react';
-import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { usePlansAdmin } from 'src/features/admin/hooks/use-plans-admin';
-import { PlanSaaS } from 'src/features/admin/types/admin.types';
-import { Button } from 'src/shared/components/ui/button';
-import { Icon } from 'src/shared/components/ui/icon';
 import { PlanCard } from 'src/features/admin/components/plan-card';
 import { PlanFormDrawer } from 'src/features/admin/components/plan-form-drawer';
+import { usePlansAdmin } from 'src/features/admin/hooks/use-plans-admin';
+import { PlanSaaS } from 'src/features/admin/types/admin.types';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { PaginationControl } from 'src/shared/components/ui/pagination-control';
+import { usePagination } from 'src/shared/hooks/use-pagination';
+
+const PAGE_SIZE = 9;
 
 export const PlansAdminView = () => {
   const { planes, isLoading, createPlan, updatePlan } = usePlansAdmin();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PlanSaaS | null>(null);
+
+  const { page, totalPages, total, paginated, goTo } = usePagination(planes, PAGE_SIZE);
 
   const handleOpenNew = () => {
     setSelectedPlan(null);
@@ -26,7 +32,7 @@ export const PlansAdminView = () => {
 
   const handleSave = async (data: Partial<PlanSaaS>) => {
     if (selectedPlan) {
-      await updatePlan(selectedPlan.id, data);
+      await updatePlan(selectedPlan.uid, data);
     } else {
       await createPlan(data as unknown as PlanSaaS);
     }
@@ -66,17 +72,28 @@ export const PlansAdminView = () => {
           </Button>
         </SectionCard>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-4">
-          {planes.map((plan) => (
-            <PlanCard key={plan.id} plan={plan} onEdit={() => handleOpenEdit(plan)} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-4">
+            {paginated.map((plan) => (
+              <PlanCard key={plan.uid} plan={plan} onEdit={() => handleOpenEdit(plan)} />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <PaginationControl
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              pageSize={PAGE_SIZE}
+              onPageChange={goTo}
+            />
+          )}
+        </>
       )}
 
-      {/* Using dynamic key to reset form state when selectedPlan changes */}
+      {/* Dynamic key resets form state when selectedPlan changes */}
       {isFormOpen && (
         <PlanFormDrawer
-          key={selectedPlan ? selectedPlan.id : 'new-plan'}
+          key={selectedPlan ? selectedPlan.uid : 'new-plan'}
           plan={selectedPlan}
           isOpen={isFormOpen}
           onClose={() => setIsFormOpen(false)}

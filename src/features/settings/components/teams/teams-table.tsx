@@ -1,6 +1,6 @@
 'use client';
 
-import { Icon } from 'src/shared/components/ui/icon';
+import { SectionCard } from 'src/shared/components/layouts/page';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
@@ -11,8 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from 'src/shared/components/ui/dropdown-menu';
+import { Icon } from 'src/shared/components/ui/icon';
+
 import type { Equipo } from '../../types/settings.types';
-import { SectionCard } from 'src/shared/components/layouts/page';
 
 function getInitials(nombre: string) {
   return nombre

@@ -1,26 +1,27 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { MOCK_AUTOMATION_USERS } from 'src/_mock/_automation';
+import { cn } from 'src/lib/utils';
+import { Button } from 'src/shared/components/ui/button';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
-import { Button } from 'src/shared/components/ui/button';
-import { Input } from 'src/shared/components/ui/input';
 import { Textarea } from 'src/shared/components/ui/textarea';
-import { SelectField } from 'src/shared/components/ui/select-field';
-import { cn } from 'src/lib/utils';
-import { ASSIGNMENT_RULE_TYPE_LABELS } from '../types';
-import { assignmentRuleSchema } from '../schemas/assignment-rule.schema';
-import { MOCK_AUTOMATION_USERS } from 'src/_mock/_automation';
-import type { AssignmentRule, AssignmentRuleType } from '../types';
+
 import type { AssignmentRuleFormData } from '../schemas/assignment-rule.schema';
+import { assignmentRuleSchema } from '../schemas/assignment-rule.schema';
+import type { AssignmentRule, AssignmentRuleType } from '../types';
+import { ASSIGNMENT_RULE_TYPE_LABELS } from '../types';
 
 const TYPE_OPTIONS = (Object.keys(ASSIGNMENT_RULE_TYPE_LABELS) as AssignmentRuleType[]).map(
   (key) => ({

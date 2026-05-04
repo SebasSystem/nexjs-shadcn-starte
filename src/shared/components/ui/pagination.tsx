@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { Icon } from './icon';
 
 import { cn } from '@/lib/utils';
-import { buttonVariants, type Button } from '@/shared/components/ui/button';
+import { type Button, buttonVariants } from '@/shared/components/ui/button';
+
+import { Icon } from './icon';
 
 function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
   return (
@@ -98,9 +99,9 @@ function PaginationEllipsis({ className, ...props }: React.ComponentProps<'span'
 export {
   Pagination,
   PaginationContent,
-  PaginationLink,
-  PaginationItem,
-  PaginationPrevious,
-  PaginationNext,
   PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 };

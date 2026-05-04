@@ -1,13 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Icon } from 'src/shared/components/ui/icon';
+import { useState } from 'react';
 import { Button } from 'src/shared/components/ui/button';
-import { Textarea } from 'src/shared/components/ui/textarea';
 import { Card, CardContent } from 'src/shared/components/ui/card';
-import { useSalesContext } from '../context/SalesContext';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from 'src/shared/components/ui/dialog';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Textarea } from 'src/shared/components/ui/textarea';
+
+import { useSalesContext } from '../context/SalesContext';
 
 interface NotesTimelineProps {
   opportunityId?: string;

@@ -1,31 +1,33 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
-import { Badge } from 'src/shared/components/ui/badge';
-import { Input } from 'src/shared/components/ui/input';
-import { Textarea } from 'src/shared/components/ui/textarea';
-import { SelectField } from 'src/shared/components/ui/select-field';
+import { useCallback, useMemo, useState } from 'react';
+import { formatMoney, getCurrencyPreferences } from 'src/lib/currency';
+import { formatDate } from 'src/lib/date';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
   Table,
   TableBody,
-  TableRow,
   TableCell,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
+import { Textarea } from 'src/shared/components/ui/textarea';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,10 +71,10 @@ const CLIENT_TYPE_OPTIONS = [
 ];
 
 const CURRENCY_OPTIONS = [
-  { value: 'COP', label: 'COP' },
-  { value: 'COP', label: 'COP' },
-  { value: 'EUR', label: 'EUR' },
-  { value: 'COP', label: 'COP' },
+  { value: 'COP', label: 'COP – Peso colombiano' },
+  { value: 'USD', label: 'USD – Dólar estadounidense' },
+  { value: 'EUR', label: 'EUR – Euro' },
+  { value: 'MXN', label: 'MXN – Peso mexicano' },
 ];
 
 const PRICE_LIST_OPTIONS = [
@@ -82,14 +84,6 @@ const PRICE_LIST_OPTIONS = [
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function formatMXN(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
 
 function lineTotal(line: LineItem): number {
   return line.qty * line.unitPrice * (1 - line.discount / 100);
@@ -111,11 +105,7 @@ function InvoicePreviewDrawer({ open, onClose, lines }: InvoicePreviewDrawerProp
   const subtotal = lines.reduce((s, l) => s + lineTotal(l), 0);
   const iva = subtotal * 0.16;
   const total = subtotal + iva;
-  const today = new Date().toLocaleDateString('es-CO', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
+  const today = formatDate(new Date(), { month: 'long' });
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
@@ -158,7 +148,8 @@ function InvoicePreviewDrawer({ open, onClose, lines }: InvoicePreviewDrawerProp
                   Detalles
                 </p>
                 <p className="text-sm text-foreground">
-                  Moneda: <span className="font-medium">MXN</span>
+                  Moneda:{' '}
+                  <span className="font-medium">{getCurrencyPreferences('tenant').currency}</span>
                 </p>
                 <p className="text-sm text-foreground">
                   Método: <span className="font-medium">Transferencia</span>
@@ -198,10 +189,16 @@ function InvoicePreviewDrawer({ open, onClose, lines }: InvoicePreviewDrawerProp
                         <td className="px-4 py-3 text-foreground">{line.product}</td>
                         <td className="px-4 py-3 text-center text-muted-foreground">{line.qty}</td>
                         <td className="px-4 py-3 text-right text-muted-foreground">
-                          {formatMXN(line.unitPrice)}
+                          {formatMoney(line.unitPrice, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </td>
                         <td className="px-4 py-3 text-right font-semibold text-foreground">
-                          {formatMXN(lineTotal(line))}
+                          {formatMoney(lineTotal(line), {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </td>
                       </tr>
                     ))}
@@ -214,15 +211,21 @@ function InvoicePreviewDrawer({ open, onClose, lines }: InvoicePreviewDrawerProp
             <div className="space-y-2 pt-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-medium text-foreground">{formatMXN(subtotal)}</span>
+                <span className="font-medium text-foreground">
+                  {formatMoney(subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">IVA (16%)</span>
-                <span className="font-medium text-foreground">{formatMXN(iva)}</span>
+                <span className="font-medium text-foreground">
+                  {formatMoney(iva, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
               </div>
               <div className="flex justify-between pt-2 border-t border-border/50">
                 <span className="font-bold text-foreground">Total</span>
-                <span className="text-xl font-bold text-blue-600">{formatMXN(total)}</span>
+                <span className="text-xl font-bold text-blue-600">
+                  {formatMoney(total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
               </div>
             </div>
           </div>
@@ -247,7 +250,7 @@ export function FinanceCPQView() {
   const [lines, setLines] = useState<LineItem[]>(INITIAL_LINES);
   const [client, setClient] = useState('');
   const [clientType, setClientType] = useState('B2B');
-  const [currency, setCurrency] = useState('COP');
+  const [currency, setCurrency] = useState(() => getCurrencyPreferences('tenant').currency);
   const [priceList, setPriceList] = useState('standard');
   const [validUntil, setValidUntil] = useState('');
   const [notes, setNotes] = useState('');
@@ -358,7 +361,10 @@ export function FinanceCPQView() {
         header: () => <div className="text-right w-full">Total Línea</div>,
         cell: (info) => (
           <div className="text-right font-semibold text-foreground">
-            {formatMXN(lineTotal(info.row.original))}
+            {formatMoney(lineTotal(info.row.original), {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </div>
         ),
       }),
@@ -486,17 +492,23 @@ export function FinanceCPQView() {
             <div className="space-y-2 pb-3 border-b border-border/40">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-medium text-foreground">{formatMXN(subtotal)}</span>
+                <span className="font-medium text-foreground">
+                  {formatMoney(subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">IVA (16%)</span>
-                <span className="font-medium text-foreground">{formatMXN(iva)}</span>
+                <span className="font-medium text-foreground">
+                  {formatMoney(iva, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
               </div>
             </div>
 
             <div className="flex justify-between items-baseline pt-1">
               <span className="font-bold text-foreground">Total</span>
-              <span className="text-2xl font-bold text-blue-600">{formatMXN(total)}</span>
+              <span className="text-2xl font-bold text-blue-600">
+                {formatMoney(total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
             </div>
 
             {/* Margin bar */}

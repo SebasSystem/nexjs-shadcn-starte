@@ -1,23 +1,24 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { LOST_REASON_OPTIONS, MOCK_COMPETITORS } from 'src/_mock/_intelligence';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
   Button,
   Input,
   SelectField,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
-import { toast } from 'sonner';
-import { MOCK_COMPETITORS, LOST_REASON_OPTIONS } from 'src/_mock/_intelligence';
-import { lostDealSchema, type LostDealFormData } from '../schemas/lost-deal.schema';
+
+import { type LostDealFormData, lostDealSchema } from '../schemas/lost-deal.schema';
 import type { LostDeal } from '../types';
 
 interface Props {

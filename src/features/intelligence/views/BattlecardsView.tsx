@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Icon, Button, Input, SelectField } from 'src/shared/components/ui';
-import { PageContainer, PageHeader, StatsCard } from 'src/shared/components/layouts/page';
+import { useMemo, useState } from 'react';
 import { COMPETITOR_TIER_CONFIG, MOCK_COMPETITORS } from 'src/_mock/_intelligence';
+import { PageContainer, PageHeader, StatsCard } from 'src/shared/components/layouts/page';
+import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+
 import { BattlecardCard } from '../components/BattlecardCard';
 import { BattlecardDrawer } from '../components/BattlecardDrawer';
 import { useIntelligence } from '../hooks/useIntelligence';

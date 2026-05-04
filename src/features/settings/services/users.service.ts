@@ -1,44 +1,87 @@
-import { MOCK_SETTINGS_USERS } from 'src/_mock/_settings';
+import axiosInstance, { endpoints } from 'src/lib/axios';
+
 import type { SettingsUser } from '../types/settings.types';
 
-let _users = [...MOCK_SETTINGS_USERS];
+function mapUser(raw: Record<string, unknown>): SettingsUser {
+  const lockedUntil = raw.locked_until ? new Date(raw.locked_until as string) : null;
+  const isLocked = lockedUntil && lockedUntil > new Date();
+
+  return {
+    id: raw.uid as string,
+    nombre: raw.name as string,
+    email: raw.email as string,
+    rolId: '',
+    rolNombre: '',
+    estado: isLocked ? 'INACTIVO' : 'ACTIVO',
+    ultimoAcceso: (raw.last_login_at as string) ?? '',
+    creadoEn: (raw.created_at as string) ?? '',
+  };
+}
 
 export const usersService = {
-  getAll: async (): Promise<SettingsUser[]> => {
-    await new Promise((r) => setTimeout(r, 400));
-    return [..._users];
+  async getAll(): Promise<SettingsUser[]> {
+    const res = await axiosInstance.get(endpoints.users.list);
+    const payload = res.data?.data ?? res.data;
+    return (Array.isArray(payload) ? payload : []).map(mapUser);
   },
 
-  create: async (
+  // POST /users — pendiente de ruteo en backend. Stub optimista por ahora.
+  async create(
     data: Omit<SettingsUser, 'id' | 'creadoEn' | 'ultimoAcceso'>
-  ): Promise<SettingsUser> => {
-    await new Promise((r) => setTimeout(r, 500));
-    const newUser: SettingsUser = {
-      ...data,
-      id: `u${Date.now()}`,
-      creadoEn: new Date().toISOString(),
-      ultimoAcceso: new Date().toISOString(),
-    };
-    _users = [..._users, newUser];
-    return newUser;
+  ): Promise<SettingsUser> {
+    const res = await axiosInstance.post(endpoints.users.create, {
+      name: data.nombre,
+      email: data.email,
+      password: (data as Record<string, unknown>).password ?? '',
+    });
+    const payload = res.data?.data ?? res.data;
+    return mapUser(payload);
   },
 
-  update: async (id: string, data: Partial<SettingsUser>): Promise<SettingsUser> => {
-    await new Promise((r) => setTimeout(r, 500));
-    _users = _users.map((u) => (u.id === id ? { ...u, ...data } : u));
-    return _users.find((u) => u.id === id)!;
+  // PUT /users/{uid} — pendiente de ruteo en backend.
+  async update(id: string, data: Partial<SettingsUser>): Promise<SettingsUser> {
+    const res = await axiosInstance.put(endpoints.users.update(id), {
+      name: data.nombre,
+      email: data.email,
+    });
+    const payload = res.data?.data ?? res.data;
+    return mapUser(payload);
   },
 
-  toggleEstado: async (id: string): Promise<SettingsUser> => {
-    await new Promise((r) => setTimeout(r, 400));
-    _users = _users.map((u) =>
-      u.id === id ? { ...u, estado: u.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO' } : u
-    );
-    return _users.find((u) => u.id === id)!;
+  // No hay endpoint de toggle estado — optimista local
+  async toggleEstado(id: string): Promise<SettingsUser> {
+    const users = await usersService.getAll();
+    const user = users.find((u) => u.id === id);
+    if (!user) throw new Error('Usuario no encontrado');
+    return { ...user, estado: user.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO' };
   },
 
-  delete: async (id: string): Promise<void> => {
-    await new Promise((r) => setTimeout(r, 400));
-    _users = _users.filter((u) => u.id !== id);
+  // DELETE /users/{uid} — pendiente de ruteo en backend.
+  async delete(id: string): Promise<void> {
+    await axiosInstance.delete(endpoints.users.delete(id));
+  },
+
+  async assignRole(userId: string, roleUid: string): Promise<void> {
+    await axiosInstance.post(endpoints.users.assignRole(userId), { role_uid: roleUid });
+  },
+
+  async removeRole(userId: string, roleUid: string): Promise<void> {
+    await axiosInstance.delete(endpoints.users.removeRole(userId, roleUid));
+  },
+
+  async assignPermission(userId: string, permissionUid: string): Promise<void> {
+    await axiosInstance.post(endpoints.users.assignPermission(userId), {
+      permission_uid: permissionUid,
+    });
+  },
+
+  async removePermission(userId: string, permissionUid: string): Promise<void> {
+    await axiosInstance.delete(endpoints.users.removePermission(userId, permissionUid));
+  },
+
+  async getAccess(userId: string): Promise<string[]> {
+    const res = await axiosInstance.get(endpoints.users.access(userId));
+    const payload = res.data?.data ?? res.data;
+    return (payload?.effective_permissions ?? []).map((p: { key: string }) => p.key);
   },
 };

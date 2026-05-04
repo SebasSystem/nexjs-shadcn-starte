@@ -1,6 +1,7 @@
-import { SectionCard } from 'src/shared/components/layouts/page';
 import { LOST_REASON_LABELS, MOCK_COMPETITORS } from 'src/_mock/_intelligence';
 import { cn } from 'src/lib/utils';
+import { SectionCard } from 'src/shared/components/layouts/page';
+
 import type { HeatmapCell, LostReasonCategory } from '../types';
 
 interface Props {

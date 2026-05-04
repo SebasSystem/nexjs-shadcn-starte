@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useActivities } from '../hooks/use-activities';
-import { Button } from 'src/shared/components/ui/button';
-import { Input } from 'src/shared/components/ui/input';
-import { Textarea } from 'src/shared/components/ui/textarea';
-import { SelectField } from 'src/shared/components/ui/select-field';
-import { Icon } from 'src/shared/components/ui/icon';
-import type { TipoActividad, EstadoActividad } from '../types/productivity.types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import React, { useState } from 'react';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
+import { Textarea } from 'src/shared/components/ui/textarea';
+
+import { useActivities } from '../hooks/use-activities';
+import type { EstadoActividad, TipoActividad } from '../types/productivity.types';
 
 export const ActivitiesTab = ({
   contactoId,

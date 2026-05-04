@@ -1,34 +1,58 @@
-import { MOCK_ROLES } from 'src/_mock/_settings';
+import axiosInstance, { endpoints } from 'src/lib/axios';
+
 import type { Rol } from '../types/settings.types';
 
-let _roles = [...MOCK_ROLES];
+function mapRol(raw: Record<string, unknown>): Rol {
+  return {
+    id: raw.uid as string,
+    nombre: raw.name as string,
+    descripcion: (raw.description as string) ?? '',
+    totalUsuarios: 0, // no viene en la respuesta del backend
+    permisos: [], // se carga por separado con GET /rbac/permissions
+    esDefecto: (raw.is_system as boolean) ?? false,
+    creadoEn: (raw.created_at as string) ?? new Date().toISOString(),
+  };
+}
 
 export const rolesService = {
-  getAll: async (): Promise<Rol[]> => {
-    await new Promise((r) => setTimeout(r, 400));
-    return [..._roles];
+  async getAll(): Promise<Rol[]> {
+    const res = await axiosInstance.get(endpoints.rbac.roles);
+    const payload = res.data?.data ?? res.data;
+    return (Array.isArray(payload) ? payload : []).map(mapRol);
   },
 
-  create: async (data: Omit<Rol, 'id' | 'creadoEn' | 'totalUsuarios'>): Promise<Rol> => {
-    await new Promise((r) => setTimeout(r, 500));
-    const newRol: Rol = {
-      ...data,
-      id: `r${Date.now()}`,
-      totalUsuarios: 0,
-      creadoEn: new Date().toISOString(),
-    };
-    _roles = [..._roles, newRol];
-    return newRol;
+  async create(data: Omit<Rol, 'id' | 'creadoEn' | 'totalUsuarios'>): Promise<Rol> {
+    const res = await axiosInstance.post(endpoints.rbac.roles, {
+      name: data.nombre,
+      description: data.descripcion,
+    });
+    const payload = res.data?.data ?? res.data;
+    return mapRol(payload);
   },
 
-  update: async (id: string, data: Partial<Rol>): Promise<Rol> => {
-    await new Promise((r) => setTimeout(r, 500));
-    _roles = _roles.map((r) => (r.id === id ? { ...r, ...data } : r));
-    return _roles.find((r) => r.id === id)!;
+  async update(id: string, data: Partial<Rol>): Promise<Rol> {
+    const res = await axiosInstance.put(endpoints.rbac.role(id), {
+      name: data.nombre,
+      description: data.descripcion,
+    });
+    const payload = res.data?.data ?? res.data;
+    return mapRol(payload);
   },
 
-  delete: async (id: string): Promise<void> => {
-    await new Promise((r) => setTimeout(r, 400));
-    _roles = _roles.filter((r) => r.id !== id);
+  async delete(id: string): Promise<void> {
+    await axiosInstance.delete(endpoints.rbac.role(id));
+  },
+
+  async getPermissions(): Promise<
+    Array<{ id: string; key: string; module: string; action: string }>
+  > {
+    const res = await axiosInstance.get(endpoints.rbac.permissions);
+    const payload = res.data?.data ?? res.data;
+    return (Array.isArray(payload) ? payload : []).map((p: Record<string, unknown>) => ({
+      id: p.uid as string,
+      key: p.key as string,
+      module: p.module as string,
+      action: p.action as string,
+    }));
   },
 };

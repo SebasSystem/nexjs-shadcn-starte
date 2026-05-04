@@ -1,17 +1,18 @@
 'use client';
 
-import { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
+import { ReactNode } from 'react';
 import { useEffect } from 'react';
-import { useUiStore } from 'src/store/ui.store';
 import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
 import { useNavData } from 'src/shared/hooks/use-nav-data';
-import { NavVertical } from './dashboard/nav-vertical';
-import { HeaderSection } from './dashboard/header-section';
-import { LayoutSection } from './core/layout-section';
-import { NavMobile } from './dashboard/nav-mobile';
-import { HeaderUserButton } from './dashboard/header-user-button';
+import { useUiStore } from 'src/store/ui.store';
+
 import { SettingsDrawer } from '../settings';
+import { LayoutSection } from './core/layout-section';
+import { HeaderSection } from './dashboard/header-section';
+import { HeaderUserButton } from './dashboard/header-user-button';
+import { NavMobile } from './dashboard/nav-mobile';
+import { NavVertical } from './dashboard/nav-vertical';
 
 type Props = {
   children: ReactNode;
@@ -28,7 +29,7 @@ export function AppLayout({ children }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  const navData = useNavData(hasPermission);
+  const navData = useNavData(hasPermission, user?.permissions ?? []);
 
   return (
     <LayoutSection

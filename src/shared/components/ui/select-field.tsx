@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useId } from 'react';
-import { Icon } from './icon';
-import { Popover, PopoverContent, PopoverTrigger } from './popover';
+import { useId, useState } from 'react';
+import { cn } from 'src/lib/utils';
+
+import { Badge } from './badge';
 import {
   Command,
   CommandEmpty,
@@ -11,8 +12,8 @@ import {
   CommandItem,
   CommandList,
 } from './command';
-import { Badge } from './badge';
-import { cn } from 'src/lib/utils';
+import { Icon } from './icon';
+import { Popover, PopoverContent, PopoverTrigger } from './popover';
 
 export interface SelectOption {
   value: string;
@@ -158,7 +159,10 @@ export function SelectField({
                   <Icon name="X" className="h-3.5 w-3.5" />
                 </div>
               )}
-              <Icon name="ChevronsUpDown" className="h-4 w-4 shrink-0 text-muted-foreground opacity-50" />
+              <Icon
+                name="ChevronsUpDown"
+                className="h-4 w-4 shrink-0 text-muted-foreground opacity-50"
+              />
             </div>
           </button>
         </PopoverTrigger>

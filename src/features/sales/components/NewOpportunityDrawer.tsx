@@ -1,19 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from 'src/shared/components/ui/sheet';
+import { PIPELINE_STAGES } from 'src/_mock/_sales';
+import type { LeadSource, Opportunity, StageId } from 'src/features/sales/types/sales.types';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-import { PIPELINE_STAGES } from 'src/_mock/_sales';
-import type { Opportunity, StageId, LeadSource } from 'src/features/sales/types/sales.types';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from 'src/shared/components/ui/sheet';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
 type NewOpportunityData = Omit<

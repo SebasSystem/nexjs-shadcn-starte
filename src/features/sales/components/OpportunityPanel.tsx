@@ -1,26 +1,28 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Icon } from 'src/shared/components/ui/icon';
-import { LinkedInValidationBadge } from 'src/features/automation/components/LinkedInValidationBadge';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { cn } from 'src/lib/utils';
-import { Sheet, SheetContent, SheetTitle } from 'src/shared/components/ui/sheet';
-import { Button } from 'src/shared/components/ui/button';
-import { Badge } from 'src/shared/components/ui/badge';
-import { paths } from 'src/routes/paths';
-import { useSalesContext } from '../context/SalesContext';
-import { STAGE_PROBABILITY, LOST_REASON_LABELS } from '../config/pipeline.config';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { PIPELINE_STAGES } from 'src/_mock/_sales';
-import { DealAvatar } from './DealAvatar';
-import { StageProgressBar } from './StageProgressBar';
-import { OpportunityChecklist } from './OpportunityChecklist';
-import { OpportunityTimeline } from './OpportunityTimeline';
-import { OpportunityQuotationsTab } from './OpportunityQuotationsTab';
+import { LinkedInValidationBadge } from 'src/features/automation/components/LinkedInValidationBadge';
+import { formatMoney } from 'src/lib/currency';
+import { cn } from 'src/lib/utils';
+import { paths } from 'src/routes/paths';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Sheet, SheetContent, SheetTitle } from 'src/shared/components/ui/sheet';
+
+import { LOST_REASON_LABELS, STAGE_PROBABILITY } from '../config/pipeline.config';
+import { useSalesContext } from '../context/SalesContext';
 import type { AgingLevel } from '../hooks/useOpportunityPanel';
 import type { Opportunity } from '../types/sales.types';
+import { DealAvatar } from './DealAvatar';
+import { OpportunityChecklist } from './OpportunityChecklist';
+import { OpportunityQuotationsTab } from './OpportunityQuotationsTab';
+import { OpportunityTimeline } from './OpportunityTimeline';
+import { StageProgressBar } from './StageProgressBar';
 
 type TabId = 'resumen' | 'checklist' | 'actividades' | 'cotizaciones' | 'factura';
 
@@ -38,15 +40,6 @@ const AGING_STYLES: Record<AgingLevel, { label: string; className: string }> = {
   risk: { label: 'd en etapa', className: 'bg-orange-500/10 text-orange-500' },
   stalled: { label: 'd estancado', className: 'bg-destructive/10 text-destructive' },
 };
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 function formatDate(dateStr: string): string {
   try {
@@ -104,11 +97,15 @@ function InvoiceTab({ opportunity }: InvoiceTabProps) {
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl bg-muted/30 p-3">
           <p className="text-caption text-muted-foreground mb-0.5">Total</p>
-          <p className="text-body2 font-bold text-foreground">{formatCurrency(invoice.total)}</p>
+          <p className="text-body2 font-bold text-foreground">
+            {formatMoney(invoice.total, { scope: 'tenant', maximumFractionDigits: 0 })}
+          </p>
         </div>
         <div className="rounded-xl bg-muted/30 p-3">
           <p className="text-caption text-muted-foreground mb-0.5">Pendiente</p>
-          <p className="text-body2 font-bold text-destructive">{formatCurrency(pending)}</p>
+          <p className="text-body2 font-bold text-destructive">
+            {formatMoney(pending, { scope: 'tenant', maximumFractionDigits: 0 })}
+          </p>
         </div>
       </div>
 
@@ -181,11 +178,15 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
             <span className="text-caption">Monto estimado</span>
           </div>
           <p className="text-body2 font-bold text-foreground">
-            {formatCurrency(opportunity.estimatedAmount)}
+            {formatMoney(opportunity.estimatedAmount, {
+              scope: 'tenant',
+              maximumFractionDigits: 0,
+            })}
           </p>
           {!isTerminal && (
             <p className="text-[10px] text-muted-foreground">
-              Ponderado: {formatCurrency(weightedAmount)}
+              Ponderado:{' '}
+              {formatMoney(weightedAmount, { scope: 'tenant', maximumFractionDigits: 0 })}
             </p>
           )}
         </div>
@@ -379,7 +380,10 @@ export function OpportunityPanel({
                   )}
                   <p className="text-caption text-muted-foreground/70 mt-0.5">
                     <span className="font-semibold text-foreground">
-                      {formatCurrency(opportunity.estimatedAmount)}
+                      {formatMoney(opportunity.estimatedAmount, {
+                        scope: 'tenant',
+                        maximumFractionDigits: 0,
+                      })}
                     </span>
                     {stageLabel && <span className="text-muted-foreground"> · {stageLabel}</span>}
                   </p>

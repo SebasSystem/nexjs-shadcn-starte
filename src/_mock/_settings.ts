@@ -1,9 +1,9 @@
 import type {
-  SettingsUser,
-  Rol,
-  Equipo,
   CampoPersonalizado,
   ConfigLocalizacion,
+  Equipo,
+  Rol,
+  SettingsUser,
 } from 'src/features/settings/types/settings.types';
 
 // ── Usuarios ──────────────────────────────────────────────────────────────────

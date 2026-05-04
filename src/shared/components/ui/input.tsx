@@ -1,6 +1,6 @@
 import * as React from 'react';
-
 import { cn } from 'src/lib/utils';
+
 import { Icon } from './icon';
 
 export interface InputProps extends Omit<React.ComponentProps<'input'>, 'size'> {
@@ -15,7 +15,23 @@ export interface InputProps extends Omit<React.ComponentProps<'input'>, 'size'> 
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, leftIcon, rightIcon, hint, error, success, size = 'md', id, inputClassName, ...props }, ref) => {
+  (
+    {
+      className,
+      type,
+      label,
+      leftIcon,
+      rightIcon,
+      hint,
+      error,
+      success,
+      size = 'md',
+      id,
+      inputClassName,
+      ...props
+    },
+    ref
+  ) => {
     const generatedId = React.useId();
     const inputId = id ?? generatedId;
     const hintId = `${inputId}-hint`;
@@ -30,6 +46,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const hasError = !!error;
     const describedBy =
       [hint && hintId, hasError && errorId].filter(Boolean).join(' ') || undefined;
+
+    // React warns when value is null on controlled inputs
+    const inputProps = { ...props };
+    if (inputProps.value === null || inputProps.value === undefined) {
+      inputProps.value = '';
+    }
 
     return (
       <div className={cn('flex w-full flex-col gap-1.5', className)}>
@@ -75,7 +97,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                   ? 'border-success/80 focus-visible:outline-none focus-visible:border-success focus-visible:ring-[3px] focus-visible:ring-success/20'
                   : 'border-border hover:border-border/80 focus-visible:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-primary/20'
             )}
-            {...props}
+            {...inputProps}
           />
 
           {(rightIcon || success) && (

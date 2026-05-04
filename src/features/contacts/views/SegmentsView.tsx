@@ -9,9 +9,10 @@ import {
 } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
-import { useSegments } from '../hooks/use-segments';
-import { SegmentsTable } from '../components/segments/segments-table';
+
 import { SegmentBuilderDrawer } from '../components/segments/segment-builder-drawer';
+import { SegmentsTable } from '../components/segments/segments-table';
+import { useSegments } from '../hooks/use-segments';
 import type { Segment, SegmentForm } from '../types/segments.types';
 
 export const SegmentsView = () => {

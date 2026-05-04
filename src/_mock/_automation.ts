@@ -1,6 +1,6 @@
 import type {
-  AutomationRule,
   AssignmentRule,
+  AutomationRule,
   LinkedInProfile,
 } from 'src/features/automation/types';
 

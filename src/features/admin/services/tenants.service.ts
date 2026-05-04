@@ -1,114 +1,56 @@
-import { Tenant, EstadoTenant } from 'src/features/admin/types/admin.types';
-
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-const MOCK_TENANTS: Tenant[] = [
-  {
-    id: 'tenant-1',
-    nombre: 'Acme Corporation',
-    dominio: 'acme.tucrm.com',
-    pais: 'México',
-    emailContacto: 'admin@acme.com',
-    planId: 'plan-pro',
-    planNombre: 'Plan Pro',
-    mrr: 149,
-    estado: 'ACTIVO',
-    totalUsuarios: 12,
-    limiteUsuarios: 25,
-    almacenamientoUsadoGB: 18,
-    limiteAlmacenamientoGB: 50,
-    creadoEn: '2024-01-15',
-    ultimoAcceso: '2025-03-24T10:32:00Z',
-  },
-  {
-    id: 'tenant-2',
-    nombre: 'Beta Soluciones',
-    dominio: 'beta.tucrm.com',
-    pais: 'Colombia',
-    emailContacto: 'admin@beta.co',
-    planId: 'plan-starter',
-    planNombre: 'Plan Starter',
-    mrr: 49,
-    estado: 'VENCIDO',
-    totalUsuarios: 3,
-    limiteUsuarios: 5,
-    almacenamientoUsadoGB: 2,
-    limiteAlmacenamientoGB: 10,
-    creadoEn: '2024-06-01',
-    ultimoAcceso: '2025-03-20T14:00:00Z',
-  },
-  {
-    id: 'tenant-3',
-    nombre: 'Gamma Tech',
-    dominio: 'gamma.tucrm.com',
-    pais: 'España',
-    emailContacto: 'it@gamma.es',
-    planId: 'plan-business',
-    planNombre: 'Plan Business',
-    mrr: 349,
-    estado: 'TRIAL',
-    totalUsuarios: 8,
-    limiteUsuarios: 50,
-    almacenamientoUsadoGB: 5,
-    limiteAlmacenamientoGB: 200,
-    creadoEn: '2025-03-01',
-    ultimoAcceso: '2025-03-24T09:15:00Z',
-  },
-  {
-    id: 'tenant-4',
-    nombre: 'Delta Comercial',
-    dominio: 'delta.tucrm.com',
-    pais: 'México',
-    emailContacto: 'soporte@delta.mx',
-    planId: 'plan-pro',
-    planNombre: 'Plan Pro',
-    mrr: 149,
-    estado: 'SUSPENDIDO',
-    totalUsuarios: 18,
-    limiteUsuarios: 25,
-    almacenamientoUsadoGB: 45,
-    limiteAlmacenamientoGB: 50,
-    creadoEn: '2023-11-20',
-    ultimoAcceso: '2025-03-10T08:00:00Z',
-  },
-];
-
-let tenantsData: Tenant[] = [...MOCK_TENANTS];
+import type {
+  CreateTenantUserPayload,
+  Tenant,
+  TenantActividadItem,
+  TenantFacturaItem,
+  TenantUser,
+} from 'src/features/admin/types/admin.types';
+import axiosInstance, { endpoints } from 'src/lib/axios';
 
 export const tenantsService = {
   async getAll(): Promise<Tenant[]> {
-    await delay(500);
-    return [...tenantsData];
+    const res = await axiosInstance.get(endpoints.admin.tenants.list);
+    return res.data.data;
   },
-
-  async getById(id: string): Promise<Tenant | undefined> {
-    await delay(500);
-    return tenantsData.find((t) => t.id === id);
+  async getById(uid: string): Promise<Tenant> {
+    const res = await axiosInstance.get(endpoints.admin.tenants.show(uid));
+    return res.data.data;
   },
-
-  async create(data: Omit<Tenant, 'id' | 'creadoEn' | 'ultimoAcceso'>): Promise<Tenant> {
-    await delay(500);
-    const newTenant: Tenant = {
-      ...data,
-      id: `tenant-${Date.now()}`,
-      creadoEn: new Date().toISOString().split('T')[0],
-      ultimoAcceso: new Date().toISOString(),
-    };
-    tenantsData = [...tenantsData, newTenant];
-    return newTenant;
+  async create(data: Partial<Tenant>): Promise<Tenant> {
+    const res = await axiosInstance.post(endpoints.admin.tenants.create, data);
+    return res.data.data;
   },
-
-  async update(id: string, data: Partial<Tenant>): Promise<Tenant> {
-    await delay(500);
-    tenantsData = tenantsData.map((t) => (t.id === id ? { ...t, ...data } : t));
-    return tenantsData.find((t) => t.id === id)!;
+  async update(uid: string, data: Partial<Tenant>): Promise<Tenant> {
+    const res = await axiosInstance.put(endpoints.admin.tenants.update(uid), data);
+    return res.data.data;
   },
-
-  async suspend(id: string): Promise<Tenant> {
-    await delay(500);
-    tenantsData = tenantsData.map((t) =>
-      t.id === id ? { ...t, estado: 'SUSPENDIDO' as EstadoTenant } : t
-    );
-    return tenantsData.find((t) => t.id === id)!;
+  async suspend(uid: string): Promise<Tenant> {
+    const res = await axiosInstance.post(endpoints.admin.tenants.suspend(uid));
+    return res.data.data;
+  },
+  async activate(uid: string): Promise<Tenant> {
+    const res = await axiosInstance.post(endpoints.admin.tenants.activate(uid));
+    return res.data.data;
+  },
+  async createUser(tenantUid: string, data: CreateTenantUserPayload): Promise<void> {
+    await axiosInstance.post(endpoints.admin.tenants.createUser(tenantUid), data);
+  },
+  async getUsers(tenantUid: string, page = 1, perPage = 10) {
+    const res = await axiosInstance.get(endpoints.admin.tenants.users(tenantUid), {
+      params: { page, per_page: perPage },
+    });
+    return res.data.data;
+  },
+  async getFacturas(tenantUid: string): Promise<TenantFacturaItem[]> {
+    const res = await axiosInstance.get(endpoints.admin.billing.list, {
+      params: { tenant_uid: tenantUid },
+    });
+    return res.data.data ?? [];
+  },
+  async getActividad(tenantUid: string): Promise<TenantActividadItem[]> {
+    const res = await axiosInstance.get(endpoints.admin.telemetry.logs, {
+      params: { tenant_uid: tenantUid },
+    });
+    return res.data.data ?? [];
   },
 };

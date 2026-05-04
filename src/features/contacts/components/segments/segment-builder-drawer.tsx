@@ -2,19 +2,20 @@
 
 import React, { useState } from 'react';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
-import { Input } from 'src/shared/components/ui/input';
 import { Textarea } from 'src/shared/components/ui/textarea';
-import { SelectField } from 'src/shared/components/ui/select-field';
-import { Icon } from 'src/shared/components/ui/icon';
-import type { Segment, SegmentForm, Rule, FieldType, Operator } from '../../types/segments.types';
+
+import type { FieldType, Operator, Rule, Segment, SegmentForm } from '../../types/segments.types';
 
 const FIELDS: { value: FieldType; label: string }[] = [
   { value: 'tipo', label: 'Tipo de Entidad' },

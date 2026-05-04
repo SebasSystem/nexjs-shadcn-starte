@@ -1,33 +1,30 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import {
-  Icon,
-  Button,
-  Input,
-  SelectField,
-} from 'src/shared/components/ui';
-import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-} from 'src/shared/components/table';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { PROJECT_STATUS_CONFIG } from 'src/_mock/_projects';
+import { formatDate } from 'src/lib/date';
+import { cn } from 'src/lib/utils';
+import { paths } from 'src/routes/paths';
 import {
   PageContainer,
   PageHeader,
   SectionCard,
   StatsCard,
 } from 'src/shared/components/layouts/page';
-import { cn } from 'src/lib/utils';
-import { paths } from 'src/routes/paths';
-import { PROJECT_STATUS_CONFIG } from 'src/_mock/_projects';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
+} from 'src/shared/components/table';
+import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+
 import { ProjectDrawer } from '../components/ProjectDrawer';
 import { ProjectStatusBadge } from '../components/ProjectStatusBadge';
 import { useProjects } from '../hooks/useProjects';
@@ -93,13 +90,7 @@ export function ProjectsView() {
       columnHelper.accessor('startDate', {
         header: 'Inicio',
         cell: (info) => (
-          <span className="text-body2 text-muted-foreground">
-            {new Date(info.getValue()).toLocaleDateString('es', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-            })}
-          </span>
+          <span className="text-body2 text-muted-foreground">{formatDate(info.getValue())}</span>
         ),
       }),
       columnHelper.accessor('endDate', {
@@ -117,11 +108,7 @@ export function ProjectsView() {
                 isOverdue ? 'text-error font-medium' : 'text-muted-foreground'
               )}
             >
-              {date.toLocaleDateString('es', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              })}
+              {formatDate(date)}
             </span>
           );
         },

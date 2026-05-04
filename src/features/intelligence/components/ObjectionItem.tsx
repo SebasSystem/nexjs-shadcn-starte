@@ -1,7 +1,8 @@
+import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { Button } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 import { Icon } from 'src/shared/components/ui';
-import type { UseFormRegister, FieldErrors } from 'react-hook-form';
+
 import type { BattlecardFormData } from '../schemas/battlecard.schema';
 
 interface Props {

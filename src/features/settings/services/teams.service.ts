@@ -1,4 +1,5 @@
 import { MOCK_EQUIPOS } from 'src/_mock/_settings';
+
 import type { Equipo, MiembroEquipo } from '../types/settings.types';
 
 let _equipos = [...MOCK_EQUIPOS];

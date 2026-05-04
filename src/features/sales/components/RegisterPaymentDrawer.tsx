@@ -1,18 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from 'src/shared/components/ui/sheet';
+import type { Payment } from 'src/features/sales/types/sales.types';
+import { formatMoney, getCurrencyPreferences } from 'src/lib/currency';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-import type { Payment } from 'src/features/sales/types/sales.types';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from 'src/shared/components/ui/sheet';
 
 interface RegisterPaymentDrawerProps {
   open: boolean;
@@ -29,20 +30,13 @@ const PAYMENT_METHOD_OPTIONS = [
   { value: 'Cheque', label: 'Cheque' },
 ];
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
-
 export function RegisterPaymentDrawer({
   open,
   onClose,
   pendingBalance,
   onConfirm,
 }: RegisterPaymentDrawerProps) {
+  const { currency } = getCurrencyPreferences('tenant');
   const [form, setForm] = useState({
     method: 'Transferencia Bancaria',
     date: new Date().toISOString().split('T')[0],
@@ -102,7 +96,13 @@ export function RegisterPaymentDrawer({
             <p className="text-xs font-medium text-warning/80 uppercase tracking-wide mb-1">
               Saldo Pendiente Actual
             </p>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(pendingBalance)}</p>
+            <p className="text-2xl font-bold text-foreground">
+              {formatMoney(pendingBalance, {
+                scope: 'tenant',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </p>
           </div>
 
           {/* Método de pago */}
@@ -145,7 +145,7 @@ export function RegisterPaymentDrawer({
             value={form.amount}
             onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))}
             error={errors.amount}
-            leftIcon={<span className="text-sm text-muted-foreground">$</span>}
+            leftIcon={<span className="text-sm text-muted-foreground">{currency}</span>}
           />
         </div>
 

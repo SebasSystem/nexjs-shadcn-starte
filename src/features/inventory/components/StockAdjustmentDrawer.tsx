@@ -1,22 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { ADJUSTMENT_REASON_LABELS, type AdjustmentReason } from 'src/_mock/_inventories';
+import { cn } from 'src/lib/utils';
 import {
-  Icon,
   Button,
+  Icon,
+  SelectField,
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetFooter,
-  SelectField,
   Textarea,
 } from 'src/shared/components/ui';
 import { Input } from 'src/shared/components/ui';
-import { cn } from 'src/lib/utils';
-import { useInventory, type RichProduct } from '../hooks/useInventory';
-import { ADJUSTMENT_REASON_LABELS, type AdjustmentReason } from 'src/_mock/_inventories';
-import { toast } from 'sonner';
+
+import { type RichProduct, useInventory } from '../hooks/useInventory';
 
 interface StockAdjustmentDrawerProps {
   open: boolean;
@@ -242,9 +243,10 @@ export function StockAdjustmentDrawer({
             <SelectField
               label="Motivo del ajuste *"
               required
-              options={(Object.keys(ADJUSTMENT_REASON_LABELS) as AdjustmentReason[]).map(
-                (key) => ({ value: key, label: ADJUSTMENT_REASON_LABELS[key] })
-              )}
+              options={(Object.keys(ADJUSTMENT_REASON_LABELS) as AdjustmentReason[]).map((key) => ({
+                value: key,
+                label: ADJUSTMENT_REASON_LABELS[key],
+              }))}
               value={reason}
               onChange={(v) => {
                 setReason(v as AdjustmentReason);

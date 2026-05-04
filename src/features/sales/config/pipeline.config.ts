@@ -1,5 +1,6 @@
 import { differenceInDays } from 'date-fns';
-import type { StageId, Opportunity } from '../types/sales.types';
+
+import type { Opportunity, StageId } from '../types/sales.types';
 
 export const STAGE_PROBABILITY: Record<StageId, number> = {
   leads: 0.15,

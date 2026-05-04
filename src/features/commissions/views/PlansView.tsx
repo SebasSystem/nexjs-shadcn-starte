@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { usePlans } from 'src/features/commissions/hooks/use-plans';
-import { PlansTable } from 'src/features/commissions/components/plans/plans-table';
 import { PlanDrawer } from 'src/features/commissions/components/plans/plan-drawer';
+import { PlansTable } from 'src/features/commissions/components/plans/plans-table';
+import { usePlans } from 'src/features/commissions/hooks/use-plans';
+import { type PlanComision } from 'src/features/commissions/types/commissions.types';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
-import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { type PlanComision } from 'src/features/commissions/types/commissions.types';
 
 export const PlansView = () => {
   const { planes, isLoading, addPlan, updatePlan } = usePlans();

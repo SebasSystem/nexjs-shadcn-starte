@@ -1,38 +1,33 @@
 'use client';
 
-import { Fragment, useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import {
-  Icon,
-  Badge,
-  Button,
-  Input,
-  SelectField,
-} from 'src/shared/components/ui';
-import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-} from 'src/shared/components/table';
+import { Fragment, useMemo, useState } from 'react';
+import { MOCK_CATEGORIES } from 'src/_mock/_inventories';
+import type { QuoteMock } from 'src/_mock/_quotes';
+import { QUOTE_STATUS_CONFIG } from 'src/_mock/_quotes';
+import { cn } from 'src/lib/utils';
 import {
   PageContainer,
   PageHeader,
   SectionCard,
   StatsCard,
 } from 'src/shared/components/layouts/page';
-import { cn } from 'src/lib/utils';
-import { MOCK_CATEGORIES } from 'src/_mock/_inventories';
-import { QUOTE_STATUS_CONFIG } from 'src/_mock/_quotes';
-import { StockBadge } from '../components/StockBadge';
-import { StockAdjustmentDrawer } from '../components/StockAdjustmentDrawer';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
+} from 'src/shared/components/table';
+import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+
 import { ReserveStockDrawer } from '../components/ReserveStockDrawer';
-import { useInventory, type RichProduct } from '../hooks/useInventory';
-import type { QuoteMock } from 'src/_mock/_quotes';
+import { StockAdjustmentDrawer } from '../components/StockAdjustmentDrawer';
+import { StockBadge } from '../components/StockBadge';
+import { type RichProduct, useInventory } from '../hooks/useInventory';
 
 // ─── Column helper ────────────────────────────────────────────────────────────
 

@@ -1,22 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Icon, Button } from 'src/shared/components/ui';
-import type { IconName } from 'src/shared/components/ui/icon';
-import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { cn } from 'src/lib/utils';
-import { ReportFilters } from '../components/ReportFilters';
-import { ExportBar } from '../components/ExportBar';
-import { ReportTable } from '../components/tables/ReportTable';
-import { BarChart, DonutChart, LineChart, AreaChart } from '../components/charts/ReportCharts';
-import {
-  mockInventoryCategories,
-  mockInventoryRisk,
-  mockInventoryMovements,
-  mockInventoryStockByWarehouse,
-  mockInventoryB2B,
-} from 'src/_mock/_reports';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import {
+  mockInventoryB2B,
+  mockInventoryCategories,
+  mockInventoryMovements,
+  mockInventoryRisk,
+  mockInventoryStockByWarehouse,
+} from 'src/_mock/_reports';
+import { cn } from 'src/lib/utils';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
+import { Button, Icon } from 'src/shared/components/ui';
+import type { IconName } from 'src/shared/components/ui/icon';
+
+import { AreaChart, BarChart, DonutChart, LineChart } from '../components/charts/ReportCharts';
+import { ExportBar } from '../components/ExportBar';
+import { ReportFilters } from '../components/ReportFilters';
+import { ReportTable } from '../components/tables/ReportTable';
 
 function getKpiMeta(key: string): { icon: IconName; iconBg: string; iconColor: string } {
   const k = key.toLowerCase();

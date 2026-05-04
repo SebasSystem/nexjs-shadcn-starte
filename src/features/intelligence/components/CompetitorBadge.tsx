@@ -1,5 +1,6 @@
-import { Badge } from 'src/shared/components/ui';
 import { COMPETITOR_TIER_CONFIG } from 'src/_mock/_intelligence';
+import { Badge } from 'src/shared/components/ui';
+
 import type { CompetitorTier } from '../types';
 
 interface Props {

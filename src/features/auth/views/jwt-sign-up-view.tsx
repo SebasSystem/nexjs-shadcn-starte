@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Icon } from 'src/shared/components/ui';
 import { useState } from 'react';
-
-import { Form, FormControl, FormField, FormItem, FormMessage } from 'src/shared/components/ui';
 import { paths } from 'src/routes/paths';
-import { useSignUp } from '../hooks/use-sign-up';
 import { Logo } from 'src/shared/components/Logo';
+import { Icon } from 'src/shared/components/ui';
+import { Form, FormControl, FormField, FormItem, FormMessage } from 'src/shared/components/ui';
+
+import { useSignUp } from '../hooks/use-sign-up';
 
 // ─── Input reutilizable (mismo diseño que login) ──────────────────────────────
 function AuthInput({

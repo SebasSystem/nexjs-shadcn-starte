@@ -4,77 +4,135 @@ export type TierPlan = 'STARTER' | 'PRO' | 'BUSINESS' | 'ENTERPRISE';
 export type SoportePlan = 'EMAIL' | 'EMAIL_CHAT' | 'DEDICADO';
 
 export interface Tenant {
-  id: string;
+  uid: string;
   nombre: string;
   dominio: string;
   pais: string;
-  emailContacto: string;
-  planId: string;
-  planNombre: string;
+  email_contacto: string;
+  plan_uid: string;
+  plan_nombre: string;
   mrr: number;
   estado: EstadoTenant;
-  totalUsuarios: number;
-  limiteUsuarios: number;
-  almacenamientoUsadoGB: number;
-  limiteAlmacenamientoGB: number;
-  creadoEn: string;
-  ultimoAcceso: string;
+  total_usuarios: number;
+  limite_usuarios: number;
+  almacenamiento_usado_gb: number;
+  limite_almacenamiento_gb: number;
+  api_calls_mes: number;
+  limite_api_calls: number;
+  created_at: string;
+  last_access_at: string;
+}
+
+export interface TenantUser {
+  uid: string;
+  name: string;
+  email: string;
+  rol: string;
+  ultimo_acceso: string;
+  estado: 'Activo' | 'Inactivo';
+}
+
+export interface TenantFacturaItem {
+  periodo: string;
+  total: number;
+  status: EstadoFactura;
+  due_at: string;
+}
+
+export interface TenantActividadItem {
+  timestamp: string;
+  message: string;
 }
 
 export interface FeaturesPlan {
-  limiteUsuarios: number | null;
-  almacenamientoGB: number | null;
-  apiCallsMes: number | null;
-  modulos: string[];
-  soporte: SoportePlan;
-  slaUptime: number | null;
-  customDomain: boolean;
+  storage_gb: number | null;
+  api_calls_month: number | null;
+  modules: string[];
+  support_type: SoportePlan;
+  sla_uptime: number | null;
+  custom_domain: boolean;
   sso: boolean;
-  reportesAvanzados: boolean;
+  advanced_reports: boolean;
 }
 
 export interface PlanSaaS {
-  id: string;
-  nombre: string;
+  uid: string;
+  name: string;
   tier: TierPlan;
-  precio: number;
-  intervalo: 'MENSUAL' | 'ANUAL';
-  estado: 'ACTIVO' | 'INACTIVO' | 'LEGADO';
+  price: number;
+  billing_interval: 'MENSUAL' | 'ANUAL';
+  status: 'ACTIVO' | 'INACTIVO' | 'LEGADO';
+  max_users: number | null;
   features: FeaturesPlan;
-  totalTenants: number;
-  creadoEn: string;
+  total_tenants: number;
+  created_at: string;
 }
 
 export interface Factura {
-  id: string;
-  tenantId: string;
-  tenantNombre: string;
+  uid: string;
+  tenant_uid: string;
+  tenant_nombre: string;
   periodo: string;
-  planNombre: string;
+  plan_nombre: string;
   subtotal: number;
-  impuesto: number;
+  tax: number;
   total: number;
-  estado: EstadoFactura;
-  fechaEmision: string;
-  fechaVencimiento: string;
+  status: EstadoFactura;
+  issued_at: string;
+  due_at: string;
 }
 
 export interface LogEntry {
-  id: string;
-  tenantId: string;
-  tenantNombre: string;
-  nivel: 'ERROR' | 'WARN' | 'INFO';
-  mensaje: string;
+  uid: string;
+  tenant_uid: string;
+  tenant_nombre: string;
+  level: 'ERROR' | 'WARN' | 'INFO';
+  message: string;
   timestamp: string;
-  errores24h?: number;
-  severidad?: 'CRITICO' | 'ALTO' | 'MEDIO' | 'BAJO';
+  errors_last_24h?: number;
+  severity?: 'CRITICO' | 'ALTO' | 'MEDIO' | 'BAJO';
 }
 
 export interface Alerta {
-  id: string;
+  uid: string;
   nombre: string;
-  condicion: string;
-  canal: ('EMAIL' | 'SLACK' | 'PUSH')[];
+  metric: 'errores' | 'warnings' | 'latencia' | 'uptime';
+  operator: '>' | '<' | '>=' | '<=';
+  value: number;
+  period: '1h' | '6h' | '24h' | '7d';
+  canales: ('EMAIL' | 'SLACK' | 'PUSH')[];
   estado: 'ACTIVO' | 'INACTIVO';
-  ultimaActivacion: string | null;
+  last_triggered_at: string | null;
 }
+
+export interface TelemetryStats {
+  uptime_global_percent: number;
+  latencia_p95_ms: number | null;
+  errores_24h: number;
+  warnings_24h: number;
+  tenants_with_errors: number;
+  active_alerts: number;
+}
+
+export interface MrrHistoryPoint {
+  mes: string;
+  valor: number;
+}
+
+export interface DashboardData {
+  mrr_total: number;
+  mrr_growth_percent: number;
+  mrr_history: MrrHistoryPoint[];
+  tenants_activos: number;
+  tenants_trial: number;
+  facturas_vencidas: number;
+  errores_criticos_24h: number;
+  tenants_en_riesgo: Tenant[];
+  tenants_recientes: Tenant[];
+}
+
+// --- Payload types ---
+
+export type PlanPayload = Omit<PlanSaaS, 'uid' | 'created_at' | 'total_tenants'>;
+export type AlertaPayload = Omit<Alerta, 'uid'>;
+export type CreateTenantUserPayload = { name: string; email: string; role: string };

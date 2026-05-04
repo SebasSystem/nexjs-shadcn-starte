@@ -1,34 +1,34 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import React, { useCallback, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { useHistory } from 'src/features/commissions/hooks/use-history';
-import { Button } from 'src/shared/components/ui/button';
+import { cn } from 'src/lib/utils';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { Icon } from 'src/shared/components/ui/icon';
 import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
   Table,
   TableBody,
-  TableRow,
   TableCell,
   TableContainer,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
-import { cn } from 'src/lib/utils';
-import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import { Button } from 'src/shared/components/ui/button';
+import { Checkbox } from 'src/shared/components/ui/checkbox';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
-import { Input } from 'src/shared/components/ui/input';
-import { SelectField } from 'src/shared/components/ui/select-field';
-import { Checkbox } from 'src/shared/components/ui/checkbox';
-import { toast } from 'sonner';
 
 // Mock detail data por registro
 const MOCK_DETALLES: Record<
@@ -235,7 +235,11 @@ export const HistoryView = () => {
                 }}
                 className="text-muted-foreground hover:text-blue-600 transition-colors p-1 rounded"
               >
-                {isExpanded ? <Icon name="ChevronUp" size={16} /> : <Icon name="ChevronDown" size={16} />}
+                {isExpanded ? (
+                  <Icon name="ChevronUp" size={16} />
+                ) : (
+                  <Icon name="ChevronDown" size={16} />
+                )}
               </button>
             </div>
           );
@@ -627,7 +631,10 @@ export const HistoryView = () => {
                         setPdfOpciones((prev) => ({ ...prev, [key]: v as boolean }))
                       }
                     />
-                    <label htmlFor={`pdf-${key}`} className="text-sm text-muted-foreground cursor-pointer">
+                    <label
+                      htmlFor={`pdf-${key}`}
+                      className="text-sm text-muted-foreground cursor-pointer"
+                    >
                       {label}
                     </label>
                   </div>

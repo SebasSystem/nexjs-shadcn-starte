@@ -2,19 +2,21 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { BillingStatusBadge } from 'src/features/admin/components/billing-status-badge';
+import { Factura } from 'src/features/admin/types/admin.types';
+import { formatMoney } from 'src/lib/currency';
+import { formatDate } from 'src/lib/date';
+import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
+import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
-import { Button } from 'src/shared/components/ui/button';
-import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
-import { BillingStatusBadge } from 'src/features/admin/components/billing-status-badge';
-import { Factura } from 'src/features/admin/types/admin.types';
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -26,20 +28,12 @@ interface BillingDetailDrawerProps {
 }
 
 function getInitials(nombre: string) {
-  return nombre
+  return (nombre ?? '')
     .split(' ')
     .slice(0, 2)
     .map((w) => w[0])
     .join('')
     .toUpperCase();
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('es-MX', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
 }
 
 export function BillingDetailDrawer({
@@ -52,13 +46,13 @@ export function BillingDetailDrawer({
 
   if (!factura) return null;
 
-  const canMarkPaid = factura.estado === 'PENDIENTE' || factura.estado === 'VENCIDA';
+  const canMarkPaid = factura.status === 'PENDIENTE' || factura.status === 'VENCIDA';
 
   const handleMarcarPagada = async () => {
     setIsPaying(true);
     try {
       await delay(800);
-      await onMarcarPagada(factura.id);
+      await onMarcarPagada(factura.uid);
       toast.success('Factura marcada como pagada.');
       onClose();
     } catch {
@@ -69,19 +63,19 @@ export function BillingDetailDrawer({
   };
 
   const timelineSteps = [
-    { label: 'Creada', date: factura.fechaEmision, done: true, icon: 'Clock' as const },
-    { label: 'Enviada', date: factura.fechaEmision, done: true, icon: 'Send' as const },
+    { label: 'Creada', date: factura.issued_at, done: true, icon: 'Clock' as const },
+    { label: 'Enviada', date: factura.issued_at, done: true, icon: 'Send' as const },
     {
       label:
-        factura.estado === 'PAGADA'
+        factura.status === 'PAGADA'
           ? 'Pagada'
-          : factura.estado === 'VENCIDA'
+          : factura.status === 'VENCIDA'
             ? 'Vencida'
             : 'Pendiente de pago',
-      date: factura.estado === 'PAGADA' ? factura.fechaVencimiento : '',
-      done: factura.estado === 'PAGADA',
+      date: factura.status === 'PAGADA' ? factura.due_at : '',
+      done: factura.status === 'PAGADA',
       icon: 'CheckCircle2' as const,
-      isError: factura.estado === 'VENCIDA',
+      isError: factura.status === 'VENCIDA',
     },
   ];
 
@@ -93,22 +87,21 @@ export function BillingDetailDrawer({
           <div className="flex items-start gap-3">
             <Avatar className="h-10 w-10 shrink-0">
               <AvatarFallback className="text-sm bg-blue-100 text-blue-700 font-bold">
-                {getInitials(factura.tenantNombre)}
+                {getInitials(factura.tenant_nombre)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <SheetTitle className="text-body2 font-semibold truncate">
-                  {factura.tenantNombre}
+                  {factura.tenant_nombre}
                 </SheetTitle>
-                <BillingStatusBadge estado={factura.estado} />
+                <BillingStatusBadge estado={factura.status} />
               </div>
               <SheetDescription className="text-caption text-muted-foreground">
-                Factura #{factura.id}
+                Factura #{factura.uid}
               </SheetDescription>
               <p className="text-caption text-muted-foreground">
-                Emitida: {formatDate(factura.fechaEmision)} · Vence:{' '}
-                {formatDate(factura.fechaVencimiento)}
+                Emitida: {formatDate(factura.issued_at)} · Vence: {formatDate(factura.due_at)}
               </p>
             </div>
           </div>
@@ -122,22 +115,46 @@ export function BillingDetailDrawer({
             <div className="bg-muted/30 rounded-xl p-4 space-y-2">
               <div className="flex justify-between text-body2">
                 <span className="text-muted-foreground">
-                  Suscripción {factura.planNombre} — {factura.periodo}
+                  Suscripción {factura.plan_nombre} — {factura.periodo}
                 </span>
-                <span className="font-medium text-foreground">${factura.subtotal.toFixed(2)}</span>
+                <span className="font-medium text-foreground">
+                  {formatMoney(factura.subtotal, {
+                    scope: 'platform',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
               </div>
               <div className="border-t border-border/40 pt-2 space-y-1.5">
                 <div className="flex justify-between text-body2">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="text-foreground">${factura.subtotal.toFixed(2)}</span>
+                  <span className="text-foreground">
+                    {formatMoney(factura.subtotal, {
+                      scope: 'platform',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
                 </div>
                 <div className="flex justify-between text-body2">
                   <span className="text-muted-foreground">IVA 16%</span>
-                  <span className="text-foreground">${factura.impuesto.toFixed(2)}</span>
+                  <span className="text-foreground">
+                    {formatMoney(factura.tax, {
+                      scope: 'platform',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
                 </div>
                 <div className="flex justify-between text-body2 border-t border-border/40 pt-2 font-semibold">
                   <span className="text-foreground">TOTAL</span>
-                  <span className="text-foreground text-h6">${factura.total.toFixed(2)}</span>
+                  <span className="text-foreground text-h6">
+                    {formatMoney(factura.total, {
+                      scope: 'platform',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
                 </div>
               </div>
             </div>

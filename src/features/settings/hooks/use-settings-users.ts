@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+
 import { usersService } from '../services/users.service';
 import type { SettingsUser } from '../types/settings.types';
 

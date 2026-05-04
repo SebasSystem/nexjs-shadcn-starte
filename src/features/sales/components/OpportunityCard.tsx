@@ -1,13 +1,15 @@
 'use client';
 
-import { Icon } from 'src/shared/components/ui/icon';
 import { differenceInDays } from 'date-fns';
-import { cn } from 'src/lib/utils';
-import { STAGE_AGING_THRESHOLDS, STAGE_PROBABILITY } from '../config/pipeline.config';
-import { DealAvatar } from './DealAvatar';
 import { LinkedInValidationBadge } from 'src/features/automation/components/LinkedInValidationBadge';
-import type { AgingLevel } from '../hooks/useOpportunityPanel';
 import type { Opportunity } from 'src/features/sales/types/sales.types';
+import { formatMoney } from 'src/lib/currency';
+import { cn } from 'src/lib/utils';
+import { Icon } from 'src/shared/components/ui/icon';
+
+import { STAGE_AGING_THRESHOLDS, STAGE_PROBABILITY } from '../config/pipeline.config';
+import type { AgingLevel } from '../hooks/useOpportunityPanel';
+import { DealAvatar } from './DealAvatar';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
@@ -25,15 +27,6 @@ function getActivityStatus(lastActivityAt?: string, createdAt?: string) {
   if (diff <= 3) return { color: 'bg-emerald-500', label: lastActivityAt ? 'Reciente' : 'Nuevo' };
   if (diff <= 7) return { color: 'bg-amber-500', label: 'Falta atención' };
   return { color: 'bg-red-500', label: 'En riesgo' };
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
 }
 
 function getAgingLevel(opportunity: Opportunity): AgingLevel {
@@ -173,11 +166,11 @@ export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: Opport
       {/* Amount section */}
       <div className="mt-4">
         <span className="text-base font-extrabold" style={{ color: stageColor }}>
-          {formatCurrency(opportunity.estimatedAmount)}
+          {formatMoney(opportunity.estimatedAmount, { scope: 'tenant', maximumFractionDigits: 0 })}
         </span>
         {!isClosed && (
           <p className="text-[10px] text-muted-foreground mt-0.5">
-            ≈ {formatCurrency(weightedAmount)} ponderado
+            ≈ {formatMoney(weightedAmount, { scope: 'tenant', maximumFractionDigits: 0 })} ponderado
           </p>
         )}
       </div>

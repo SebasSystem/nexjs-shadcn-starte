@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Icon } from 'src/shared/components/ui';
 import { cn } from 'src/lib/utils';
+import { Icon } from 'src/shared/components/ui';
+
 import { NavItem, NavItemProps } from './nav-item';
 
 export type NavSectionData = {

@@ -1,23 +1,24 @@
 'use client';
 
-import { useState, useMemo } from 'react';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
-import { Input } from 'src/shared/components/ui/input';
-import { Badge } from 'src/shared/components/ui/badge';
-import { SelectField } from 'src/shared/components/ui/select-field';
-import { Card, CardContent } from 'src/shared/components/ui/card';
+import { useMemo, useState } from 'react';
+import { formatMoney } from 'src/lib/currency';
 import { PageContainer, SectionCard } from 'src/shared/components/layouts/page';
 import {
-  useTable,
-  TableHeadCustom,
-  TablePaginationCustom,
   Table,
   TableBody,
-  TableRow,
   TableCell,
+  TableHeadCustom,
+  TablePaginationCustom,
+  TableRow,
+  useTable,
 } from 'src/shared/components/table';
+import { Badge } from 'src/shared/components/ui/badge';
+import { Button } from 'src/shared/components/ui/button';
+import { Card, CardContent } from 'src/shared/components/ui/card';
+import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 
 // ─── Types & Mock Data ───────────────────────────────────────────────────────
 
@@ -62,14 +63,6 @@ const PAYMENT_METHOD_OPTIONS = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatMXN(amount: number): string {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
-
 // ─── Column helper ────────────────────────────────────────────────────────────
 
 const columnHelper = createColumnHelper<InvoiceProduct>();
@@ -104,14 +97,16 @@ export function FinanceInvoiceDetailView() {
       columnHelper.accessor('unitPrice', {
         header: () => <div className="text-right w-full">Precio Unit.</div>,
         cell: (info) => (
-          <div className="text-right text-muted-foreground">{formatMXN(info.getValue())}</div>
+          <div className="text-right text-muted-foreground">
+            {formatMoney(info.getValue(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
         ),
       }),
       columnHelper.accessor('total', {
         header: () => <div className="text-right w-full">Total</div>,
         cell: (info) => (
           <div className="text-right font-semibold text-foreground">
-            {formatMXN(info.getValue())}
+            {formatMoney(info.getValue(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         ),
       }),
@@ -153,7 +148,9 @@ export function FinanceInvoiceDetailView() {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                 Total Factura
               </p>
-              <p className="text-2xl font-bold text-foreground">{formatMXN(45680)}</p>
+              <p className="text-2xl font-bold text-foreground">
+                {formatMoney(45680, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
               <p className="text-xs text-muted-foreground">IVA incluido</p>
             </div>
             <div className="w-11 h-11 rounded-full flex items-center justify-center bg-blue-500/10 text-blue-500">
@@ -168,7 +165,9 @@ export function FinanceInvoiceDetailView() {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                 Monto Pagado
               </p>
-              <p className="text-2xl font-bold text-foreground">{formatMXN(27408)}</p>
+              <p className="text-2xl font-bold text-foreground">
+                {formatMoney(27408, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
               <p className="text-xs text-muted-foreground">2 pagos registrados</p>
             </div>
             <div className="w-11 h-11 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-500">
@@ -183,7 +182,9 @@ export function FinanceInvoiceDetailView() {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                 Saldo Pendiente
               </p>
-              <p className="text-2xl font-bold text-orange-600">{formatMXN(18272)}</p>
+              <p className="text-2xl font-bold text-orange-600">
+                {formatMoney(18272, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
               <p className="text-xs text-muted-foreground">Vence: 15 Feb 2024</p>
             </div>
             <div className="w-11 h-11 rounded-full flex items-center justify-center bg-orange-500/10 text-orange-500">
@@ -208,8 +209,12 @@ export function FinanceInvoiceDetailView() {
           </div>
           <div className="flex justify-between mt-2 text-xs text-muted-foreground font-medium">
             <span>$0</span>
-            <span>Pagado: {formatMXN(27408)}</span>
-            <span>{formatMXN(45680)}</span>
+            <span>
+              Pagado: {formatMoney(27408, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            <span>
+              {formatMoney(45680, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -251,7 +256,8 @@ export function FinanceInvoiceDetailView() {
                 onChange={(e) => setAmount(e.target.value)}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Saldo pendiente: {formatMXN(18272)}
+                Saldo pendiente:{' '}
+                {formatMoney(18272, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
 
@@ -282,7 +288,12 @@ export function FinanceInvoiceDetailView() {
                   <div className="pb-6">
                     {payment.done ? (
                       <>
-                        <p className="font-semibold text-foreground">{formatMXN(payment.amount)}</p>
+                        <p className="font-semibold text-foreground">
+                          {formatMoney(payment.amount, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </p>
                         <p className="text-sm text-muted-foreground">{payment.date}</p>
                         <p className="text-xs text-muted-foreground/70 font-mono mt-0.5">
                           Ref: {payment.ref}
@@ -291,7 +302,11 @@ export function FinanceInvoiceDetailView() {
                     ) : (
                       <>
                         <p className="font-semibold text-muted-foreground">
-                          Pendiente: {formatMXN(payment.amount)}
+                          Pendiente:{' '}
+                          {formatMoney(payment.amount, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </p>
                         <p className="text-sm text-muted-foreground/60">Sin fecha asignada</p>
                       </>
@@ -332,15 +347,24 @@ export function FinanceInvoiceDetailView() {
           <div className="w-full max-w-xs space-y-1.5">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>Subtotal:</span>
-              <span className="font-medium text-foreground">{formatMXN(productsSubtotal)}</span>
+              <span className="font-medium text-foreground">
+                {formatMoney(productsSubtotal, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
             </div>
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>IVA (16%):</span>
-              <span className="font-medium text-foreground">{formatMXN(iva)}</span>
+              <span className="font-medium text-foreground">
+                {formatMoney(iva, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
             </div>
             <div className="flex items-center justify-between pt-3 border-t border-border/60">
               <span className="text-base font-bold text-foreground">Total Factura:</span>
-              <span className="text-lg font-bold text-blue-600">{formatMXN(productsTotal)}</span>
+              <span className="text-lg font-bold text-blue-600">
+                {formatMoney(productsTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
             </div>
           </div>
         </div>

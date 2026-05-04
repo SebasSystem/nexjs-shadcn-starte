@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import { useRouter as useNextRouter } from 'next/navigation';
 import type { NavigateOptions } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { useRouter as useNextRouter } from 'next/navigation';
+import { useMemo } from 'react';
 
 export function useRouter() {
   const router = useNextRouter();

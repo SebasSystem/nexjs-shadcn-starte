@@ -1,9 +1,9 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { memo } from 'react';
 import { type Props as ApexChartProps } from 'react-apexcharts';
 import { cn } from 'src/lib/utils';
-import { memo } from 'react';
 
 // SSR must be false because ApexCharts uses Window directly
 const ReactApexChart = dynamic(() => import('react-apexcharts'), {

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
 import { differenceInDays } from 'date-fns';
-import { useSalesContext } from '../context/SalesContext';
+import { useMemo, useState } from 'react';
+
 import { STAGE_AGING_THRESHOLDS, STAGE_PROBABILITY } from '../config/pipeline.config';
+import { useSalesContext } from '../context/SalesContext';
 
 export type AgingLevel = 'normal' | 'warning' | 'risk' | 'stalled';
 

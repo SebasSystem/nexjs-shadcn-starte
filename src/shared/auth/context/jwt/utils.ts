@@ -1,6 +1,7 @@
 import axiosInstance from 'src/lib/axios';
 import { paths } from 'src/routes/paths';
-import { JWT_STORAGE_KEY, ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from './constant';
+
+import { ACCESS_TOKEN_KEY, JWT_STORAGE_KEY, REFRESH_TOKEN_KEY } from './constant';
 
 export function jwtDecode(token: string) {
   try {

@@ -1,22 +1,23 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from 'src/shared/components/ui/button';
 import { FormInput } from 'src/shared/components/ui/form-input';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
   SheetDescription,
   SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from 'src/shared/components/ui/sheet';
+
+import { type AssignmentForm, assignmentSchema } from '../../schemas/assignment.schema';
 import { type AsignacionPlan } from '../../types/commissions.types';
 import { type PlanComision } from '../../types/commissions.types';
-import { assignmentSchema, type AssignmentForm } from '../../schemas/assignment.schema';
 
 interface AssignmentDrawerProps {
   isOpen: boolean;
@@ -112,11 +113,14 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
                     Tipo: <span className="font-medium text-foreground">{planInfo.tipo}</span>
                   </li>
                   <li>
-                    Base: <span className="font-medium text-foreground">{planInfo.porcentajeBase}%</span>
+                    Base:{' '}
+                    <span className="font-medium text-foreground">{planInfo.porcentajeBase}%</span>
                   </li>
                   <li>
                     Tramos Escalonados:{' '}
-                    <span className="font-medium text-foreground">{planInfo.tramos?.length} configurados</span>
+                    <span className="font-medium text-foreground">
+                      {planInfo.tramos?.length} configurados
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -130,12 +134,7 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
                 label="Vigencia Inicio"
                 required
               />
-              <FormInput
-                control={control}
-                name="fechaFin"
-                type="date"
-                label="Vigencia Fin"
-              />
+              <FormInput control={control} name="fechaFin" type="date" label="Vigencia Fin" />
             </div>
           </div>
         </div>

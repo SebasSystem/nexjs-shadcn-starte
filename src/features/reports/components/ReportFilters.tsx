@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
-import {
-  Icon,
-  Button,
-  Input,
-  SelectField,
-} from 'src/shared/components/ui';
-import { SectionCard } from 'src/shared/components/layouts/page';
-import { cn } from 'src/lib/utils';
 import { MOCK_CATEGORIES } from 'src/_mock/_inventories';
+import { cn } from 'src/lib/utils';
+import { SectionCard } from 'src/shared/components/layouts/page';
+import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
 
 export function ReportFilters() {
   const [expanded, setExpanded] = useState(true);

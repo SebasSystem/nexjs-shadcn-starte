@@ -1,19 +1,20 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { MOCK_OPPORTUNITIES, MOCK_QUOTATIONS, MOCK_INVOICES } from 'src/_mock/_sales';
-import { STAGE_CHECKLIST_TEMPLATES } from '../config/pipeline.config';
+import { createContext, type ReactNode, useCallback, useContext, useState } from 'react';
+import { MOCK_INVOICES, MOCK_OPPORTUNITIES, MOCK_QUOTATIONS } from 'src/_mock/_sales';
 import type {
-  Opportunity,
-  Quotation,
-  Invoice,
-  StageId,
-  ProductLine,
-  Payment,
   Activity,
-  Note,
+  Invoice,
   LostReasonInfo,
+  Note,
+  Opportunity,
+  Payment,
+  ProductLine,
+  Quotation,
+  StageId,
 } from 'src/features/sales/types/sales.types';
+
+import { STAGE_CHECKLIST_TEMPLATES } from '../config/pipeline.config';
 
 // ─── Context Shape ────────────────────────────────────────────────────────────
 

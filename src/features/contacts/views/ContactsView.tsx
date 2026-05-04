@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Icon } from 'src/shared/components/ui/icon';
+import React, { useMemo, useState } from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-import { useContacts } from '../hooks/use-contacts';
-import { ContactsTable } from '../components/contacts-table';
-import { ContactDrawer } from '../components/contact-drawer';
+
 import { ContactDetailDrawer } from '../components/contact-detail-drawer';
-import type { Contacto, TipoEntidad, ContactoForm } from '../types/contacts.types';
+import { ContactDrawer } from '../components/contact-drawer';
+import { ContactsTable } from '../components/contacts-table';
+import { useContacts } from '../hooks/use-contacts';
+import type { Contacto, ContactoForm, TipoEntidad } from '../types/contacts.types';
 
 const TABS: { value: 'ALL' | TipoEntidad; label: string }[] = [
   { value: 'ALL', label: 'Todos' },

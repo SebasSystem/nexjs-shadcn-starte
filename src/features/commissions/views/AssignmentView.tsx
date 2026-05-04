@@ -1,18 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
+import { AssignmentDrawer } from 'src/features/commissions/components/assignment/assignment-drawer';
+import { AssignmentsTable } from 'src/features/commissions/components/assignment/assignments-table';
+import { BulkAssignmentDrawer } from 'src/features/commissions/components/assignment/bulk-assignment-drawer';
 import { useAssignment } from 'src/features/commissions/hooks/use-assignment';
 import { usePlans } from 'src/features/commissions/hooks/use-plans';
-import { AssignmentsTable } from 'src/features/commissions/components/assignment/assignments-table';
-import { AssignmentDrawer } from 'src/features/commissions/components/assignment/assignment-drawer';
-import { BulkAssignmentDrawer } from 'src/features/commissions/components/assignment/bulk-assignment-drawer';
+import type { AssignmentForm } from 'src/features/commissions/schemas/assignment.schema';
+import type { AsignacionPlan } from 'src/features/commissions/types/commissions.types';
+import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { Icon } from 'src/shared/components/ui/icon';
-import type { AsignacionPlan } from 'src/features/commissions/types/commissions.types';
-import type { AssignmentForm } from 'src/features/commissions/schemas/assignment.schema';
 
 export const AssignmentView = () => {
   const { asignaciones, isLoading: isAsigLoading, updateAsignacion } = useAssignment();

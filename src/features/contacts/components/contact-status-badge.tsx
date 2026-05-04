@@ -1,4 +1,5 @@
 import { Badge } from 'src/shared/components/ui/badge';
+
 import type { EstadoContacto } from '../types/contacts.types';
 
 const CONFIG: Record<EstadoContacto, { label: string; color: 'success' | 'default' | 'warning' }> =

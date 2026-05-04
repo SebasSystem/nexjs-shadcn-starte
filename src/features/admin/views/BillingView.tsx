@@ -1,20 +1,21 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { BillingDetailDrawer } from 'src/features/admin/components/billing-detail-drawer';
+import { BillingTable } from 'src/features/admin/components/billing-table';
+import { useBilling } from 'src/features/admin/hooks/use-billing';
+import { Factura } from 'src/features/admin/types/admin.types';
+import { formatMoney } from 'src/lib/currency';
 import {
   PageContainer,
   PageHeader,
   SectionCard,
   StatsCard,
 } from 'src/shared/components/layouts/page';
-import { useBilling } from 'src/features/admin/hooks/use-billing';
-import { BillingTable } from 'src/features/admin/components/billing-table';
-import { BillingDetailDrawer } from 'src/features/admin/components/billing-detail-drawer';
-import { Factura } from 'src/features/admin/types/admin.types';
-import { Input } from 'src/shared/components/ui/input';
-import { SelectField } from 'src/shared/components/ui/select-field';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 
 export const BillingView = () => {
   const { facturas, isLoading, marcarPagadas } = useBilling();
@@ -34,10 +35,10 @@ export const BillingView = () => {
 
   const filteredFacturas = useMemo(() => {
     return facturas.filter((f) => {
-      const matchSearch = f.tenantNombre.toLowerCase().includes(search.toLowerCase());
+      const matchSearch = f.tenant_nombre.toLowerCase().includes(search.toLowerCase());
       const matchPeriodo = filterPeriodo === 'ALL' || f.periodo === filterPeriodo;
-      const matchEstado = filterEstado === 'ALL' || f.estado === filterEstado;
-      const matchPlan = filterPlan === 'ALL' || f.planNombre.includes(filterPlan);
+      const matchEstado = filterEstado === 'ALL' || f.status === filterEstado;
+      const matchPlan = filterPlan === 'ALL' || f.plan_nombre.includes(filterPlan);
       return matchSearch && matchPeriodo && matchEstado && matchPlan;
     });
   }, [facturas, search, filterPeriodo, filterEstado, filterPlan]);
@@ -69,29 +70,46 @@ export const BillingView = () => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatsCard
-          title="Cobrado este mes"
-          value="$21,350"
-          trend="+8% vs anterior"
-          icon={<Icon name="DollarSign" className="h-5 w-5" />}
-          iconClassName="bg-emerald-500/10 text-emerald-600"
-        />
-        <StatsCard
-          title="Pendiente de cobro"
-          value="$4,200"
-          trend="12 facturas"
-          trendUp={false}
-          icon={<Icon name="Clock" className="h-5 w-5" />}
-          iconClassName="bg-amber-500/10 text-amber-600"
-        />
-        <StatsCard
-          title="Facturas vencidas"
-          value="$1,800"
-          trend="7 vencidas"
-          trendUp={false}
-          icon={<Icon name="AlertTriangle" className="h-5 w-5" />}
-          iconClassName="bg-red-500/10 text-red-600"
-        />
+        {isLoading ? (
+          [1, 2, 3].map((i) => (
+            <div key={i} className="h-32 bg-muted/40 rounded-2xl animate-pulse" />
+          ))
+        ) : (
+          <>
+            <StatsCard
+              title="Cobrado este mes"
+              value={formatMoney(
+                facturas.filter((f) => f.status === 'PAGADA').reduce((s, f) => s + f.total, 0),
+                { scope: 'platform', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+              )}
+              trend={`${facturas.filter((f) => f.status === 'PAGADA').length} facturas pagadas`}
+              icon={<Icon name="DollarSign" className="h-5 w-5" />}
+              iconClassName="bg-emerald-500/10 text-emerald-600"
+            />
+            <StatsCard
+              title="Pendiente de cobro"
+              value={formatMoney(
+                facturas.filter((f) => f.status === 'PENDIENTE').reduce((s, f) => s + f.total, 0),
+                { scope: 'platform', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+              )}
+              trend={`${facturas.filter((f) => f.status === 'PENDIENTE').length} facturas`}
+              trendUp={false}
+              icon={<Icon name="Clock" className="h-5 w-5" />}
+              iconClassName="bg-amber-500/10 text-amber-600"
+            />
+            <StatsCard
+              title="Facturas vencidas"
+              value={formatMoney(
+                facturas.filter((f) => f.status === 'VENCIDA').reduce((s, f) => s + f.total, 0),
+                { scope: 'platform', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+              )}
+              trend={`${facturas.filter((f) => f.status === 'VENCIDA').length} vencidas`}
+              trendUp={false}
+              icon={<Icon name="AlertTriangle" className="h-5 w-5" />}
+              iconClassName="bg-red-500/10 text-red-600"
+            />
+          </>
+        )}
       </div>
 
       <SectionCard noPadding className="flex flex-col shadow-sm border border-border/40">
@@ -110,9 +128,10 @@ export const BillingView = () => {
               label="Periodo"
               options={[
                 { value: 'ALL', label: 'Todos los periodos' },
-                { value: 'Marzo 2025', label: 'Marzo 2025' },
-                { value: 'Febrero 2025', label: 'Febrero 2025' },
-                { value: 'Enero 2025', label: 'Enero 2025' },
+                ...Array.from(new Set(facturas.map((f) => f.periodo))).map((p) => ({
+                  value: p,
+                  label: p,
+                })),
               ]}
               value={filterPeriodo}
               onChange={(v) => setFilterPeriodo(v as string)}
@@ -133,9 +152,10 @@ export const BillingView = () => {
               label="Plan"
               options={[
                 { value: 'ALL', label: 'Todos los planes' },
-                { value: 'Starter', label: 'Starter' },
-                { value: 'Pro', label: 'Pro' },
-                { value: 'Business', label: 'Business' },
+                ...Array.from(new Set(facturas.map((f) => f.plan_nombre))).map((p) => ({
+                  value: p,
+                  label: p,
+                })),
               ]}
               value={filterPlan}
               onChange={(v) => setFilterPlan(v as string)}
@@ -154,26 +174,14 @@ export const BillingView = () => {
             )}
           </div>
         </div>
-        {isLoading ? (
-          <div className="flex flex-col gap-4 p-5 animate-pulse">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-muted/40 rounded-lg w-full" />
-            ))}
-          </div>
-        ) : (
-          <>
-            <BillingTable
-              facturas={filteredFacturas}
-              onViewDetail={handleOpenDetail}
-              onMarcarPagadas={async (ids) => {
-                await marcarPagadas(ids);
-              }}
-            />
-            <div className="col-span-full border-t border-border/40 p-4 flex items-center justify-between text-sm text-muted-foreground bg-card">
-              <p>Mostrando {filteredFacturas.length} facturas</p>
-            </div>
-          </>
-        )}
+        <BillingTable
+          facturas={filteredFacturas}
+          isLoading={isLoading}
+          onViewDetail={handleOpenDetail}
+          onMarcarPagadas={async (ids) => {
+            await marcarPagadas(ids);
+          }}
+        />
       </SectionCard>
 
       <BillingDetailDrawer

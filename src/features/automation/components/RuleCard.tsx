@@ -1,13 +1,15 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Button } from 'src/shared/components/ui/button';
+import { formatDate as formatDateLib } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
 import { paths } from 'src/routes/paths';
-import { TRIGGER_SOURCE_LABELS, TRIGGER_EVENT_LABELS, ACTION_TYPE_LABELS } from '../types';
-import { RuleStatusBadge } from './RuleStatusBadge';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+
 import type { AutomationRule } from '../types';
+import { ACTION_TYPE_LABELS, TRIGGER_EVENT_LABELS, TRIGGER_SOURCE_LABELS } from '../types';
+import { RuleStatusBadge } from './RuleStatusBadge';
 
 interface RuleCardProps {
   rule: AutomationRule;
@@ -18,8 +20,7 @@ interface RuleCardProps {
 function formatDate(dateStr?: string): string {
   if (!dateStr) return '—';
   try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatDateLib(dateStr, { month: 'short' });
   } catch {
     return dateStr;
   }

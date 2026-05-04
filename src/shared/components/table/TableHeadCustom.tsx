@@ -1,5 +1,5 @@
-import { TableHead, TableHeader, TableRow } from 'src/shared/components/ui/table';
 import { flexRender, Table } from '@tanstack/react-table';
+import { TableHead, TableHeader, TableRow } from 'src/shared/components/ui/table';
 
 interface Props<TData> {
   table: Table<TData>;

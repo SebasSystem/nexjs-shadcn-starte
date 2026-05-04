@@ -1,28 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
-import { flexRender, createColumnHelper } from '@tanstack/react-table';
-import { Icon, Button, Badge } from 'src/shared/components/ui';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from 'src/shared/components/ui';
-import {
-  useTable,
-  TableHeadCustom,
-  Table,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableContainer,
-} from 'src/shared/components/table';
-import { PageContainer, SectionCard } from 'src/shared/components/layouts/page';
+import { useState } from 'react';
+import { RESOURCE_ROLE_CONFIG } from 'src/_mock/_projects';
+import { formatDate } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
 import { paths } from 'src/routes/paths';
-import { RESOURCE_ROLE_CONFIG } from 'src/_mock/_projects';
-import { ProjectDrawer } from '../components/ProjectDrawer';
+import { PageContainer, SectionCard } from 'src/shared/components/layouts/page';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHeadCustom,
+  TableRow,
+  useTable,
+} from 'src/shared/components/table';
+import { Badge, Button, Icon } from 'src/shared/components/ui';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from 'src/shared/components/ui';
+
 import { MilestoneDrawer } from '../components/MilestoneDrawer';
-import { ResourceDrawer } from '../components/ResourceDrawer';
-import { ProjectStatusBadge } from '../components/ProjectStatusBadge';
 import { MilestoneStatusBadge } from '../components/MilestoneStatusBadge';
+import { ProjectDrawer } from '../components/ProjectDrawer';
+import { ProjectStatusBadge } from '../components/ProjectStatusBadge';
+import { ResourceDrawer } from '../components/ResourceDrawer';
 import { useProjects } from '../hooks/useProjects';
 import type { Milestone, ProjectResource } from '../types';
 
@@ -85,18 +87,8 @@ function ResourceCard({ resource, onRemove }: { resource: ProjectResource; onRem
         <div className="flex items-center gap-1.5 text-caption text-muted-foreground">
           <Icon name="Calendar" size={12} />
           <span>
-            {new Date(resource.startDate).toLocaleDateString('es', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-            })}
-            {resource.endDate
-              ? ` — ${new Date(resource.endDate).toLocaleDateString('es', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                })}`
-              : ' → presente'}
+            {formatDate(resource.startDate)}
+            {resource.endDate ? ` — ${formatDate(resource.endDate)}` : ' → presente'}
           </span>
         </div>
       </div>
@@ -165,11 +157,7 @@ export function ProjectDetailView({ projectId }: Props) {
               isDelayed ? 'text-error font-medium' : 'text-muted-foreground'
             )}
           >
-            {new Date(info.getValue()).toLocaleDateString('es', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-            })}
+            {formatDate(info.getValue())}
           </span>
         );
       },
@@ -266,19 +254,11 @@ export function ProjectDetailView({ projectId }: Props) {
             { label: 'Manager', value: project.manager },
             {
               label: 'Inicio',
-              value: new Date(project.startDate).toLocaleDateString('es', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              }),
+              value: formatDate(project.startDate),
             },
             {
               label: 'Fin estimado',
-              value: new Date(project.endDate).toLocaleDateString('es', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              }),
+              value: formatDate(project.endDate),
               error: isOverdue,
             },
           ].map((item) => (

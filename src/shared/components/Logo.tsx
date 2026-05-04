@@ -1,8 +1,7 @@
-import { cn } from 'src/lib/utils';
-
 // Importamos ambas versiones del logo desde assets
 import logoImg from 'src/assets/logos/logo.webp';
 import logoFullImg from 'src/assets/logos/logo-full.webp';
+import { cn } from 'src/lib/utils';
 
 type LogoVariant = 'logo' | 'full';
 

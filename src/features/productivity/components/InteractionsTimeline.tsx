@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useInteractions } from '../hooks/use-interactions';
-import { Button } from 'src/shared/components/ui/button';
-import { Textarea } from 'src/shared/components/ui/textarea';
-import { SelectField } from 'src/shared/components/ui/select-field';
-import { Icon } from 'src/shared/components/ui/icon';
-import type { TipoInteraccion } from '../types/productivity.types';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import React, { useState } from 'react';
+import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
+import { SelectField } from 'src/shared/components/ui/select-field';
+import { Textarea } from 'src/shared/components/ui/textarea';
+
+import { useInteractions } from '../hooks/use-interactions';
+import type { TipoInteraccion } from '../types/productivity.types';
 
 const ICONS = {
   NOTA: <Icon name="StickyNote" size={16} className="text-amber-500" />,

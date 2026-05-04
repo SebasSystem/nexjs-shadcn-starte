@@ -3,8 +3,9 @@
 import { ReactNode, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'src/routes/hooks';
 import { paths } from 'src/routes/paths';
-import { useAuthContext } from '../hooks/use-auth-context';
+
 import { Spinner } from '../../components/feedback/Spinner';
+import { useAuthContext } from '../hooks/use-auth-context';
 
 type Props = { children: ReactNode };
 

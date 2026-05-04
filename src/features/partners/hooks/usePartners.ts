@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  MOCK_PARTNERS,
   MOCK_PARTNER_OPPORTUNITIES,
+  MOCK_PARTNERS,
   MOCK_PORTAL_MATERIALS,
 } from 'src/_mock/_partners';
+
 import type { Partner, PartnerOpportunity, PortalMaterial } from '../types';
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
