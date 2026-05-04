@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+*.md
+README.md
+.env.*
+.env.local
+.env.development
+.env.test
+.gitignore
+.gitattributes
+.prettierrc
+.prettierignore
+.vscode
+Dockerfile
+.dockerignore
+yarn-error.log
