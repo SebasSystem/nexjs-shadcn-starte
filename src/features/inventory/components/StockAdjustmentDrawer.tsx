@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { ADJUSTMENT_REASON_LABELS, type AdjustmentReason } from 'src/_mock/_inventories';
 import { cn } from 'src/lib/utils';
 import {
   Button,
@@ -17,55 +16,53 @@ import {
 } from 'src/shared/components/ui';
 import { Input } from 'src/shared/components/ui';
 
-import { type RichProduct, useInventory } from '../hooks/useInventory';
+import { inventoryStockService } from '../services/inventory-stock.service';
+import type { InventoryMasterItem, Warehouse } from '../types/inventory.types';
 
 interface StockAdjustmentDrawerProps {
   open: boolean;
   onClose: () => void;
-  /** Si viene de una fila, el producto ya está preseleccionado */
-  preselectedProduct?: RichProduct | null;
+  productUid?: string;
+  warehouses: Warehouse[];
+  products: InventoryMasterItem[];
+  onSuccess?: () => void;
 }
 
 export function StockAdjustmentDrawer({
   open,
   onClose,
-  preselectedProduct,
+  productUid,
+  warehouses,
+  products,
+  onSuccess,
 }: StockAdjustmentDrawerProps) {
-  const { products, adjustStock } = useInventory();
 
-  const [productId, setProductId] = useState(preselectedProduct?.id ?? '');
-  const [warehouse, setWarehouse] = useState<'main' | 'store'>('main');
-  const [type, setType] = useState<'add' | 'sub'>('add');
+  const [selectedProductUid, setSelectedProductUid] = useState(productUid ?? '');
+  const [warehouseUid, setWarehouseUid] = useState('');
+  const [operation, setOperation] = useState<'in' | 'out'>('in');
   const [quantity, setQuantity] = useState('');
-  const [reason, setReason] = useState<AdjustmentReason | ''>('');
-  const [reasonOther, setReasonOther] = useState('');
-  const [notes, setNotes] = useState('');
+  const [comment, setComment] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (preselectedProduct) setProductId(preselectedProduct.id);
-  }, [preselectedProduct]);
+    if (productUid) setSelectedProductUid(productUid);
+  }, [productUid]);
 
-  const selectedProduct = products.find((p) => p.id === productId);
-  const currentInWarehouse = selectedProduct
-    ? warehouse === 'main'
-      ? selectedProduct.stockMain
-      : selectedProduct.stockStore
-    : 0;
+  const selectedProduct = products.find((p) => p.uid === selectedProductUid);
+  const currentWarehouseStock = selectedProduct?.stocks.find((s) => s.warehouse_uid === warehouseUid);
   const qty = Number(quantity) || 0;
-  const newStock = type === 'add' ? currentInWarehouse + qty : currentInWarehouse - qty;
-  const wouldGoNegative = type === 'sub' && qty > currentInWarehouse;
+  const currentStock = currentWarehouseStock?.available_stock ?? 0;
+  const newStock = operation === 'in' ? currentStock + qty : currentStock - qty;
+  const wouldGoNegative = operation === 'out' && qty > currentStock;
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!productId) newErrors.product = 'Selecciona un producto';
-    if (!quantity || qty < 1) newErrors.quantity = 'Ingresa una cantidad válida (mínimo 1)';
+    if (!selectedProductUid) newErrors.product = 'Seleccioná un producto';
+    if (!warehouseUid) newErrors.warehouse = 'Seleccioná una bodega';
+    if (!quantity || qty < 1) newErrors.quantity = 'Ingresá una cantidad válida (mínimo 1)';
     else if (wouldGoNegative)
-      newErrors.quantity = `No puedes reducir más unidades de las que existen en esta bodega (disponible: ${currentInWarehouse})`;
-    if (!reason) newErrors.reason = 'Selecciona un motivo';
-    if (reason === 'other' && !reasonOther.trim()) newErrors.reasonOther = 'Describe el motivo';
+      newErrors.quantity = `No podés reducir más de lo disponible (${currentStock} uds)`;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -73,30 +70,30 @@ export function StockAdjustmentDrawer({
   const handleSave = async () => {
     if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    adjustStock({
-      productId,
-      warehouse,
-      type,
-      quantity: qty,
-      reason: reason as AdjustmentReason,
-      reasonOther: reason === 'other' ? reasonOther : undefined,
-      notes,
-      registeredBy: 'Admin',
-    });
-    setLoading(false);
-    toast.success(`Ajuste ${type === 'add' ? 'positivo' : 'negativo'} registrado correctamente`);
-    handleClose();
+    try {
+      await inventoryStockService.adjust({
+        product_uid: selectedProductUid,
+        warehouse_uid: warehouseUid,
+        operation,
+        quantity: qty,
+        comment: comment.trim() || undefined,
+      });
+      toast.success(`Ajuste ${operation === 'in' ? 'positivo' : 'negativo'} registrado`);
+      onSuccess?.();
+      handleClose();
+    } catch {
+      toast.error('Error al registrar el ajuste');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
-    if (!preselectedProduct) setProductId('');
-    setWarehouse('main');
-    setType('add');
+    if (!productUid) setSelectedProductUid('');
+    setWarehouseUid('');
+    setOperation('in');
     setQuantity('');
-    setReason('');
-    setReasonOther('');
-    setNotes('');
+    setComment('');
     setErrors({});
     onClose();
   };
@@ -110,18 +107,14 @@ export function StockAdjustmentDrawer({
 
         <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
           {/* Producto */}
-          {preselectedProduct ? (
+          {productUid && selectedProduct ? (
             <div>
-              <p className="text-sm font-medium mb-1.5">Producto *</p>
+              <p className="text-sm font-medium mb-1.5">Producto</p>
               <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5 flex items-center gap-3">
                 <Icon name="Package" size={16} className="text-muted-foreground shrink-0" />
                 <div>
-                  <p className="text-subtitle2 text-foreground font-medium">
-                    {preselectedProduct.name}
-                  </p>
-                  <p className="text-caption text-muted-foreground font-mono">
-                    {preselectedProduct.sku}
-                  </p>
+                  <p className="text-subtitle2 text-foreground font-medium">{selectedProduct.name}</p>
+                  <p className="text-caption text-muted-foreground font-mono">{selectedProduct.sku}</p>
                 </div>
               </div>
             </div>
@@ -130,10 +123,13 @@ export function StockAdjustmentDrawer({
               label="Producto *"
               required
               options={products
-                .filter((p) => p.status === 'active')
-                .map((p) => ({ value: p.id, label: `${p.name} — ${p.sku}` }))}
-              value={productId}
-              onChange={(v) => setProductId(v as string)}
+                .filter((p) => p.is_active)
+                .map((p) => ({ value: p.uid, label: `${p.name} — ${p.sku}` }))}
+              value={selectedProductUid}
+              onChange={(v) => {
+                setSelectedProductUid(v as string);
+                setWarehouseUid('');
+              }}
               placeholder="Seleccionar producto..."
               error={errors.product}
             />
@@ -142,19 +138,20 @@ export function StockAdjustmentDrawer({
           {/* Bodega */}
           <div>
             <SelectField
-              label="Bodega a ajustar *"
+              label="Bodega *"
               required
-              options={[
-                { value: 'main', label: 'Bodega Principal' },
-                { value: 'store', label: 'Tienda' },
-              ]}
-              value={warehouse}
-              onChange={(v) => setWarehouse(v as 'main' | 'store')}
+              options={warehouses
+                .filter((w) => w.is_active)
+                .map((w) => ({ value: w.uid, label: w.name }))}
+              value={warehouseUid}
+              onChange={(v) => setWarehouseUid(v as string)}
+              placeholder="Seleccionar bodega..."
+              error={errors.warehouse}
             />
-            {selectedProduct && (
+            {currentWarehouseStock && (
               <p className="text-caption text-muted-foreground mt-1">
-                Stock actual en {warehouse === 'main' ? 'B. Principal' : 'Tienda'}:{' '}
-                <span className="font-semibold text-foreground">{currentInWarehouse} uds</span>
+                Disponible:{' '}
+                <span className="font-semibold text-foreground">{currentStock} uds</span>
               </p>
             )}
           </div>
@@ -164,10 +161,10 @@ export function StockAdjustmentDrawer({
             <p className="text-sm font-medium">Tipo de ajuste *</p>
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => setType('add')}
+                onClick={() => setOperation('in')}
                 className={cn(
                   'flex items-center gap-2.5 rounded-xl border px-4 py-3 transition-all text-left',
-                  type === 'add'
+                  operation === 'in'
                     ? 'border-success bg-success/5 text-success'
                     : 'border-border/60 text-muted-foreground hover:border-success/40'
                 )}
@@ -179,10 +176,10 @@ export function StockAdjustmentDrawer({
                 </div>
               </button>
               <button
-                onClick={() => setType('sub')}
+                onClick={() => setOperation('out')}
                 className={cn(
                   'flex items-center gap-2.5 rounded-xl border px-4 py-3 transition-all text-left',
-                  type === 'sub'
+                  operation === 'out'
                     ? 'border-warning bg-warning/5 text-warning'
                     : 'border-border/60 text-muted-foreground hover:border-warning/40'
                 )}
@@ -199,7 +196,7 @@ export function StockAdjustmentDrawer({
           {/* Cantidad */}
           <div>
             <Input
-              label="Cantidad a ajustar *"
+              label="Cantidad *"
               required
               type="number"
               min={1}
@@ -214,21 +211,24 @@ export function StockAdjustmentDrawer({
               }}
               error={errors.quantity}
             />
-            {selectedProduct && qty > 0 && !wouldGoNegative && (
+            {selectedProduct && warehouseUid && qty > 0 && !wouldGoNegative && (
               <div
                 className={cn(
                   'rounded-lg px-3 py-2.5 mt-2 border',
-                  type === 'add'
+                  operation === 'in'
                     ? 'bg-success/5 border-success/20'
                     : 'bg-warning/5 border-warning/20'
                 )}
               >
                 <p className="text-caption text-muted-foreground">
-                  Stock actual:{' '}
-                  <span className="font-semibold text-foreground">{currentInWarehouse}</span> →
-                  Nuevo stock:{' '}
+                  Actual:{' '}
+                  <span className="font-semibold text-foreground">{currentStock}</span>
+                  {' → '}Nuevo:{' '}
                   <span
-                    className={cn('font-bold', type === 'add' ? 'text-success' : 'text-warning')}
+                    className={cn(
+                      'font-bold',
+                      operation === 'in' ? 'text-success' : 'text-warning'
+                    )}
                   >
                     {newStock}
                   </span>{' '}
@@ -238,66 +238,14 @@ export function StockAdjustmentDrawer({
             )}
           </div>
 
-          {/* Motivo (obligatorio) */}
-          <div>
-            <SelectField
-              label="Motivo del ajuste *"
-              required
-              options={(Object.keys(ADJUSTMENT_REASON_LABELS) as AdjustmentReason[]).map((key) => ({
-                value: key,
-                label: ADJUSTMENT_REASON_LABELS[key],
-              }))}
-              value={reason}
-              onChange={(v) => {
-                setReason(v as AdjustmentReason);
-                setErrors((p) => {
-                  const n = { ...p };
-                  delete n.reason;
-                  return n;
-                });
-              }}
-              placeholder="Seleccionar motivo..."
-              error={errors.reason}
-            />
-
-            {reason === 'other' && (
-              <Input
-                label="Describe el motivo *"
-                required
-                value={reasonOther}
-                onChange={(e) => setReasonOther(e.target.value)}
-                placeholder="Ej: Conteo inicial de apertura..."
-                error={errors.reasonOther}
-                className="mt-2"
-              />
-            )}
-          </div>
-
-          {/* Notas adicionales */}
+          {/* Notas */}
           <Textarea
-            label="Notas adicionales (opcional)"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            label="Notas (opcional)"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
             rows={2}
             placeholder="Observaciones del ajuste..."
           />
-
-          {/* Resumen */}
-          {selectedProduct && qty > 0 && reason && (
-            <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-3">
-              <p className="text-caption text-muted-foreground">
-                Ajuste de{' '}
-                <span className={cn('font-bold', type === 'add' ? 'text-success' : 'text-warning')}>
-                  {type === 'add' ? '+' : '-'}
-                  {qty} uds
-                </span>{' '}
-                en {warehouse === 'main' ? 'Bodega Principal' : 'Tienda'} por{' '}
-                <span className="text-foreground font-medium">
-                  {ADJUSTMENT_REASON_LABELS[reason as AdjustmentReason]}
-                </span>
-              </p>
-            </div>
-          )}
         </div>
 
         <SheetFooter className="border-t border-border/60 pt-4 px-4 pb-4">

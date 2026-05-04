@@ -24,10 +24,7 @@ export function AuthProvider({ children }: Props) {
         const { user, permissions } = await getInitData();
 
         if (user?.uid) {
-          // Inicializar configuración global de fecha/moneda para toda la app (Local Storage)
-          await localizationService.get().catch(() => {
-            // Silencioso: si falla, usa el fallback predeterminado
-          });
+          await localizationService.get().catch(() => {});
 
           setState({
             user: {
@@ -41,6 +38,7 @@ export function AuthProvider({ children }: Props) {
             permissions,
             loading: false,
           });
+          return permissions;
         } else {
           setState({ user: null, loading: false, permissions: [] });
         }
@@ -53,6 +51,7 @@ export function AuthProvider({ children }: Props) {
       }
       setState({ user: null, loading: false, permissions: [] });
     }
+    return [];
   }, []);
 
   useEffect(() => {

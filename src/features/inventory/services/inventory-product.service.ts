@@ -1,0 +1,36 @@
+import type {
+  CreateProductPayload,
+  InventoryMasterItem,
+  InventoryMasterResponse,
+} from 'src/features/inventory/types/inventory.types';
+import axiosInstance, { endpoints } from 'src/lib/axios';
+
+export const inventoryProductService = {
+  async master(params?: {
+    category_uid?: string;
+    warehouse_uid?: string;
+    stock_state?: 'normal' | 'low' | 'out';
+  }): Promise<InventoryMasterResponse> {
+    const res = await axiosInstance.get(endpoints.inventory.master, { params });
+    return res.data.data;
+  },
+
+  async list(): Promise<InventoryMasterItem[]> {
+    const res = await axiosInstance.get(endpoints.inventory.products);
+    return res.data.data;
+  },
+
+  async create(payload: CreateProductPayload): Promise<InventoryMasterItem> {
+    const res = await axiosInstance.post(endpoints.inventory.products, payload);
+    return res.data.data;
+  },
+
+  async update(uid: string, payload: Partial<CreateProductPayload>): Promise<InventoryMasterItem> {
+    const res = await axiosInstance.put(endpoints.inventory.product(uid), payload);
+    return res.data.data;
+  },
+
+  async remove(uid: string): Promise<void> {
+    await axiosInstance.delete(endpoints.inventory.product(uid));
+  },
+};

@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { paths } from 'src/routes/paths';
 import { setSession } from 'src/shared/auth/context/jwt/utils';
 import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
 
@@ -17,22 +18,15 @@ export function useSignIn() {
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      twoFactorCode: '',
-    },
+    defaultValues: { email: '', password: '', twoFactorCode: '' },
   });
 
   const onSubmit = async (values: SignInFormValues) => {
     try {
-      await signInWithPassword({
-        email: values.email,
-        password: values.password,
-        twoFactorCode: values.twoFactorCode || undefined,
-      });
-
-      await checkUserSession?.();
+      await signInWithPassword({ email: values.email, password: values.password, twoFactorCode: values.twoFactorCode || undefined });
+      const permissions = await checkUserSession?.() ?? [];
+      const isAdmin = permissions.some((p) => p.startsWith('admin.'));
+      window.location.href = isAdmin ? paths.admin.dashboard : paths.dashboard.root;
     } catch (error) {
       const err = error as AuthError;
       // error can be a typed AuthError (our own) or a plain backend response body

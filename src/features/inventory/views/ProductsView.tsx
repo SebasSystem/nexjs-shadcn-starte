@@ -1,9 +1,8 @@
 'use client';
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { MOCK_CATEGORIES } from 'src/_mock/_inventories';
 import { cn } from 'src/lib/utils';
 import {
   PageContainer,
@@ -36,103 +35,104 @@ import {
 } from 'src/shared/components/ui';
 import { ACTION_ICONS } from 'src/shared/constants/app-icons';
 
+import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { StockBadge } from '../components/StockBadge';
-import { type RichProduct, useInventory } from '../hooks/useInventory';
+import { useProducts } from '../hooks/use-products';
+import type { CreateProductPayload, InventoryMasterItem } from '../types/inventory.types';
 
 // ─── Column helper ────────────────────────────────────────────────────────────
 
-const columnHelper = createColumnHelper<RichProduct>();
+const columnHelper = createColumnHelper<InventoryMasterItem>();
 
-// ─── Drawer ───────────────────────────────────────────────────────────────────
+// ─── Product Drawer ───────────────────────────────────────────────────────────
 
 type DrawerMode = 'create' | 'edit';
 
 interface ProductDrawerProps {
   open: boolean;
   mode: DrawerMode;
-  product?: RichProduct | null;
+  product?: InventoryMasterItem | null;
+  categories: { uid: string; name: string }[];
+  warehouses: { uid: string; name: string }[];
   onClose: () => void;
-  onCreate: (data: {
-    name: string;
-    sku: string;
-    category: string;
-    unit: string;
-    minStock: number;
-    status: 'active' | 'inactive';
-    stockMainInit: number;
-    stockStoreInit: number;
-  }) => void;
-  onUpdate: (productId: string, changes: Partial<RichProduct>) => void;
+  onSave: (payload: CreateProductPayload) => Promise<void>;
 }
 
-function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: ProductDrawerProps) {
+function ProductDrawer({
+  open,
+  mode,
+  product,
+  categories,
+  warehouses,
+  onClose,
+  onSave,
+}: ProductDrawerProps) {
   const [name, setName] = useState(product?.name ?? '');
   const [sku, setSku] = useState(product?.sku ?? '');
-  const [category, setCategory] = useState(product?.category ?? '');
-  const [unit, setUnit] = useState(product?.unit ?? 'Unidad');
-  const [minStock, setMinStock] = useState(String(product?.minStock ?? 0));
-  const [active, setActive] = useState(product ? product.status === 'active' : true);
-  const [stockMain, setStockMain] = useState('0');
-  const [stockStore, setStockStore] = useState('0');
+  const [categoryUid, setCategoryUid] = useState(product?.category_uid ?? '');
+  const [reorderPoint, setReorderPoint] = useState(String(product?.reorder_point ?? 0));
+  const [active, setActive] = useState(product ? product.is_active : true);
+  const [warehouseStocks, setWarehouseStocks] = useState<Record<string, string>>(
+    Object.fromEntries(warehouses.map((w) => [w.uid, '0']))
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setName(product?.name ?? '');
+    setSku(product?.sku ?? '');
+    setCategoryUid(product?.category_uid ?? '');
+    setReorderPoint(String(product?.reorder_point ?? 0));
+    setActive(product ? product.is_active : true);
+    setWarehouseStocks(Object.fromEntries(warehouses.map((w) => [w.uid, '0'])));
+    setErrors({});
+  }, [open, product]);
+
   const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!name.trim()) newErrors.name = 'El nombre es requerido';
-    if (!sku.trim()) newErrors.sku = 'El SKU es requerido';
-    if (mode === 'create' && Number(stockMain) < 0) newErrors.stockMain = 'No puede ser negativo';
-    if (mode === 'create' && Number(stockStore) < 0) newErrors.stockStore = 'No puede ser negativo';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const next: Record<string, string> = {};
+    if (!name.trim()) next.name = 'El nombre es requerido';
+    if (!sku.trim()) next.sku = 'El SKU es requerido';
+    setErrors(next);
+    return Object.keys(next).length === 0;
   };
 
   const handleSave = async () => {
     if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 500));
+    try {
+      const payload: CreateProductPayload = {
+        name,
+        sku,
+        category_uid: categoryUid || undefined,
+        reorder_point: Number(reorderPoint),
+        is_active: active,
+      };
 
-    if (mode === 'create') {
-      onCreate({
-        name,
-        sku,
-        category: category || MOCK_CATEGORIES[0].name,
-        unit,
-        minStock: Number(minStock),
-        status: active ? 'active' : 'inactive',
-        stockMainInit: Number(stockMain),
-        stockStoreInit: Number(stockStore),
-      });
-      toast.success('Producto creado correctamente');
-    } else if (product) {
-      onUpdate(product.id, {
-        name,
-        sku,
-        category,
-        unit,
-        minStock: Number(minStock),
-        status: active ? 'active' : 'inactive',
-      });
-      toast.success('Producto actualizado');
+      if (mode === 'create') {
+        payload.warehouse_stocks = warehouses
+          .filter((w) => Number(warehouseStocks[w.uid]) > 0)
+          .map((w) => ({ warehouse_uid: w.uid, quantity: Number(warehouseStocks[w.uid]) }));
+      }
+
+      await onSave(payload);
+      onClose();
+    } catch {
+      toast.error('Error al guardar el producto');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
-    onClose();
   };
-
-  const isEdit = mode === 'edit';
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="w-full sm:max-w-md flex flex-col overflow-y-auto">
         <SheetHeader className="border-b border-border/60 pb-4">
-          <SheetTitle>{isEdit ? 'Editar producto' : 'Nuevo producto'}</SheetTitle>
+          <SheetTitle>{mode === 'edit' ? 'Editar producto' : 'Nuevo producto'}</SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
           <Input
             label="Nombre del producto *"
-            required
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ej: Camiseta Básica XL"
@@ -141,7 +141,6 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
 
           <Input
             label="SKU / Código *"
-            required
             value={sku}
             onChange={(e) => setSku(e.target.value)}
             placeholder="Ej: SKU-001-XL"
@@ -150,31 +149,22 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
 
           <SelectField
             label="Categoría"
-            options={MOCK_CATEGORIES.map((c) => ({ value: c.name, label: c.name }))}
-            value={category}
-            onChange={(v) => setCategory(v as string)}
-            placeholder="Seleccionar categoría"
-          />
-
-          <SelectField
-            label="Unidad de medida"
-            options={['Unidad', 'Caja', 'Par', 'Pack', 'Kg', 'L'].map((u) => ({
-              value: u,
-              label: u,
-            }))}
-            value={unit}
-            onChange={(v) => setUnit(v as string)}
+            options={[
+              { value: '', label: 'Sin categoría' },
+              ...categories.map((c) => ({ value: c.uid, label: c.name })),
+            ]}
+            value={categoryUid}
+            onChange={(v) => setCategoryUid(v as string)}
           />
 
           <Input
             label="Stock mínimo (umbral de alerta)"
             type="number"
             min={0}
-            value={minStock}
-            onChange={(e) => setMinStock(e.target.value)}
+            value={reorderPoint}
+            onChange={(e) => setReorderPoint(e.target.value)}
           />
 
-          {/* Estado toggle */}
           <div className="flex items-center justify-between py-1">
             <div>
               <p className="text-sm font-medium leading-none">Estado</p>
@@ -185,36 +175,30 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
             <Switch checked={active} onCheckedChange={setActive} />
           </div>
 
-          {/* Stock inicial (solo create) */}
-          {!isEdit && (
+          {mode === 'create' && warehouses.length > 0 && (
             <div className="rounded-xl border border-border/60 p-4 space-y-4 bg-muted/20">
-              <p className="text-subtitle2 text-foreground font-semibold">Stock inicial</p>
-              <div className="grid grid-cols-2 gap-3">
+              <p className="text-subtitle2 text-foreground font-semibold">
+                Stock inicial por bodega
+              </p>
+              {warehouses.map((w) => (
                 <Input
-                  label="Bodega Principal"
+                  key={w.uid}
+                  label={w.name}
                   type="number"
                   min={0}
-                  value={stockMain}
-                  onChange={(e) => setStockMain(e.target.value)}
-                  error={errors.stockMain}
+                  value={warehouseStocks[w.uid] ?? '0'}
+                  onChange={(e) =>
+                    setWarehouseStocks((prev) => ({ ...prev, [w.uid]: e.target.value }))
+                  }
                 />
-                <Input
-                  label="Tienda"
-                  type="number"
-                  min={0}
-                  value={stockStore}
-                  onChange={(e) => setStockStore(e.target.value)}
-                  error={errors.stockStore}
-                />
-              </div>
+              ))}
               <p className="text-caption text-muted-foreground">
-                El stock podrá ajustarse después desde la vista de movimientos.
+                El stock podrá ajustarse después desde movimientos.
               </p>
             </div>
           )}
 
-          {/* Zona de peligro (solo edit) */}
-          {isEdit && (
+          {mode === 'edit' && (
             <div className="rounded-xl border border-error/20 p-4 bg-error/5">
               <p className="text-subtitle2 text-error font-medium mb-1">Zona de peligro</p>
               <p className="text-caption text-muted-foreground mb-3">
@@ -225,9 +209,7 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
                 color="error"
                 size="sm"
                 onClick={() => {
-                  onUpdate(product!.id, { status: 'inactive' });
-                  toast.success('Producto inactivado');
-                  onClose();
+                  onSave({ name, sku, is_active: false }).then(() => onClose());
                 }}
               >
                 Inactivar producto
@@ -258,7 +240,7 @@ function ProductDrawer({ open, mode, product, onClose, onCreate, onUpdate }: Pro
 // ─── Main View ────────────────────────────────────────────────────────────────
 
 export function ProductsView() {
-  const { products, stats, createProduct, updateProduct } = useInventory();
+  const { items, summary, categories, isLoading, createProduct, updateProduct } = useProducts();
 
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -266,36 +248,33 @@ export function ProductsView() {
   const [filterWarehouse, setFilterWarehouse] = useState('all');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>('create');
-  const [selectedProduct, setSelectedProduct] = useState<RichProduct | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<InventoryMasterItem | null>(null);
 
   const statsCards = [
     {
       title: 'Total productos',
-      value: stats.totalProducts,
+      value: summary.products,
       badge: 'en catálogo',
-      badgeClass: 'bg-primary/10 text-primary',
       icon: <Icon name="Package" size={18} />,
       iconClassName: 'bg-primary/10 text-primary',
     },
     {
       title: 'Productos activos',
-      value: stats.activeProducts,
-      badge: `${stats.totalProducts > 0 ? Math.round((stats.activeProducts / stats.totalProducts) * 100) : 0}% del total`,
-      badgeClass: 'bg-success/10 text-success',
+      value: summary.active_products,
+      badge: `${summary.products > 0 ? Math.round((summary.active_products / summary.products) * 100) : 0}% del total`,
       icon: <Icon name="CheckCircle" size={18} />,
       iconClassName: 'bg-success/10 text-success',
     },
     {
       title: 'Productos sin stock',
-      value: stats.outOfStock,
-      badge: `${stats.totalProducts > 0 ? Math.round((stats.outOfStock / stats.totalProducts) * 100) : 0}% del total`,
-      badgeClass: 'bg-error/10 text-error',
+      value: summary.out_of_stock_count,
+      badge: `${summary.products > 0 ? Math.round((summary.out_of_stock_count / summary.products) * 100) : 0}% del total`,
       icon: <Icon name="XCircle" size={18} />,
       iconClassName: 'bg-error/10 text-error',
     },
     {
       title: 'Categorías',
-      value: MOCK_CATEGORIES.length,
+      value: categories.length,
       badge: 'disponibles',
       badgeClass: 'bg-info/10 text-info',
       icon: <Icon name="Tag" size={18} />,
@@ -303,26 +282,35 @@ export function ProductsView() {
     },
   ];
 
+  const allWarehouses = useMemo(() => {
+    const map = new Map<string, { uid: string; name: string }>();
+    items.forEach((p) =>
+      p.stocks.forEach((s) =>
+        map.set(s.warehouse_uid, { uid: s.warehouse_uid, name: s.warehouse.name })
+      )
+    );
+    return Array.from(map.values());
+  }, [items]);
+
   const filtered = useMemo(() => {
-    return products.filter((p) => {
+    return items.filter((p) => {
       const matchSearch =
         !search ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         p.sku.toLowerCase().includes(search.toLowerCase());
-      const matchCategory = filterCategory === 'all' || p.category === filterCategory;
+      const matchCategory = filterCategory === 'all' || p.category_uid === filterCategory;
       const matchStatus =
         filterStatus === 'all' ||
-        (filterStatus === 'available' && p.stockStatus === 'available') ||
-        (filterStatus === 'out_of_stock' && p.stockStatus === 'out_of_stock') ||
-        (filterStatus === 'low_stock' && p.stockStatus === 'low_stock') ||
-        (filterStatus === 'inactive' && p.status === 'inactive');
+        (filterStatus === 'normal' && p.stock_state === 'normal') ||
+        (filterStatus === 'low' && p.stock_state === 'low') ||
+        (filterStatus === 'out' && p.stock_state === 'out') ||
+        (filterStatus === 'inactive' && !p.is_active);
       const matchWarehouse =
         filterWarehouse === 'all' ||
-        (filterWarehouse === 'main' && p.stockMain > 0) ||
-        (filterWarehouse === 'store' && p.stockStore > 0);
+        p.stocks.some((s) => s.warehouse_uid === filterWarehouse && s.physical_stock > 0);
       return matchSearch && matchCategory && matchStatus && matchWarehouse;
     });
-  }, [products, search, filterCategory, filterStatus, filterWarehouse]);
+  }, [items, search, filterCategory, filterStatus, filterWarehouse]);
 
   const COLUMNS = useMemo(
     () => [
@@ -335,34 +323,29 @@ export function ProductsView() {
           </div>
         ),
       }),
-      columnHelper.accessor('category', {
+      columnHelper.accessor('category_name', {
         header: 'Categoría',
-        cell: (info) => (
-          <Badge variant="soft" color="secondary">
-            {info.getValue()}
-          </Badge>
-        ),
+        cell: (info) =>
+          info.getValue() ? (
+            <Badge variant="soft" color="secondary">
+              {info.getValue()}
+            </Badge>
+          ) : (
+            <span className="text-muted-foreground text-xs">—</span>
+          ),
       }),
-      columnHelper.accessor('physical', {
+      columnHelper.accessor('stock_physical_total', {
         header: () => <div className="text-right w-full">Stock total</div>,
         cell: (info) => (
           <div className="text-right font-semibold text-foreground">{info.getValue()}</div>
         ),
       }),
-      columnHelper.accessor('stockMain', {
-        header: () => <div className="text-right w-full">B. Principal</div>,
-        cell: (info) => <div className="text-right text-muted-foreground">{info.getValue()}</div>,
-      }),
-      columnHelper.accessor('stockStore', {
-        header: () => <div className="text-right w-full">Tienda</div>,
-        cell: (info) => <div className="text-right text-muted-foreground">{info.getValue()}</div>,
-      }),
-      columnHelper.accessor('reserved', {
+      columnHelper.accessor('stock_reserved_total', {
         header: () => <div className="text-right w-full">Reservado</div>,
         cell: (info) => <div className="text-right text-muted-foreground">{info.getValue()}</div>,
       }),
-      columnHelper.accessor('available', {
-        header: () => <div className="text-right w-full font-semibold">Disponible real</div>,
+      columnHelper.accessor('stock_available_total', {
+        header: () => <div className="text-right w-full font-semibold">Disponible</div>,
         cell: (info) => {
           const val = info.getValue();
           return (
@@ -372,7 +355,7 @@ export function ProductsView() {
           );
         },
       }),
-      columnHelper.accessor('stockStatus', {
+      columnHelper.accessor('stock_state', {
         header: 'Estado',
         cell: (info) => <StockBadge status={info.getValue()} />,
       }),
@@ -402,6 +385,21 @@ export function ProductsView() {
     defaultRowsPerPage: 20,
   });
 
+  const handleSave = async (payload: CreateProductPayload) => {
+    if (drawerMode === 'create') {
+      await createProduct(payload);
+      toast.success('Producto creado');
+    } else if (selectedProduct) {
+      await updateProduct(selectedProduct.uid, payload);
+      toast.success('Producto actualizado');
+    }
+  };
+
+  if (isLoading)
+    return (
+      <InventoryPageSkeleton title="Productos" subtitle="Gestión del catálogo de inventario" />
+    );
+
   return (
     <PageContainer>
       <PageHeader
@@ -423,7 +421,6 @@ export function ProductsView() {
         }
       />
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {statsCards.map((card) => (
           <StatsCard
@@ -438,7 +435,6 @@ export function ProductsView() {
         ))}
       </div>
 
-      {/* Filters + Table */}
       <SectionCard noPadding>
         <div className="flex flex-wrap items-end gap-3 px-5 py-4">
           <div className="flex-1 min-w-48">
@@ -455,7 +451,7 @@ export function ProductsView() {
             label="Categoría"
             options={[
               { value: 'all', label: 'Todas las categorías' },
-              ...MOCK_CATEGORIES.map((c) => ({ value: c.name, label: c.name })),
+              ...categories.map((c) => ({ value: c.uid, label: c.name })),
             ]}
             value={filterCategory}
             onChange={(v) => setFilterCategory(v as string)}
@@ -465,9 +461,9 @@ export function ProductsView() {
             label="Estado"
             options={[
               { value: 'all', label: 'Todos los estados' },
-              { value: 'available', label: 'Activo' },
-              { value: 'out_of_stock', label: 'Sin stock' },
-              { value: 'low_stock', label: 'Stock bajo' },
+              { value: 'normal', label: 'Normal' },
+              { value: 'low', label: 'Stock bajo' },
+              { value: 'out', label: 'Sin stock' },
               { value: 'inactive', label: 'Inactivo' },
             ]}
             value={filterStatus}
@@ -478,8 +474,7 @@ export function ProductsView() {
             label="Bodega"
             options={[
               { value: 'all', label: 'Todas' },
-              { value: 'main', label: 'Principal' },
-              { value: 'store', label: 'Tienda' },
+              ...allWarehouses.map((w) => ({ value: w.uid, label: w.name })),
             ]}
             value={filterWarehouse}
             onChange={(v) => setFilterWarehouse(v as string)}
@@ -511,9 +506,10 @@ export function ProductsView() {
         open={drawerOpen}
         mode={drawerMode}
         product={selectedProduct}
+        categories={categories}
+        warehouses={allWarehouses}
         onClose={() => setDrawerOpen(false)}
-        onCreate={createProduct}
-        onUpdate={updateProduct}
+        onSave={handleSave}
       />
     </PageContainer>
   );

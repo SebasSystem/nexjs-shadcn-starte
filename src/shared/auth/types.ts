@@ -18,5 +18,5 @@ export type AuthContextValue = {
   unauthenticated: boolean;
   permissions: string[];
   hasPermission: (key: string) => boolean;
-  checkUserSession: () => Promise<void>;
+  checkUserSession: () => Promise<string[]>;
 };

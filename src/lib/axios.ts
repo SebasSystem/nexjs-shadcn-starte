@@ -90,6 +90,29 @@ export const endpoints = {
     create: '/plans',
     update: (uid: string) => `/plans/${uid}`,
   },
+  dashboard: {
+    core: '/dashboard/core',
+  },
+  inventory: {
+    master: '/inventory/master',
+    availability: '/inventory/availability',
+    movements: '/inventory/movements',
+    adjust: '/inventory/stocks/adjust',
+    transfer: '/inventory/movements/transfer',
+    products: '/inventory/products',
+    product: (uid: string) => `/inventory/products/${uid}`,
+    warehouses: '/inventory/warehouses',
+    warehouse: (uid: string) => `/inventory/warehouses/${uid}`,
+    warehouseStocks: (uid: string) => `/inventory/warehouses/${uid}/stocks`,
+    categories: '/inventory/categories',
+    reservations: '/inventory/reservations',
+    reservation: (uid: string) => `/inventory/reservations/${uid}`,
+    reservationConsume: (uid: string) => `/inventory/reservations/${uid}/consume`,
+    reservationsBySource: (type: string, uid: string) =>
+      `/inventory/reservations/source/${type}/${uid}`,
+    movementsSummary: '/inventory/movements/summary',
+    report: '/inventory/report',
+  },
   admin: {
     dashboard: '/admin/dashboard',
     tenants: {

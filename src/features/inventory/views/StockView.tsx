@@ -2,9 +2,6 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { Fragment, useMemo, useState } from 'react';
-import { MOCK_CATEGORIES } from 'src/_mock/_inventories';
-import type { QuoteMock } from 'src/_mock/_quotes';
-import { QUOTE_STATUS_CONFIG } from 'src/_mock/_quotes';
 import { cn } from 'src/lib/utils';
 import {
   PageContainer,
@@ -24,96 +21,62 @@ import {
 } from 'src/shared/components/table';
 import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
 
-import { ReserveStockDrawer } from '../components/ReserveStockDrawer';
+import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { StockAdjustmentDrawer } from '../components/StockAdjustmentDrawer';
 import { StockBadge } from '../components/StockBadge';
-import { type RichProduct, useInventory } from '../hooks/useInventory';
+import { useProducts } from '../hooks/use-products';
+import { useWarehouses } from '../hooks/use-warehouses';
+import type { InventoryMasterItem, WarehouseStockEntry } from '../types/inventory.types';
 
 // ─── Column helper ────────────────────────────────────────────────────────────
 
-const columnHelper = createColumnHelper<RichProduct>();
+const columnHelper = createColumnHelper<InventoryMasterItem>();
 
-// ─── Expanded B2B row ─────────────────────────────────────────────────────────
+// ─── Expanded warehouse breakdown ─────────────────────────────────────────────
 
-function B2BExpandedRow({ product }: { product: RichProduct }) {
-  const [reserveDrawerOpen, setReserveDrawerOpen] = useState(false);
-  const [selectedQuote, setSelectedQuote] = useState<QuoteMock | null>(null);
-  const approvedOrSent = product.relatedQuotes.filter(
-    (q) => q.status === 'approved' || q.status === 'sent'
-  );
-
-  if (approvedOrSent.length === 0) {
-    return (
-      <p className="text-body2 text-muted-foreground py-3">
-        Sin reservas B2B activas para este producto.
-      </p>
-    );
+function WarehouseBreakdownRow({ stocks }: { stocks: WarehouseStockEntry[] }) {
+  if (stocks.length === 0) {
+    return <p className="text-body2 text-muted-foreground py-2">Sin stock en ninguna bodega.</p>;
   }
 
   return (
-    <>
-      <div className="space-y-2">
-        {approvedOrSent.map((q) => {
-          const item = q.items.find((i) => i.productId === product.id);
-          const qConfig = QUOTE_STATUS_CONFIG[q.status];
-          return (
-            <div
-              key={q.id}
-              className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30"
+    <div className="space-y-2">
+      <p className="text-caption text-muted-foreground font-medium uppercase tracking-wide mb-2">
+        Stock por bodega
+      </p>
+      {stocks.map((s) => (
+        <div
+          key={s.warehouse_uid}
+          className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-muted/30"
+        >
+          <div className="flex items-center gap-2">
+            <Icon name="Warehouse" size={14} className="text-muted-foreground" />
+            <p className="text-subtitle2 text-foreground">{s.warehouse.name}</p>
+          </div>
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-muted-foreground">
+              Físico: <span className="font-semibold text-foreground">{s.physical_stock}</span>
+            </span>
+            <span className="text-muted-foreground">
+              Reservado: <span className="font-semibold text-foreground">{s.reserved_stock}</span>
+            </span>
+            <span
+              className={cn('font-bold', s.available_stock <= 0 ? 'text-error' : 'text-success')}
             >
-              <div className="flex items-center gap-4 flex-wrap">
-                <div>
-                  <p className="text-caption text-muted-foreground">Nº Cotización</p>
-                  <p className="text-subtitle2 text-primary font-medium">{q.id}</p>
-                </div>
-                <div>
-                  <p className="text-caption text-muted-foreground">Cliente</p>
-                  <p className="text-subtitle2 text-foreground">{q.clientName}</p>
-                </div>
-                <div>
-                  <p className="text-caption text-muted-foreground">Bodega</p>
-                  <p className="text-subtitle2 text-foreground">
-                    {item?.warehouse === 'main' ? 'B. Principal' : 'Tienda'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                <p className="text-subtitle2 font-bold text-foreground">
-                  {item?.quantity ?? 0} uds
-                </p>
-                <Badge variant="soft" color={qConfig.color}>
-                  {qConfig.label}
-                </Badge>
-                {q.status === 'sent' && (
-                  <button
-                    onClick={() => {
-                      setSelectedQuote(q);
-                      setReserveDrawerOpen(true);
-                    }}
-                    className="text-xs text-primary hover:underline font-medium"
-                  >
-                    Aprobar reserva
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <ReserveStockDrawer
-        open={reserveDrawerOpen}
-        quote={selectedQuote}
-        onClose={() => setReserveDrawerOpen(false)}
-      />
-    </>
+              Disponible: {s.available_stock}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
 // ─── Main View ────────────────────────────────────────────────────────────────
 
 export function StockView() {
-  const { products, stats } = useInventory();
+  const { items, summary, categories, isLoading, refetch } = useProducts();
+  const { items: warehouses } = useWarehouses();
 
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -121,74 +84,62 @@ export function StockView() {
   const [filterWarehouse, setFilterWarehouse] = useState('all');
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [adjustDrawerOpen, setAdjustDrawerOpen] = useState(false);
-  const [adjustProduct, setAdjustProduct] = useState<RichProduct | null>(null);
+  const [adjustProduct, setAdjustProduct] = useState<InventoryMasterItem | null>(null);
 
-  const toggleRow = (id: string) => {
+  const toggleRow = (uid: string) => {
     setExpandedRows((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(uid)) next.delete(uid);
+      else next.add(uid);
       return next;
     });
   };
 
-  const filtered = useMemo(() => {
-    return products.filter((p) => {
-      const matchSearch =
-        !search ||
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.sku.toLowerCase().includes(search.toLowerCase());
-      const matchCategory = filterCategory === 'all' || p.category === filterCategory;
-      const matchStatus = filterStatus === 'all' || p.stockStatus === filterStatus;
-      const matchWarehouse =
-        filterWarehouse === 'all' ||
-        (filterWarehouse === 'main' && p.stockMain > 0) ||
-        (filterWarehouse === 'store' && p.stockStore > 0);
-      return matchSearch && matchCategory && matchStatus && matchWarehouse;
-    });
-  }, [products, search, filterCategory, filterStatus, filterWarehouse]);
-
   const statsCards = [
     {
       title: 'Disponible para venta',
-      value: stats.totalAvailable.toLocaleString(),
-      badge: `${stats.totalPhysical > 0 ? Math.round((stats.totalAvailable / stats.totalPhysical) * 100) : 0}% del físico`,
-      badgeClass: 'bg-success/10 text-success',
+      value: summary.total_available_stock.toLocaleString(),
+      badge: `${summary.total_physical_stock > 0 ? Math.round((summary.total_available_stock / summary.total_physical_stock) * 100) : 0}% del físico`,
       icon: <Icon name="CheckCircle" size={18} />,
       iconClassName: 'bg-success/10 text-success',
     },
     {
-      title: 'Reservado B2B',
-      value: stats.totalReserved.toLocaleString(),
-      badge: `${stats.totalPhysical > 0 ? Math.round((stats.totalReserved / stats.totalPhysical) * 100) : 0}% del físico`,
-      badgeClass: 'bg-info/10 text-info',
+      title: 'Reservado',
+      value: summary.total_reserved_stock.toLocaleString(),
+      badge: `${summary.total_physical_stock > 0 ? Math.round((summary.total_reserved_stock / summary.total_physical_stock) * 100) : 0}% del físico`,
       icon: <Icon name="CalendarDays" size={18} />,
       iconClassName: 'bg-info/10 text-info',
     },
     {
       title: 'Stock físico total',
-      value: stats.totalPhysical.toLocaleString(),
+      value: summary.total_physical_stock.toLocaleString(),
       badge: 'unidades en sistema',
-      badgeClass: 'bg-primary/10 text-primary',
       icon: <Icon name="Package" size={18} />,
       iconClassName: 'bg-primary/10 text-primary',
     },
     {
-      title: 'Cotizaciones aprobadas',
-      value: stats.approvedQuotes,
-      badge: 'activas',
-      badgeClass: 'bg-warning/10 text-warning',
-      icon: <Icon name="FileText" size={18} />,
-      iconClassName: 'bg-warning/10 text-warning',
+      title: 'Productos críticos',
+      value: summary.out_of_stock_count,
+      badge: 'sin stock',
+      icon: <Icon name="AlertTriangle" size={18} />,
+      iconClassName: 'bg-error/10 text-error',
     },
   ];
 
-  const LEGEND = [
-    { dot: 'bg-success', label: 'Disponible', desc: 'Libre para nuevas ventas' },
-    { dot: 'bg-info', label: 'Reservado', desc: 'Apartado por cotización B2B aprobada' },
-    { dot: 'bg-error', label: 'Sin stock', desc: '0 unidades físicas' },
-    { dot: 'bg-warning', label: 'Stock bajo', desc: 'Por debajo del mínimo definido' },
-  ];
+  const filtered = useMemo(() => {
+    return items.filter((p) => {
+      const matchSearch =
+        !search ||
+        p.name.toLowerCase().includes(search.toLowerCase()) ||
+        p.sku.toLowerCase().includes(search.toLowerCase());
+      const matchCategory = filterCategory === 'all' || p.category_uid === filterCategory;
+      const matchStatus = filterStatus === 'all' || p.stock_state === filterStatus;
+      const matchWarehouse =
+        filterWarehouse === 'all' ||
+        p.stocks.some((s) => s.warehouse_uid === filterWarehouse && s.physical_stock > 0);
+      return matchSearch && matchCategory && matchStatus && matchWarehouse;
+    });
+  }, [items, search, filterCategory, filterStatus, filterWarehouse]);
 
   const COLUMNS = useMemo(
     () => [
@@ -196,12 +147,12 @@ export function StockView() {
         id: 'expand',
         header: '',
         cell: (info) => {
-          const isOpen = expandedRows.has(info.row.original.id);
-          const hasRelated = info.row.original.relatedQuotes.length > 0;
-          if (!hasRelated) return null;
+          const hasStocks = info.row.original.stocks.length > 0;
+          if (!hasStocks) return null;
+          const isOpen = expandedRows.has(info.row.original.uid);
           return (
             <button
-              onClick={() => toggleRow(info.row.original.id)}
+              onClick={() => toggleRow(info.row.original.uid)}
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size={15} />
@@ -218,49 +169,37 @@ export function StockView() {
           </div>
         ),
       }),
-      columnHelper.accessor('category', {
+      columnHelper.accessor('category_name', {
         header: 'Categoría',
+        cell: (info) =>
+          info.getValue() ? (
+            <span className="text-body2 text-muted-foreground">{info.getValue()}</span>
+          ) : (
+            <span className="text-muted-foreground text-xs">—</span>
+          ),
+      }),
+      columnHelper.accessor('stock_physical_total', {
+        header: () => <div className="text-right w-full">Físico</div>,
         cell: (info) => (
-          <Badge variant="soft" color="secondary">
-            {info.getValue()}
-          </Badge>
+          <div className="text-right font-semibold text-foreground">{info.getValue()}</div>
         ),
       }),
-      columnHelper.accessor('physical', {
-        header: () => <div className="text-right w-full">Stock físico</div>,
-        cell: (info) => <div className="text-right text-foreground">{info.getValue()}</div>,
-      }),
-      columnHelper.accessor('stockMain', {
-        header: () => <div className="text-right w-full">B. Principal</div>,
+      columnHelper.accessor('stock_reserved_total', {
+        header: () => <div className="text-right w-full">Reservado</div>,
         cell: (info) => <div className="text-right text-muted-foreground">{info.getValue()}</div>,
       }),
-      columnHelper.accessor('stockStore', {
-        header: () => <div className="text-right w-full">Tienda</div>,
-        cell: (info) => <div className="text-right text-muted-foreground">{info.getValue()}</div>,
-      }),
-      columnHelper.accessor('reserved', {
-        header: () => <div className="text-right w-full">Reservado B2B</div>,
-        cell: (info) => <div className="text-right text-info font-medium">{info.getValue()}</div>,
-      }),
-      columnHelper.accessor('available', {
-        header: () => (
-          <div className="text-right w-full font-bold text-foreground">Disponible real</div>
-        ),
+      columnHelper.accessor('stock_available_total', {
+        header: () => <div className="text-right w-full font-semibold">Disponible</div>,
         cell: (info) => {
           const val = info.getValue();
           return (
-            <div
-              className={cn(
-                'text-right font-bold text-base',
-                val <= 0 ? 'text-error' : 'text-success'
-              )}
-            >
+            <div className={cn('text-right font-bold', val <= 0 ? 'text-error' : 'text-success')}>
               {val}
             </div>
           );
         },
       }),
-      columnHelper.accessor('stockStatus', {
+      columnHelper.accessor('stock_state', {
         header: 'Estado',
         cell: (info) => <StockBadge status={info.getValue()} />,
       }),
@@ -268,15 +207,18 @@ export function StockView() {
         id: 'actions',
         header: '',
         cell: (info) => (
-          <button
-            className="text-xs text-primary hover:underline"
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => {
               setAdjustProduct(info.row.original);
               setAdjustDrawerOpen(true);
             }}
+            className="text-xs"
           >
+            <Icon name="SlidersHorizontal" size={13} />
             Ajustar
-          </button>
+          </Button>
         ),
       }),
     ],
@@ -289,51 +231,34 @@ export function StockView() {
     defaultRowsPerPage: 20,
   });
 
-  const criticalProducts = products.filter((p) => p.available <= 0);
+  if (isLoading)
+    return (
+      <InventoryPageSkeleton
+        title="Stock Disponible"
+        subtitle="Disponibilidad de inventario por bodega"
+      />
+    );
 
   return (
     <PageContainer>
       <PageHeader
-        title="Stock & Disponibilidad"
-        subtitle="Visibilidad completa del stock disponible para comprometer"
+        title="Stock Disponible"
+        subtitle="Disponibilidad de inventario por bodega"
         action={
           <Button
             color="primary"
             size="sm"
-            variant="outline"
             onClick={() => {
               setAdjustProduct(null);
               setAdjustDrawerOpen(true);
             }}
           >
             <Icon name="SlidersHorizontal" size={15} />
-            Registrar ajuste
+            Ajustar stock
           </Button>
         }
       />
 
-      {/* Banner de alerta global */}
-      {criticalProducts.length > 0 &&
-        filterStatus !== 'out_of_stock' &&
-        filterStatus !== 'reserved' && (
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-error/30 bg-error/5 px-4 py-3">
-            <div className="flex items-center gap-2.5">
-              <Icon name="AlertTriangle" size={16} className="text-error shrink-0" />
-              <p className="text-caption text-error font-medium">
-                <span className="font-bold">{criticalProducts.length}</span> producto(s) sin stock
-                disponible para nuevas ventas
-              </p>
-            </div>
-            <button
-              onClick={() => setFilterStatus('out_of_stock')}
-              className="text-caption text-error font-semibold hover:underline whitespace-nowrap shrink-0"
-            >
-              Ver productos críticos
-            </button>
-          </div>
-        )}
-
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {statsCards.map((card) => (
           <StatsCard
@@ -348,20 +273,6 @@ export function StockView() {
         ))}
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 px-1">
-        {LEGEND.map((item) => (
-          <div key={item.label} className="flex items-center gap-2">
-            <span className={cn('w-2.5 h-2.5 rounded-full shrink-0', item.dot)} />
-            <span className="text-caption text-foreground font-medium">{item.label}</span>
-            <span className="text-caption text-muted-foreground hidden sm:inline">
-              — {item.desc}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Table */}
       <SectionCard noPadding>
         <div className="flex flex-wrap items-end gap-3 px-5 py-4">
           <div className="flex-1 min-w-48">
@@ -378,7 +289,7 @@ export function StockView() {
             label="Categoría"
             options={[
               { value: 'all', label: 'Todas' },
-              ...MOCK_CATEGORIES.map((c) => ({ value: c.name, label: c.name })),
+              ...categories.map((c) => ({ value: c.uid, label: c.name })),
             ]}
             value={filterCategory}
             onChange={(v) => setFilterCategory(v as string)}
@@ -387,11 +298,10 @@ export function StockView() {
           <SelectField
             label="Estado"
             options={[
-              { value: 'all', label: 'Todos' },
-              { value: 'available', label: 'Disponible' },
-              { value: 'reserved', label: 'Reservado' },
-              { value: 'out_of_stock', label: 'Sin stock' },
-              { value: 'low_stock', label: 'Stock bajo' },
+              { value: 'all', label: 'Todos los estados' },
+              { value: 'normal', label: 'Normal' },
+              { value: 'low', label: 'Stock bajo' },
+              { value: 'out', label: 'Sin stock' },
             ]}
             value={filterStatus}
             onChange={(v) => setFilterStatus(v as string)}
@@ -401,8 +311,7 @@ export function StockView() {
             label="Bodega"
             options={[
               { value: 'all', label: 'Todas' },
-              { value: 'main', label: 'Principal' },
-              { value: 'store', label: 'Tienda' },
+              ...warehouses.map((w) => ({ value: w.uid, label: w.name })),
             ]}
             value={filterWarehouse}
             onChange={(v) => setFilterWarehouse(v as string)}
@@ -415,17 +324,17 @@ export function StockView() {
             <TableBody dense={dense}>
               {table.getRowModel().rows.map((row) => (
                 <Fragment key={row.id}>
-                  <TableRow className={cn(row.original.available <= 0 && 'bg-error/5')}>
+                  <TableRow>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} className="px-5">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                   </TableRow>
-                  {expandedRows.has(row.original.id) && (
+                  {expandedRows.has(row.original.uid) && (
                     <TableRow>
                       <TableCell colSpan={row.getVisibleCells().length} className="px-8 py-3">
-                        <B2BExpandedRow product={row.original} />
+                        <WarehouseBreakdownRow stocks={row.original.stocks} />
                       </TableCell>
                     </TableRow>
                   )}
@@ -441,11 +350,11 @@ export function StockView() {
 
       <StockAdjustmentDrawer
         open={adjustDrawerOpen}
-        preselectedProduct={adjustProduct}
-        onClose={() => {
-          setAdjustDrawerOpen(false);
-          setAdjustProduct(null);
-        }}
+        productUid={adjustProduct?.uid}
+        warehouses={warehouses}
+        products={items}
+        onSuccess={refetch}
+        onClose={() => setAdjustDrawerOpen(false)}
       />
     </PageContainer>
   );

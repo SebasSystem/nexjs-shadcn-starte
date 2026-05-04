@@ -72,12 +72,25 @@ export function SectionCardHeader({ title, subtitle, action, className }: Sectio
 // ─────────────────────────────────────────────────────────────────────────────
 interface StatsCardProps {
   title: string;
-  value: string | number;
+  value: ReactNode;
   trend?: string;
   trendUp?: boolean;
   icon?: ReactNode;
   iconClassName?: string;
   className?: string;
+}
+
+export function StatsCardSkeleton() {
+  return (
+    <div className="bg-card rounded-2xl p-5 shadow-card">
+      <div className="flex items-start justify-between mb-4">
+        <div className="h-10 w-10 rounded-xl bg-muted/50 animate-pulse" />
+        <div className="h-5 w-20 rounded-full bg-muted/40 animate-pulse" />
+      </div>
+      <div className="h-9 w-28 rounded-lg bg-muted/60 animate-pulse mb-2" />
+      <div className="h-4 w-36 rounded bg-muted/40 animate-pulse" />
+    </div>
+  );
 }
 
 export function StatsCard({
@@ -114,8 +127,8 @@ export function StatsCard({
           </div>
         )}
       </div>
-      <p className="text-h3 text-foreground mb-1">{value}</p>
-      <p className="text-body2 font-medium text-muted-foreground">{title}</p>
+      <div className="text-h3 text-foreground mb-1">{value}</div>
+      <div className="text-body2 font-medium text-muted-foreground">{title}</div>
     </div>
   );
 }

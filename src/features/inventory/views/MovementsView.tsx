@@ -2,11 +2,6 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { Fragment, useMemo, useState } from 'react';
-import {
-  ADJUSTMENT_REASON_LABELS,
-  MOVEMENT_TYPE_CONFIG,
-  type WarehouseMovement,
-} from 'src/_mock/_inventories';
 import { cn } from 'src/lib/utils';
 import {
   PageContainer,
@@ -26,129 +21,104 @@ import {
 } from 'src/shared/components/table';
 import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
 
+import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { GoodsReceiptDrawer } from '../components/GoodsReceiptDrawer';
 import { TransferDrawer } from '../components/TransferDrawer';
-import { useInventory } from '../hooks/useInventory';
+import { useMovements } from '../hooks/use-movements';
+import { useProducts } from '../hooks/use-products';
+import { useWarehouses } from '../hooks/use-warehouses';
+import type { InventoryMovement, MovementType } from '../types/inventory.types';
+
+// ─── Movement type config ─────────────────────────────────────────────────────
+
+const MOVEMENT_TYPE_CONFIG: Record<
+  MovementType,
+  { label: string; color: 'primary' | 'success' | 'warning' | 'info' | 'error' | 'secondary' }
+> = {
+  transfer: { label: 'Traslado', color: 'info' },
+  adjustment_in: { label: 'Ajuste entrada', color: 'success' },
+  adjustment_out: { label: 'Ajuste salida', color: 'warning' },
+  set_balance: { label: 'Balanceo', color: 'secondary' },
+  reservation: { label: 'Reserva', color: 'primary' },
+  reservation_release: { label: 'Liberación', color: 'secondary' },
+  reservation_consume: { label: 'Consumo', color: 'error' },
+};
 
 // ─── Column helper ────────────────────────────────────────────────────────────
 
-const columnHelper = createColumnHelper<WarehouseMovement>();
+const columnHelper = createColumnHelper<InventoryMovement>();
 
-// ─── Expanded row for receipt / adjustment ────────────────────────────────────
+// ─── Expanded row ─────────────────────────────────────────────────────────────
 
-function MovementExpandedRow({ movement }: { movement: WarehouseMovement }) {
-  if (movement.type === 'receipt' && movement.receiptItems) {
-    return (
-      <div className="space-y-1.5">
-        <p className="text-caption text-muted-foreground font-medium uppercase tracking-wide mb-2">
-          Productos recibidos
-        </p>
-        {movement.receiptItems.map((item) => (
-          <div
-            key={item.productId}
-            className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-muted/30"
-          >
-            <div>
-              <p className="text-subtitle2 text-foreground">{item.productName}</p>
-              <p className="text-caption text-muted-foreground font-mono">{item.productSku}</p>
-            </div>
-            <p className="text-subtitle2 font-bold text-success">{item.quantity} uds</p>
-          </div>
-        ))}
-        {movement.receiptOrderRef && (
-          <p className="text-caption text-muted-foreground mt-1">
-            Orden de compra:{' '}
-            <span className="font-medium text-foreground">{movement.receiptOrderRef}</span>
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  if (movement.type === 'adjustment_add' || movement.type === 'adjustment_sub') {
-    return (
-      <div className="flex flex-col gap-1 text-caption text-muted-foreground">
+function MovementExpandedRow({ movement }: { movement: InventoryMovement }) {
+  return (
+    <div className="flex flex-col gap-1 text-caption text-muted-foreground">
+      {movement.from_warehouse && (
         <p>
-          Bodega:{' '}
-          <span className="text-foreground font-medium">
-            {movement.adjustmentWarehouse === 'main' ? 'Bodega Principal' : 'Tienda'}
-          </span>
+          Desde: <span className="text-foreground font-medium">{movement.from_warehouse.name}</span>
         </p>
+      )}
+      {movement.to_warehouse && (
         <p>
-          Motivo:{' '}
-          <span className="text-foreground font-medium">
-            {movement.adjustmentReason ? ADJUSTMENT_REASON_LABELS[movement.adjustmentReason] : '—'}
-          </span>
-          {movement.adjustmentReasonOther && ` — ${movement.adjustmentReasonOther}`}
+          Hacia: <span className="text-foreground font-medium">{movement.to_warehouse.name}</span>
         </p>
-        {movement.comment && (
-          <p>
-            Notas: <span className="text-foreground">{movement.comment}</span>
-          </p>
-        )}
-      </div>
-    );
-  }
-
-  if (movement.type === 'reservation') {
-    return (
-      <div className="text-caption text-muted-foreground">
-        Reserva vinculada a cotización:{' '}
-        <span className="text-primary font-medium">{movement.quoteId}</span> — {movement.clientName}
-      </div>
-    );
-  }
-
-  return null;
+      )}
+      {movement.comment && (
+        <p>
+          Notas: <span className="text-foreground">{movement.comment}</span>
+        </p>
+      )}
+      {movement.reference_uid && (
+        <p>
+          Referencia: <span className="text-primary font-medium">{movement.reference_uid}</span>
+        </p>
+      )}
+    </div>
+  );
 }
 
 // ─── Main View ────────────────────────────────────────────────────────────────
 
 export function MovementsView() {
-  const { movements, movementStats } = useInventory();
+  const { items, summary, isLoading, refetch } = useMovements();
+  const { items: products } = useProducts();
+  const { items: warehouses } = useWarehouses();
 
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [filterFrom, setFilterFrom] = useState('all');
   const [transferOpen, setTransferOpen] = useState(false);
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  const toggleRow = (id: string) => {
+  const toggleRow = (uid: string) => {
     setExpandedRows((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(uid)) next.delete(uid);
+      else next.add(uid);
       return next;
     });
   };
 
-  const canExpand = (m: WarehouseMovement) =>
-    m.type === 'receipt' ||
-    m.type === 'adjustment_add' ||
-    m.type === 'adjustment_sub' ||
-    m.type === 'reservation';
-
   const statsCards = [
     {
       title: 'Movimientos este mes',
-      value: movementStats.totalThisMonth,
-      trend: '+5 vs mes pasado',
+      value: summary.total,
+      trend: 'este período',
       trendUp: true,
       icon: <Icon name="ArrowLeftRight" size={18} />,
       iconClassName: 'bg-primary/10 text-primary',
     },
     {
-      title: 'Entradas de mercancía',
-      value: movementStats.receipts,
-      trend: 'este periodo',
+      title: 'Entradas',
+      value: summary.entries,
+      trend: 'este período',
       trendUp: true,
       icon: <Icon name="PackagePlus" size={18} />,
       iconClassName: 'bg-success/10 text-success',
     },
     {
-      title: 'Traslados entre bodegas',
-      value: movementStats.transfers,
+      title: 'Traslados',
+      value: summary.transfers,
       trend: 'este mes',
       trendUp: true,
       icon: <Icon name="ArrowLeftRight" size={18} />,
@@ -156,8 +126,8 @@ export function MovementsView() {
     },
     {
       title: 'Ajustes manuales',
-      value: movementStats.adjustments,
-      trend: '-1 vs mes pasado',
+      value: summary.adjustments,
+      trend: 'este mes',
       trendUp: false,
       icon: <Icon name="SlidersHorizontal" size={18} />,
       iconClassName: 'bg-warning/10 text-warning',
@@ -165,15 +135,13 @@ export function MovementsView() {
   ];
 
   const filtered = useMemo(() => {
-    return movements.filter((m) => {
-      const searchStr =
-        (m.productName ?? '') + (m.productSku ?? '') + (m.quoteId ?? '') + (m.clientName ?? '');
+    return items.filter((m) => {
+      const searchStr = (m.product?.name ?? '') + (m.product?.sku ?? '') + (m.reference_uid ?? '');
       const matchSearch = !search || searchStr.toLowerCase().includes(search.toLowerCase());
       const matchType = filterType === 'all' || m.type === filterType;
-      const matchFrom = filterFrom === 'all' || m.from === filterFrom;
-      return matchSearch && matchType && matchFrom;
+      return matchSearch && matchType;
     });
-  }, [movements, search, filterType, filterFrom]);
+  }, [items, search, filterType]);
 
   const COLUMNS = useMemo(
     () => [
@@ -181,11 +149,13 @@ export function MovementsView() {
         id: 'expand',
         header: '',
         cell: (info) => {
-          if (!canExpand(info.row.original)) return null;
-          const isOpen = expandedRows.has(info.row.original.id);
+          const m = info.row.original;
+          const canExpand = !!(m.comment || m.from_warehouse || m.to_warehouse || m.reference_uid);
+          if (!canExpand) return null;
+          const isOpen = expandedRows.has(m.uid);
           return (
             <button
-              onClick={() => toggleRow(info.row.original.id)}
+              onClick={() => toggleRow(m.uid)}
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size={15} />
@@ -193,11 +163,11 @@ export function MovementsView() {
           );
         },
       }),
-      columnHelper.accessor('date', {
+      columnHelper.accessor('created_at', {
         header: 'Fecha y hora',
         cell: (info) => (
           <span className="text-caption text-muted-foreground whitespace-nowrap">
-            {new Date(info.getValue()).toLocaleString('es-CL', {
+            {new Date(info.getValue()).toLocaleString('es-AR', {
               day: '2-digit',
               month: 'short',
               year: 'numeric',
@@ -220,45 +190,17 @@ export function MovementsView() {
       }),
       columnHelper.display({
         id: 'description',
-        header: 'Descripción',
+        header: 'Producto',
         cell: (info) => {
           const m = info.row.original;
-          if (m.type === 'transfer') {
-            return (
-              <div>
-                <p className="text-subtitle2 text-foreground">{m.productName}</p>
-                <p className="text-caption text-muted-foreground font-mono">{m.productSku}</p>
-              </div>
-            );
-          }
-          if (m.type === 'receipt') {
-            const count = m.receiptItems?.length ?? 0;
-            const total = m.receiptItems?.reduce((s, i) => s + i.quantity, 0) ?? 0;
-            return (
-              <p className="text-subtitle2 text-foreground">
-                {count} producto(s) · {total} uds totales
-              </p>
-            );
-          }
-          if (m.type === 'adjustment_add' || m.type === 'adjustment_sub') {
-            return (
-              <div>
-                <p className="text-subtitle2 text-foreground">{m.productName}</p>
-                <p className="text-caption text-muted-foreground">
-                  {m.adjustmentReason ? ADJUSTMENT_REASON_LABELS[m.adjustmentReason] : ''}
-                </p>
-              </div>
-            );
-          }
-          if (m.type === 'reservation') {
-            return (
-              <div>
-                <p className="text-subtitle2 text-primary">{m.quoteId}</p>
-                <p className="text-caption text-muted-foreground">{m.clientName}</p>
-              </div>
-            );
-          }
-          return null;
+          return m.product ? (
+            <div>
+              <p className="text-subtitle2 text-foreground">{m.product.name}</p>
+              <p className="text-caption text-muted-foreground font-mono">{m.product.sku}</p>
+            </div>
+          ) : (
+            <span className="text-muted-foreground text-xs">—</span>
+          );
         },
       }),
       columnHelper.display({
@@ -266,20 +208,20 @@ export function MovementsView() {
         header: 'Ruta',
         cell: (info) => {
           const m = info.row.original;
-          if (m.type === 'transfer') {
+          if (m.type === 'transfer' && m.from_warehouse && m.to_warehouse) {
             return (
               <div className="flex items-center gap-1.5">
                 <Badge variant="soft" color="secondary">
-                  {m.from === 'main' ? 'B. Principal' : 'Tienda'}
+                  {m.from_warehouse.name}
                 </Badge>
                 <Icon name="ArrowRight" size={12} className="text-muted-foreground" />
                 <Badge variant="soft" color="info">
-                  {m.to === 'main' ? 'B. Principal' : 'Tienda'}
+                  {m.to_warehouse.name}
                 </Badge>
               </div>
             );
           }
-          if (m.type === 'receipt') {
+          if (m.to_warehouse) {
             return (
               <div className="flex items-center gap-1.5">
                 <Badge variant="soft" color="secondary">
@@ -287,15 +229,15 @@ export function MovementsView() {
                 </Badge>
                 <Icon name="ArrowRight" size={12} className="text-muted-foreground" />
                 <Badge variant="soft" color="success">
-                  {m.to === 'main' ? 'B. Principal' : 'Tienda'}
+                  {m.to_warehouse.name}
                 </Badge>
               </div>
             );
           }
-          if (m.type === 'adjustment_add' || m.type === 'adjustment_sub') {
+          if (m.from_warehouse) {
             return (
-              <Badge variant="soft" color={m.type === 'adjustment_add' ? 'success' : 'warning'}>
-                {m.adjustmentWarehouse === 'main' ? 'B. Principal' : 'Tienda'}
+              <Badge variant="soft" color="warning">
+                {m.from_warehouse.name}
               </Badge>
             );
           }
@@ -306,8 +248,7 @@ export function MovementsView() {
         header: () => <div className="text-right w-full">Cantidad</div>,
         cell: (info) => {
           const m = info.row.original;
-          const qty = info.getValue() ?? 0;
-          const isNegative = m.type === 'adjustment_sub';
+          const isNegative = m.type === 'adjustment_out';
           return (
             <div
               className={cn(
@@ -315,15 +256,17 @@ export function MovementsView() {
                 isNegative ? 'text-warning' : 'text-foreground'
               )}
             >
-              {isNegative ? '-' : m.type === 'adjustment_add' ? '+' : ''}
-              {qty}
+              {isNegative ? '-' : m.type === 'adjustment_in' ? '+' : ''}
+              {info.getValue()}
             </div>
           );
         },
       }),
-      columnHelper.accessor('registeredBy', {
+      columnHelper.accessor('performed_by', {
         header: 'Registrado por',
-        cell: (info) => <span className="text-body2 text-muted-foreground">{info.getValue()}</span>,
+        cell: (info) => (
+          <span className="text-body2 text-muted-foreground">{info.getValue()?.name ?? '—'}</span>
+        ),
       }),
     ],
     [expandedRows]
@@ -334,6 +277,14 @@ export function MovementsView() {
     columns: COLUMNS,
     defaultRowsPerPage: 20,
   });
+
+  if (isLoading)
+    return (
+      <InventoryPageSkeleton
+        title="Movimientos"
+        subtitle="Historial completo de traslados, entradas y ajustes"
+      />
+    );
 
   return (
     <PageContainer>
@@ -354,7 +305,6 @@ export function MovementsView() {
         }
       />
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {statsCards.map((card) => (
           <StatsCard
@@ -374,7 +324,7 @@ export function MovementsView() {
           <div className="flex-1 min-w-48">
             <Input
               label="Buscar"
-              placeholder="Buscar por producto, cotización..."
+              placeholder="Buscar por producto, referencia..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               leftIcon={<Icon name="Search" size={15} />}
@@ -382,29 +332,18 @@ export function MovementsView() {
           </div>
 
           <SelectField
-            label="Tipo de movimiento"
+            label="Tipo"
             options={[
               { value: 'all', label: 'Todos los tipos' },
               { value: 'transfer', label: 'Traslados' },
-              { value: 'receipt', label: 'Entradas de mercancía' },
-              { value: 'adjustment_add', label: 'Ajuste positivo' },
-              { value: 'adjustment_sub', label: 'Ajuste negativo' },
-              { value: 'reservation', label: 'Reservas B2B' },
+              { value: 'adjustment_in', label: 'Ajuste entrada' },
+              { value: 'adjustment_out', label: 'Ajuste salida' },
+              { value: 'reservation', label: 'Reservas' },
+              { value: 'reservation_release', label: 'Liberaciones' },
+              { value: 'reservation_consume', label: 'Consumos' },
             ]}
             value={filterType}
             onChange={(v) => setFilterType(v as string)}
-          />
-
-          <SelectField
-            label="Bodega origen"
-            options={[
-              { value: 'all', label: 'Cualquier origen' },
-              { value: 'main', label: 'B. Principal' },
-              { value: 'store', label: 'Tienda' },
-              { value: 'external', label: 'Externo' },
-            ]}
-            value={filterFrom}
-            onChange={(v) => setFilterFrom(v as string)}
           />
         </div>
 
@@ -421,7 +360,7 @@ export function MovementsView() {
                       </TableCell>
                     ))}
                   </TableRow>
-                  {expandedRows.has(row.original.id) && canExpand(row.original) && (
+                  {expandedRows.has(row.original.uid) && (
                     <TableRow>
                       <TableCell colSpan={row.getVisibleCells().length} className="px-8 py-3">
                         <MovementExpandedRow movement={row.original} />
@@ -438,8 +377,20 @@ export function MovementsView() {
         </div>
       </SectionCard>
 
-      <TransferDrawer open={transferOpen} onClose={() => setTransferOpen(false)} />
-      <GoodsReceiptDrawer open={receiptOpen} onClose={() => setReceiptOpen(false)} />
+      <TransferDrawer
+        open={transferOpen}
+        onClose={() => setTransferOpen(false)}
+        warehouses={warehouses}
+        products={products}
+        onSuccess={refetch}
+      />
+      <GoodsReceiptDrawer
+        open={receiptOpen}
+        onClose={() => setReceiptOpen(false)}
+        warehouses={warehouses}
+        products={products}
+        onSuccess={refetch}
+      />
     </PageContainer>
   );
 }

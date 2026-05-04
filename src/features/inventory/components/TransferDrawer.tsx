@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import {
   Button,
   Icon,
@@ -14,65 +15,79 @@ import {
 } from 'src/shared/components/ui';
 import { Input } from 'src/shared/components/ui';
 
-import { useInventory } from '../hooks/useInventory';
+import { inventoryStockService } from '../services/inventory-stock.service';
+import type { InventoryMasterItem, Warehouse } from '../types/inventory.types';
 
 interface TransferDrawerProps {
   open: boolean;
   onClose: () => void;
+  warehouses: Warehouse[];
+  products: InventoryMasterItem[];
+  onSuccess?: () => void;
 }
 
-export function TransferDrawer({ open, onClose }: TransferDrawerProps) {
-  const { products, transferStock } = useInventory();
-
-  const [productId, setProductId] = useState('');
-  const [from, setFrom] = useState<'main' | 'store'>('main');
+export function TransferDrawer({
+  open,
+  onClose,
+  warehouses,
+  products,
+  onSuccess,
+}: TransferDrawerProps) {
+  const [productUid, setProductUid] = useState('');
+  const [fromWarehouseUid, setFromWarehouseUid] = useState('');
+  const [toWarehouseUid, setToWarehouseUid] = useState('');
   const [quantity, setQuantity] = useState('');
   const [comment, setComment] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
-  const selectedProduct = products.find((p) => p.id === productId);
-  const to: 'main' | 'store' = from === 'main' ? 'store' : 'main';
-  const availableInOrigin = selectedProduct
-    ? from === 'main'
-      ? selectedProduct.stockMain
-      : selectedProduct.stockStore
-    : 0;
-  const qty = Number(quantity);
-  const afterOrigin = availableInOrigin - qty;
-  const afterDest = selectedProduct
-    ? (to === 'main' ? selectedProduct.stockMain : selectedProduct.stockStore) + qty
-    : 0;
+  const activeWarehouses = warehouses.filter((w) => w.is_active);
+  const selectedProduct = products.find((p) => p.uid === productUid);
+  const fromStock = selectedProduct?.stocks.find((s) => s.warehouse_uid === fromWarehouseUid);
+  const toStock = selectedProduct?.stocks.find((s) => s.warehouse_uid === toWarehouseUid);
+  const qty = Number(quantity) || 0;
+  const availableInOrigin = fromStock?.available_stock ?? 0;
+  const wouldGoNegative = qty > availableInOrigin;
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!productId) newErrors.product = 'Selecciona un producto';
-    if (!quantity || qty <= 0) newErrors.quantity = 'Ingresa una cantidad válida';
-    else if (qty > availableInOrigin)
-      newErrors.quantity = `Stock insuficiente en ${from === 'main' ? 'Bodega Principal' : 'Tienda'} (disponible: ${availableInOrigin})`;
+    if (!productUid) newErrors.product = 'Seleccioná un producto';
+    if (!fromWarehouseUid) newErrors.from = 'Seleccioná la bodega origen';
+    if (!toWarehouseUid) newErrors.to = 'Seleccioná la bodega destino';
+    if (fromWarehouseUid && toWarehouseUid && fromWarehouseUid === toWarehouseUid)
+      newErrors.to = 'Las bodegas deben ser distintas';
+    if (!quantity || qty <= 0) newErrors.quantity = 'Ingresá una cantidad válida';
+    else if (wouldGoNegative)
+      newErrors.quantity = `Stock insuficiente (disponible: ${availableInOrigin} uds)`;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = async () => {
-    if (!validate() || !selectedProduct) return;
+    if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 600));
-    transferStock({
-      productId,
-      from,
-      to,
-      quantity: qty,
-      comment,
-      registeredBy: 'Admin',
-    });
-    setLoading(false);
-    handleClose();
+    try {
+      await inventoryStockService.transfer({
+        product_uid: productUid,
+        from_warehouse_uid: fromWarehouseUid,
+        to_warehouse_uid: toWarehouseUid,
+        quantity: qty,
+        comment: comment.trim() || undefined,
+      });
+      toast.success('Traslado registrado correctamente');
+      onSuccess?.();
+      handleClose();
+    } catch {
+      toast.error('Error al registrar el traslado');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
-    setProductId('');
-    setFrom('main');
+    setProductUid('');
+    setFromWarehouseUid('');
+    setToWarehouseUid('');
     setQuantity('');
     setComment('');
     setErrors({});
@@ -91,53 +106,58 @@ export function TransferDrawer({ open, onClose }: TransferDrawerProps) {
             label="Producto *"
             required
             options={products
-              .filter((p) => p.status === 'active')
-              .map((p) => ({ value: p.id, label: `${p.name} — ${p.sku}` }))}
-            value={productId}
-            onChange={(v) => setProductId(v as string)}
-            placeholder="Buscar producto..."
+              .filter((p) => p.is_active)
+              .map((p) => ({ value: p.uid, label: `${p.name} — ${p.sku}` }))}
+            value={productUid}
+            onChange={(v) => {
+              setProductUid(v as string);
+              setFromWarehouseUid('');
+              setToWarehouseUid('');
+            }}
+            placeholder="Seleccionar producto..."
             error={errors.product}
           />
-
-          {selectedProduct && (
-            <div className="flex gap-3">
-              <div className="flex-1 rounded-lg bg-muted/40 px-3 py-2">
-                <p className="text-caption text-muted-foreground">B. Principal</p>
-                <p className="text-subtitle2 font-bold text-foreground">
-                  {selectedProduct.stockMain} uds
-                </p>
-              </div>
-              <div className="flex-1 rounded-lg bg-muted/40 px-3 py-2">
-                <p className="text-caption text-muted-foreground">Tienda</p>
-                <p className="text-subtitle2 font-bold text-foreground">
-                  {selectedProduct.stockStore} uds
-                </p>
-              </div>
-            </div>
-          )}
 
           <SelectField
             label="Bodega origen *"
             required
-            options={[
-              { value: 'main', label: 'Bodega Principal' },
-              { value: 'store', label: 'Tienda' },
-            ]}
-            value={from}
-            onChange={(v) => setFrom(v as 'main' | 'store')}
+            options={activeWarehouses.map((w) => {
+              const stock = selectedProduct?.stocks.find((s) => s.warehouse_uid === w.uid);
+              return {
+                value: w.uid,
+                label: `${w.name}${stock ? ` — ${stock.available_stock} disp.` : ''}`,
+              };
+            })}
+            value={fromWarehouseUid}
+            onChange={(v) => {
+              setFromWarehouseUid(v as string);
+              if (toWarehouseUid === v) setToWarehouseUid('');
+            }}
+            placeholder="Seleccionar origen..."
+            error={errors.from}
+          />
+
+          <SelectField
+            label="Bodega destino *"
+            required
+            options={activeWarehouses
+              .filter((w) => w.uid !== fromWarehouseUid)
+              .map((w) => {
+                const stock = selectedProduct?.stocks.find((s) => s.warehouse_uid === w.uid);
+                return {
+                  value: w.uid,
+                  label: `${w.name}${stock ? ` — ${stock.available_stock} disp.` : ''}`,
+                };
+              })}
+            value={toWarehouseUid}
+            onChange={(v) => setToWarehouseUid(v as string)}
+            placeholder="Seleccionar destino..."
+            error={errors.to}
           />
 
           <div>
-            <p className="text-sm font-medium mb-1.5">Bodega destino</p>
-            <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5 text-body2 text-muted-foreground">
-              {to === 'main' ? 'Bodega Principal' : 'Tienda'}{' '}
-              <span className="text-caption">(automático)</span>
-            </div>
-          </div>
-
-          <div>
             <Input
-              label="Cantidad a trasladar *"
+              label="Cantidad *"
               required
               type="number"
               min={1}
@@ -145,14 +165,15 @@ export function TransferDrawer({ open, onClose }: TransferDrawerProps) {
               onChange={(e) => setQuantity(e.target.value)}
               error={errors.quantity}
             />
-            {selectedProduct && qty > 0 && qty <= availableInOrigin && (
+            {selectedProduct && fromWarehouseUid && toWarehouseUid && qty > 0 && !wouldGoNegative && (
               <div className="rounded-lg bg-primary/5 border border-primary/20 px-3 py-2.5 mt-2">
-                <p className="text-caption text-primary font-medium">Vista previa:</p>
-                <p className="text-caption text-muted-foreground mt-1">
-                  Quedarán <span className="font-semibold text-foreground">{afterOrigin}</span> uds
-                  en {from === 'main' ? 'Bodega Principal' : 'Tienda'} y{' '}
-                  <span className="font-semibold text-foreground">{afterDest}</span> uds en{' '}
-                  {to === 'main' ? 'Bodega Principal' : 'Tienda'}.
+                <p className="text-caption text-muted-foreground">
+                  Origen quedará con{' '}
+                  <span className="font-semibold text-foreground">{availableInOrigin - qty}</span> uds · Destino tendrá{' '}
+                  <span className="font-semibold text-foreground">
+                    {(toStock?.available_stock ?? 0) + qty}
+                  </span>{' '}
+                  uds
                 </p>
               </div>
             )}

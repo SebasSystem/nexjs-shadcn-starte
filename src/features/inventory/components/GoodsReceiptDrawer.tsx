@@ -12,41 +12,44 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
-  Textarea,
 } from 'src/shared/components/ui';
 import { Input } from 'src/shared/components/ui';
 
-import { useInventory } from '../hooks/useInventory';
+import { inventoryStockService } from '../services/inventory-stock.service';
+import type { InventoryMasterItem, Warehouse } from '../types/inventory.types';
 
 interface ReceiptItem {
-  productId: string;
+  product_uid: string;
   quantity: number;
 }
 
 interface GoodsReceiptDrawerProps {
   open: boolean;
   onClose: () => void;
+  warehouses: Warehouse[];
+  products: InventoryMasterItem[];
+  onSuccess?: () => void;
 }
 
-export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
-  const { products, receiveGoods } = useInventory();
-
-  const [warehouse, setWarehouse] = useState<'main' | 'store'>('main');
+export function GoodsReceiptDrawer({
+  open,
+  onClose,
+  warehouses,
+  products,
+  onSuccess,
+}: GoodsReceiptDrawerProps) {
+  const [warehouseUid, setWarehouseUid] = useState('');
   const [orderRef, setOrderRef] = useState('');
   const [notes, setNotes] = useState('');
-  const [items, setItems] = useState<ReceiptItem[]>([{ productId: '', quantity: 1 }]);
+  const [items, setItems] = useState<ReceiptItem[]>([{ product_uid: '', quantity: 1 }]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
-  const activeProducts = products.filter((p) => p.status === 'active');
+  const activeProducts = products.filter((p) => p.is_active);
 
-  const addItem = () => {
-    setItems((prev) => [...prev, { productId: '', quantity: 1 }]);
-  };
+  const addItem = () => setItems((prev) => [...prev, { product_uid: '', quantity: 1 }]);
 
-  const removeItem = (index: number) => {
-    setItems((prev) => prev.filter((_, i) => i !== index));
-  };
+  const removeItem = (index: number) => setItems((prev) => prev.filter((_, i) => i !== index));
 
   const updateItem = (index: number, field: keyof ReceiptItem, value: string | number) => {
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
@@ -60,23 +63,19 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
+    if (!warehouseUid) newErrors.warehouse = 'Seleccioná una bodega';
+    if (items.length === 0) newErrors.items = 'Agregá al menos un producto';
     const seenProducts = new Set<string>();
-
     items.forEach((item, i) => {
-      if (!item.productId) {
-        newErrors[`item-${i}-productId`] = 'Selecciona un producto';
-      } else if (seenProducts.has(item.productId)) {
-        newErrors[`item-${i}-dup`] =
-          'Este producto ya está en la lista. Ajusta la cantidad directamente.';
+      if (!item.product_uid) {
+        newErrors[`item-${i}-product_uid`] = 'Seleccioná un producto';
+      } else if (seenProducts.has(item.product_uid)) {
+        newErrors[`item-${i}-dup`] = 'Producto duplicado, ajustá la cantidad';
       } else {
-        seenProducts.add(item.productId);
+        seenProducts.add(item.product_uid);
       }
-      if (!item.quantity || item.quantity < 1) {
-        newErrors[`item-${i}-quantity`] = 'Mínimo 1 unidad';
-      }
+      if (!item.quantity || item.quantity < 1) newErrors[`item-${i}-quantity`] = 'Mínimo 1';
     });
-
-    if (items.length === 0) newErrors.items = 'Agrega al menos un producto';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -84,34 +83,42 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
   const handleSave = async () => {
     if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 700));
-    receiveGoods({
-      warehouse,
-      orderRef,
-      notes,
-      registeredBy: 'Admin',
-      items: items
-        .filter((i) => i.productId)
-        .map((i) => ({
-          productId: i.productId,
-          quantity: Number(i.quantity),
-        })),
-    });
-    setLoading(false);
-    toast.success('Entrada registrada correctamente');
-    handleClose();
+    try {
+      await Promise.all(
+        items
+          .filter((i) => i.product_uid)
+          .map((i) =>
+            inventoryStockService.adjust({
+              product_uid: i.product_uid,
+              warehouse_uid: warehouseUid,
+              operation: 'in',
+              quantity: i.quantity,
+              comment:
+                [orderRef ? `OC: ${orderRef}` : null, notes || null]
+                  .filter(Boolean)
+                  .join(' — ') || undefined,
+            })
+          )
+      );
+      toast.success('Entrada registrada correctamente');
+      onSuccess?.();
+      handleClose();
+    } catch {
+      toast.error('Error al registrar la entrada');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
-    setWarehouse('main');
+    setWarehouseUid('');
     setOrderRef('');
     setNotes('');
-    setItems([{ productId: '', quantity: 1 }]);
+    setItems([{ product_uid: '', quantity: 1 }]);
     setErrors({});
     onClose();
   };
 
-  const totalItems = items.filter((i) => i.productId).length;
   const totalUnits = items.reduce((sum, i) => sum + (Number(i.quantity) || 0), 0);
 
   return (
@@ -122,52 +129,46 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-          {/* Campos de cabecera */}
           <div className="grid grid-cols-2 gap-4">
             <SelectField
               label="Bodega de destino *"
               required
               className="col-span-2"
-              options={[
-                { value: 'main', label: 'Bodega Principal' },
-                { value: 'store', label: 'Tienda' },
-              ]}
-              value={warehouse}
-              onChange={(v) => setWarehouse(v as 'main' | 'store')}
+              options={warehouses
+                .filter((w) => w.is_active)
+                .map((w) => ({ value: w.uid, label: w.name }))}
+              value={warehouseUid}
+              onChange={(v) => setWarehouseUid(v as string)}
+              placeholder="Seleccionar bodega..."
+              error={errors.warehouse}
             />
-
             <Input
-              label="Nº orden de compra"
+              label="Nº orden de compra (opcional)"
               value={orderRef}
               onChange={(e) => setOrderRef(e.target.value)}
               placeholder="Ej: OC-2026-045"
+              className="col-span-2"
             />
-
             <Input
-              label="Observaciones"
+              label="Notas (opcional)"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Opcional..."
+              placeholder="Ej: Mercancía llegó con daño parcial"
+              className="col-span-2"
             />
           </div>
 
-          {/* Lista de productos */}
           <div>
             <p className="text-subtitle2 font-semibold text-foreground mb-3">Productos recibidos</p>
             {errors.items && <p className="text-caption text-error mb-2">{errors.items}</p>}
 
             <div className="space-y-3">
               {items.map((item, index) => {
-                const selectedProduct = products.find((p) => p.id === item.productId);
-                const currentInWarehouse = selectedProduct
-                  ? warehouse === 'main'
-                    ? selectedProduct.stockMain
-                    : selectedProduct.stockStore
-                  : null;
-                const newStock =
-                  currentInWarehouse !== null
-                    ? currentInWarehouse + (Number(item.quantity) || 0)
-                    : null;
+                const selectedProduct = products.find((p) => p.uid === item.product_uid);
+                const warehouseStock = selectedProduct?.stocks.find(
+                  (s) => s.warehouse_uid === warehouseUid
+                );
+                const currentStock = warehouseStock?.available_stock ?? null;
 
                 return (
                   <div
@@ -175,29 +176,27 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
                     className="rounded-xl border border-border/60 bg-muted/10 p-3 space-y-3"
                   >
                     <div className="flex items-start gap-2">
-                      {/* Selector de producto */}
                       <div className="flex-1 space-y-1">
                         <SelectField
                           options={activeProducts.map((p) => ({
-                            value: p.id,
+                            value: p.uid,
                             label: `${p.name} — ${p.sku}`,
                           }))}
-                          value={item.productId}
-                          onChange={(v) => updateItem(index, 'productId', v as string)}
+                          value={item.product_uid}
+                          onChange={(v) => updateItem(index, 'product_uid', v as string)}
                           placeholder="Seleccionar producto..."
-                          error={errors[`item-${index}-dup`] || errors[`item-${index}-productId`]}
+                          error={
+                            errors[`item-${index}-dup`] || errors[`item-${index}-product_uid`]
+                          }
                         />
-                        {selectedProduct && (
+                        {selectedProduct && currentStock !== null && (
                           <p className="text-caption text-muted-foreground">
-                            {selectedProduct.sku} · {selectedProduct.unit} · Stock actual:{' '}
-                            <span className="text-foreground font-medium">
-                              {currentInWarehouse} uds
-                            </span>
+                            Stock actual:{' '}
+                            <span className="text-foreground font-medium">{currentStock} uds</span>
                           </p>
                         )}
                       </div>
 
-                      {/* Cantidad */}
                       <div className="w-24 space-y-1">
                         <Input
                           type="number"
@@ -214,7 +213,6 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
                         )}
                       </div>
 
-                      {/* Eliminar */}
                       {items.length > 1 && (
                         <button
                           onClick={() => removeItem(index)}
@@ -225,13 +223,14 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
                       )}
                     </div>
 
-                    {/* Preview de stock */}
-                    {newStock !== null && item.quantity >= 1 && (
+                    {selectedProduct && warehouseUid && item.quantity >= 1 && currentStock !== null && (
                       <div className="flex items-center gap-2 text-caption text-muted-foreground">
                         <Icon name="ArrowRight" size={12} className="text-success" />
                         <span>
-                          Nuevo stock en {warehouse === 'main' ? 'B. Principal' : 'Tienda'}:{' '}
-                          <span className="font-semibold text-success">{newStock} uds</span>
+                          Nuevo stock:{' '}
+                          <span className="font-semibold text-success">
+                            {currentStock + item.quantity} uds
+                          </span>
                         </span>
                       </div>
                     )}
@@ -248,23 +247,14 @@ export function GoodsReceiptDrawer({ open, onClose }: GoodsReceiptDrawerProps) {
               Agregar otro producto
             </button>
           </div>
-
-          {/* Notas finales */}
-          {notes === '' && (
-            <Textarea
-              label="Notas adicionales (opcional)"
-              rows={2}
-              placeholder="Observaciones generales de la recepción..."
-            />
-          )}
         </div>
 
-        {/* Footer fijo con resumen */}
         <div className="border-t border-border/60 px-4 pt-3 pb-1">
           <p className="text-caption text-muted-foreground">
-            <span className="font-semibold text-foreground">{totalItems} producto(s)</span> ·{' '}
-            <span className="font-semibold text-foreground">{totalUnits} unidades totales</span> →{' '}
-            {warehouse === 'main' ? 'Bodega Principal' : 'Tienda'}
+            <span className="font-semibold text-foreground">
+              {items.filter((i) => i.product_uid).length} producto(s)
+            </span>{' '}
+            · <span className="font-semibold text-foreground">{totalUnits} unidades totales</span>
           </p>
         </div>
 

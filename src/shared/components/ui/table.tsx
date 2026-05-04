@@ -1,8 +1,18 @@
 'use client';
 
+import { FileText } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
+
+function TableEmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 py-10 text-muted-foreground">
+      <FileText size={40} strokeWidth={1.5} />
+      <p className="text-xs">Sin registros</p>
+    </div>
+  );
+}
 
 const DenseContext = React.createContext(false);
 
@@ -31,15 +41,31 @@ function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
 function TableBody({
   className,
   dense,
+  emptyContent,
+  children,
   ...props
-}: React.ComponentProps<'tbody'> & { dense?: boolean }) {
+}: React.ComponentProps<'tbody'> & {
+  dense?: boolean;
+  emptyContent?: React.ReactNode | false;
+}) {
+  const isEmpty = React.Children.count(children) === 0;
+
   return (
     <DenseContext.Provider value={dense ?? false}>
       <tbody
         data-slot="table-body"
         className={cn('[&_tr:last-child]:border-0', className)}
         {...props}
-      />
+      >
+        {children}
+        {isEmpty && emptyContent !== false && (
+          <tr>
+            <td colSpan={100}>
+              {emptyContent ?? <TableEmptyState />}
+            </td>
+          </tr>
+        )}
+      </tbody>
     </DenseContext.Provider>
   );
 }
