@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { rolesService } from '../services/roles.service';
-import type { Rol } from '../types/settings.types';
+import type { Role } from '../types/settings.types';
 
 export function useRoles() {
-  const [roles, setRoles] = useState<Rol[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchRoles = useCallback(async () => {
@@ -23,32 +23,32 @@ export function useRoles() {
     fetchRoles();
   }, [fetchRoles]);
 
-  const createRol = async (
-    data: Omit<Rol, 'id' | 'creadoEn' | 'totalUsuarios'>
+  const createRole = async (
+    data: Omit<Role, 'uid' | 'created_at' | 'total_users'>
   ): Promise<boolean> => {
     try {
-      const newRol = await rolesService.create(data);
-      setRoles((prev) => [...prev, newRol]);
+      const newRole = await rolesService.create(data);
+      setRoles((prev) => [...prev, newRole]);
       return true;
     } catch {
       return false;
     }
   };
 
-  const updateRol = async (id: string, data: Partial<Rol>): Promise<boolean> => {
+  const updateRole = async (id: string, data: Partial<Role>): Promise<boolean> => {
     try {
       const updated = await rolesService.update(id, data);
-      setRoles((prev) => prev.map((r) => (r.id === id ? updated : r)));
+      setRoles((prev) => prev.map((r) => (r.uid === id ? updated : r)));
       return true;
     } catch {
       return false;
     }
   };
 
-  const deleteRol = async (id: string): Promise<void> => {
+  const deleteRole = async (id: string): Promise<void> => {
     await rolesService.delete(id);
-    setRoles((prev) => prev.filter((r) => r.id !== id));
+    setRoles((prev) => prev.filter((r) => r.uid !== id));
   };
 
-  return { roles, isLoading, createRol, updateRol, deleteRol, refetch: fetchRoles };
+  return { roles, isLoading, createRole, updateRole, deleteRole, refetch: fetchRoles };
 }

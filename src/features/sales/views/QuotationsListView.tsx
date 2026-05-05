@@ -22,32 +22,28 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
+import { SalesPageSkeleton } from '../components/SalesPageSkeleton';
 import { useSalesContext } from '../context/SalesContext';
 import type { Quotation } from '../types/sales.types';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function calcQuotationTotal(q: Quotation): number {
-  return q.products.reduce((sum, p) => sum + p.unitPrice * p.qty * (1 - p.discount / 100), 0);
-}
+import { STATUS_LABELS } from '../types/sales.types';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos los estados' },
-  { value: 'borrador', label: 'Borrador' },
-  { value: 'enviada', label: 'Enviada' },
-  { value: 'aprobada', label: 'Aprobada' },
-  { value: 'rechazada', label: 'Rechazada' },
-  { value: 'convertida', label: 'Convertida' },
+  { value: 'draft', label: 'Borrador' },
+  { value: 'sent', label: 'Enviada' },
+  { value: 'approved', label: 'Aprobada' },
+  { value: 'rejected', label: 'Rechazada' },
+  { value: 'cancelled', label: 'Cancelada' },
 ];
 
-const STATUS_CONFIG: Record<Quotation['status'], { label: string; className: string }> = {
-  borrador: { label: 'Borrador', className: 'bg-amber-500/10 text-amber-600' },
-  enviada: { label: 'Enviada', className: 'bg-blue-500/10 text-blue-600' },
-  aprobada: { label: 'Aprobada', className: 'bg-emerald-500/10 text-emerald-600' },
-  rechazada: { label: 'Rechazada', className: 'bg-red-500/10 text-red-600' },
-  convertida: { label: 'Convertida', className: 'bg-purple-500/10 text-purple-600' },
+const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+  draft: { label: 'Borrador', className: 'bg-amber-500/10 text-amber-600' },
+  sent: { label: 'Enviada', className: 'bg-blue-500/10 text-blue-600' },
+  approved: { label: 'Aprobada', className: 'bg-emerald-500/10 text-emerald-600' },
+  rejected: { label: 'Rechazada', className: 'bg-red-500/10 text-red-600' },
+  cancelled: { label: 'Cancelada', className: 'bg-purple-500/10 text-purple-600' },
 };
 
 // ─── Column helper ────────────────────────────────────────────────────────────
@@ -58,7 +54,7 @@ const col = createColumnHelper<Quotation>();
 
 export function QuotationsListView() {
   const router = useRouter();
-  const { quotations, convertQuotationToInvoice, saveQuotation } = useSalesContext();
+  const { quotations, convertQuotationToInvoice, saveQuotation, isLoading } = useSalesContext();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -68,9 +64,9 @@ export function QuotationsListView() {
       quotations.filter((q) => {
         const matchesSearch =
           !search ||
-          q.client.toLowerCase().includes(search.toLowerCase()) ||
-          q.id.toLowerCase().includes(search.toLowerCase()) ||
-          q.seller.toLowerCase().includes(search.toLowerCase());
+          q.quote_number.toLowerCase().includes(search.toLowerCase()) ||
+          q.title.toLowerCase().includes(search.toLowerCase()) ||
+          q.quoteable_uid.toLowerCase().includes(search.toLowerCase());
         const matchesStatus = !statusFilter || q.status === statusFilter;
         return matchesSearch && matchesStatus;
       }),
@@ -79,34 +75,35 @@ export function QuotationsListView() {
 
   const columns = useMemo(
     () => [
-      col.accessor('id', {
-        header: 'ID',
+      col.accessor('quote_number', {
+        header: 'Número',
         cell: (info) => (
           <span className="font-mono text-xs text-muted-foreground">{info.getValue()}</span>
         ),
       }),
-      col.accessor('client', {
-        header: 'Cliente',
+      col.accessor('title', {
+        header: 'Cliente / Título',
         cell: (info) => <span className="font-medium text-foreground">{info.getValue()}</span>,
       }),
-      col.accessor('seller', {
-        header: 'Vendedor',
-        cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
+      col.accessor('quoteable_uid', {
+        header: 'Ref. Oportunidad',
+        cell: (info) => (
+          <span className="text-muted-foreground font-mono text-xs">{info.getValue()}</span>
+        ),
       }),
-      col.accessor('priceList', {
-        header: 'Lista de Precios',
+      col.accessor('currency', {
+        header: 'Moneda',
         cell: (info) => <span className="text-xs text-muted-foreground">{info.getValue()}</span>,
       }),
-      col.accessor('date', {
+      col.accessor('created_at', {
         header: 'Fecha',
         cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
       }),
-      col.display({
-        id: 'total',
+      col.accessor('total', {
         header: 'Total',
-        cell: ({ row }) => (
+        cell: (info) => (
           <span className="font-semibold text-foreground">
-            {formatMoney(calcQuotationTotal(row.original), {
+            {formatMoney(info.getValue(), {
               scope: 'tenant',
               maximumFractionDigits: 0,
             })}
@@ -116,7 +113,10 @@ export function QuotationsListView() {
       col.accessor('status', {
         header: 'Estado',
         cell: (info) => {
-          const config = STATUS_CONFIG[info.getValue()];
+          const config = STATUS_CONFIG[info.getValue()] ?? {
+            label: STATUS_LABELS[info.getValue()] ?? info.getValue(),
+            className: 'bg-muted text-muted-foreground',
+          };
           return (
             <Badge
               variant="soft"
@@ -132,7 +132,7 @@ export function QuotationsListView() {
         header: '',
         cell: ({ row }) => {
           const q = row.original;
-          const canConvert = q.status === 'enviada' || q.status === 'aprobada';
+          const canConvert = q.status === 'sent' || q.status === 'approved';
           return (
             <div className="flex items-center justify-end gap-1">
               <Button
@@ -141,7 +141,7 @@ export function QuotationsListView() {
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 onClick={(e) => {
                   e.stopPropagation();
-                  router.push(paths.sales.quotation(q.id));
+                  router.push(paths.sales.quotation(q.uid));
                 }}
                 title="Ver detalle"
               >
@@ -152,11 +152,13 @@ export function QuotationsListView() {
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-500/10"
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
-                    const invoice = convertQuotationToInvoice(q.id);
-                    saveQuotation({ ...q, status: 'convertida' });
-                    router.push(paths.sales.invoice(invoice.id));
+                    const invoice = await convertQuotationToInvoice(q.uid);
+                    saveQuotation({ ...q, status: 'cancelled' });
+                    if (invoice) {
+                      router.push(paths.sales.invoice(invoice.uid));
+                    }
                   }}
                   title="Convertir a factura"
                 >
@@ -173,11 +175,16 @@ export function QuotationsListView() {
 
   const { table, dense, onChangeDense } = useTable({ data: filtered, columns });
 
+  if (isLoading)
+    return (
+      <SalesPageSkeleton title="Cotizaciones" subtitle="Cargando historial de cotizaciones..." />
+    );
+
   return (
     <PageContainer>
       <PageHeader
         title="Cotizaciones"
-        subtitle={`${filtered.length} cotizacion${filtered.length !== 1 ? 'es' : ''}`}
+        subtitle={`${filtered.length} cotización${filtered.length !== 1 ? 'es' : ''}`}
         action={
           <Button color="primary" onClick={() => router.push(paths.sales.pipeline)}>
             <Icon name="Plus" size={16} />
@@ -190,7 +197,7 @@ export function QuotationsListView() {
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <Input
           label="Buscar"
-          placeholder="Buscar por cliente, ID o vendedor..."
+          placeholder="Buscar por número, título o referencia..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           leftIcon={<Icon name="Search" size={15} />}
@@ -229,7 +236,7 @@ export function QuotationsListView() {
                   <TableRow
                     key={row.id}
                     className="cursor-pointer hover:bg-muted/40 transition-colors"
-                    onClick={() => router.push(paths.sales.quotation(row.original.id))}
+                    onClick={() => router.push(paths.sales.quotation(row.original.uid))}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>

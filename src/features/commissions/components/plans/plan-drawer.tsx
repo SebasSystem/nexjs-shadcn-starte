@@ -17,14 +17,14 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui/sheet';
 
-import { type PlanComisionForm, planComisionSchema } from '../../schemas/plan.schema';
-import { type PlanComision } from '../../types/commissions.types';
+import { type PlanForm, planSchema } from '../../schemas/plan.schema';
+import type { CommissionPlan } from '../../types/commissions.types';
 
 interface PlanDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  plan?: PlanComision | null;
-  onSave: (data: PlanComisionForm) => Promise<boolean>;
+  plan?: CommissionPlan | null;
+  onSave: (data: PlanForm) => Promise<boolean>;
 }
 
 const TIPO_OPTIONS = [
@@ -40,57 +40,57 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
     handleSubmit,
     reset,
     formState: { errors, isValid, isSubmitting },
-  } = useForm<PlanComisionForm>({
-    resolver: zodResolver(planComisionSchema),
+  } = useForm<PlanForm>({
+    resolver: zodResolver(planSchema),
     defaultValues: {
-      nombre: '',
-      tipo: 'VENTA',
-      porcentajeBase: 0,
-      rolesAplicables: [],
-      fechaInicio: '',
-      fechaFin: '',
-      estado: 'ACTIVO',
-      tramos: [{ desde: 0, hasta: null, porcentajeAplicado: 0 }],
+      name: '',
+      type: 'VENTA',
+      base_percentage: 0,
+      applicable_roles: [],
+      start_date: '',
+      end_date: '',
+      status: 'ACTIVO',
+      tiers: [{ threshold: 0, percentage: 0 }],
     },
     mode: 'onChange',
   });
 
-  const { fields, append, remove } = useFieldArray({ control, name: 'tramos' });
+  const { fields, append, remove } = useFieldArray({ control, name: 'tiers' });
 
   useEffect(() => {
     if (isOpen) {
       if (plan) {
         reset({
-          id: plan.id,
-          nombre: plan.nombre,
-          tipo: plan.tipo,
-          porcentajeBase: plan.porcentajeBase,
-          rolesAplicables: plan.rolesAplicables.length ? plan.rolesAplicables : [],
-          fechaInicio: plan.fechaInicio || '',
-          fechaFin: plan.fechaFin || '',
-          estado: plan.estado,
-          tramos: plan.tramos,
+          uid: plan.uid,
+          name: plan.name,
+          type: plan.type,
+          base_percentage: plan.base_percentage,
+          applicable_roles: plan.applicable_roles.length ? plan.applicable_roles : [],
+          start_date: plan.start_date || '',
+          end_date: plan.end_date || '',
+          status: plan.status,
+          tiers: plan.tiers,
         });
       } else {
         reset({
-          nombre: '',
-          tipo: 'VENTA',
-          porcentajeBase: 1,
-          rolesAplicables: ['Vendedor'],
-          fechaInicio: new Date().toISOString().split('T')[0],
-          estado: 'ACTIVO',
-          tramos: [{ desde: 0, hasta: null, porcentajeAplicado: 1 }],
+          name: '',
+          type: 'VENTA',
+          base_percentage: 1,
+          applicable_roles: ['Vendedor'],
+          start_date: new Date().toISOString().split('T')[0],
+          status: 'ACTIVO',
+          tiers: [{ threshold: 0, percentage: 1 }],
         });
       }
     }
   }, [isOpen, plan, reset]);
 
-  const onSubmit = async (data: PlanComisionForm) => {
+  const onSubmit = async (data: PlanForm) => {
     const success = await onSave(data);
     if (success) onClose();
   };
 
-  const tipo = useWatch({ control, name: 'tipo' });
+  const planType = useWatch({ control, name: 'type' });
 
   return (
     <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
@@ -110,7 +110,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
 
               <FormInput
                 control={control}
-                name="nombre"
+                name="name"
                 label="Nombre del Plan"
                 required
                 placeholder="Ej. Plan Semestral 2025"
@@ -119,28 +119,28 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
               <div className="grid grid-cols-2 gap-4">
                 <FormSelectField
                   control={control}
-                  name="tipo"
+                  name="type"
                   label="Tipo"
                   required
                   options={TIPO_OPTIONS}
                 />
 
-                {/* porcentajeBase usa register + valueAsNumber */}
+                {/* base_percentage usa register + valueAsNumber */}
                 <Input
                   type="number"
                   step="0.01"
-                  {...register('porcentajeBase', { valueAsNumber: true })}
+                  {...register('base_percentage', { valueAsNumber: true })}
                   label="% Base"
                   required
                   rightIcon={<span className="text-muted-foreground text-sm">%</span>}
-                  error={errors.porcentajeBase?.message}
+                  error={errors.base_percentage?.message}
                 />
               </div>
 
-              {/* rolesAplicables usa register + setValueAs */}
+              {/* applicable_roles usa register + setValueAs */}
               <Input
                 type="text"
-                {...register('rolesAplicables', {
+                {...register('applicable_roles', {
                   setValueAs: (v) =>
                     typeof v === 'string'
                       ? v
@@ -153,18 +153,18 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                 required
                 hint="Separados por coma"
                 placeholder="Ej. Vendedor, Gerente"
-                error={errors.rolesAplicables?.message}
+                error={errors.applicable_roles?.message}
               />
 
               <div className="grid grid-cols-2 gap-4">
                 <FormInput
                   control={control}
-                  name="fechaInicio"
+                  name="start_date"
                   type="date"
                   label="Vigencia Inicio"
                   required
                 />
-                <FormInput control={control} name="fechaFin" type="date" label="Vigencia Fin" />
+                <FormInput control={control} name="end_date" type="date" label="Vigencia Fin" />
               </div>
             </section>
 
@@ -174,7 +174,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                 2. Tramos Escalonados
               </h3>
               <p className="text-xs text-muted-foreground">
-                Define rangos de ventas y el porcentaje de comisión que aplica.
+                Define umbrales de ventas y el porcentaje de comisión que aplica.
               </p>
 
               <div className="space-y-3">
@@ -185,22 +185,10 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                   >
                     <div className="flex-1">
                       <Input
-                        label="Desde"
+                        label="Umbral"
                         type="number"
                         size="sm"
-                        {...register(`tramos.${index}.desde`, { valueAsNumber: true })}
-                        leftIcon={<span className="text-muted-foreground text-xs">$</span>}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <Input
-                        label="Hasta"
-                        type="number"
-                        size="sm"
-                        placeholder="∞"
-                        {...register(`tramos.${index}.hasta`, {
-                          setValueAs: (v) => (v === '' || isNaN(v) ? null : Number(v)),
-                        })}
+                        {...register(`tiers.${index}.threshold`, { valueAsNumber: true })}
                         leftIcon={<span className="text-muted-foreground text-xs">$</span>}
                       />
                     </div>
@@ -210,7 +198,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                         type="number"
                         step="0.01"
                         size="sm"
-                        {...register(`tramos.${index}.porcentajeAplicado`, {
+                        {...register(`tiers.${index}.percentage`, {
                           valueAsNumber: true,
                         })}
                         rightIcon={<span className="text-muted-foreground text-xs">%</span>}
@@ -229,13 +217,13 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                   </div>
                 ))}
               </div>
-              {errors.tramos && <p className="text-xs text-destructive">{errors.tramos.message}</p>}
+              {errors.tiers && <p className="text-xs text-destructive">{errors.tiers.message}</p>}
 
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => append({ desde: 0, hasta: null, porcentajeAplicado: 1 })}
+                onClick={() => append({ threshold: 0, percentage: 1 })}
                 className="border-dashed w-full"
               >
                 <Icon name="Plus" size={16} className="mr-2" /> Agregar Tramo
@@ -247,7 +235,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
               <h4 className="font-semibold text-foreground mb-2">Vista Previa</h4>
               <div className="text-muted-foreground space-y-1">
                 <p>
-                  Tipo: <span className="font-medium text-foreground">{tipo}</span>
+                  Tipo: <span className="font-medium text-foreground">{planType}</span>
                 </p>
                 <p>
                   Tramos configurados:{' '}

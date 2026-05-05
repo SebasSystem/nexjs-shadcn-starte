@@ -1,80 +1,80 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Settings — Tipos del dominio
+// Settings — Domain types
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Usuarios ──────────────────────────────────────────────────────────────────
-export type EstadoUsuario = 'ACTIVO' | 'INACTIVO' | 'PENDIENTE';
+// ── Users ──────────────────────────────────────────────────────────────────
+export type UserStatus = 'ACTIVO' | 'INACTIVO' | 'PENDIENTE';
 
 export interface SettingsUser {
-  id: string;
-  nombre: string;
+  uid: string;
+  name: string;
   email: string;
-  rolId: string;
-  rolNombre: string;
-  equipoId?: string;
-  equipoNombre?: string;
-  estado: EstadoUsuario;
-  ultimoAcceso: string;
-  creadoEn: string;
+  role_uid: string;
+  role_name: string;
+  team_uid?: string;
+  team_name?: string;
+  status: UserStatus;
+  last_access_at: string;
+  created_at: string;
 }
 
-// ── Roles y Permisos ──────────────────────────────────────────────────────────
-export type AccionPermiso = 'ver' | 'crear' | 'editar' | 'eliminar';
+// ── Roles & Permissions ────────────────────────────────────────────────────
+export type PermissionAction = 'ver' | 'crear' | 'editar' | 'eliminar';
 
-export interface PermisoModulo {
-  moduloId: string;
-  moduloNombre: string;
-  acciones: AccionPermiso[];
+export interface ModulePermission {
+  module_uid: string;
+  module_name: string;
+  actions: PermissionAction[];
 }
 
-export interface Rol {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  totalUsuarios: number;
-  permisos: PermisoModulo[];
-  esDefecto: boolean;
-  creadoEn: string;
+export interface Role {
+  uid: string;
+  name: string;
+  description: string;
+  total_users: number;
+  permissions: ModulePermission[];
+  is_default: boolean;
+  created_at: string;
 }
 
-// ── Equipos ───────────────────────────────────────────────────────────────────
-export interface MiembroEquipo {
-  usuarioId: string;
-  usuarioNombre: string;
-  rolNombre: string;
-  clientesAsignados: number;
+// ── Teams ───────────────────────────────────────────────────────────────────
+export interface TeamMember {
+  user_uid: string;
+  user_name: string;
+  role_name: string;
+  assigned_clients: number;
 }
 
-export interface Equipo {
-  id: string;
-  nombre: string;
-  liderId: string;
-  liderNombre: string;
-  totalMiembros: number;
-  miembros: MiembroEquipo[];
-  creadoEn: string;
+export interface Team {
+  uid: string;
+  name: string;
+  leader_uid: string;
+  leader_name: string;
+  members_count: number;
+  members: TeamMember[];
+  created_at: string;
 }
 
-// ── Campos Personalizados ─────────────────────────────────────────────────────
-export type TipoCampo = 'texto' | 'numero' | 'fecha' | 'select' | 'booleano';
-export type ModuloCampo = 'contactos' | 'empresas' | 'oportunidades' | 'productos';
+// ── Custom Fields ───────────────────────────────────────────────────────────
+export type CustomFieldType = 'text' | 'number' | 'date' | 'select' | 'boolean';
+export type CustomFieldModule = 'contacts' | 'companies' | 'opportunities' | 'products';
 
-export interface CampoPersonalizado {
-  id: string;
-  nombre: string;
-  etiqueta: string;
-  tipo: TipoCampo;
-  modulo: ModuloCampo;
-  requerido: boolean;
-  opciones?: string[];
-  creadoEn: string;
+export interface CustomField {
+  uid: string;
+  name: string;
+  label: string;
+  type: CustomFieldType;
+  module: CustomFieldModule;
+  required: boolean;
+  options?: string[];
+  created_at: string;
 }
 
-// ── Localización ──────────────────────────────────────────────────────────────
-export interface ConfigLocalizacion {
-  zonaHoraria: string;
-  moneda: string;
-  simboloMoneda: string;
-  formatoFecha: string;
-  idioma: string;
+// ── Localization ────────────────────────────────────────────────────────────
+export interface LocalizationConfig {
+  timezone: string;
+  currency: string;
+  currency_symbol: string;
+  date_format: string;
+  locale: string;
 }

@@ -16,12 +16,20 @@ import {
 import { Textarea } from 'src/shared/components/ui/textarea';
 
 import { useContacts } from '../../contacts/hooks/use-contacts';
-import type { Actividad, TipoActividad } from '../types/productivity.types';
+import type { ActivityType } from '../types/productivity.types';
 
 interface ActivityDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (actividad: Omit<Actividad, 'id' | 'estado'>) => Promise<boolean>;
+  onSave: (payload: {
+    contact_uid?: string;
+    contact_name?: string;
+    type: ActivityType;
+    title: string;
+    description?: string;
+    due_date: string;
+    assigned_to_name?: string;
+  }) => Promise<boolean>;
   usuarios: { id: string; nombre: string }[];
   defaultContactId?: string;
   defaultContactNombre?: string;
@@ -36,37 +44,40 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
   defaultContactNombre,
 }) => {
   const { contactos } = useContacts();
-  const [tipo, setTipo] = useState<TipoActividad>('TAREA');
-  const [titulo, setTitulo] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [fecha, setFecha] = useState('');
-  const [asignadoA, setAsignadoA] = useState(usuarios[0]?.nombre || 'Usuario Actual');
-  const [contactoId, setContactoId] = useState(defaultContactId || 'none');
+  const [type, setType] = useState<ActivityType>('TASK');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [assignedTo, setAssignedTo] = useState(usuarios[0]?.nombre || 'Usuario Actual');
+  const [contactUid, setContactUid] = useState(defaultContactId || 'none');
 
   const handleCreate = async () => {
-    if (!titulo.trim() || !fecha) return;
+    if (!title.trim() || !dueDate) return;
 
-    let cId = contactoId === 'none' ? undefined : contactoId;
-    let cNombre = undefined;
-    if (cId) {
-      const found = contactos.find((c) => c.id === cId);
-      if (found) cNombre = found.nombre;
+    let cUid = contactUid === 'none' ? undefined : contactUid;
+    let cName = undefined;
+    if (cUid) {
+      const found = contactos.find((c) => c.uid === cUid);
+      if (found) cName = found.name;
     } else if (defaultContactNombre) {
-      cNombre = defaultContactNombre;
-      cId = defaultContactId;
+      cName = defaultContactNombre;
+      cUid = defaultContactId;
     }
 
     const success = await onSave({
-      contactoId: cId,
-      contactoNombre: cNombre,
-      tipo,
-      titulo,
-      descripcion,
-      fechaVencimiento: new Date(fecha).toISOString(),
-      asignadoA,
+      contact_uid: cUid,
+      contact_name: cName,
+      type,
+      title,
+      description,
+      due_date: new Date(dueDate).toISOString(),
+      assigned_to_name: assignedTo,
     });
     if (success) onClose();
   };
+
+  const activityLabel =
+    type === 'TASK' ? 'tarea' : type === 'REMINDER' ? 'recordatorio' : 'reunión';
 
   return (
     <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
@@ -81,20 +92,20 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
             <div className="space-y-4">
               <SelectField
                 label="Tipo de Actividad"
-                value={tipo}
-                onChange={(val) => setTipo(val as TipoActividad)}
+                value={type}
+                onChange={(val) => setType(val as ActivityType)}
                 options={[
-                  { value: 'TAREA', label: 'Tarea' },
-                  { value: 'RECORDATORIO', label: 'Recordatorio' },
-                  { value: 'REUNION', label: 'Reunión' },
+                  { value: 'TASK', label: 'Tarea' },
+                  { value: 'REMINDER', label: 'Recordatorio' },
+                  { value: 'MEETING', label: 'Reunión' },
                 ]}
               />
 
               <Input
                 label="Título"
                 required
-                value={titulo}
-                onChange={(e) => setTitulo(e.target.value)}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ej. Presentar cotización final"
               />
 
@@ -103,8 +114,8 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
                   label="Fecha de Vencimiento"
                   required
                   type="date"
-                  value={fecha}
-                  onChange={(e) => setFecha(e.target.value)}
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
                   leftIcon={<Icon name="Calendar" size={16} />}
                 />
                 <Input label="Hora límite" type="time" leftIcon={<Icon name="Clock" size={16} />} />
@@ -112,25 +123,28 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
 
               <SelectField
                 label="Asignar a"
-                value={asignadoA}
-                onChange={(val) => setAsignadoA(val as string)}
+                value={assignedTo}
+                onChange={(val) => setAssignedTo(val as string)}
                 options={usuarios.map((u) => ({ value: u.nombre, label: u.nombre }))}
               />
 
               <SelectField
                 label="Asociar a Cliente (Opcional)"
-                value={contactoId}
-                onChange={(val) => setContactoId(val as string)}
+                value={contactUid}
+                onChange={(val) => setContactUid(val as string)}
                 options={[
                   { value: 'none', label: 'Sin cliente asociado' },
-                  ...contactos.map((c) => ({ value: c.id, label: `${c.nombre} (${c.tipo})` })),
+                  ...contactos.map((c) => ({
+                    value: c.uid,
+                    label: `${c.name} (${c.type})`,
+                  })),
                 ]}
               />
 
               <Textarea
                 label="Descripción / Notas"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Detalles adicionales sobre lo que se debe hacer..."
                 className="min-h-[100px] resize-none"
               />
@@ -144,10 +158,10 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
           </Button>
           <Button
             onClick={handleCreate}
-            disabled={!titulo.trim() || !fecha}
+            disabled={!title.trim() || !dueDate}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            Agendar {tipo.toLowerCase()}
+            Agendar {activityLabel}
           </Button>
         </SheetFooter>
       </SheetContent>

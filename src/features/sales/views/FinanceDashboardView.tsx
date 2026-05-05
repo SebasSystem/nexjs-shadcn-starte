@@ -2,8 +2,10 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { formatMoney } from 'src/lib/currency';
+import { paths } from 'src/routes/paths';
 import {
   PageContainer,
   PageHeader,
@@ -23,135 +25,93 @@ import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 
+import { SalesPageSkeleton } from '../components/SalesPageSkeleton';
+import { useFinanceDashboard } from '../hooks/useFinanceDashboard';
+import type { FinanceDashboardInvoice } from '../types/sales.types';
+
 const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
+// ─── Config ───────────────────────────────────────────────────────────────────
 
-type InvoiceRow = {
-  id: string;
-  client: string;
-  date: string;
-  amount: number;
-  status: string;
-};
-
-const LAST_INVOICES: InvoiceRow[] = [
-  {
-    id: 'FAC-2024-0042',
-    client: 'Tecnología Global S.A.',
-    date: '15 Ene 2024',
-    amount: 45680,
-    status: 'parcial',
-  },
-  {
-    id: 'FAC-2024-0041',
-    client: 'Grupo Industrial del Norte',
-    date: '14 Ene 2024',
-    amount: 128500,
-    status: 'pagada',
-  },
-  {
-    id: 'FAC-2024-0040',
-    client: 'Distribuidora Central',
-    date: '10 Ene 2024',
-    amount: 23400,
-    status: 'vencida',
-  },
-  {
-    id: 'FAC-2024-0039',
-    client: 'Tecnologías Modernas S.A.',
-    date: '08 Ene 2024',
-    amount: 67200,
-    status: 'pendiente',
-  },
-  {
-    id: 'FAC-2024-0038',
-    client: 'Servicios Empresariales MX',
-    date: '05 Ene 2024',
-    amount: 15800,
-    status: 'pagada',
-  },
-  {
-    id: 'FAC-2024-0037',
-    client: 'Consultores del Bajío',
-    date: '03 Ene 2024',
-    amount: 89100,
-    status: 'pagada',
-  },
-];
-
-const WEEKLY_SALES_DATA = [142000, 98000, 165000, 120000, 178000, 87000, 154000, 130000];
 const DATE_FILTERS = ['Esta semana', 'Este mes', 'Último trimestre'];
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-type StatusKey = 'pagada' | 'pendiente' | 'vencida' | 'parcial';
+type StatusKey = 'issued' | 'partial' | 'paid' | 'overdue' | 'draft';
 
 const STATUS_CONFIG: Record<
   StatusKey,
-  { label: string; color: 'success' | 'warning' | 'error' | 'primary' }
+  { label: string; color: 'success' | 'warning' | 'error' | 'primary' | 'secondary' }
 > = {
-  pagada: { label: 'Pagada', color: 'success' },
-  pendiente: { label: 'Pendiente', color: 'warning' },
-  vencida: { label: 'Vencida', color: 'error' },
-  parcial: { label: 'Parcial', color: 'primary' },
+  paid: { label: 'Pagada', color: 'success' },
+  issued: { label: 'Emitida', color: 'warning' },
+  partial: { label: 'Parcial', color: 'primary' },
+  overdue: { label: 'Vencida', color: 'error' },
+  draft: { label: 'Borrador', color: 'secondary' },
 };
 
-// ─── Chart Options ────────────────────────────────────────────────────────────
-
-const chartOptions: ApexCharts.ApexOptions = {
-  chart: {
-    type: 'bar',
-    toolbar: { show: false },
-    background: 'transparent',
-    fontFamily: 'inherit',
-  },
-  plotOptions: { bar: { borderRadius: 6, columnWidth: '55%' } },
-  dataLabels: { enabled: false },
-  colors: ['#2563EB'],
-  xaxis: {
-    categories: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8'],
-    axisBorder: { show: false },
-    axisTicks: { show: false },
-    labels: { style: { colors: '#94a3b8', fontSize: '12px' } },
-  },
-  yaxis: {
-    labels: {
-      style: { colors: '#94a3b8', fontSize: '12px' },
-      formatter: (val: number) => `${(val / 1000).toFixed(0)}K`,
-    },
-  },
-  grid: { borderColor: 'rgba(148,163,184,0.1)', strokeDashArray: 4 },
-  tooltip: {
-    y: {
-      formatter: (val: number) => formatMoney(val, { maximumFractionDigits: 0 }),
-    },
-  },
-  theme: { mode: 'dark' },
-};
-
-// ─── Column helper ────────────────────────────────────────────────────────────
-
-const columnHelper = createColumnHelper<InvoiceRow>();
+const columnHelper = createColumnHelper<FinanceDashboardInvoice>();
 
 // ─── View ─────────────────────────────────────────────────────────────────────
 
 export function FinanceDashboardView() {
+  const router = useRouter();
+  const { dashboard, isLoading } = useFinanceDashboard();
   const [activeDateFilter, setActiveDateFilter] = useState('Este mes');
+
+  const { stats, weekly_sales, recent_invoices } = dashboard;
+
+  const chartOptions: ApexCharts.ApexOptions = useMemo(
+    () => ({
+      chart: {
+        type: 'bar',
+        toolbar: { show: false },
+        background: 'transparent',
+        fontFamily: 'inherit',
+      },
+      plotOptions: { bar: { borderRadius: 6, columnWidth: '55%' } },
+      dataLabels: { enabled: false },
+      colors: ['#2563EB'],
+      xaxis: {
+        categories: weekly_sales.map((_, i) => `Sem ${i + 1}`),
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+        labels: { style: { colors: '#94a3b8', fontSize: '12px' } },
+      },
+      yaxis: {
+        labels: {
+          style: { colors: '#94a3b8', fontSize: '12px' },
+          formatter: (val: number) => `${(val / 1000).toFixed(0)}K`,
+        },
+      },
+      grid: { borderColor: 'rgba(148,163,184,0.1)', strokeDashArray: 4 },
+      tooltip: {
+        y: { formatter: (val: number) => formatMoney(val, { maximumFractionDigits: 0 }) },
+      },
+      theme: { mode: 'dark' },
+    }),
+    [weekly_sales]
+  );
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('id', {
+      columnHelper.accessor('invoice_number', {
         header: 'N° Factura',
         cell: (info) => <span className="font-medium text-foreground">{info.getValue()}</span>,
       }),
-      columnHelper.accessor('client', {
+      columnHelper.accessor('client_name', {
         header: 'Cliente',
         cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
       }),
-      columnHelper.accessor('date', {
+      columnHelper.accessor('issued_at', {
         header: 'Fecha',
-        cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
+        cell: (info) => (
+          <span className="text-muted-foreground">
+            {new Date(info.getValue()).toLocaleDateString('es-AR', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            })}
+          </span>
+        ),
       }),
       columnHelper.accessor('amount', {
         header: () => <div className="text-right w-full">Monto</div>,
@@ -164,7 +124,7 @@ export function FinanceDashboardView() {
       columnHelper.accessor('status', {
         header: 'Estado',
         cell: (info) => {
-          const cfg = STATUS_CONFIG[info.getValue() as StatusKey] ?? STATUS_CONFIG.pendiente;
+          const cfg = STATUS_CONFIG[info.getValue()] ?? STATUS_CONFIG.issued;
           return (
             <Badge variant="soft" color={cfg.color}>
               {cfg.label}
@@ -175,39 +135,50 @@ export function FinanceDashboardView() {
       columnHelper.display({
         id: 'actions',
         header: () => <div className="text-center w-full">Acciones</div>,
-        cell: () => (
+        cell: ({ row }) => (
           <div className="flex justify-center">
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(paths.sales.invoice(row.original.uid))}
+            >
               Ver
             </Button>
           </div>
         ),
       }),
     ],
-    []
+    [router]
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: LAST_INVOICES,
+    data: recent_invoices,
     columns,
     defaultRowsPerPage: 5,
   });
 
+  if (isLoading)
+    return (
+      <SalesPageSkeleton
+        title="Dashboard Financiero"
+        subtitle="Resumen de ventas, facturas y cartera de este período"
+        statsCount={4}
+      />
+    );
+
   return (
     <PageContainer className="pb-10">
-      {/* Header */}
       <PageHeader
         title="Dashboard Financiero"
         subtitle="Resumen de ventas, facturas y cartera de este período"
       />
 
-      {/* Date filter buttons */}
       <div className="flex items-center gap-2">
         {DATE_FILTERS.map((filter) => (
           <button
             key={filter}
             onClick={() => setActiveDateFilter(filter)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
               activeDateFilter === filter
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted/40 text-muted-foreground hover:bg-muted/70'
@@ -218,55 +189,56 @@ export function FinanceDashboardView() {
         ))}
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         <StatsCard
           title="Ventas del Mes"
-          value={formatMoney(842300, { maximumFractionDigits: 0 })}
-          trend="+12% vs mes anterior"
-          trendUp={true}
+          value={formatMoney(stats.monthly_sales, { maximumFractionDigits: 0 })}
+          trend={`${stats.monthly_sales_growth_percent > 0 ? '+' : ''}${stats.monthly_sales_growth_percent}% vs mes anterior`}
+          trendUp={stats.monthly_sales_growth_percent >= 0}
           icon={<Icon name="TrendingUp" size={20} />}
           iconClassName="bg-emerald-500/10 text-emerald-500"
         />
         <StatsCard
           title="Facturas Pendientes"
-          value="23 facturas"
-          trend={`${formatMoney(187500, { maximumFractionDigits: 0 })} pendiente`}
+          value={`${stats.pending_invoices_count} facturas`}
+          trend={`${formatMoney(stats.pending_invoices_amount, { maximumFractionDigits: 0 })} pendiente`}
           trendUp={false}
           icon={<Icon name="Clock" size={20} />}
           iconClassName="bg-amber-500/10 text-amber-500"
         />
         <StatsCard
           title="Cartera Vencida"
-          value={formatMoney(43200, { maximumFractionDigits: 0 })}
-          trend="3 clientes en mora"
+          value={formatMoney(stats.overdue_portfolio, { maximumFractionDigits: 0 })}
+          trend={`${stats.overdue_clients_count} clientes en mora`}
           trendUp={false}
           icon={<Icon name="AlertCircle" size={20} />}
           iconClassName="bg-red-500/10 text-red-500"
         />
         <StatsCard
           title="Margen Promedio"
-          value="48.3%"
-          trend="Meta: 45%"
-          trendUp={true}
+          value={`${stats.average_margin_percent.toFixed(1)}%`}
+          trend={`Meta: ${stats.margin_target_percent}%`}
+          trendUp={stats.average_margin_percent >= stats.margin_target_percent}
           icon={<Icon name="BarChart2" size={20} />}
           iconClassName="bg-indigo-500/10 text-indigo-500"
         />
       </div>
 
-      {/* Sales Chart */}
-      <SectionCard>
-        <h2 className="text-h6 text-foreground mb-1">Ventas por semana</h2>
-        <p className="text-body2 text-muted-foreground mb-5">Últimas 8 semanas</p>
-        <ReactApexChart
-          options={chartOptions}
-          series={[{ name: 'Ventas', data: WEEKLY_SALES_DATA }]}
-          type="bar"
-          height={280}
-        />
-      </SectionCard>
+      {weekly_sales.length > 0 && (
+        <SectionCard>
+          <h2 className="text-h6 text-foreground mb-1">Ventas por semana</h2>
+          <p className="text-body2 text-muted-foreground mb-5">
+            Últimas {weekly_sales.length} semanas
+          </p>
+          <ReactApexChart
+            options={chartOptions}
+            series={[{ name: 'Ventas', data: weekly_sales }]}
+            type="bar"
+            height={280}
+          />
+        </SectionCard>
+      )}
 
-      {/* Invoices Table — TanStack */}
       <SectionCard noPadding>
         <div className="px-6 py-4">
           <h2 className="text-h6 text-foreground">Últimas Facturas</h2>
@@ -276,15 +248,26 @@ export function FinanceDashboardView() {
           <Table>
             <TableHeadCustom table={table} />
             <TableBody dense={dense}>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+              {table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="py-12 text-center text-muted-foreground text-sm"
+                  >
+                    Sin facturas recientes
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>

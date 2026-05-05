@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { MOCK_CONSULTANTS } from 'src/_mock/_projects';
 import {
   Button,
   Input,
@@ -15,18 +14,7 @@ import {
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 
-import type { Project, ProjectStatus } from '../types';
-
-const MOCK_CLIENTS = [
-  { id: 'contact-001', name: 'Distribuidora Mayorista S.A.' },
-  { id: 'contact-002', name: 'Retail Corp Ltda.' },
-  { id: 'contact-003', name: 'TechParts Global' },
-  { id: 'contact-004', name: 'Moda Express S.A.' },
-  { id: 'contact-005', name: 'GovPro Institucional' },
-  { id: 'contact-006', name: 'SportZone Mayorista' },
-  { id: 'contact-007', name: 'Ferretera del Norte' },
-  { id: 'contact-008', name: 'Agro Exportaciones Ltda.' },
-];
+import type { Project, ProjectPayload, ProjectStatus } from '../types';
 
 const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
   { value: 'planning', label: 'Planificación' },
@@ -41,32 +29,28 @@ interface Props {
   mode: 'create' | 'edit';
   project?: Project | null;
   onClose: () => void;
-  onCreate: (
-    data: Omit<Project, 'id' | 'milestones' | 'resources' | 'progress' | 'createdAt'>
-  ) => void;
-  onUpdate: (id: string, changes: Partial<Project>) => void;
-  onCancel?: (id: string) => void;
+  onCreate: (data: ProjectPayload) => Promise<boolean>;
+  onUpdate: (uid: string, changes: Partial<ProjectPayload>) => Promise<boolean>;
+  onCancel?: (uid: string) => void;
 }
 
 interface FormProps {
   project?: Project | null;
   isEdit: boolean;
   onClose: () => void;
-  onCreate: (
-    data: Omit<Project, 'id' | 'milestones' | 'resources' | 'progress' | 'createdAt'>
-  ) => void;
-  onUpdate: (id: string, changes: Partial<Project>) => void;
-  onCancel?: (id: string) => void;
+  onCreate: (data: ProjectPayload) => Promise<boolean>;
+  onUpdate: (uid: string, changes: Partial<ProjectPayload>) => Promise<boolean>;
+  onCancel?: (uid: string) => void;
 }
 
 function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }: FormProps) {
   const init = isEdit && project;
   const [name, setName] = useState(init ? project.name : '');
-  const [clientId, setClientId] = useState(init ? project.clientId : '');
+  const [clientId, setClientId] = useState(init ? project.client_uid : '');
   const [manager, setManager] = useState(init ? project.manager : '');
   const [status, setStatus] = useState<ProjectStatus>(init ? project.status : 'planning');
-  const [startDate, setStartDate] = useState(init ? project.startDate : '');
-  const [endDate, setEndDate] = useState(init ? project.endDate : '');
+  const [startDate, setStartDate] = useState(init ? project.start_date : '');
+  const [endDate, setEndDate] = useState(init ? project.end_date : '');
   const [description, setDescription] = useState(init ? (project.description ?? '') : '');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -74,7 +58,7 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = 'El nombre es requerido';
-    if (!clientId) errs.clientId = 'Seleccioná un cliente';
+    if (!clientId) errs.clientId = 'El cliente es requerido';
     if (!manager) errs.manager = 'Seleccioná un manager';
     if (!startDate) errs.startDate = 'La fecha de inicio es requerida';
     if (!endDate) errs.endDate = 'La fecha de fin estimado es requerida';
@@ -87,34 +71,26 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
   const handleSave = async () => {
     if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 400));
 
-    const client = MOCK_CLIENTS.find((c) => c.id === clientId);
+    const payload: ProjectPayload = {
+      name,
+      client_uid: clientId,
+      client_name: clientId,
+      manager,
+      status,
+      start_date: startDate,
+      end_date: endDate,
+      description,
+    };
 
     if (isEdit && project) {
-      onUpdate(project.id, {
-        name,
-        clientId,
-        clientName: client?.name ?? '',
-        manager,
-        status,
-        startDate,
-        endDate,
-        description,
-      });
-      toast.success('Proyecto actualizado');
+      const ok = await onUpdate(project.uid, payload);
+      if (ok) toast.success('Proyecto actualizado');
+      else toast.error('Error al actualizar el proyecto');
     } else {
-      onCreate({
-        name,
-        clientId,
-        clientName: client?.name ?? '',
-        manager,
-        status,
-        startDate,
-        endDate,
-        description,
-      });
-      toast.success('Proyecto creado');
+      const ok = await onCreate(payload);
+      if (ok) toast.success('Proyecto creado');
+      else toast.error('Error al crear el proyecto');
     }
 
     setLoading(false);
@@ -123,7 +99,7 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
 
   const handleCancel = () => {
     if (project && onCancel) {
-      onCancel(project.id);
+      onCancel(project.uid);
       toast.success('Proyecto cancelado');
       onClose();
     }
@@ -148,23 +124,23 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
           error={errors.name}
         />
 
-        <SelectField
+        {/* TODO: Replace with backend clients lookup */}
+        <Input
           label="Cliente *"
           required
-          options={MOCK_CLIENTS.map((c) => ({ value: c.id, label: c.name }))}
           value={clientId}
-          onChange={(v) => setClientId(v as string)}
-          placeholder="Seleccioná un cliente"
+          onChange={(e) => setClientId(e.target.value)}
+          placeholder="Nombre del cliente"
           error={errors.clientId}
         />
 
-        <SelectField
+        {/* TODO: Replace with backend consultants list */}
+        <Input
           label="Manager responsable *"
           required
-          options={MOCK_CONSULTANTS.map((c) => ({ value: c.name, label: c.name }))}
           value={manager}
-          onChange={(v) => setManager(v as string)}
-          placeholder="Seleccioná el manager"
+          onChange={(e) => setManager(e.target.value)}
+          placeholder="Nombre del manager"
           error={errors.manager}
         />
 
@@ -242,7 +218,7 @@ export function ProjectDrawer({
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="w-full sm:max-w-md flex flex-col overflow-y-auto">
         <ProjectForm
-          key={`${open}-${project?.id ?? 'new'}`}
+          key={`${open}-${project?.uid ?? 'new'}`}
           project={project}
           isEdit={isEdit}
           onClose={onClose}

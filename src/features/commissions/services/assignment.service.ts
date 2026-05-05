@@ -1,55 +1,55 @@
-import type { AsignacionPlan } from '../types/commissions.types';
+import axiosInstance, { endpoints } from 'src/lib/axios';
 
-const MOCK_ASIGNACIONES: AsignacionPlan[] = [
-  {
-    id: 'asg-1',
-    vendedorId: 'vend-1',
-    vendedorNombre: 'Carlos Martínez',
-    equipoId: 'eq-1',
-    equipoNombre: 'Ventas Norte',
-    planId: 'plan-1',
-    planNombre: 'Plan Élite 2025',
-    planTipo: 'VENTA',
-    fechaInicio: '2025-01-01',
-    estado: 'ACTIVO',
+import type { CommissionAssignment } from '../types/commissions.types';
+
+function mapAssignment(raw: Record<string, unknown>): CommissionAssignment {
+  return {
+    uid: raw.uid as string,
+    user_uid: raw.user_uid as string,
+    user_name: raw.user_name as string,
+    user_avatar: raw.user_avatar as string | undefined,
+    team_uid: raw.team_uid as string,
+    team_name: raw.team_name as string,
+    plan_uid: raw.plan_uid as string | undefined,
+    plan_name: raw.plan_name as string | undefined,
+    plan_type: raw.plan_type as CommissionAssignment['plan_type'],
+    start_date: raw.start_date as string | undefined,
+    end_date: raw.end_date as string | undefined,
+    status: raw.status as CommissionAssignment['status'],
+  };
+}
+
+export interface CreateAssignmentPayload {
+  user_uid: string;
+  plan_uid: string;
+  start_date: string;
+  end_date?: string;
+}
+
+export interface UpdateAssignmentPayload {
+  plan_uid?: string;
+  start_date?: string;
+  end_date?: string;
+  status?: string;
+}
+
+export const assignmentService = {
+  async getAssignments(): Promise<CommissionAssignment[]> {
+    const res = await axiosInstance.get(endpoints.commissions.assignments.list);
+    const payload = res.data?.data ?? res.data;
+    return (Array.isArray(payload) ? payload : []).map(mapAssignment);
   },
-  {
-    id: 'asg-2',
-    vendedorId: 'vend-2',
-    vendedorNombre: 'Ana Gómez',
-    equipoId: 'eq-2',
-    equipoNombre: 'Ventas Sur',
-    estado: 'SIN_ASIGNAR',
-  },
-];
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-export const asignacionService = {
-  getAsignaciones: async (): Promise<AsignacionPlan[]> => {
-    await delay(500);
-    return [...MOCK_ASIGNACIONES];
+  async createAssignment(data: CreateAssignmentPayload): Promise<CommissionAssignment> {
+    const res = await axiosInstance.post(endpoints.commissions.assignments.create, data);
+    return mapAssignment(res.data?.data ?? res.data);
   },
 
-  createAsignacion: async (data: Omit<AsignacionPlan, 'id'>): Promise<AsignacionPlan> => {
-    await delay(600);
-    const nueva: AsignacionPlan = { ...data, id: `asg-${Date.now()}` };
-    MOCK_ASIGNACIONES.push(nueva);
-    return nueva;
-  },
-
-  updateAsignacion: async (id: string, data: Partial<AsignacionPlan>): Promise<AsignacionPlan> => {
-    await delay(600);
-    const index = MOCK_ASIGNACIONES.findIndex((a) => a.id === id);
-    if (index === -1) throw new Error('Asignación no encontrada');
-
-    // Si la asignación estaba SIN_ASIGNAR y ahora tiene plan, cambia su estado a ACTIVO
-    const updated = { ...MOCK_ASIGNACIONES[index], ...data };
-    if (MOCK_ASIGNACIONES[index].estado === 'SIN_ASIGNAR' && data.planId) {
-      updated.estado = 'ACTIVO';
-    }
-
-    MOCK_ASIGNACIONES[index] = updated;
-    return MOCK_ASIGNACIONES[index];
+  async updateAssignment(
+    uid: string,
+    data: UpdateAssignmentPayload
+  ): Promise<CommissionAssignment> {
+    const res = await axiosInstance.put(endpoints.commissions.assignments.update(uid), data);
+    return mapAssignment(res.data?.data ?? res.data);
   },
 };

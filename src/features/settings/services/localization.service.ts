@@ -1,21 +1,24 @@
-import { MOCK_LOCALIZACION } from 'src/_mock/_settings';
+import axiosInstance, { endpoints } from 'src/lib/axios';
 import { setCurrencyPreferences } from 'src/lib/currency';
 
-import type { ConfigLocalizacion } from '../types/settings.types';
-
-let _config = { ...MOCK_LOCALIZACION };
+import type { LocalizationConfig } from '../types/settings.types';
 
 export const localizationService = {
-  get: async (): Promise<ConfigLocalizacion> => {
-    await new Promise((r) => setTimeout(r, 300));
-    setCurrencyPreferences({ currency: _config.moneda, locale: _config.idioma }, 'tenant');
-    return { ..._config };
+  async get(): Promise<LocalizationConfig> {
+    const res = await axiosInstance.get(endpoints.settings.localization.get);
+    const payload = res.data?.data ?? res.data;
+    if (payload) {
+      setCurrencyPreferences({ currency: payload.currency, locale: payload.locale }, 'tenant');
+    }
+    return payload;
   },
 
-  update: async (data: Partial<ConfigLocalizacion>): Promise<ConfigLocalizacion> => {
-    await new Promise((r) => setTimeout(r, 500));
-    _config = { ..._config, ...data };
-    setCurrencyPreferences({ currency: _config.moneda, locale: _config.idioma }, 'tenant');
-    return { ..._config };
+  async update(data: Partial<LocalizationConfig>): Promise<LocalizationConfig> {
+    const res = await axiosInstance.put(endpoints.settings.localization.update, data);
+    const payload = res.data?.data ?? res.data;
+    if (payload) {
+      setCurrencyPreferences({ currency: payload.currency, locale: payload.locale }, 'tenant');
+    }
+    return payload;
   },
 };

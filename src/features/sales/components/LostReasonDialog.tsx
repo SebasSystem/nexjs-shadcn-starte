@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MOCK_COMPETITORS } from 'src/_mock/_intelligence';
+import type { Competitor } from 'src/features/intelligence/types';
 import { Button } from 'src/shared/components/ui/button';
 import {
   Dialog,
@@ -17,38 +17,45 @@ import { Textarea } from 'src/shared/components/ui/textarea';
 import { LOST_REASON_OPTIONS } from '../config/pipeline.config';
 import type { LostReasonInfo } from '../types/sales.types';
 
-const COMPETITOR_OPTIONS = [
-  { value: '', label: 'Sin competidor identificado' },
-  ...MOCK_COMPETITORS.map((c) => ({ value: c.id, label: c.name })),
-];
-
 interface LostReasonDialogProps {
   open: boolean;
   clientName: string;
+  competitors: Competitor[];
   onConfirm: (reason: LostReasonInfo) => void;
   onCancel: () => void;
 }
 
-const DEFAULT: { category: string; competitorId: string; detail: string } = {
+const DEFAULT: { category: string; competitor_uid: string; detail: string } = {
   category: 'price',
-  competitorId: '',
+  competitor_uid: '',
   detail: '',
 };
 
-export function LostReasonDialog({ open, clientName, onConfirm, onCancel }: LostReasonDialogProps) {
+export function LostReasonDialog({
+  open,
+  clientName,
+  competitors,
+  onConfirm,
+  onCancel,
+}: LostReasonDialogProps) {
   const [form, setForm] = useState(DEFAULT);
   const [error, setError] = useState('');
+
+  const competitorOptions = [
+    { value: '', label: 'Sin competidor identificado' },
+    ...competitors.map((c) => ({ value: c.uid, label: c.name })),
+  ];
 
   const handleConfirm = () => {
     if (!form.detail.trim()) {
       setError('Agregá un detalle sobre lo que pasó.');
       return;
     }
-    const competitor = MOCK_COMPETITORS.find((c) => c.id === form.competitorId);
+    const competitor = competitors.find((c) => c.uid === form.competitor_uid);
     onConfirm({
       category: form.category as LostReasonInfo['category'],
-      competitorId: form.competitorId || undefined,
-      competitorName: competitor?.name,
+      competitor_uid: form.competitor_uid || undefined,
+      competitor_name: competitor?.name,
       detail: form.detail.trim(),
     });
     setForm(DEFAULT);
@@ -82,9 +89,9 @@ export function LostReasonDialog({ open, clientName, onConfirm, onCancel }: Lost
 
           <SelectField
             label="Competidor que ganó"
-            options={COMPETITOR_OPTIONS}
-            value={form.competitorId}
-            onChange={(v) => setForm((p) => ({ ...p, competitorId: v as string }))}
+            options={competitorOptions}
+            value={form.competitor_uid}
+            onChange={(v) => setForm((p) => ({ ...p, competitor_uid: v as string }))}
             clearable
             placeholder="Sin competidor identificado"
           />

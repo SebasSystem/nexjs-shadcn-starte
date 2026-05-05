@@ -1,57 +1,48 @@
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+'use client';
 
-import { ProductivityService } from '../services/productivity.service';
-import type { Actividad, EstadoActividad } from '../types/productivity.types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from 'src/lib/query-keys';
 
-export const useActivities = (contactoId?: string) => {
-  const [data, setData] = useState<Actividad[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+import { productivityService } from '../services/productivity.service';
+import type { ActivityPayload, ActivityStatus } from '../types/productivity.types';
 
-  const fetchItems = useCallback(async () => {
+export function useActivities(contactUid?: string) {
+  const queryClient = useQueryClient();
+
+  const queryKey = contactUid
+    ? queryKeys.productivity.activities.byContact(contactUid)
+    : queryKeys.productivity.activities.all;
+
+  const { data: activities = [], isLoading } = useQuery({
+    queryKey,
+    queryFn: () => productivityService.listActivities(contactUid),
+  });
+
+  const addActivity = async (payload: ActivityPayload): Promise<boolean> => {
     try {
-      setIsLoading(true);
-      const items = await ProductivityService.getActividades(contactoId);
-      setData(items);
-    } catch {
-      toast.error('Error al cargar actividades');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [contactoId]);
-
-  useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
-
-  const addActividad = async (payload: Omit<Actividad, 'id' | 'estado' | 'asignadoA'>) => {
-    try {
-      setIsSubmitting(true);
-      await ProductivityService.createActividad(payload);
-      await fetchItems();
-      toast.success('Actividad agendada');
+      await productivityService.createActivity(payload);
+      queryClient.invalidateQueries({ queryKey });
       return true;
     } catch {
-      toast.error('Error al agendar actividad');
       return false;
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const updateEstado = async (id: string, estado: EstadoActividad) => {
+  const updateStatus = async (uid: string, status: ActivityStatus): Promise<boolean> => {
     try {
-      setIsSubmitting(true);
-      await ProductivityService.updateActividadEstado(id, estado);
-      await fetchItems();
-      toast.success('Estado actualizado');
+      await productivityService.updateActivityStatus(uid, status);
+      queryClient.invalidateQueries({ queryKey });
+      return true;
     } catch {
-      toast.error('Error actualizando estado');
-    } finally {
-      setIsSubmitting(false);
+      return false;
     }
   };
 
-  return { data, isLoading, isSubmitting, addActividad, updateEstado, refresh: fetchItems };
-};
+  return {
+    data: activities,
+    isLoading,
+    addActivity,
+    updateStatus,
+    refetch: () => queryClient.invalidateQueries({ queryKey }),
+  };
+}

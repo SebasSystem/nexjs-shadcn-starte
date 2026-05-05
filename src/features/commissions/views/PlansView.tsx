@@ -4,17 +4,18 @@ import React, { useState } from 'react';
 import { PlanDrawer } from 'src/features/commissions/components/plans/plan-drawer';
 import { PlansTable } from 'src/features/commissions/components/plans/plans-table';
 import { usePlans } from 'src/features/commissions/hooks/use-plans';
-import { type PlanComision } from 'src/features/commissions/types/commissions.types';
+import type { PlanForm } from 'src/features/commissions/schemas/plan.schema';
+import type { CommissionPlan } from 'src/features/commissions/types/commissions.types';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 
 export const PlansView = () => {
-  const { planes, isLoading, addPlan, updatePlan } = usePlans();
-  const [selectedPlan, setSelectedPlan] = useState<PlanComision | null>(null);
+  const { plans, isLoading, createPlan, updatePlan } = usePlans();
+  const [selectedPlan, setSelectedPlan] = useState<CommissionPlan | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const handleEdit = (plan: PlanComision) => {
+  const handleEdit = (plan: CommissionPlan) => {
     setSelectedPlan(plan);
     setIsDrawerOpen(true);
   };
@@ -22,6 +23,31 @@ export const PlansView = () => {
   const handleOpenDrawer = () => {
     setSelectedPlan(null);
     setIsDrawerOpen(true);
+  };
+
+  const handleSave = async (form: PlanForm): Promise<boolean> => {
+    if (selectedPlan?.uid) {
+      const result = await updatePlan(selectedPlan.uid, {
+        name: form.name,
+        type: form.type,
+        base_percentage: form.base_percentage,
+        tiers: form.tiers.map((t) => ({ threshold: t.threshold, percent: t.percentage })),
+        applicable_roles: form.applicable_roles,
+        start_date: form.start_date,
+        end_date: form.end_date || undefined,
+      });
+      return !!result;
+    }
+    const result = await createPlan({
+      name: form.name,
+      type: form.type,
+      base_percentage: form.base_percentage,
+      tiers: form.tiers.map((t) => ({ threshold: t.threshold, percent: t.percentage })),
+      applicable_roles: form.applicable_roles,
+      start_date: form.start_date,
+      end_date: form.end_date || undefined,
+    });
+    return !!result;
   };
 
   return (
@@ -41,21 +67,14 @@ export const PlansView = () => {
         <div className="flex items-center justify-between px-5 py-4">
           <p className="text-h6 text-foreground">Lista de planes</p>
         </div>
-        <PlansTable planes={planes} isLoading={isLoading} onEdit={handleEdit} />
+        <PlansTable planes={plans} isLoading={isLoading} onEdit={handleEdit} />
       </SectionCard>
 
       <PlanDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         plan={selectedPlan}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onSave={async (data: any) => {
-          if (selectedPlan) {
-            return await updatePlan(selectedPlan.id, data);
-          } else {
-            return await addPlan(data);
-          }
-        }}
+        onSave={handleSave}
       />
     </PageContainer>
   );

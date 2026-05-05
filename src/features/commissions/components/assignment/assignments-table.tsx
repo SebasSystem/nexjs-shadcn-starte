@@ -16,16 +16,16 @@ import {
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 
-import type { AsignacionPlan } from '../../types/commissions.types';
+import type { CommissionAssignment } from '../../types/commissions.types';
 
 interface AssignmentsTableProps {
-  asignaciones: AsignacionPlan[];
+  asignaciones: CommissionAssignment[];
   isLoading: boolean;
-  onEdit: (asignacion: AsignacionPlan) => void;
+  onEdit: (asignacion: CommissionAssignment) => void;
   onToggleStatus: (id: string, nuevoEstado: string) => void;
 }
 
-const columnHelper = createColumnHelper<AsignacionPlan>();
+const columnHelper = createColumnHelper<CommissionAssignment>();
 
 export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
   asignaciones,
@@ -35,7 +35,7 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
 }) => {
   const COLUMNS = useMemo(
     () => [
-      columnHelper.accessor('vendedorNombre', {
+      columnHelper.accessor('user_name', {
         header: 'Vendedor',
         cell: (info) => {
           const name = info.getValue() || '';
@@ -51,7 +51,7 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
           );
         },
       }),
-      columnHelper.accessor('equipoNombre', {
+      columnHelper.accessor('team_name', {
         header: 'Equipo',
         cell: (info) => (
           <span className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
@@ -59,7 +59,7 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
           </span>
         ),
       }),
-      columnHelper.accessor('planNombre', {
+      columnHelper.accessor('plan_name', {
         header: 'Plan Asignado',
         cell: (info) => {
           const row = info.row.original;
@@ -67,7 +67,7 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
           return (
             <span
               className={
-                row.estado === 'SIN_ASIGNAR'
+                row.status === 'SIN_ASIGNAR'
                   ? 'text-muted-foreground italic'
                   : 'font-medium text-foreground'
               }
@@ -84,13 +84,13 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
           const row = info.row.original;
           return (
             <span className="text-muted-foreground">
-              {row.fechaInicio ? format(new Date(row.fechaInicio), 'dd/MM/yyyy') : '—'}
-              {row.fechaFin ? ` - ${format(new Date(row.fechaFin), 'dd/MM/yyyy')}` : ''}
+              {row.start_date ? format(new Date(row.start_date), 'dd/MM/yyyy') : '—'}
+              {row.end_date ? ` - ${format(new Date(row.end_date), 'dd/MM/yyyy')}` : ''}
             </span>
           );
         },
       }),
-      columnHelper.accessor('estado', {
+      columnHelper.accessor('status', {
         header: 'Estado',
         cell: (info) => {
           const val = info.getValue();
@@ -134,7 +134,7 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
               className="flex items-center justify-end gap-2"
               onClick={(e) => e.stopPropagation()}
             >
-              {asg.estado === 'SIN_ASIGNAR' ? (
+              {asg.status === 'SIN_ASIGNAR' ? (
                 <button
                   onClick={() => onEdit(asg)}
                   className="text-blue-600 border border-blue-600 px-3 py-1 rounded-md text-xs hover:bg-blue-50 transition-colors"
@@ -151,15 +151,15 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
                   </button>
                   <button
                     onClick={() =>
-                      onToggleStatus(asg.id, asg.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO')
+                      onToggleStatus(asg.uid, asg.status === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO')
                     }
                     className={`px-3 py-1 rounded-md text-xs border transition-colors ${
-                      asg.estado === 'ACTIVO'
+                      asg.status === 'ACTIVO'
                         ? 'text-red-600 border-red-200 hover:bg-red-50'
                         : 'text-green-600 border-green-200 hover:bg-green-50'
                     }`}
                   >
-                    {asg.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'}
+                    {asg.status === 'ACTIVO' ? 'Desactivar' : 'Activar'}
                   </button>
                 </>
               )}

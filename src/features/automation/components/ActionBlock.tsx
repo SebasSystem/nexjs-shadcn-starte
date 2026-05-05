@@ -2,7 +2,6 @@
 
 import type { UseFormReturn } from 'react-hook-form';
 import { useFieldArray } from 'react-hook-form';
-import { MOCK_ASSIGNMENT_RULES, MOCK_AUTOMATION_USERS } from 'src/_mock/_automation';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
@@ -10,7 +9,7 @@ import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
 import type { RuleFormData } from '../schemas/rule.schema';
-import type { ActionType } from '../types';
+import type { ActionType, AssignmentRule } from '../types';
 import { ACTION_TYPE_LABELS } from '../types';
 
 const ACTION_OPTIONS = (Object.keys(ACTION_TYPE_LABELS) as ActionType[]).map((key) => ({
@@ -18,15 +17,8 @@ const ACTION_OPTIONS = (Object.keys(ACTION_TYPE_LABELS) as ActionType[]).map((ke
   label: ACTION_TYPE_LABELS[key],
 }));
 
-const ASSIGNMENT_RULE_OPTIONS = MOCK_ASSIGNMENT_RULES.map((r) => ({
-  value: r.id,
-  label: r.name,
-}));
-
-const USER_OPTIONS = MOCK_AUTOMATION_USERS.map((u) => ({
-  value: u.id,
-  label: u.name,
-}));
+// TODO: Replace with backend users list
+const USER_OPTIONS: { value: string; label: string }[] = [];
 
 const ACTIVITY_TYPE_OPTIONS = [
   { value: 'llamada', label: 'Llamada' },
@@ -37,17 +29,23 @@ const ACTIVITY_TYPE_OPTIONS = [
 
 interface ActionBlockProps {
   form: UseFormReturn<RuleFormData>;
+  assignmentRules: AssignmentRule[];
 }
 
-export function ActionBlock({ form }: ActionBlockProps) {
+export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'actions',
   });
 
+  const ASSIGNMENT_RULE_OPTIONS = assignmentRules.map((r) => ({
+    value: r.uid,
+    label: r.name,
+  }));
+
   const handleAddAction = () => {
     append({
-      id: `act-${Date.now()}`,
+      uid: `act-${Date.now()}`,
       sequence: fields.length + 1,
       type: 'send_notification',
       config: {},
@@ -72,7 +70,7 @@ export function ActionBlock({ form }: ActionBlockProps) {
 
           return (
             <div
-              key={field.id}
+              key={field.uid}
               className="rounded-xl border border-border/50 p-4 space-y-3 bg-muted/20"
             >
               <div className="flex items-center justify-between gap-2">
@@ -97,9 +95,9 @@ export function ActionBlock({ form }: ActionBlockProps) {
                 <SelectField
                   label="Regla de asignación"
                   options={ASSIGNMENT_RULE_OPTIONS}
-                  value={form.watch(`actions.${index}.config.assignmentRuleId`) ?? ''}
+                  value={form.watch(`actions.${index}.config.assignment_rule_id`) ?? ''}
                   onChange={(v) =>
-                    form.setValue(`actions.${index}.config.assignmentRuleId`, v as string)
+                    form.setValue(`actions.${index}.config.assignment_rule_id`, v as string)
                   }
                 />
               )}
@@ -109,17 +107,17 @@ export function ActionBlock({ form }: ActionBlockProps) {
                   <SelectField
                     label="Tipo de actividad"
                     options={ACTIVITY_TYPE_OPTIONS}
-                    value={form.watch(`actions.${index}.config.activityType`) ?? ''}
+                    value={form.watch(`actions.${index}.config.activity_type`) ?? ''}
                     onChange={(v) =>
-                      form.setValue(`actions.${index}.config.activityType`, v as string)
+                      form.setValue(`actions.${index}.config.activity_type`, v as string)
                     }
                   />
                   <Input
                     label="Notas"
                     placeholder="Descripción de la actividad..."
-                    value={form.watch(`actions.${index}.config.activityNotes`) ?? ''}
+                    value={form.watch(`actions.${index}.config.activity_notes`) ?? ''}
                     onChange={(e) =>
-                      form.setValue(`actions.${index}.config.activityNotes`, e.target.value)
+                      form.setValue(`actions.${index}.config.activity_notes`, e.target.value)
                     }
                   />
                 </div>
@@ -139,17 +137,17 @@ export function ActionBlock({ form }: ActionBlockProps) {
                   <SelectField
                     label="Notificar a"
                     options={USER_OPTIONS}
-                    value={form.watch(`actions.${index}.config.notifyUserId`) ?? ''}
+                    value={form.watch(`actions.${index}.config.notify_user_id`) ?? ''}
                     onChange={(v) =>
-                      form.setValue(`actions.${index}.config.notifyUserId`, v as string)
+                      form.setValue(`actions.${index}.config.notify_user_id`, v as string)
                     }
                   />
                   <Input
                     label="Mensaje"
                     placeholder="Ej: Nuevo lead asignado a tu equipo"
-                    value={form.watch(`actions.${index}.config.notificationMessage`) ?? ''}
+                    value={form.watch(`actions.${index}.config.notification_message`) ?? ''}
                     onChange={(e) =>
-                      form.setValue(`actions.${index}.config.notificationMessage`, e.target.value)
+                      form.setValue(`actions.${index}.config.notification_message`, e.target.value)
                     }
                   />
                 </div>
@@ -160,17 +158,17 @@ export function ActionBlock({ form }: ActionBlockProps) {
                   <Input
                     label="Campo"
                     placeholder="Ej: status"
-                    value={form.watch(`actions.${index}.config.fieldName`) ?? ''}
+                    value={form.watch(`actions.${index}.config.field_name`) ?? ''}
                     onChange={(e) =>
-                      form.setValue(`actions.${index}.config.fieldName`, e.target.value)
+                      form.setValue(`actions.${index}.config.field_name`, e.target.value)
                     }
                   />
                   <Input
                     label="Valor"
                     placeholder="Ej: activo"
-                    value={String(form.watch(`actions.${index}.config.fieldValue`) ?? '')}
+                    value={String(form.watch(`actions.${index}.config.field_value`) ?? '')}
                     onChange={(e) =>
-                      form.setValue(`actions.${index}.config.fieldValue`, e.target.value)
+                      form.setValue(`actions.${index}.config.field_value`, e.target.value)
                     }
                   />
                 </div>

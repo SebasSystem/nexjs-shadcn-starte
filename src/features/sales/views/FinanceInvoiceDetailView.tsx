@@ -3,6 +3,7 @@
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { formatMoney } from 'src/lib/currency';
+import { formatDate } from 'src/lib/date';
 import { PageContainer, SectionCard } from 'src/shared/components/layouts/page';
 import {
   Table,
@@ -20,81 +21,119 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
-// ─── Types & Mock Data ───────────────────────────────────────────────────────
-
-type InvoiceProduct = {
-  name: string;
-  subtitle: string;
-  qty: number;
-  unitPrice: number;
-  total: number;
-};
-
-const PAYMENT_HISTORY = [
-  { id: '1', amount: 15000, date: '20 Ene 2024', ref: 'TRF-789456', done: true },
-  { id: '2', amount: 12408, date: '28 Ene 2024', ref: 'CARD-5521', done: true },
-  { id: '3', amount: 18272, date: null, ref: null, done: false },
-];
-
-const INVOICE_PRODUCTS: InvoiceProduct[] = [
-  {
-    name: 'Licencia Software ERP',
-    subtitle: 'Anual - 50 usuarios',
-    qty: 1,
-    unitPrice: 25000,
-    total: 25000,
-  },
-  {
-    name: 'Soporte Técnico Premium',
-    subtitle: 'Mensual - 24/7',
-    qty: 12,
-    unitPrice: 800,
-    total: 9600,
-  },
-  { name: 'Capacitación Inicial', subtitle: '40 horas', qty: 1, unitPrice: 4400, total: 4400 },
-];
-
-const PAYMENT_METHOD_OPTIONS = [
-  { value: 'transferencia', label: 'Transferencia' },
-  { value: 'tarjeta', label: 'Tarjeta' },
-  { value: 'efectivo', label: 'Efectivo' },
-  { value: 'cheque', label: 'Cheque' },
-];
+import { useInvoice } from '../hooks/useInvoice';
+import type { Invoice, Payment, QuotationItem } from '../types/sales.types';
+import { STATUS_LABELS } from '../types/sales.types';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+function statusBadgeColor(status: Invoice['status']): 'success' | 'warning' | 'error' | 'default' {
+  switch (status) {
+    case 'paid':
+      return 'success';
+    case 'partial':
+    case 'issued':
+      return 'warning';
+    case 'overdue':
+      return 'error';
+    default:
+      return 'default';
+  }
+}
+
 // ─── Column helper ────────────────────────────────────────────────────────────
 
-const columnHelper = createColumnHelper<InvoiceProduct>();
+type InvoiceProductRow = QuotationItem;
+
+const columnHelper = createColumnHelper<InvoiceProductRow>();
+
+// ─── Empty placeholder ────────────────────────────────────────────────────────
+
+const EMPTY_INVOICE: Invoice = {
+  uid: '',
+  invoice_number: '',
+  quotation_uid: '',
+  issued_at: '',
+  due_date: '',
+  status: 'draft',
+  total: 0,
+  paid_total: 0,
+  outstanding_total: 0,
+  subtotal: 0,
+  discount_total: 0,
+  currency: 'USD',
+  meta: {},
+  invoiceable_type: '',
+  invoiceable_uid: '',
+  created_at: '',
+  updated_at: '',
+};
 
 // ─── View ─────────────────────────────────────────────────────────────────────
 
-export function FinanceInvoiceDetailView() {
+interface FinanceInvoiceDetailViewProps {
+  invoiceUid: string;
+}
+
+export function FinanceInvoiceDetailView({ invoiceUid }: FinanceInvoiceDetailViewProps) {
   const [paymentMethod, setPaymentMethod] = useState('transferencia');
   const [paymentDate, setPaymentDate] = useState('');
   const [reference, setReference] = useState('');
   const [amount, setAmount] = useState('');
 
-  const productsSubtotal = INVOICE_PRODUCTS.reduce((s, p) => s + p.total, 0);
-  const iva = productsSubtotal * 0.16;
-  const productsTotal = productsSubtotal + iva;
+  const { invoice: rawInvoice, payments = [], isLoading, registerPayment } = useInvoice(invoiceUid);
+
+  const invoice = rawInvoice ?? EMPTY_INVOICE;
+
+  const PAYMENT_METHOD_OPTIONS = [
+    { value: 'transferencia', label: 'Transferencia' },
+    { value: 'tarjeta', label: 'Tarjeta' },
+    { value: 'efectivo', label: 'Efectivo' },
+    { value: 'cheque', label: 'Cheque' },
+  ];
+
+  // ─── Derived values ────────────────────────────────────────────────────
+
+  const products: InvoiceProductRow[] = useMemo(() => {
+    // Items come from the quotation associated to this invoice
+    // For now, derive from invoice totals; items would come from a separate endpoint
+    return [];
+  }, []);
+
+  const progressPercent =
+    invoice.total > 0 ? Math.round((invoice.paid_total / invoice.total) * 100) : 0;
+
+  const handleRegisterPayment = async () => {
+    const numericAmount = parseFloat(amount);
+    if (!numericAmount || numericAmount <= 0) return;
+    await registerPayment({
+      amount: numericAmount,
+      method: paymentMethod,
+      payment_date: paymentDate || new Date().toISOString().split('T')[0],
+      external_reference: reference || undefined,
+      invoice_uid: invoiceUid,
+    });
+    setAmount('');
+    setReference('');
+  };
+
+  // ─── Products table ────────────────────────────────────────────────────
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('name', {
+      columnHelper.accessor('description', {
         header: 'Producto',
         cell: (info) => (
           <div>
             <p className="font-medium text-foreground">{info.getValue()}</p>
-            <p className="text-xs text-muted-foreground">{info.row.original.subtitle}</p>
           </div>
         ),
       }),
-      columnHelper.accessor('qty', {
+      columnHelper.accessor('quantity', {
         header: () => <div className="text-center w-full">Cantidad</div>,
         cell: (info) => <div className="text-center text-muted-foreground">{info.getValue()}</div>,
       }),
-      columnHelper.accessor('unitPrice', {
+      columnHelper.accessor('list_unit_price', {
         header: () => <div className="text-right w-full">Precio Unit.</div>,
         cell: (info) => (
           <div className="text-right text-muted-foreground">
@@ -102,7 +141,7 @@ export function FinanceInvoiceDetailView() {
           </div>
         ),
       }),
-      columnHelper.accessor('total', {
+      columnHelper.accessor('line_total', {
         header: () => <div className="text-right w-full">Total</div>,
         cell: (info) => (
           <div className="text-right font-semibold text-foreground">
@@ -115,10 +154,20 @@ export function FinanceInvoiceDetailView() {
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: INVOICE_PRODUCTS,
+    data: products,
     columns,
     defaultRowsPerPage: 10,
   });
+
+  if (isLoading) {
+    return (
+      <PageContainer className="pb-10">
+        <div className="flex items-center justify-center py-20">
+          <p className="text-muted-foreground">Cargando factura...</p>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer className="pb-10">
@@ -128,13 +177,19 @@ export function FinanceInvoiceDetailView() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-h4 text-foreground">FAC-2024-0042</h1>
-                <Badge variant="soft" color="warning">
-                  Parcialmente Pagado
+                <h1 className="text-h4 text-foreground">{invoice.invoice_number}</h1>
+                <Badge variant="soft" color={statusBadgeColor(invoice.status)}>
+                  {STATUS_LABELS[invoice.status] ?? invoice.status}
                 </Badge>
               </div>
-              <p className="text-body1 text-muted-foreground">Tecnología Global S.A. de C.V.</p>
-              <p className="text-sm text-muted-foreground mt-1">Emitida: 15 Enero 2024</p>
+              <p className="text-body1 text-muted-foreground">
+                {invoice.currency} · Emitida: {formatDate(invoice.issued_at)}
+              </p>
+              {invoice.due_date && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Vence: {formatDate(invoice.due_date)}
+                </p>
+              )}
             </div>
           </div>
         </CardContent>
@@ -149,7 +204,7 @@ export function FinanceInvoiceDetailView() {
                 Total Factura
               </p>
               <p className="text-2xl font-bold text-foreground">
-                {formatMoney(45680, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatMoney(invoice.total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
               <p className="text-xs text-muted-foreground">IVA incluido</p>
             </div>
@@ -166,9 +221,14 @@ export function FinanceInvoiceDetailView() {
                 Monto Pagado
               </p>
               <p className="text-2xl font-bold text-foreground">
-                {formatMoney(27408, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatMoney(invoice.paid_total, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
-              <p className="text-xs text-muted-foreground">2 pagos registrados</p>
+              <p className="text-xs text-muted-foreground">
+                {payments.length} {payments.length === 1 ? 'pago registrado' : 'pagos registrados'}
+              </p>
             </div>
             <div className="w-11 h-11 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-500">
               <Icon name="CheckCircle2" size={20} />
@@ -183,9 +243,16 @@ export function FinanceInvoiceDetailView() {
                 Saldo Pendiente
               </p>
               <p className="text-2xl font-bold text-orange-600">
-                {formatMoney(18272, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatMoney(invoice.outstanding_total, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
-              <p className="text-xs text-muted-foreground">Vence: 15 Feb 2024</p>
+              {invoice.due_date && (
+                <p className="text-xs text-muted-foreground">
+                  Vence: {formatDate(invoice.due_date)}
+                </p>
+              )}
             </div>
             <div className="w-11 h-11 rounded-full flex items-center justify-center bg-orange-500/10 text-orange-500">
               <Icon name="Clock" size={20} />
@@ -199,21 +266,25 @@ export function FinanceInvoiceDetailView() {
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-foreground">Progreso de pago</span>
-            <span className="text-sm font-bold text-blue-600">60%</span>
+            <span className="text-sm font-bold text-blue-600">{progressPercent}%</span>
           </div>
           <div className="h-3 bg-muted/30 rounded-full overflow-hidden">
             <div
-              style={{ width: '60%' }}
+              style={{ width: `${progressPercent}%` }}
               className="h-full bg-blue-500 rounded-full transition-all duration-500"
             />
           </div>
           <div className="flex justify-between mt-2 text-xs text-muted-foreground font-medium">
             <span>$0</span>
             <span>
-              Pagado: {formatMoney(27408, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              Pagado:{' '}
+              {formatMoney(invoice.paid_total, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
             <span>
-              {formatMoney(45680, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatMoney(invoice.total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
         </CardContent>
@@ -257,11 +328,14 @@ export function FinanceInvoiceDetailView() {
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Saldo pendiente:{' '}
-                {formatMoney(18272, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatMoney(invoice.outstanding_total, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </p>
             </div>
 
-            <Button color="primary" className="w-full mt-2">
+            <Button color="primary" className="w-full mt-2" onClick={handleRegisterPayment}>
               Registrar Pago
             </Button>
           </CardContent>
@@ -272,49 +346,41 @@ export function FinanceInvoiceDetailView() {
           <CardContent className="p-6">
             <h2 className="text-h6 text-foreground mb-5">Línea de tiempo de pagos</h2>
 
-            <div className="space-y-0">
-              {PAYMENT_HISTORY.map((payment, idx) => (
-                <div key={payment.id} className="flex gap-4">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-4 h-4 rounded-full mt-0.5 shrink-0 ${
-                        payment.done ? 'bg-emerald-500' : 'bg-muted/40 border-2 border-border/50'
-                      }`}
-                    />
-                    {idx < PAYMENT_HISTORY.length - 1 && (
-                      <div className="w-px flex-1 bg-border/40 my-1" />
-                    )}
-                  </div>
-                  <div className="pb-6">
-                    {payment.done ? (
-                      <>
-                        <p className="font-semibold text-foreground">
-                          {formatMoney(payment.amount, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{payment.date}</p>
+            {payments.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No hay pagos registrados aún.</p>
+            ) : (
+              <div className="space-y-0">
+                {payments.map((payment: Payment, idx: number) => (
+                  <div key={payment.uid} className="flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-4 h-4 rounded-full mt-0.5 shrink-0 bg-emerald-500" />
+                      {idx < payments.length - 1 && (
+                        <div className="w-px flex-1 bg-border/40 my-1" />
+                      )}
+                    </div>
+                    <div className="pb-6">
+                      <p className="font-semibold text-foreground">
+                        {formatMoney(payment.amount, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {payment.payment_date ? formatDate(payment.payment_date) : 'Sin fecha'}
+                      </p>
+                      {payment.external_reference && (
                         <p className="text-xs text-muted-foreground/70 font-mono mt-0.5">
-                          Ref: {payment.ref}
+                          Ref: {payment.external_reference}
                         </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="font-semibold text-muted-foreground">
-                          Pendiente:{' '}
-                          {formatMoney(payment.amount, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </p>
-                        <p className="text-sm text-muted-foreground/60">Sin fecha asignada</p>
-                      </>
-                    )}
+                      )}
+                      <p className="text-xs text-muted-foreground/70 mt-0.5 capitalize">
+                        {payment.method}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -325,49 +391,63 @@ export function FinanceInvoiceDetailView() {
           <h2 className="text-h6 text-foreground">Productos Facturados</h2>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeadCustom table={table} />
-            <TableBody dense={dense}>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* Totals footer */}
-        <div className="flex justify-end p-6 border-t border-border/40 bg-muted/10">
-          <div className="w-full max-w-xs space-y-1.5">
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>Subtotal:</span>
-              <span className="font-medium text-foreground">
-                {formatMoney(productsSubtotal, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>IVA (16%):</span>
-              <span className="font-medium text-foreground">
-                {formatMoney(iva, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="flex items-center justify-between pt-3 border-t border-border/60">
-              <span className="text-base font-bold text-foreground">Total Factura:</span>
-              <span className="text-lg font-bold text-blue-600">
-                {formatMoney(productsTotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-            </div>
+        {products.length === 0 ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            Los productos facturados se cargan desde la cotización asociada.
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeadCustom table={table} />
+                <TableBody dense={dense}>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Totals footer */}
+            <div className="flex justify-end p-6 border-t border-border/40 bg-muted/10">
+              <div className="w-full max-w-xs space-y-1.5">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>Subtotal:</span>
+                  <span className="font-medium text-foreground">
+                    {formatMoney(invoice.subtotal, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>Descuento:</span>
+                  <span className="font-medium text-foreground">
+                    {formatMoney(invoice.discount_total, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t border-border/60">
+                  <span className="text-base font-bold text-foreground">Total Factura:</span>
+                  <span className="text-lg font-bold text-blue-600">
+                    {formatMoney(invoice.total, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="border-t border-border/40">
           <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />

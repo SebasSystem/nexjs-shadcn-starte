@@ -1,126 +1,61 @@
-import { useMemo, useState } from 'react';
+'use client';
 
-import type { PlanComision } from '../types/commissions.types';
+import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
 
-// Simulamos que el usuario logueado en el simulador ya tiene este plan activo
-const PLAN_MOCK: PlanComision = {
-  id: 'plan-1',
-  nombre: 'Plan Élite 2025',
-  tipo: 'VENTA',
-  porcentajeBase: 3,
-  estado: 'ACTIVO',
-  fechaInicio: '2025-01-01',
-  rolesAplicables: ['Senior', 'Junior'],
-  tramos: [
-    { id: 't1', desde: 0, hasta: 5000, porcentajeAplicado: 3 },
-    { id: 't2', desde: 5001, hasta: 10000, porcentajeAplicado: 5 },
-    { id: 't3', desde: 10001, hasta: null, porcentajeAplicado: 8 },
-  ],
-};
-
-interface DesgloseTramo {
-  tramoInfo: string;
-  rangoTxt: string;
-  porcentaje: number;
-  montoQueEntraEnTramo: number;
-  comisionGenerada: number;
-}
+import { commissionService, type SimulateBreakdownItem } from '../services/commission.service';
 
 export const useSimulator = () => {
-  const [ventasAcumuladas, setVentasAcumuladas] = useState<number>(0);
-  const [ventaHipotetica, setVentaHipotetica] = useState<number>(0);
+  const [planUid, setPlanUid] = useState<string>('plan-1');
+  const [accumulatedSales, setAccumulatedSales] = useState<number>(0);
+  const [hypotheticalSale, setHypotheticalSale] = useState<number>(0);
 
-  const plan = PLAN_MOCK;
+  const simulateMutation = useMutation({
+    mutationFn: () =>
+      commissionService.simulate({
+        plan_uid: planUid,
+        accumulated_sales: accumulatedSales,
+        hypothetical_sale: hypotheticalSale,
+      }),
+  });
 
-  const desglose = useMemo<DesgloseTramo[]>(() => {
-    if (!plan || !plan.tramos.length) return [];
+  const breakdown: SimulateBreakdownItem[] = simulateMutation.data?.breakdown ?? [];
+  const totalCommission = simulateMutation.data?.total ?? 0;
 
-    let hipoteticaRestante = ventaHipotetica;
-
-    // Calculamos el inicio del análisis de la venta nueva
-    const inicioVentaHipotetica = ventasAcumuladas;
-
-    const resultado: DesgloseTramo[] = [];
-
-    // Recorremos cada tramo en orden
-    // Importante: la comisión solo cuenta la venta hipotetica,
-    // pero la venta acumulada nos ubica en algún tramo.
-
-    // Ordenamos los tramos para asegurarnos
-    const tramosOrdenados = [...plan.tramos].sort((a, b) => a.desde - b.desde);
-
-    for (let i = 0; i < tramosOrdenados.length; i++) {
-      const tramo = tramosOrdenados[i];
-
-      let capacidadTramo = tramo.hasta ? tramo.hasta - tramo.desde + 1 : Infinity;
-      // Si desde no es 0
-      if (tramo.desde > 0 && tramo.hasta !== null) {
-        capacidadTramo = tramo.hasta - tramo.desde; // Aproximación para los rangos continuos
-      }
-
-      // ¿Cuánto de "ventasAcumuladas" se come este tramo?
-      let ocupadoPorAcumuladas = 0;
-
-      if (inicioVentaHipotetica >= tramo.desde) {
-        if (tramo.hasta !== null && inicioVentaHipotetica > tramo.hasta) {
-          ocupadoPorAcumuladas = capacidadTramo;
-        } else {
-          ocupadoPorAcumuladas = inicioVentaHipotetica - tramo.desde;
-        }
-      }
-
-      const espacioDisponibleEnTramo = Math.max(0, capacidadTramo - ocupadoPorAcumuladas);
-
-      // Verificamos de la venta hipotética cuánto puede entrar aquí
-      const entraEnTramoHipotetico = Math.min(hipoteticaRestante, espacioDisponibleEnTramo);
-
-      hipoteticaRestante -= entraEnTramoHipotetico;
-
-      resultado.push({
-        tramoInfo: `Tramo ${i + 1}`,
-        rangoTxt: `$${tramo.desde.toLocaleString()} - ${tramo.hasta ? '$' + tramo.hasta.toLocaleString() : '∞'}`,
-        porcentaje: tramo.porcentajeAplicado,
-        montoQueEntraEnTramo: entraEnTramoHipotetico,
-        comisionGenerada: entraEnTramoHipotetico * (tramo.porcentajeAplicado / 100),
-      });
+  // Derive current tier from accumulated sales against breakdown
+  const currentTier = (() => {
+    if (!accumulatedSales || accumulatedSales <= 0 || !breakdown.length) return null;
+    for (let i = breakdown.length - 1; i >= 0; i--) {
+      if (breakdown[i].amountInTier > 0) return { ...breakdown[i], index: i + 1 };
     }
-
-    return resultado;
-  }, [plan, ventasAcumuladas, ventaHipotetica]);
-
-  const totalComisionHipotetica = useMemo(() => {
-    return desglose.reduce((acc, obj) => acc + obj.comisionGenerada, 0);
-  }, [desglose]);
-
-  // Tramo en el que se ubican las ventas acumuladas actualmente
-
-  const getTramoActual = () => {
-    if (!ventasAcumuladas || ventasAcumuladas <= 0) return null;
-    const tramosOrdenados = [...plan.tramos].sort((a, b) => a.desde - b.desde);
-    for (let i = 0; i < tramosOrdenados.length; i++) {
-      const tramo = tramosOrdenados[i];
-      if (tramo.hasta === null || ventasAcumuladas <= tramo.hasta) {
-        return { ...tramo, numero: i + 1 };
-      }
-    }
-    return null;
-  };
-  const tramoActual = getTramoActual();
+    return { ...breakdown[0], index: 1 };
+  })();
 
   const resetForm = () => {
-    setVentasAcumuladas(0);
-    setVentaHipotetica(0);
+    setAccumulatedSales(0);
+    setHypotheticalSale(0);
+    simulateMutation.reset();
+  };
+
+  // Trigger simulation when params change
+  const simulate = () => {
+    if (hypotheticalSale > 0 || accumulatedSales > 0) {
+      simulateMutation.mutate();
+    }
   };
 
   return {
-    plan,
-    ventasAcumuladas,
-    setVentasAcumuladas,
-    ventaHipotetica,
-    setVentaHipotetica,
-    desglose,
-    totalComisionHipotetica,
-    tramoActual,
+    planUid,
+    setPlanUid,
+    accumulatedSales,
+    setAccumulatedSales,
+    hypotheticalSale,
+    setHypotheticalSale,
+    breakdown,
+    totalCommission,
+    currentTier,
+    isSimulating: simulateMutation.isPending,
+    simulate,
     resetForm,
   };
 };

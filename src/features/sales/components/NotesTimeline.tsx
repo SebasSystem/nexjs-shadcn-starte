@@ -16,39 +16,40 @@ import {
 import { Icon } from 'src/shared/components/ui/icon';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
-import { useSalesContext } from '../context/SalesContext';
+// ─── Local note type (notes are no longer embedded in Opportunity) ─────────────
+interface LocalNote {
+  id: string;
+  content: string;
+  author: string;
+  createdAt: string;
+}
 
 interface NotesTimelineProps {
   opportunityId?: string;
 }
 
 export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
-  const {
-    opportunities,
-    addNoteToOpportunity,
-    updateNoteInOpportunity,
-    removeNoteFromOpportunity,
-  } = useSalesContext();
-
-  const opp = opportunities.find((o) => o.id === opportunityId);
-
+  // Local-only state — backend persistence via interactions API coming soon
+  const [notes, setNotes] = useState<LocalNote[]>([]);
   const [newNote, setNewNote] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
-
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  // Opcional: filtro de fecha (simplificado a mes actual, todos, etc, o solo un input de texto para buscar)
   const [searchTerm, setSearchTerm] = useState('');
 
-  if (!opp) return null;
+  if (!opportunityId) return null;
 
   const handleAddNote = () => {
     if (!newNote.trim()) return;
-    addNoteToOpportunity(opp.id, {
-      content: newNote.trim(),
-      author: 'Admin', // Usuario logueado (mock)
-    });
+    setNotes((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        content: newNote.trim(),
+        author: 'Admin',
+        createdAt: new Date().toISOString(),
+      },
+    ]);
     setNewNote('');
   };
 
@@ -59,18 +60,20 @@ export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
 
   const handleUpdateNote = (id: string) => {
     if (!editingContent.trim()) return;
-    updateNoteInOpportunity(opp.id, id, editingContent.trim());
+    setNotes((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, content: editingContent.trim() } : n))
+    );
     setEditingNoteId(null);
   };
 
   const confirmDelete = () => {
     if (deleteId) {
-      removeNoteFromOpportunity(opp.id, deleteId);
+      setNotes((prev) => prev.filter((n) => n.id !== deleteId));
       setDeleteId(null);
     }
   };
 
-  const notes = opp.notes
+  const filteredNotes = notes
     .filter((n) => n.content.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -85,6 +88,14 @@ export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
                 <Icon name="MessageSquare" size={16} className="text-indigo-500" />
                 <h2 className="text-sm font-bold text-foreground">Timeline y Notas</h2>
               </div>
+            </div>
+
+            {/* Coming soon banner */}
+            <div className="mb-3 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2.5 flex items-center gap-2">
+              <Icon name="AlertTriangle" size={12} className="text-amber-500 shrink-0" />
+              <p className="text-[10px] text-amber-600 dark:text-amber-400 leading-snug">
+                Las notas se guardan solo en esta sesión. Próximamente: persistencia vía API.
+              </p>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -122,13 +133,13 @@ export function NotesTimeline({ opportunityId }: NotesTimelineProps) {
 
           {/* Timeline Scrollable Area */}
           <div className="p-6 overflow-y-auto flex-1 min-h-[250px] relative scrollbar-thin">
-            {notes.length === 0 ? (
+            {filteredNotes.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">
                 No hay notas registradas.
               </p>
             ) : (
               <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-border before:via-border/60 before:to-transparent">
-                {notes.map((note) => (
+                {filteredNotes.map((note) => (
                   <div key={note.id} className="relative flex items-start gap-4 group">
                     {/* Icon */}
                     <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-background shrink-0 bg-indigo-500/10 text-indigo-500 shadow-sm z-10 mt-1">

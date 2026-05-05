@@ -1,54 +1,48 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from 'src/lib/query-keys';
 
 import { customFieldsService } from '../services/custom-fields.service';
-import type { CampoPersonalizado } from '../types/settings.types';
+import type { CustomField } from '../types/settings.types';
 
 export function useCustomFields() {
-  const [campos, setCampos] = useState<CampoPersonalizado[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchCampos = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await customFieldsService.getAll();
-      setCampos(data);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const { data: fields = [], isLoading } = useQuery({
+    queryKey: queryKeys.settings.customFields,
+    queryFn: () => customFieldsService.getAll(),
+  });
 
-  useEffect(() => {
-    fetchCampos();
-  }, [fetchCampos]);
+  const createMutation = useMutation({
+    mutationFn: (data: Omit<CustomField, 'uid' | 'created_at'>) => customFieldsService.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.customFields }),
+  });
 
-  const createCampo = async (
-    data: Omit<CampoPersonalizado, 'id' | 'creadoEn'>
-  ): Promise<boolean> => {
-    try {
-      const newCampo = await customFieldsService.create(data);
-      setCampos((prev) => [...prev, newCampo]);
+  const updateMutation = useMutation({
+    mutationFn: ({ uid, data }: { uid: string; data: Partial<CustomField> }) =>
+      customFieldsService.update(uid, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.customFields }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (uid: string) => customFieldsService.delete(uid),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.customFields }),
+  });
+
+  return {
+    fields,
+    isLoading,
+    createField: async (data: Omit<CustomField, 'uid' | 'created_at'>): Promise<boolean> => {
+      await createMutation.mutateAsync(data);
       return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const updateCampo = async (id: string, data: Partial<CampoPersonalizado>): Promise<boolean> => {
-    try {
-      const updated = await customFieldsService.update(id, data);
-      setCampos((prev) => prev.map((c) => (c.id === id ? updated : c)));
+    },
+    updateField: async (uid: string, data: Partial<CustomField>): Promise<boolean> => {
+      await updateMutation.mutateAsync({ uid, data });
       return true;
-    } catch {
-      return false;
-    }
+    },
+    deleteField: async (uid: string): Promise<void> => {
+      await deleteMutation.mutateAsync(uid);
+    },
   };
-
-  const deleteCampo = async (id: string): Promise<void> => {
-    await customFieldsService.delete(id);
-    setCampos((prev) => prev.filter((c) => c.id !== id));
-  };
-
-  return { campos, isLoading, createCampo, updateCampo, deleteCampo };
 }

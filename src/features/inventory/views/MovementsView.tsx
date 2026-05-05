@@ -19,17 +19,16 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+import { Badge, Button, Icon } from 'src/shared/components/ui';
 
-import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { GoodsReceiptDrawer } from '../components/GoodsReceiptDrawer';
+import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
+import { MovementFilters } from '../components/MovementFilters';
 import { TransferDrawer } from '../components/TransferDrawer';
 import { useMovements } from '../hooks/use-movements';
 import { useProducts } from '../hooks/use-products';
 import { useWarehouses } from '../hooks/use-warehouses';
 import type { InventoryMovement, MovementType } from '../types/inventory.types';
-
-// ─── Movement type config ─────────────────────────────────────────────────────
 
 const MOVEMENT_TYPE_CONFIG: Record<
   MovementType,
@@ -44,11 +43,7 @@ const MOVEMENT_TYPE_CONFIG: Record<
   reservation_consume: { label: 'Consumo', color: 'error' },
 };
 
-// ─── Column helper ────────────────────────────────────────────────────────────
-
 const columnHelper = createColumnHelper<InventoryMovement>();
-
-// ─── Expanded row ─────────────────────────────────────────────────────────────
 
 function MovementExpandedRow({ movement }: { movement: InventoryMovement }) {
   return (
@@ -76,8 +71,6 @@ function MovementExpandedRow({ movement }: { movement: InventoryMovement }) {
     </div>
   );
 }
-
-// ─── Main View ────────────────────────────────────────────────────────────────
 
 export function MovementsView() {
   const { items, summary, isLoading, refetch } = useMovements();
@@ -156,7 +149,7 @@ export function MovementsView() {
           return (
             <button
               onClick={() => toggleRow(m.uid)}
-              className="text-muted-foreground hover:text-primary transition-colors"
+              className="cursor-pointer text-muted-foreground hover:text-primary transition-colors"
             >
               <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size={15} />
             </button>
@@ -189,7 +182,7 @@ export function MovementsView() {
         },
       }),
       columnHelper.display({
-        id: 'description',
+        id: 'product',
         header: 'Producto',
         cell: (info) => {
           const m = info.row.original;
@@ -320,33 +313,12 @@ export function MovementsView() {
       </div>
 
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-end gap-3 px-5 py-4">
-          <div className="flex-1 min-w-48">
-            <Input
-              label="Buscar"
-              placeholder="Buscar por producto, referencia..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              leftIcon={<Icon name="Search" size={15} />}
-            />
-          </div>
-
-          <SelectField
-            label="Tipo"
-            options={[
-              { value: 'all', label: 'Todos los tipos' },
-              { value: 'transfer', label: 'Traslados' },
-              { value: 'adjustment_in', label: 'Ajuste entrada' },
-              { value: 'adjustment_out', label: 'Ajuste salida' },
-              { value: 'reservation', label: 'Reservas' },
-              { value: 'reservation_release', label: 'Liberaciones' },
-              { value: 'reservation_consume', label: 'Consumos' },
-            ]}
-            value={filterType}
-            onChange={(v) => setFilterType(v as string)}
-          />
-        </div>
-
+        <MovementFilters
+          search={search}
+          onSearch={setSearch}
+          filterType={filterType}
+          onFilterType={setFilterType}
+        />
         <TableContainer>
           <Table>
             <TableHeadCustom table={table} />

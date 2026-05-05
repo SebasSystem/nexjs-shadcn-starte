@@ -5,8 +5,8 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { PlanFormData, planSchema } from 'src/features/admin/schemas/plan.schema';
-import { PlanSaaS, SoportePlan, TierPlan } from 'src/features/admin/types/admin.types';
-import { formatMoney, getCurrencyPreferences } from 'src/lib/currency';
+import { PlanSaaS } from 'src/features/admin/types/admin.types';
+import { getCurrencyPreferences } from 'src/lib/currency';
 import { Button } from 'src/shared/components/ui/button';
 import { Checkbox } from 'src/shared/components/ui/checkbox';
 import { FormInput } from 'src/shared/components/ui/form-input';
@@ -73,9 +73,6 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
     formState: { isSubmitting },
   } = useForm<PlanFormData>({ resolver: zodResolver(planSchema), defaultValues: DEFAULTS });
 
-  const ilimitadoUsuarios = watch('ilimitado_usuarios');
-  const ilimitadoAlmacenamiento = watch('ilimitado_almacenamiento');
-  const ilimitadoApi = watch('ilimitado_api');
   const modules = watch('modules');
 
   useEffect(() => {

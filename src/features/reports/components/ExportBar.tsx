@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Button, Icon } from 'src/shared/components/ui';
 
@@ -20,13 +20,8 @@ export function ExportBar({
   hasData,
 }: ExportBarProps) {
   const [selectedFields, setSelectedFields] = useState<Set<string>>(
-    new Set(columns.map((c) => c.id))
+    () => new Set(columns.map((c) => c.id))
   );
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedFields(new Set(columns.map((c) => c.id)));
-  }, [columns]);
 
   const toggleField = (id: string, checked: boolean) => {
     const next = new Set(selectedFields);

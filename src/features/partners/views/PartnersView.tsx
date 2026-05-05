@@ -2,7 +2,6 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { PARTNER_STATUS_CONFIG, PARTNER_TYPE_CONFIG } from 'src/_mock/_partners';
 import {
   PageContainer,
   PageHeader,
@@ -24,6 +23,7 @@ import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/u
 import { PartnerDrawer } from '../components/PartnerDrawer';
 import { usePartners } from '../hooks/usePartners';
 import type { Partner } from '../types';
+import { PARTNER_STATUS_CONFIG, PARTNER_TYPE_CONFIG } from '../types';
 
 // ─── Column helper ────────────────────────────────────────────────────────────
 
@@ -78,12 +78,12 @@ export function PartnersView() {
         header: 'Región',
         cell: (info) => <span className="text-body2 text-muted-foreground">{info.getValue()}</span>,
       }),
-      columnHelper.accessor('contactName', {
+      columnHelper.accessor('contact_name', {
         header: 'Contacto',
         cell: (info) => (
           <div>
             <p className="text-subtitle2">{info.getValue()}</p>
-            <p className="text-caption text-muted-foreground">{info.row.original.contactEmail}</p>
+            <p className="text-caption text-muted-foreground">{info.row.original.contact_email}</p>
           </div>
         ),
       }),
@@ -98,11 +98,11 @@ export function PartnersView() {
           );
         },
       }),
-      columnHelper.accessor('registeredOpportunities', {
+      columnHelper.accessor('registered_opportunities', {
         header: () => <div className="text-right w-full">Oportunidades</div>,
         cell: (info) => <div className="text-right text-body2 font-medium">{info.getValue()}</div>,
       }),
-      columnHelper.accessor('convertedDeals', {
+      columnHelper.accessor('converted_deals', {
         header: () => <div className="text-right w-full">Deals ganados</div>,
         cell: (info) => (
           <div className="text-right text-body2 text-success font-medium">{info.getValue()}</div>

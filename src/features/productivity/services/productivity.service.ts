@@ -1,170 +1,202 @@
+import axiosInstance, { endpoints } from 'src/lib/axios';
+
 import type {
-  Actividad,
-  Documento,
-  EstadoActividad,
-  Interaccion,
-  TipoActividad,
+  Activity,
+  ActivityPayload,
+  ActivityStatus,
+  Document,
+  Interaction,
+  InteractionPayload,
 } from '../types/productivity.types';
 
-// Mock initial data
-let inMemoryInteracciones: Interaccion[] = [
-  {
-    id: '1',
-    contactoId: '1',
-    tipo: 'SISTEMA',
-    contenido: 'El contacto fue creado en el sistema.',
-    autor: 'admin@empresa.com',
-    fecha: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-  },
-  {
-    id: '2',
-    contactoId: '1',
-    tipo: 'NOTA',
-    contenido: 'Cliente interesado en los servicios de consultoría B2B.',
-    autor: 'asesor@empresa.com',
-    fecha: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-  {
-    id: '3',
-    contactoId: '1',
-    tipo: 'LLAMADA',
-    contenido: 'No contestó. Dejé buzón de voz.',
-    autor: 'asesor@empresa.com',
-    fecha: new Date().toISOString(),
-  },
-  {
-    id: '4',
-    contactoId: '2',
-    tipo: 'CORREO',
-    contenido: 'Se envió la propuesta comercial v1.0',
-    autor: 'ventas@empresa.com',
-    fecha: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-  },
-];
+// ─────────────────────────────────────────────────────────────────────────────
+// Mappers
+// ─────────────────────────────────────────────────────────────────────────────
 
-let inMemoryActividades: Actividad[] = [
-  {
-    id: '1',
-    contactoId: '1',
-    contactoNombre: 'Tech Corp (B2B)',
-    tipo: 'TAREA',
-    titulo: 'Enviar cotización detallada',
-    descripcion: 'Incluir desglose de servicios de consultoría solicitados.',
-    estado: 'PENDIENTE',
-    fechaVencimiento: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(), // +1 day
-    asignadoA: 'Juan Díaz',
-  },
-  {
-    id: '2',
-    contactoId: '2',
-    contactoNombre: 'María Rodríguez (B2C)',
-    tipo: 'LLAMADA' as TipoActividad, // Fallback as a generic TAREA for frontend ease
-    titulo: 'Llamada de seguimiento',
-    estado: 'VENCIDA',
-    fechaVencimiento: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // -1 day
-    asignadoA: 'Juan Díaz',
-  },
-  {
-    id: '3',
-    tipo: 'REUNION',
-    titulo: 'Reunión de alineación de ventas Q2',
-    descripcion: 'Analizar pipeline global y leads en riesgo',
-    estado: 'COMPLETADA',
-    fechaVencimiento: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    asignadoA: 'Juan Díaz',
-  },
-];
+function mapActivity(raw: Record<string, unknown>): Activity {
+  return {
+    uid: raw.uid as string,
+    contact_uid: raw.contact_uid as string | undefined,
+    contact_name: raw.contact_name as string | undefined,
+    type: (raw.type as Activity['type']) ?? 'TASK',
+    title: raw.title as string,
+    description: raw.description as string | undefined,
+    status: (raw.status as Activity['status']) ?? 'PENDING',
+    due_date: raw.due_date as string,
+    assigned_to_uid: raw.assigned_to_uid as string | undefined,
+    assigned_to_name: (raw.assigned_to_name as string) ?? '',
+    source: raw.source as Activity['source'] | undefined,
+    source_uid: raw.source_uid as string | undefined,
+    source_path: raw.source_path as string | undefined,
+    source_label: raw.source_label as string | undefined,
+    created_at: raw.created_at as string | undefined,
+    updated_at: raw.updated_at as string | undefined,
+  };
+}
 
-let inMemoryDocumentos: Documento[] = [
-  {
-    id: '1',
-    contactoId: '1',
-    nombreArchivo: 'NDA_TechCorp.pdf',
-    url: '#',
-    tamanoBytes: 1048576, // 1MB
-    mimeType: 'application/pdf',
-    subidoPor: 'asesor@empresa.com',
-    fechaSubida: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
-  },
-];
+function mapInteraction(raw: Record<string, unknown>): Interaction {
+  return {
+    uid: raw.uid as string,
+    contact_uid: raw.contact_uid as string,
+    type: (raw.type as Interaction['type']) ?? 'NOTE',
+    content: raw.content as string,
+    author: raw.author as string,
+    created_at: raw.created_at as string,
+  };
+}
 
-// Helper delay
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+function mapDocument(raw: Record<string, unknown>): Document {
+  return {
+    uid: raw.uid as string,
+    contact_uid: raw.contact_uid as string,
+    file_name: raw.file_name as string,
+    url: raw.url as string,
+    size_bytes: raw.size_bytes as number,
+    mime_type: raw.mime_type as string,
+    uploaded_by: raw.uploaded_by as string,
+    uploaded_at: raw.uploaded_at as string,
+  };
+}
 
-export const ProductivityService = {
-  // INTERACCIONES
-  async getInteracciones(contactoId: string): Promise<Interaccion[]> {
-    await delay(300);
-    return inMemoryInteracciones
-      .filter((i) => i.contactoId === contactoId)
-      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
-  },
-  async createInteraccion(data: Omit<Interaccion, 'id' | 'autor' | 'fecha'>): Promise<Interaccion> {
-    await delay(400);
-    const newInteraction: Interaccion = {
-      ...data,
-      id: crypto.randomUUID(),
-      autor: 'usuario_actual',
-      fecha: new Date().toISOString(),
-    };
-    inMemoryInteracciones = [newInteraction, ...inMemoryInteracciones];
-    return newInteraction;
+export interface ActivityUpdatePayload {
+  title?: string;
+  description?: string;
+  type?: Activity['type'];
+  status?: Activity['status'];
+  due_date?: string;
+  assigned_to_name?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Service
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const productivityService = {
+  // ─── Activities ─────────────────────────────────────────────────────────
+
+  listActivities: async (contactUid?: string): Promise<Activity[]> => {
+    const url = endpoints.productivity.activities.list;
+    const res = await axiosInstance.get(url, {
+      params: contactUid ? { contact_uid: contactUid } : undefined,
+    });
+    const data = res.data?.data ?? res.data ?? [];
+    return (data as Record<string, unknown>[]).map(mapActivity);
   },
 
-  // ACTIVIDADES
-  async getActividades(contactoId?: string): Promise<Actividad[]> {
-    await delay(300);
-    let results = inMemoryActividades;
-    if (contactoId) {
-      results = results.filter((a) => a.contactoId === contactoId);
-    }
-    return results.sort(
-      (a, b) => new Date(a.fechaVencimiento).getTime() - new Date(b.fechaVencimiento).getTime()
+  getActivity: async (uid: string): Promise<Activity> => {
+    const res = await axiosInstance.get(endpoints.productivity.activities.detail(uid));
+    const data = res.data?.data ?? res.data;
+    return mapActivity(data as Record<string, unknown>);
+  },
+
+  createActivity: async (payload: ActivityPayload): Promise<Activity> => {
+    const res = await axiosInstance.post(endpoints.productivity.activities.create, payload);
+    const data = res.data?.data ?? res.data;
+    return mapActivity(data as Record<string, unknown>);
+  },
+
+  updateActivity: async (uid: string, payload: ActivityUpdatePayload): Promise<Activity> => {
+    const res = await axiosInstance.put(endpoints.productivity.activities.update(uid), payload);
+    const data = res.data?.data ?? res.data;
+    return mapActivity(data as Record<string, unknown>);
+  },
+
+  deleteActivity: async (uid: string): Promise<void> => {
+    await axiosInstance.delete(endpoints.productivity.activities.delete(uid));
+  },
+
+  updateActivityStatus: async (uid: string, status: ActivityStatus): Promise<Activity> => {
+    const res = await axiosInstance.patch(endpoints.productivity.activities.update(uid), {
+      status,
+    });
+    const data = res.data?.data ?? res.data;
+    return mapActivity(data as Record<string, unknown>);
+  },
+
+  listActivitiesByRange: async (start: string, end: string): Promise<Activity[]> => {
+    const res = await axiosInstance.get(endpoints.productivity.activities.range, {
+      params: { start, end },
+    });
+    const data = res.data?.data ?? res.data ?? [];
+    return (data as Record<string, unknown>[]).map(mapActivity);
+  },
+
+  // ─── Interactions ──────────────────────────────────────────────────────
+
+  listInteractions: async (contactUid: string): Promise<Interaction[]> => {
+    const res = await axiosInstance.get(endpoints.productivity.interactions.list(contactUid));
+    const data = res.data?.data ?? res.data ?? [];
+    return (data as Record<string, unknown>[]).map(mapInteraction);
+  },
+
+  getTimeline: async (): Promise<Interaction[]> => {
+    const res = await axiosInstance.get(endpoints.productivity.interactions.timeline);
+    const data = res.data?.data ?? res.data ?? [];
+    return (data as Record<string, unknown>[]).map(mapInteraction);
+  },
+
+  createInteraction: async (
+    contactUid: string,
+    payload: InteractionPayload
+  ): Promise<Interaction> => {
+    const res = await axiosInstance.post(
+      endpoints.productivity.interactions.list(contactUid),
+      payload
     );
-  },
-  async createActividad(data: Omit<Actividad, 'id' | 'estado' | 'asignadoA'>): Promise<Actividad> {
-    await delay(400);
-    const newActividad: Actividad = {
-      ...data,
-      id: crypto.randomUUID(),
-      estado: 'PENDIENTE',
-      asignadoA: 'Juan Díaz',
-    };
-    inMemoryActividades = [newActividad, ...inMemoryActividades];
-    return newActividad;
-  },
-  async updateActividadEstado(id: string, estado: EstadoActividad): Promise<void> {
-    await delay(300);
-    inMemoryActividades = inMemoryActividades.map((a) => (a.id === id ? { ...a, estado } : a));
+    const data = res.data?.data ?? res.data;
+    return mapInteraction(data as Record<string, unknown>);
   },
 
-  // BÓVEDA DOCUMENTAL
-  async getDocumentos(contactoId: string): Promise<Documento[]> {
-    await delay(300);
-    return inMemoryDocumentos
-      .filter((d) => d.contactoId === contactoId)
-      .sort((a, b) => new Date(b.fechaSubida).getTime() - new Date(a.fechaSubida).getTime());
+  createNote: async (
+    payload: InteractionPayload & { contact_uid?: string }
+  ): Promise<Interaction> => {
+    const res = await axiosInstance.post(endpoints.productivity.interactions.notes, payload);
+    const data = res.data?.data ?? res.data;
+    return mapInteraction(data as Record<string, unknown>);
   },
-  async uploadDocumento(contactoId: string, file: File): Promise<Documento> {
-    await delay(600); // simulate upload
-    if (file.type !== 'application/pdf') {
-      throw new Error('Solo se permiten archivos PDF');
-    }
-    const newDoc: Documento = {
-      id: crypto.randomUUID(),
-      contactoId,
-      nombreArchivo: file.name,
-      url: URL.createObjectURL(file), // Mock URL
-      tamanoBytes: file.size,
-      mimeType: file.type,
-      subidoPor: 'usuario_actual',
-      fechaSubida: new Date().toISOString(),
-    };
-    inMemoryDocumentos = [newDoc, ...inMemoryDocumentos];
-    return newDoc;
+
+  createCall: async (
+    payload: InteractionPayload & { contact_uid?: string }
+  ): Promise<Interaction> => {
+    const res = await axiosInstance.post(endpoints.productivity.interactions.calls, payload);
+    const data = res.data?.data ?? res.data;
+    return mapInteraction(data as Record<string, unknown>);
   },
-  async deleteDocumento(id: string): Promise<void> {
-    await delay(300);
-    inMemoryDocumentos = inMemoryDocumentos.filter((d) => d.id !== id);
+
+  createEmail: async (
+    payload: InteractionPayload & { contact_uid?: string }
+  ): Promise<Interaction> => {
+    const res = await axiosInstance.post(endpoints.productivity.interactions.emails, payload);
+    const data = res.data?.data ?? res.data;
+    return mapInteraction(data as Record<string, unknown>);
+  },
+
+  // ─── Documents / Vault ─────────────────────────────────────────────────
+
+  listDocuments: async (entityType: string, entityUid: string): Promise<Document[]> => {
+    const res = await axiosInstance.get(
+      endpoints.productivity.documents.list(entityType, entityUid)
+    );
+    const data = res.data?.data ?? res.data ?? [];
+    return (data as Record<string, unknown>[]).map(mapDocument);
+  },
+
+  uploadDocument: async (entityType: string, entityUid: string, file: File): Promise<Document> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await axiosInstance.post(
+      endpoints.productivity.documents.upload(entityType, entityUid),
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    const data = res.data?.data ?? res.data;
+    return mapDocument(data as Record<string, unknown>);
+  },
+
+  deleteDocument: async (entityType: string, entityUid: string, docUid: string): Promise<void> => {
+    await axiosInstance.delete(
+      endpoints.productivity.documents.delete(entityType, entityUid, docUid)
+    );
   },
 };

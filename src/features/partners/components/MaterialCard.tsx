@@ -1,11 +1,11 @@
 import { toast } from 'sonner';
-import { MATERIAL_TYPE_CONFIG } from 'src/_mock/_partners';
 import { formatDate } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import { Badge, Button, Icon } from 'src/shared/components/ui';
 
 import type { PortalMaterial } from '../types';
+import { MATERIAL_TYPE_CONFIG } from '../types';
 
 // ─── Icon map for material types ──────────────────────────────────────────────
 
@@ -56,12 +56,12 @@ export function MaterialCard({ material }: Props) {
 
       <div className="mt-3 pt-3 border-t border-border/40 space-y-1">
         <div className="flex items-center justify-between text-caption text-muted-foreground">
-          <span className="font-mono truncate">{material.fileName}</span>
-          <span className="shrink-0 ml-2">{material.fileSize}</span>
+          <span className="font-mono truncate">{material.file_name}</span>
+          <span className="shrink-0 ml-2">{material.file_size}</span>
         </div>
         <div className="flex items-center justify-between text-caption text-muted-foreground">
-          <span>{formatDate(material.uploadedAt)}</span>
-          <span>{material.downloadCount} descargas</span>
+          <span>{formatDate(material.uploaded_at)}</span>
+          <span>{material.download_count} descargas</span>
         </div>
       </div>
 

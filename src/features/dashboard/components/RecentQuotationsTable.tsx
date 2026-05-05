@@ -2,6 +2,8 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import type { RecentQuotation } from 'src/features/dashboard/types/dashboard.types';
+import { formatMoney } from 'src/lib/currency';
+import { formatDate } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import {
@@ -15,7 +17,7 @@ import {
   useTable,
 } from 'src/shared/components/table';
 import { Avatar, AvatarFallback, Badge, Icon } from 'src/shared/components/ui';
-import { ACTION_ICONS } from 'src/shared/constants/app-icons';
+import { EditButton, ViewButton } from 'src/shared/components/ui/action-buttons';
 
 const QUOTATION_STATUS_MAP = {
   pending: {
@@ -59,7 +61,9 @@ const COLUMNS = [
   columnHelper.accessor('total', {
     header: 'Monto',
     cell: (info) => (
-      <span className="font-bold text-foreground">${info.getValue().toLocaleString('es-AR')}</span>
+      <span className="font-bold text-foreground">
+        {formatMoney(info.getValue(), { scope: 'tenant', maximumFractionDigits: 0 })}
+      </span>
     ),
   }),
   columnHelper.accessor('status', {
@@ -80,11 +84,7 @@ const COLUMNS = [
     header: 'Fecha',
     cell: (info) => (
       <span className="text-muted-foreground">
-        {new Date(info.getValue()).toLocaleDateString('es-AR', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        })}
+        {formatDate(info.getValue(), { month: 'short' })}
       </span>
     ),
   }),
@@ -92,13 +92,9 @@ const COLUMNS = [
     id: 'acciones',
     header: 'Acciones',
     cell: () => (
-      <div className="flex items-center gap-3">
-        <button className="text-muted-foreground hover:text-primary transition-colors">
-          <Icon name={ACTION_ICONS.VIEW} size={16} />
-        </button>
-        <button className="text-muted-foreground hover:text-primary transition-colors">
-          <Icon name={ACTION_ICONS.EDIT} size={16} />
-        </button>
+      <div className="flex items-center gap-1">
+        <ViewButton onClick={() => {}} />
+        <EditButton onClick={() => {}} />
       </div>
     ),
   }),
@@ -122,7 +118,7 @@ export function RecentQuotationsTable({ recent_quotations }: Props) {
           <h2 className="text-lg font-bold text-foreground">Últimas Cotizaciones</h2>
           <p className="text-sm text-muted-foreground">Cotizaciones creadas recientemente</p>
         </div>
-        <button className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+        <button className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1 cursor-pointer">
           Ver todas <Icon name="ChevronRight" size={16} />
         </button>
       </div>
@@ -131,15 +127,26 @@ export function RecentQuotationsTable({ recent_quotations }: Props) {
         <Table>
           <TableHeadCustom table={table} />
           <TableBody dense={dense}>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+            {table.getRowModel().rows.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={COLUMNS.length}
+                  className="py-10 text-center text-muted-foreground text-sm"
+                >
+                  Sin cotizaciones recientes
+                </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

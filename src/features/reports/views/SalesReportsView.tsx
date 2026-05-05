@@ -1,13 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import {
-  mockSalesDistributors,
-  mockSalesProducts,
-  mockSalesStatus,
-  mockSalesVs,
-} from 'src/_mock/_reports';
+import React, { useState } from 'react';
 import { cn } from 'src/lib/utils';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Icon } from 'src/shared/components/ui';
@@ -17,6 +10,8 @@ import { AreaChart, BarChart, DonutChart, LineChart } from '../components/charts
 import { ExportBar } from '../components/ExportBar';
 import { ReportFilters } from '../components/ReportFilters';
 import { ReportTable } from '../components/tables/ReportTable';
+import { useSalesReport } from '../hooks/use-reports';
+import type { ReportFilterParams, SalesReportTab } from '../types';
 
 function getKpiMeta(key: string): { icon: IconName; iconBg: string; iconColor: string } {
   const k = key.toLowerCase();
@@ -39,15 +34,7 @@ function getKpiMeta(key: string): { icon: IconName; iconBg: string; iconColor: s
   return { icon: 'BarChart2', iconBg: 'bg-blue-100', iconColor: 'text-blue-600' };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const DATA_MAP: Record<string, () => any> = {
-  status: mockSalesStatus,
-  products: mockSalesProducts,
-  distributors: mockSalesDistributors,
-  vs: mockSalesVs,
-};
-
-const TABS = [
+const TABS: { id: SalesReportTab; label: string }[] = [
   { id: 'status', label: 'Estatus cotizaciones' },
   { id: 'products', label: 'Productos Top' },
   { id: 'distributors', label: 'Rendimiento clientes' },
@@ -55,35 +42,20 @@ const TABS = [
 ];
 
 export function SalesReportsView() {
-  const [activeTab, setActiveTab] = useState<string>('status');
-  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<SalesReportTab>('status');
+  const [filters, setFilters] = useState<ReportFilterParams>({ period: 'Este mes' });
   const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 400);
-    return () => clearTimeout(timer);
-  }, [activeTab]);
-
-  const reportData = DATA_MAP[activeTab]();
+  const { data: reportData, isLoading } = useSalesReport(activeTab, filters);
 
   const doExport = async (type: 'excel' | 'pdf', _fields: string[]) => {
     setExportLoading(type);
     await new Promise((r) => setTimeout(r, 800));
     setExportLoading(null);
-    if (type === 'excel')
-      toast.success(
-        `MOCK: La descarga del archivo Excel se gestionará próximamente desde el backend.`
-      );
-    else
-      toast.info(
-        'La exportación a PDF estará disponible cuando se conecte el servicio de reportes.'
-      );
   };
 
   const renderTabContent = () => {
-    if (loading) {
+    if (isLoading) {
       return (
         <div className="animate-pulse space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -101,14 +73,36 @@ export function SalesReportsView() {
       );
     }
 
-    const ObjectMap = reportData || {};
-    const kpis = ObjectMap.kpis || {};
-    const chartData = ObjectMap.chartData || { series: [], categories: [], labels: [] };
-    const tableData = ObjectMap.tableData || [];
+    if (!reportData) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+          <Icon name="AlertTriangle" size={48} className="mb-4 text-muted-foreground/40" />
+          <p className="text-body2 font-semibold">No se pudieron cargar los datos del reporte</p>
+          <p className="text-caption mt-1">Verificá tu conexión o intentá más tarde</p>
+        </div>
+      );
+    }
+
+    const { kpis = {}, chart_data, table_data = [] } = reportData;
+    const chartData = chart_data ?? { series: [], categories: [], labels: [] };
+
+    const namedSeries =
+      Array.isArray(chartData.series) &&
+      chartData.series.length > 0 &&
+      typeof chartData.series[0] === 'object'
+        ? (chartData.series as { name: string; data: number[] }[])
+        : [{ name: 'Valor', data: chartData.series as number[] }];
+
+    const flatSeries: number[] =
+      Array.isArray(chartData.series) &&
+      chartData.series.length > 0 &&
+      typeof chartData.series[0] === 'number'
+        ? (chartData.series as number[])
+        : [];
 
     const columns =
-      tableData.length > 0
-        ? Object.keys(tableData[0])
+      table_data.length > 0
+        ? Object.keys(table_data[0])
             .filter((k) => !k.includes('id') && k !== 'items')
             .map((k) => ({
               id: k,
@@ -157,7 +151,7 @@ export function SalesReportsView() {
           })}
         </div>
 
-        {/* Gráficas Duplicadas por layout responsivo */}
+        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <SectionCard className="pt-5 pb-2 px-3 sm:px-5 overflow-hidden flex flex-col w-full h-[360px]">
             <h3 className="text-subtitle2 font-bold mb-4 px-2">
@@ -165,13 +159,13 @@ export function SalesReportsView() {
             </h3>
             <div className="flex-1 w-full min-w-0 flex items-center justify-center -ml-2 sm:-ml-0">
               {activeTab === 'status' ? (
-                <DonutChart labels={chartData.labels} series={chartData.series} />
+                <DonutChart labels={chartData.labels ?? []} series={flatSeries} />
               ) : activeTab === 'vs' ? (
-                <LineChart categories={chartData.categories} series={chartData.series} />
+                <LineChart categories={chartData.categories ?? []} series={namedSeries} />
               ) : (
                 <BarChart
-                  categories={chartData.categories || []}
-                  series={chartData.series}
+                  categories={chartData.categories ?? []}
+                  series={namedSeries}
                   horizontal={false}
                 />
               )}
@@ -184,18 +178,18 @@ export function SalesReportsView() {
             </h3>
             <div className="flex-1 w-full min-w-0 flex items-center justify-center">
               {activeTab === 'vs' || activeTab === 'distributors' ? (
-                <AreaChart categories={chartData.categories || []} series={chartData.series} />
+                <AreaChart categories={chartData.categories ?? []} series={namedSeries} />
               ) : activeTab === 'status' ? (
                 <BarChart
-                  categories={chartData.labels || []}
-                  series={[{ name: 'Distribución', data: chartData.series }]}
+                  categories={chartData.labels ?? []}
+                  series={[{ name: 'Distribución', data: namedSeries[0]?.data ?? [] }]}
                   stacked={true}
                   horizontal={true}
                 />
               ) : (
                 <BarChart
-                  categories={chartData.categories || []}
-                  series={chartData.series}
+                  categories={chartData.categories ?? []}
+                  series={namedSeries}
                   stacked={true}
                   horizontal={true}
                 />
@@ -204,17 +198,17 @@ export function SalesReportsView() {
           </SectionCard>
         </div>
 
-        {/* Tabla nativa */}
+        {/* Table */}
         <div className="w-full">
-          <ReportTable columns={columns} data={tableData} />
+          <ReportTable columns={columns} data={table_data} />
         </div>
       </div>
     );
   };
 
   const columnsContext =
-    reportData && reportData.tableData && reportData.tableData.length > 0
-      ? Object.keys(reportData.tableData[0])
+    reportData?.table_data && reportData.table_data.length > 0
+      ? Object.keys(reportData.table_data[0])
           .filter((k) => !k.includes('id') && k !== 'items')
           .map((k) => ({
             id: k,
@@ -229,12 +223,10 @@ export function SalesReportsView() {
         subtitle="Analiza el rendimiento del área de cotizaciones B2B, tus embudos de ventas y el desempeño con clientes"
       />
 
-      {/* Zona 2: Panel de Filtros */}
       <div className="w-full mb-6">
-        <ReportFilters />
+        <ReportFilters onFiltersChange={setFilters} />
       </div>
 
-      {/* Zona 3: Tabs de Reportes */}
       <div className="flex-none border-b border-border/60 overflow-x-auto w-full mb-6">
         <div className="flex gap-6 min-w-max px-2">
           {TABS.map((tab) => (
@@ -254,16 +246,14 @@ export function SalesReportsView() {
         </div>
       </div>
 
-      {/* Barra de Exportación */}
       <ExportBar
         columns={columnsContext}
-        hasData={!!reportData && reportData.tableData.length > 0}
+        hasData={!!reportData && reportData.table_data.length > 0}
         loading={exportLoading}
         onExportExcel={(fields) => doExport('excel', fields)}
         onExportPdf={(fields) => doExport('pdf', fields)}
       />
 
-      {/* Contenido Dinámico */}
       <div className="w-full relative pb-4">{renderTabContent()}</div>
     </PageContainer>
   );

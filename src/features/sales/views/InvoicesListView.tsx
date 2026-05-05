@@ -23,8 +23,10 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
+import { SalesPageSkeleton } from '../components/SalesPageSkeleton';
 import { useSalesContext } from '../context/SalesContext';
 import type { Invoice } from '../types/sales.types';
+import { STATUS_LABELS } from '../types/sales.types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -37,31 +39,32 @@ function formatDateLocal(dateStr: string): string {
 }
 
 function isOverdue(invoice: Invoice): boolean {
-  if (invoice.status === 'pagada') return false;
-  return new Date(invoice.dueDate) < new Date();
+  if (invoice.status === 'paid') return false;
+  return new Date(invoice.due_date) < new Date();
 }
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos los estados' },
-  { value: 'pendiente', label: 'Pendiente' },
-  { value: 'parcial', label: 'Pago parcial' },
-  { value: 'pagada', label: 'Pagada' },
-  { value: 'vencida', label: 'Vencida' },
+  { value: 'issued', label: 'Emitida' },
+  { value: 'partial', label: 'Pago parcial' },
+  { value: 'paid', label: 'Pagada' },
+  { value: 'overdue', label: 'Vencida' },
 ];
 
-type DisplayStatus = Invoice['status'] | 'vencida';
-
-const STATUS_CONFIG: Record<DisplayStatus, { label: string; className: string }> = {
-  pendiente: { label: 'Pendiente', className: 'bg-amber-500/10 text-amber-600' },
-  parcial: { label: 'Pago Parcial', className: 'bg-blue-500/10 text-blue-600' },
-  pagada: { label: 'Pagada', className: 'bg-emerald-500/10 text-emerald-600' },
-  vencida: { label: 'Vencida', className: 'bg-red-500/10 text-red-600' },
+const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+  issued: { label: 'Emitida', className: 'bg-amber-500/10 text-amber-600' },
+  partial: { label: 'Pago Parcial', className: 'bg-blue-500/10 text-blue-600' },
+  paid: { label: 'Pagada', className: 'bg-emerald-500/10 text-emerald-600' },
+  overdue: { label: 'Vencida', className: 'bg-red-500/10 text-red-600' },
+  draft: { label: 'Borrador', className: 'bg-muted/10 text-muted-foreground' },
 };
 
-function getEffectiveStatus(invoice: Invoice): DisplayStatus {
-  return isOverdue(invoice) ? 'vencida' : invoice.status;
+function getEffectiveStatus(invoice: Invoice): string {
+  if (invoice.status === 'paid') return 'paid';
+  if (invoice.status === 'overdue' || isOverdue(invoice)) return 'overdue';
+  return invoice.status;
 }
 
 // ─── Column helper ────────────────────────────────────────────────────────────
@@ -72,7 +75,7 @@ const col = createColumnHelper<Invoice>();
 
 export function InvoicesListView() {
   const router = useRouter();
-  const { invoices } = useSalesContext();
+  const { invoices, isLoading } = useSalesContext();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -82,9 +85,9 @@ export function InvoicesListView() {
       invoices.filter((inv) => {
         const matchesSearch =
           !search ||
-          inv.client.toLowerCase().includes(search.toLowerCase()) ||
-          inv.id.toLowerCase().includes(search.toLowerCase()) ||
-          inv.seller.toLowerCase().includes(search.toLowerCase());
+          inv.invoice_number.toLowerCase().includes(search.toLowerCase()) ||
+          inv.quotation_uid.toLowerCase().includes(search.toLowerCase()) ||
+          inv.uid.toLowerCase().includes(search.toLowerCase());
         const matchesStatus = !statusFilter || getEffectiveStatus(inv) === statusFilter;
         return matchesSearch && matchesStatus;
       }),
@@ -93,38 +96,37 @@ export function InvoicesListView() {
 
   const overdueCount = useMemo(() => invoices.filter(isOverdue).length, [invoices]);
   const pendingBalance = useMemo(
-    () =>
-      invoices
-        .filter((i) => i.status !== 'pagada')
-        .reduce((s, i) => s + Math.max(0, i.total - i.totalPaid), 0),
+    () => invoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + i.outstanding_total, 0),
     [invoices]
   );
 
   const columns = useMemo(
     () => [
-      col.accessor('id', {
-        header: 'ID',
+      col.accessor('invoice_number', {
+        header: 'Número',
         cell: (info) => (
           <span className="font-mono text-xs text-muted-foreground">{info.getValue()}</span>
         ),
       }),
-      col.accessor('client', {
-        header: 'Cliente',
-        cell: (info) => <span className="font-medium text-foreground">{info.getValue()}</span>,
+      col.accessor('quotation_uid', {
+        header: 'Cotización',
+        cell: (info) => (
+          <span className="font-medium text-foreground font-mono text-xs">{info.getValue()}</span>
+        ),
       }),
-      col.accessor('issueDate', {
+      col.accessor('issued_at', {
         header: 'Emisión',
         cell: (info) => (
           <span className="text-muted-foreground">{formatDateLocal(info.getValue())}</span>
         ),
       }),
-      col.accessor('dueDate', {
+      col.accessor('due_date', {
         header: 'Vencimiento',
         cell: ({ row }) => {
           const overdue = isOverdue(row.original);
           return (
             <span className={overdue ? 'text-red-500 font-medium' : 'text-muted-foreground'}>
-              {formatDateLocal(row.original.dueDate)}
+              {formatDateLocal(row.original.due_date)}
               {overdue && <Icon name="AlertTriangle" size={12} className="inline ml-1" />}
             </span>
           );
@@ -138,7 +140,7 @@ export function InvoicesListView() {
           </span>
         ),
       }),
-      col.accessor('totalPaid', {
+      col.accessor('paid_total', {
         header: 'Pagado',
         cell: (info) => (
           <span className="text-emerald-600 font-medium">
@@ -146,11 +148,10 @@ export function InvoicesListView() {
           </span>
         ),
       }),
-      col.display({
-        id: 'balance',
+      col.accessor('outstanding_total', {
         header: 'Saldo',
-        cell: ({ row }) => {
-          const balance = Math.max(0, row.original.total - row.original.totalPaid);
+        cell: (info) => {
+          const balance = info.getValue();
           return (
             <span
               className={balance > 0 ? 'text-orange-500 font-semibold' : 'text-muted-foreground'}
@@ -164,7 +165,11 @@ export function InvoicesListView() {
         id: 'status',
         header: 'Estado',
         cell: ({ row }) => {
-          const config = STATUS_CONFIG[getEffectiveStatus(row.original)];
+          const effStatus = getEffectiveStatus(row.original);
+          const config = STATUS_CONFIG[effStatus] ?? {
+            label: STATUS_LABELS[effStatus] ?? effStatus,
+            className: 'bg-muted/10 text-muted-foreground',
+          };
           return (
             <Badge
               variant="soft"
@@ -185,7 +190,7 @@ export function InvoicesListView() {
             className="h-8 w-8 text-muted-foreground hover:text-foreground"
             onClick={(e) => {
               e.stopPropagation();
-              router.push(paths.sales.invoice(row.original.id));
+              router.push(paths.sales.invoice(row.original.uid));
             }}
             title="Ver detalle"
           >
@@ -198,6 +203,9 @@ export function InvoicesListView() {
   );
 
   const { table, dense, onChangeDense } = useTable({ data: filtered, columns });
+
+  if (isLoading)
+    return <SalesPageSkeleton title="Facturas" subtitle="Cargando historial de facturas..." />;
 
   return (
     <PageContainer>
@@ -230,7 +238,7 @@ export function InvoicesListView() {
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <Input
           label="Buscar"
-          placeholder="Buscar por cliente, ID o vendedor..."
+          placeholder="Buscar por número, cotización o referencia..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           leftIcon={<Icon name="Search" size={15} />}
@@ -269,7 +277,7 @@ export function InvoicesListView() {
                   <TableRow
                     key={row.id}
                     className="cursor-pointer hover:bg-muted/40 transition-colors"
-                    onClick={() => router.push(paths.sales.invoice(row.original.id))}
+                    onClick={() => router.push(paths.sales.invoice(row.original.uid))}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>

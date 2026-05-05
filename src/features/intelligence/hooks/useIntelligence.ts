@@ -1,13 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { MOCK_BATTLECARDS, MOCK_COMPETITORS, MOCK_LOST_DEALS } from 'src/_mock/_intelligence';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { queryKeys } from 'src/lib/query-keys';
 
+import { intelligenceService } from '../services/intelligence.service';
 import type {
   Battlecard,
   HeatmapCell,
   IntelligenceStats,
-  LostDeal,
+  LostReason,
   LostReasonCategory,
 } from '../types';
 
@@ -23,124 +25,178 @@ const ALL_REASONS: LostReasonCategory[] = [
 ];
 
 export function useIntelligence() {
-  const [battlecards, setBattlecards] = useState<Battlecard[]>(MOCK_BATTLECARDS);
-  const [lostDeals, setLostDeals] = useState<LostDeal[]>(MOCK_LOST_DEALS);
+  const queryClient = useQueryClient();
+
+  // ─── Queries ──────────────────────────────────────────────────────────────
+
+  const { data: battlecards = [] } = useQuery({
+    queryKey: queryKeys.intelligence.battlecards,
+    queryFn: () => intelligenceService.battlecards.getAll(),
+  });
+
+  const { data: lostReasons = [] } = useQuery({
+    queryKey: queryKeys.intelligence.lostReasons,
+    queryFn: () => intelligenceService.lostReasons.getAll(),
+  });
+
+  const { data: competitors = [] } = useQuery({
+    queryKey: queryKeys.intelligence.competitors,
+    queryFn: () => intelligenceService.competitors.getAll(),
+  });
 
   // ─── Stats ─────────────────────────────────────────────────────────────────
 
   const stats: IntelligenceStats = useMemo(() => {
-    const avgWinRate =
+    const avg_win_rate =
       battlecards.length > 0
-        ? Math.round(battlecards.reduce((acc, bc) => acc + bc.winRate, 0) / battlecards.length)
+        ? Math.round(battlecards.reduce((acc, bc) => acc + bc.win_rate, 0) / battlecards.length)
         : 0;
 
-    const totalLostAmount = lostDeals.reduce((acc, d) => acc + d.amount, 0);
+    const total_lost_amount = lostReasons.reduce((acc, d) => acc + d.amount, 0);
 
-    const competitorCounts = lostDeals.reduce<Record<string, number>>((acc, d) => {
-      if (d.competitorName) {
-        acc[d.competitorName] = (acc[d.competitorName] ?? 0) + 1;
+    const competitorCounts = lostReasons.reduce<Record<string, number>>((acc, d) => {
+      if (d.competitor_name) {
+        acc[d.competitor_name] = (acc[d.competitor_name] ?? 0) + 1;
       }
       return acc;
     }, {});
-    const topCompetitor =
+    const top_competitor =
       Object.entries(competitorCounts).sort(([, a], [, b]) => b - a)[0]?.[0] ?? '—';
 
-    const reasonCounts = lostDeals.reduce<Record<string, number>>((acc, d) => {
-      acc[d.lostReasonCategory] = (acc[d.lostReasonCategory] ?? 0) + 1;
+    const reasonCounts = lostReasons.reduce<Record<string, number>>((acc, d) => {
+      acc[d.lost_reason_category] = (acc[d.lost_reason_category] ?? 0) + 1;
       return acc;
     }, {});
-    const topLostReason = (Object.entries(reasonCounts).sort(([, a], [, b]) => b - a)[0]?.[0] ??
+    const top_lost_reason = (Object.entries(reasonCounts).sort(([, a], [, b]) => b - a)[0]?.[0] ??
       'price') as LostReasonCategory;
 
     return {
-      totalCompetitors: MOCK_COMPETITORS.length,
-      avgWinRate,
-      totalLostDeals: lostDeals.length,
-      totalLostAmount,
-      topCompetitor,
-      topLostReason,
+      total_competitors: competitors.length,
+      avg_win_rate,
+      total_lost_deals: lostReasons.length,
+      total_lost_amount,
+      top_competitor,
+      top_lost_reason,
     };
-  }, [battlecards, lostDeals]);
+  }, [battlecards, competitors, lostReasons]);
 
   // ─── Heatmap ───────────────────────────────────────────────────────────────
 
   const heatmapData: HeatmapCell[] = useMemo(() => {
-    const rows: { id: string; name: string }[] = [
-      ...MOCK_COMPETITORS.map((c) => ({ id: c.id, name: c.name })),
-      { id: 'none', name: 'Sin competidor' },
+    const rows: { uid: string; name: string }[] = [
+      ...competitors.map((c) => ({ uid: c.uid, name: c.name })),
+      { uid: 'none', name: 'Sin competidor' },
     ];
 
     return rows.flatMap((row) =>
       ALL_REASONS.map((reason) => ({
-        competitorId: row.id,
-        competitorName: row.name,
+        competitor_uid: row.uid,
+        competitor_name: row.name,
         reason,
-        count: lostDeals.filter(
-          (d) => (d.competitorId ?? 'none') === row.id && d.lostReasonCategory === reason
+        count: lostReasons.filter(
+          (d) => (d.competitor_uid ?? 'none') === row.uid && d.lost_reason_category === reason
         ).length,
       }))
     );
-  }, [lostDeals]);
+  }, [competitors, lostReasons]);
 
   // ─── CRUD Battlecards ──────────────────────────────────────────────────────
 
-  const createBattlecard = (
+  const createBattlecard = async (
     data: Omit<
       Battlecard,
-      'id' | 'winRate' | 'dealsTracked' | 'dealsWon' | 'createdAt' | 'updatedAt'
+      | 'uid'
+      | 'win_rate'
+      | 'deals_tracked'
+      | 'deals_won'
+      | 'created_at'
+      | 'updated_at'
+      | 'deals_value'
     >
-  ) => {
-    const now = new Date().toISOString().split('T')[0];
-    setBattlecards((prev) => [
-      ...prev,
-      {
-        ...data,
-        id: `bc-${Date.now()}`,
-        winRate: 0,
-        dealsTracked: 0,
-        dealsWon: 0,
-        createdAt: now,
-        updatedAt: now,
-      },
-    ]);
+  ): Promise<boolean> => {
+    try {
+      await intelligenceService.battlecards.create(data);
+      queryClient.invalidateQueries({ queryKey: queryKeys.intelligence.battlecards });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  const updateBattlecard = (id: string, changes: Partial<Battlecard>) => {
-    const now = new Date().toISOString().split('T')[0];
-    setBattlecards((prev) =>
-      prev.map((bc) => (bc.id === id ? { ...bc, ...changes, updatedAt: now } : bc))
-    );
+  const updateBattlecard = async (
+    uid: string,
+    changes: Partial<
+      Omit<
+        Battlecard,
+        'uid' | 'win_rate' | 'deals_tracked' | 'deals_won' | 'created_at' | 'updated_at'
+      >
+    >
+  ): Promise<boolean> => {
+    try {
+      await intelligenceService.battlecards.update(uid, changes);
+      queryClient.invalidateQueries({ queryKey: queryKeys.intelligence.battlecards });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  const deleteBattlecard = (id: string) => {
-    setBattlecards((prev) => prev.filter((bc) => bc.id !== id));
+  const deleteBattlecard = async (uid: string): Promise<boolean> => {
+    try {
+      await intelligenceService.battlecards.delete(uid);
+      queryClient.invalidateQueries({ queryKey: queryKeys.intelligence.battlecards });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  // ─── CRUD Lost Deals ───────────────────────────────────────────────────────
+  // ─── CRUD Lost Reasons ───────────────────────────────────────────────────────
 
-  const createLostDeal = (data: Omit<LostDeal, 'id'>) => {
-    setLostDeals((prev) => [...prev, { ...data, id: `ld-${Date.now()}` }]);
+  const createLostReason = async (data: Omit<LostReason, 'uid'>): Promise<boolean> => {
+    try {
+      await intelligenceService.lostReasons.create(data);
+      queryClient.invalidateQueries({ queryKey: queryKeys.intelligence.lostReasons });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  const updateLostDeal = (id: string, changes: Partial<LostDeal>) => {
-    setLostDeals((prev) => prev.map((d) => (d.id === id ? { ...d, ...changes } : d)));
+  const updateLostReason = async (
+    uid: string,
+    changes: Partial<Omit<LostReason, 'uid'>>
+  ): Promise<boolean> => {
+    try {
+      await intelligenceService.lostReasons.update(uid, changes);
+      queryClient.invalidateQueries({ queryKey: queryKeys.intelligence.lostReasons });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  const deleteLostDeal = (id: string) => {
-    setLostDeals((prev) => prev.filter((d) => d.id !== id));
+  const deleteLostReason = async (uid: string): Promise<boolean> => {
+    try {
+      await intelligenceService.lostReasons.delete(uid);
+      queryClient.invalidateQueries({ queryKey: queryKeys.intelligence.lostReasons });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   return {
     battlecards,
-    lostDeals,
-    competitors: MOCK_COMPETITORS,
+    lostReasons,
+    competitors,
     stats,
     heatmapData,
     createBattlecard,
     updateBattlecard,
     deleteBattlecard,
-    createLostDeal,
-    updateLostDeal,
-    deleteLostDeal,
+    createLostReason,
+    updateLostReason,
+    deleteLostReason,
   };
 }

@@ -4,9 +4,9 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { PIPELINE_STAGES } from 'src/_mock/_sales';
-import { LinkedInValidationBadge } from 'src/features/automation/components/LinkedInValidationBadge';
+import type { PipelineStage } from 'src/features/sales/types/sales.types';
 import { formatMoney } from 'src/lib/currency';
+import { toDate } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
 import { paths } from 'src/routes/paths';
 import { Badge } from 'src/shared/components/ui/badge';
@@ -14,21 +14,19 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Sheet, SheetContent, SheetTitle } from 'src/shared/components/ui/sheet';
 
-import { LOST_REASON_LABELS, STAGE_PROBABILITY } from '../config/pipeline.config';
 import { useSalesContext } from '../context/SalesContext';
 import type { AgingLevel } from '../hooks/useOpportunityPanel';
 import type { Opportunity } from '../types/sales.types';
+import { STATUS_LABELS } from '../types/sales.types';
 import { DealAvatar } from './DealAvatar';
-import { OpportunityChecklist } from './OpportunityChecklist';
 import { OpportunityQuotationsTab } from './OpportunityQuotationsTab';
 import { OpportunityTimeline } from './OpportunityTimeline';
 import { StageProgressBar } from './StageProgressBar';
 
-type TabId = 'resumen' | 'checklist' | 'actividades' | 'cotizaciones' | 'factura';
+type TabId = 'resumen' | 'actividades' | 'cotizaciones' | 'factura';
 
 const TABS: { id: TabId; label: string }[] = [
   { id: 'resumen', label: 'Resumen' },
-  { id: 'checklist', label: 'Checklist' },
   { id: 'actividades', label: 'Actividades' },
   { id: 'cotizaciones', label: 'Cotizaciones' },
   { id: 'factura', label: 'Factura' },
@@ -43,8 +41,7 @@ const AGING_STYLES: Record<AgingLevel, { label: string; className: string }> = {
 
 function formatDate(dateStr: string): string {
   try {
-    const safe = dateStr.includes('T') ? dateStr : `${dateStr}T12:00:00`;
-    return format(new Date(safe), 'd MMM yyyy', { locale: es });
+    return format(toDate(dateStr), 'd MMM yyyy', { locale: es });
   } catch {
     return dateStr;
   }
@@ -52,14 +49,15 @@ function formatDate(dateStr: string): string {
 
 interface InvoiceTabProps {
   opportunity: Opportunity;
+  stages: PipelineStage[];
 }
 
-function InvoiceTab({ opportunity }: InvoiceTabProps) {
+function InvoiceTab({ opportunity, stages: _stages }: InvoiceTabProps) {
   const router = useRouter();
-  const { getInvoiceByQuotation } = useSalesContext();
-  const invoice = opportunity.quotationId
-    ? getInvoiceByQuotation(opportunity.quotationId)
-    : undefined;
+  const { invoices } = useSalesContext();
+
+  // Invoices linked via quotation_uid
+  const invoice = invoices.find((inv) => inv.quotation_uid === opportunity.uid);
 
   if (!invoice) {
     return (
@@ -72,25 +70,27 @@ function InvoiceTab({ opportunity }: InvoiceTabProps) {
     );
   }
 
+  const statusLabel = STATUS_LABELS[invoice.status] ?? invoice.status;
   const STATUS_COLOR: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
-    pagada: 'success',
-    parcial: 'warning',
-    pendiente: 'default',
-    vencida: 'error',
+    paid: 'success',
+    partial: 'warning',
+    issued: 'default',
+    draft: 'default',
+    overdue: 'error',
   };
 
-  const pending = invoice.total - invoice.totalPaid;
-  const progress = invoice.total > 0 ? Math.round((invoice.totalPaid / invoice.total) * 100) : 0;
+  const pending = invoice.outstanding_total;
+  const progress = invoice.total > 0 ? Math.round((invoice.paid_total / invoice.total) * 100) : 0;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-body2 font-bold text-foreground font-mono">{invoice.id}</p>
-          <p className="text-caption text-muted-foreground">{formatDate(invoice.issueDate)}</p>
+          <p className="text-body2 font-bold text-foreground font-mono">{invoice.invoice_number}</p>
+          <p className="text-caption text-muted-foreground">{formatDate(invoice.issued_at)}</p>
         </div>
         <Badge variant="soft" color={STATUS_COLOR[invoice.status] ?? 'default'}>
-          {invoice.status}
+          {statusLabel}
         </Badge>
       </div>
 
@@ -126,7 +126,7 @@ function InvoiceTab({ opportunity }: InvoiceTabProps) {
         variant="outline"
         size="sm"
         className="w-full"
-        onClick={() => router.push(paths.sales.invoice(invoice.id))}
+        onClick={() => router.push(paths.sales.invoice(invoice.uid))}
       >
         Ver factura completa
       </Button>
@@ -136,37 +136,32 @@ function InvoiceTab({ opportunity }: InvoiceTabProps) {
 
 interface ResumenTabProps {
   opportunity: Opportunity;
+  stages: PipelineStage[];
 }
 
-function ResumenTab({ opportunity }: ResumenTabProps) {
+function ResumenTab({ opportunity, stages }: ResumenTabProps) {
   const router = useRouter();
-  const isTerminal = opportunity.stage === 'cerrado';
-  const isLost = opportunity.stage === 'cerrado' && opportunity.outcome === 'perdido';
-  const weightedAmount = opportunity.estimatedAmount * STAGE_PROBABILITY[opportunity.stage];
-  const checklistDone = opportunity.checklist.filter((i) => i.done).length;
-  const checklistTotal = opportunity.checklist.length;
+  const currentStage = stages.find((s) => s.uid === opportunity.stage_uid);
+  const isWon = currentStage?.is_won ?? false;
+  const isLost = currentStage?.is_lost ?? false;
+  const isTerminal = isWon || isLost;
+  const probability = currentStage?.probability_percent ?? 0;
+  const weightedAmount = opportunity.amount * (probability / 100);
 
   return (
     <div className="space-y-5">
-      {/* Lost reason info */}
-      {isLost && opportunity.lostReason && (
+      {/* Lost reason info — future: populated from competitive intelligence API */}
+      {isLost && (
         <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 space-y-2">
           <div className="flex items-center gap-2">
             <Icon name="AlertTriangle" size={14} className="text-destructive shrink-0" />
             <span className="text-caption font-bold text-destructive uppercase tracking-wide">
-              Razón de pérdida
+              Oportunidad perdida
             </span>
           </div>
-          <p className="text-body2 font-semibold text-foreground">
-            {LOST_REASON_LABELS[opportunity.lostReason.category]}
-            {opportunity.lostReason.competitorName && (
-              <span className="text-muted-foreground font-normal">
-                {' '}
-                · {opportunity.lostReason.competitorName}
-              </span>
-            )}
+          <p className="text-caption text-muted-foreground">
+            La información de pérdida se registra al mover a etapa final.
           </p>
-          <p className="text-caption text-muted-foreground">{opportunity.lostReason.detail}</p>
         </div>
       )}
 
@@ -175,10 +170,10 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
         <div className="rounded-xl bg-muted/30 p-3 space-y-0.5">
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <Icon name="DollarSign" size={13} />
-            <span className="text-caption">Monto estimado</span>
+            <span className="text-caption">Monto</span>
           </div>
           <p className="text-body2 font-bold text-foreground">
-            {formatMoney(opportunity.estimatedAmount, {
+            {formatMoney(opportunity.amount, {
               scope: 'tenant',
               maximumFractionDigits: 0,
             })}
@@ -197,11 +192,11 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
             <span className="text-caption">Cierre esperado</span>
           </div>
           <p className="text-body2 font-bold text-foreground">
-            {formatDate(opportunity.expectedCloseDate)}
+            {formatDate(opportunity.expected_close_date)}
           </p>
         </div>
 
-        {opportunity.probability !== undefined && (
+        {probability > 0 && (
           <div className="rounded-xl bg-muted/30 p-3 space-y-1.5">
             <span className="text-caption text-muted-foreground">Probabilidad</span>
             <div className="flex items-center gap-2">
@@ -209,126 +204,74 @@ function ResumenTab({ opportunity }: ResumenTabProps) {
                 <div
                   className={cn(
                     'h-full rounded-full',
-                    opportunity.probability >= 70
+                    probability >= 70
                       ? 'bg-success'
-                      : opportunity.probability >= 40
+                      : probability >= 40
                         ? 'bg-warning'
                         : 'bg-destructive'
                   )}
-                  style={{ width: `${opportunity.probability}%` }}
+                  style={{ width: `${probability}%` }}
                 />
               </div>
               <span className="text-caption font-bold text-foreground shrink-0">
-                {opportunity.probability}%
+                {probability}%
               </span>
             </div>
           </div>
         )}
 
-        {checklistTotal > 0 && (
+        {opportunity.currency && (
           <div className="rounded-xl bg-muted/30 p-3 space-y-0.5">
             <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Icon name="CheckSquare" size={13} />
-              <span className="text-caption">Checklist</span>
+              <Icon name="Globe" size={13} />
+              <span className="text-caption">Moneda</span>
             </div>
-            <p className="text-body2 font-bold text-foreground">
-              {checklistDone}/{checklistTotal}
-            </p>
-            <p className="text-[10px] text-muted-foreground">tareas completadas</p>
+            <p className="text-body2 font-bold text-foreground">{opportunity.currency}</p>
           </div>
         )}
       </div>
 
       {/* Meta info */}
       <div className="space-y-2">
-        {opportunity.source && (
+        {opportunity.opportunityable_type && (
           <div className="flex items-center gap-2 text-body2">
             <Icon name="Tag" size={13} className="text-muted-foreground shrink-0" />
-            <span className="text-muted-foreground">Origen:</span>
-            <span className="text-foreground font-medium">{opportunity.source}</span>
+            <span className="text-muted-foreground">Tipo:</span>
+            <span className="text-foreground font-medium">{opportunity.opportunityable_type}</span>
           </div>
         )}
-        {opportunity.owner && (
-          <div className="flex items-center gap-2 text-body2">
-            <Icon name="User" size={13} className="text-muted-foreground shrink-0" />
-            <span className="text-muted-foreground">Responsable:</span>
-            <span className="text-foreground font-medium">{opportunity.owner}</span>
-          </div>
-        )}
-        {opportunity.mainProduct && (
-          <div className="flex items-center gap-2 text-body2">
-            <span className="text-muted-foreground">Producto:</span>
-            <span className="text-foreground font-medium">{opportunity.mainProduct}</span>
+        {opportunity.description && (
+          <div className="flex items-start gap-2 text-body2">
+            <Icon name="FileText" size={13} className="text-muted-foreground shrink-0 mt-0.5" />
+            <span className="text-muted-foreground">{opportunity.description}</span>
           </div>
         )}
       </div>
 
-      {/* LinkedIn section */}
-      {opportunity.source === 'LinkedIn' && opportunity.linkedIn && (
-        <div className="rounded-xl border border-border/50 bg-muted/20 p-4 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
-              LinkedIn
-            </span>
-            <LinkedInValidationBadge profile={opportunity.linkedIn} />
-          </div>
-          {opportunity.linkedIn.title && (
-            <p className="text-body2 font-medium text-foreground">{opportunity.linkedIn.title}</p>
-          )}
-          {opportunity.linkedIn.company && (
-            <p className="text-caption text-muted-foreground">{opportunity.linkedIn.company}</p>
-          )}
-          <a
-            href={opportunity.linkedIn.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 text-caption text-primary hover:underline"
-          >
-            <Icon name="ExternalLink" size={11} />
-            {opportunity.linkedIn.url.replace('https://', '')}
-          </a>
-        </div>
-      )}
-
       {/* Stage-aware CTA */}
       {!isTerminal && (
         <div className="border-t border-border/40 pt-4 flex flex-col gap-2">
-          {opportunity.stage === 'leads' && (
-            <Button
-              color="primary"
-              className="w-full"
-              onClick={() => router.push(paths.sales.quotation(opportunity.id))}
-            >
-              Crear cotización
-            </Button>
-          )}
-          {(opportunity.stage === 'contactado' || opportunity.stage === 'negociacion') && (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() =>
-                router.push(paths.sales.quotation(opportunity.quotationId || opportunity.id))
-              }
-            >
-              Ver cotización
-            </Button>
-          )}
+          <Button
+            color="primary"
+            className="w-full"
+            onClick={() => router.push(paths.sales.quotation(opportunity.uid))}
+          >
+            Crear cotización
+          </Button>
         </div>
       )}
 
-      {opportunity.stage === 'cerrado' &&
-        opportunity.outcome === 'ganado' &&
-        opportunity.quotationId && (
-          <div className="border-t border-border/40 pt-4">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => router.push(paths.sales.quotation(opportunity.quotationId!))}
-            >
-              Ver cotización (cerrada)
-            </Button>
-          </div>
-        )}
+      {isWon && (
+        <div className="border-t border-border/40 pt-4">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => router.push(paths.sales.quotation(opportunity.uid))}
+          >
+            Ver cotizaciones
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -341,6 +284,7 @@ interface OpportunityPanelProps {
   onClose: () => void;
   daysInStage: number;
   agingLevel: AgingLevel;
+  stages: PipelineStage[];
 }
 
 export function OpportunityPanel({
@@ -349,38 +293,41 @@ export function OpportunityPanel({
   onClose,
   daysInStage,
   agingLevel,
+  stages,
 }: OpportunityPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('resumen');
   const { opportunities } = useSalesContext();
-  const opportunity = opportunityId ? opportunities.find((o) => o.id === opportunityId) : undefined;
+  const opportunity = opportunityId
+    ? opportunities.find((o) => o.uid === opportunityId)
+    : undefined;
 
   const agingStyle = AGING_STYLES[agingLevel];
-  const stageLabel = opportunity
-    ? PIPELINE_STAGES.find((s) => s.id === opportunity.stage)?.label
+  const currentStage = opportunity
+    ? stages.find((s) => s.uid === opportunity.stage_uid)
     : undefined;
+  const stageLabel = currentStage?.name ?? opportunity?.stage_name;
+
+  const displayName = opportunity?.title || opportunity?.uid || '';
 
   return (
     <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[680px] flex flex-col p-0">
         <SheetTitle className="sr-only">
-          {opportunity ? opportunity.clientName : 'Panel de oportunidad'}
+          {opportunity ? displayName : 'Panel de oportunidad'}
         </SheetTitle>
         {opportunity ? (
           <>
-            {/* Header — pr-10 deja espacio para el X nativo del SheetContent */}
+            {/* Header */}
             <div className="px-6 pr-10 pt-6 pb-4 border-b border-border/40 space-y-4">
               <div className="flex items-center gap-3 min-w-0">
-                <DealAvatar name={opportunity.clientName} size="lg" />
+                <DealAvatar name={displayName} size="lg" />
                 <div className="min-w-0">
                   <h2 className="text-subtitle1 font-bold text-foreground leading-tight truncate">
-                    {opportunity.clientName}
+                    {displayName}
                   </h2>
-                  {opportunity.contactName && (
-                    <p className="text-caption text-muted-foreground">{opportunity.contactName}</p>
-                  )}
                   <p className="text-caption text-muted-foreground/70 mt-0.5">
                     <span className="font-semibold text-foreground">
-                      {formatMoney(opportunity.estimatedAmount, {
+                      {formatMoney(opportunity.amount, {
                         scope: 'tenant',
                         maximumFractionDigits: 0,
                       })}
@@ -402,7 +349,7 @@ export function OpportunityPanel({
                 </div>
               </div>
               <div className="flex justify-center">
-                <StageProgressBar currentStage={opportunity.stage} outcome={opportunity.outcome} />
+                <StageProgressBar stages={stages} currentStageUid={opportunity.stage_uid} />
               </div>
             </div>
 
@@ -420,25 +367,18 @@ export function OpportunityPanel({
                   )}
                 >
                   {tab.label}
-                  {tab.id === 'checklist' && opportunity.checklist.length > 0 && (
-                    <span className="ml-1.5 text-[9px] bg-muted rounded-full px-1.5 py-0.5 font-mono">
-                      {opportunity.checklist.filter((i) => i.done).length}/
-                      {opportunity.checklist.length}
-                    </span>
-                  )}
                 </button>
               ))}
             </div>
 
             {/* Tab content */}
             <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
-              {activeTab === 'resumen' && <ResumenTab opportunity={opportunity} />}
-              {activeTab === 'checklist' && <OpportunityChecklist opportunity={opportunity} />}
+              {activeTab === 'resumen' && <ResumenTab opportunity={opportunity} stages={stages} />}
               {activeTab === 'actividades' && <OpportunityTimeline opportunity={opportunity} />}
               {activeTab === 'cotizaciones' && (
-                <OpportunityQuotationsTab opportunity={opportunity} />
+                <OpportunityQuotationsTab opportunity={opportunity} stages={stages} />
               )}
-              {activeTab === 'factura' && <InvoiceTab opportunity={opportunity} />}
+              {activeTab === 'factura' && <InvoiceTab opportunity={opportunity} stages={stages} />}
             </div>
           </>
         ) : (

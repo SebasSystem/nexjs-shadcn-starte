@@ -2,6 +2,7 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useMemo } from 'react';
+import { formatRelative } from 'src/lib/date';
 import {
   Table,
   TableBody,
@@ -15,6 +16,7 @@ import {
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,13 +24,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from 'src/shared/components/ui/dropdown-menu';
-import { Icon } from 'src/shared/components/ui/icon';
 
 import type { SettingsUser } from '../../types/settings.types';
 import { UserStatusBadge } from './user-status-badge';
 
-function getInitials(nombre: string) {
-  return nombre
+function getInitials(name: string) {
+  return name
     .split(' ')
     .slice(0, 2)
     .map((w) => w[0])
@@ -36,28 +37,19 @@ function getInitials(nombre: string) {
     .toUpperCase();
 }
 
-function formatRelative(dateStr: string) {
-  const diffH = Math.floor((Date.now() - new Date(dateStr).getTime()) / 3600000);
-  if (diffH < 1) return 'Hace menos de 1h';
-  if (diffH < 24) return `Hace ${diffH}h`;
-  const diffD = Math.floor(diffH / 24);
-  if (diffD < 30) return `Hace ${diffD}d`;
-  return `Hace ${Math.floor(diffD / 30)} mes(es)`;
-}
+const columnHelper = createColumnHelper<SettingsUser>();
 
 interface UsersTableProps {
   users: SettingsUser[];
   onEdit: (user: SettingsUser) => void;
-  onToggleEstado: (user: SettingsUser) => void;
+  onToggleStatus: (user: SettingsUser) => void;
   onDelete: (user: SettingsUser) => void;
 }
 
-const columnHelper = createColumnHelper<SettingsUser>();
-
-export function UsersTable({ users, onEdit, onToggleEstado, onDelete }: UsersTableProps) {
+export function UsersTable({ users, onEdit, onToggleStatus, onDelete }: UsersTableProps) {
   const COLUMNS = useMemo(
     () => [
-      columnHelper.accessor('nombre', {
+      columnHelper.accessor('name', {
         header: 'Usuario',
         cell: (info) => {
           const user = info.row.original;
@@ -65,18 +57,18 @@ export function UsersTable({ users, onEdit, onToggleEstado, onDelete }: UsersTab
             <div className="flex items-center gap-3">
               <Avatar className="h-9 w-9 shrink-0">
                 <AvatarFallback className="text-xs bg-violet-100 text-violet-700 font-semibold">
-                  {getInitials(user.nombre)}
+                  {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium text-foreground text-body2">{user.nombre}</p>
+                <p className="font-medium text-foreground text-body2">{user.name}</p>
                 <p className="text-caption text-muted-foreground">{user.email}</p>
               </div>
             </div>
           );
         },
       }),
-      columnHelper.accessor('rolNombre', {
+      columnHelper.accessor('role_name', {
         header: 'Rol',
         cell: (info) => (
           <Badge variant="outline" className="text-xs">
@@ -84,17 +76,17 @@ export function UsersTable({ users, onEdit, onToggleEstado, onDelete }: UsersTab
           </Badge>
         ),
       }),
-      columnHelper.accessor('equipoNombre', {
+      columnHelper.accessor('team_name', {
         header: 'Equipo',
         cell: (info) => (
           <span className="text-body2 text-muted-foreground">{info.getValue() ?? '—'}</span>
         ),
       }),
-      columnHelper.accessor('estado', {
+      columnHelper.accessor('status', {
         header: 'Estado',
-        cell: (info) => <UserStatusBadge estado={info.getValue()} />,
+        cell: (info) => <UserStatusBadge status={info.getValue()} />,
       }),
-      columnHelper.accessor('ultimoAcceso', {
+      columnHelper.accessor('last_access_at', {
         header: 'Último acceso',
         cell: (info) => (
           <span className="text-body2 text-muted-foreground">
@@ -120,8 +112,8 @@ export function UsersTable({ users, onEdit, onToggleEstado, onDelete }: UsersTab
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => onEdit(user)}>Editar</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onToggleEstado(user)}>
-                    {user.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'}
+                  <DropdownMenuItem onClick={() => onToggleStatus(user)}>
+                    {user.status === 'ACTIVO' ? 'Desactivar' : 'Activar'}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-red-600" onClick={() => onDelete(user)}>
@@ -134,7 +126,7 @@ export function UsersTable({ users, onEdit, onToggleEstado, onDelete }: UsersTab
         },
       }),
     ],
-    [onEdit, onToggleEstado, onDelete]
+    [onEdit, onToggleStatus, onDelete]
   );
 
   const { table, dense, onChangeDense } = useTable({

@@ -13,10 +13,10 @@ import {
 } from 'src/shared/components/ui/dropdown-menu';
 import { Icon } from 'src/shared/components/ui/icon';
 
-import type { Equipo } from '../../types/settings.types';
+import type { Team } from '../../types/settings.types';
 
-function getInitials(nombre: string) {
-  return nombre
+function getInitials(name: string) {
+  return name
     .split(' ')
     .slice(0, 2)
     .map((w) => w[0])
@@ -45,13 +45,13 @@ const ACCENT_COLORS = [
 ];
 
 interface TeamsGridProps {
-  equipos: Equipo[];
-  onEdit: (equipo: Equipo) => void;
-  onDelete: (equipo: Equipo) => void;
+  teams: Team[];
+  onEdit: (team: Team) => void;
+  onDelete: (team: Team) => void;
 }
 
-export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
-  if (equipos.length === 0) {
+export function TeamsGrid({ teams, onEdit, onDelete }: TeamsGridProps) {
+  if (teams.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
         <Icon name="Users" size={40} className="mb-3 opacity-40" />
@@ -65,14 +65,14 @@ export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
 
   return (
     <div className="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 lg:grid-cols-3">
-      {equipos.map((equipo, idx) => {
+      {teams.map((team, idx) => {
         const accent = ACCENT_COLORS[idx % ACCENT_COLORS.length];
-        const preview = equipo.miembros.slice(0, 6);
-        const extra = equipo.miembros.length - preview.length;
+        const preview = team.members.slice(0, 6);
+        const extra = team.members.length - preview.length;
 
         return (
           <SectionCard
-            key={equipo.id}
+            key={team.uid}
             noPadding
             className="group relative flex flex-col overflow-hidden hover:shadow-md transition-shadow"
           >
@@ -84,14 +84,14 @@ export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
               <div className="flex items-center gap-3 min-w-0">
                 <Avatar className="h-11 w-11 shrink-0">
                   <AvatarFallback className={`text-sm font-bold ${accent.avatar}`}>
-                    {getInitials(equipo.nombre)}
+                    {getInitials(team.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
-                  <p className="font-semibold text-foreground truncate">{equipo.nombre}</p>
+                  <p className="font-semibold text-foreground truncate">{team.name}</p>
                   <div className="flex items-center gap-1 mt-0.5">
                     <Icon name="Crown" size={11} className="text-muted-foreground shrink-0" />
-                    <p className="text-xs text-muted-foreground truncate">{equipo.liderNombre}</p>
+                    <p className="text-xs text-muted-foreground truncate">{team.leader_name}</p>
                   </div>
                 </div>
               </div>
@@ -100,26 +100,24 @@ export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
-                  onClick={() => onEdit(equipo)}
+                  className="h-7 w-7 cursor-pointer"
+                  onClick={() => onEdit(team)}
                 >
                   <Icon name="Pencil" size={14} />
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 cursor-pointer">
                       <Icon name="MoreHorizontal" size={14} />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(equipo)}>
-                      Editar equipo
-                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit(team)}>Editar equipo</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-red-600"
-                      onClick={() => onDelete(equipo)}
-                      disabled={equipo.totalMiembros > 0}
+                      onClick={() => onDelete(team)}
+                      disabled={team.members_count > 0}
                     >
                       Eliminar equipo
                     </DropdownMenuItem>
@@ -135,7 +133,7 @@ export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
                   Miembros
                 </span>
                 <Badge variant="soft" color="default" className="text-xs">
-                  {equipo.totalMiembros}
+                  {team.members_count}
                 </Badge>
               </div>
 
@@ -143,9 +141,9 @@ export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2.5">
                     {preview.map((m) => (
-                      <Avatar key={m.usuarioId} className="h-8 w-8 ring-2 ring-background">
+                      <Avatar key={m.user_uid} className="h-8 w-8 ring-2 ring-background">
                         <AvatarFallback className="text-xs bg-muted text-muted-foreground font-medium">
-                          {getInitials(m.usuarioNombre)}
+                          {getInitials(m.user_name)}
                         </AvatarFallback>
                       </Avatar>
                     ))}
@@ -161,8 +159,8 @@ export function TeamsTable({ equipos, onEdit, onDelete }: TeamsGridProps) {
 
             {/* Footer */}
             <button
-              onClick={() => onEdit(equipo)}
-              className="border-t border-border/30 px-5 py-2.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors text-left w-full"
+              onClick={() => onEdit(team)}
+              className="border-t border-border/30 px-5 py-2.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors text-left w-full cursor-pointer"
             >
               Gestionar miembros →
             </button>

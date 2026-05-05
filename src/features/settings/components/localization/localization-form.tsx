@@ -6,7 +6,7 @@ import { Button } from 'src/shared/components/ui/button';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
 import { Icon } from 'src/shared/components/ui/icon';
 
-import type { ConfigLocalizacion } from '../../types/settings.types';
+import type { LocalizationConfig } from '../../types/settings.types';
 
 const ZONAS_HORARIAS = [
   'America/Bogota',
@@ -51,9 +51,9 @@ const ZONA_OPTIONS = ZONAS_HORARIAS.map((tz) => ({ value: tz, label: tz }));
 const MONEDA_OPTIONS = MONEDAS.map((m) => ({ value: m.code, label: m.label }));
 
 interface LocalizationFormProps {
-  config: ConfigLocalizacion;
+  config: LocalizationConfig;
   isSaving: boolean;
-  onSave: (data: Partial<ConfigLocalizacion>) => Promise<boolean>;
+  onSave: (data: Partial<LocalizationConfig>) => Promise<boolean>;
 }
 
 export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormProps) {
@@ -61,15 +61,15 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
     control,
     handleSubmit,
     formState: { isDirty },
-  } = useForm<ConfigLocalizacion>({
+  } = useForm<LocalizationConfig>({
     defaultValues: config,
   });
 
   const [saved, setSaved] = React.useState(false);
 
-  const onSubmit = async (data: ConfigLocalizacion) => {
-    const monedaInfo = MONEDAS.find((m) => m.code === data.moneda);
-    const success = await onSave({ ...data, simboloMoneda: monedaInfo?.symbol ?? '$' });
+  const onSubmit = async (data: LocalizationConfig) => {
+    const monedaInfo = MONEDAS.find((m) => m.code === data.currency);
+    const success = await onSave({ ...data, currency_symbol: monedaInfo?.symbol ?? '$' });
     if (success) {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
@@ -81,33 +81,33 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <FormSelectField
           control={control}
-          name="zonaHoraria"
+          name="timezone"
           label="Zona horaria"
           options={ZONA_OPTIONS}
         />
 
         <FormSelectField
           control={control}
-          name="moneda"
+          name="currency"
           label="Moneda principal"
           options={MONEDA_OPTIONS}
         />
 
         <FormSelectField
           control={control}
-          name="formatoFecha"
+          name="date_format"
           label="Formato de fecha"
           options={FORMATOS_FECHA}
         />
 
-        <FormSelectField control={control} name="idioma" label="Idioma" options={IDIOMAS} />
+        <FormSelectField control={control} name="locale" label="Idioma" options={IDIOMAS} />
       </div>
 
       <div className="flex items-center gap-3">
         <Button
           type="submit"
           disabled={!isDirty || isSaving}
-          className="bg-blue-600 hover:bg-blue-700 gap-2"
+          className="bg-blue-600 hover:bg-blue-700 gap-2 cursor-pointer"
         >
           <Icon name="Globe" size={15} />
           {isSaving ? 'Guardando...' : 'Guardar configuración'}

@@ -23,27 +23,27 @@ import {
 } from 'src/shared/components/ui/dropdown-menu';
 import { Icon } from 'src/shared/components/ui/icon';
 
-import type { Rol } from '../../types/settings.types';
+import type { Role } from '../../types/settings.types';
 
-const columnHelper = createColumnHelper<Rol>();
+const columnHelper = createColumnHelper<Role>();
 
 interface RolesTableProps {
-  roles: Rol[];
-  onEdit: (rol: Rol) => void;
-  onDelete: (rol: Rol) => void;
+  roles: Role[];
+  onEdit: (role: Role) => void;
+  onDelete: (role: Role) => void;
 }
 
 export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
   const COLUMNS = useMemo(
     () => [
-      columnHelper.accessor('nombre', {
+      columnHelper.accessor('name', {
         header: 'Rol',
         cell: (info) => {
-          const rol = info.row.original;
+          const role = info.row.original;
           return (
             <div className="flex items-center gap-2">
-              <p className="font-medium text-foreground text-sm">{rol.nombre}</p>
-              {rol.esDefecto && (
+              <p className="font-medium text-foreground text-sm">{role.name}</p>
+              {role.is_default && (
                 <Badge variant="soft" color="default" className="text-xs">
                   Por defecto
                 </Badge>
@@ -52,33 +52,33 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
           );
         },
       }),
-      columnHelper.accessor('descripcion', {
+      columnHelper.accessor('description', {
         header: 'Descripción',
         cell: (info) => (
           <p className="text-sm text-muted-foreground truncate max-w-[220px]">{info.getValue()}</p>
         ),
       }),
-      columnHelper.accessor('permisos', {
+      columnHelper.accessor('permissions', {
         header: 'Módulos con acceso',
         cell: (info) => {
-          const permisos = info.getValue();
+          const perms = info.getValue();
           return (
             <div className="flex flex-wrap gap-1">
-              {permisos.slice(0, 3).map((p) => (
-                <Badge key={p.moduloId} variant="outline" className="text-xs">
-                  {p.moduloNombre}
+              {perms.slice(0, 3).map((p) => (
+                <Badge key={p.module_uid} variant="outline" className="text-xs">
+                  {p.module_name}
                 </Badge>
               ))}
-              {permisos.length > 3 && (
+              {perms.length > 3 && (
                 <Badge variant="outline" className="text-xs text-muted-foreground">
-                  +{permisos.length - 3}
+                  +{perms.length - 3}
                 </Badge>
               )}
             </div>
           );
         },
       }),
-      columnHelper.accessor('totalUsuarios', {
+      columnHelper.accessor('total_users', {
         header: 'Usuarios',
         cell: (info) => <span className="font-medium text-foreground">{info.getValue()}</span>,
       }),
@@ -86,10 +86,10 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
         id: 'acciones',
         header: 'Acciones',
         cell: (info) => {
-          const rol = info.row.original;
+          const role = info.row.original;
           return (
             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(rol)}>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(role)}>
                 <Icon name="Pencil" size={14} />
               </Button>
               <DropdownMenu>
@@ -99,12 +99,12 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit(rol)}>Editar permisos</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEdit(role)}>Editar permisos</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="text-red-600"
-                    onClick={() => onDelete(rol)}
-                    disabled={rol.esDefecto || rol.totalUsuarios > 0}
+                    onClick={() => onDelete(role)}
+                    disabled={role.is_default || role.total_users > 0}
                   >
                     Eliminar rol
                   </DropdownMenuItem>

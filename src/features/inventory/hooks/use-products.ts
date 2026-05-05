@@ -1,19 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { inventoryProductService } from 'src/features/inventory/services/inventory-product.service';
 import { inventoryStockService } from 'src/features/inventory/services/inventory-stock.service';
 import type {
   CreateProductPayload,
   InventoryCategory,
-  InventoryMasterItem,
   InventoryMasterSummary,
 } from 'src/features/inventory/types/inventory.types';
-import { cache } from 'src/lib/cache';
-
-const PRODUCTS_KEY = 'inventory:products';
-const CATEGORIES_KEY = 'inventory:categories';
+import { queryKeys } from 'src/lib/query-keys';
 
 const EMPTY_SUMMARY: InventoryMasterSummary = {
   products: 0,
@@ -25,78 +21,64 @@ const EMPTY_SUMMARY: InventoryMasterSummary = {
 };
 
 export function useProducts() {
-  const [items, setItems] = useState<InventoryMasterItem[]>(
-    cache.get<InventoryMasterItem[]>(PRODUCTS_KEY) ?? []
-  );
-  const [summary, setSummary] = useState<InventoryMasterSummary>(EMPTY_SUMMARY);
-  const [categories, setCategories] = useState<InventoryCategory[]>(
-    cache.get<InventoryCategory[]>(CATEGORIES_KEY) ?? []
-  );
-  const [isLoading, setIsLoading] = useState(!cache.get(PRODUCTS_KEY));
+  const queryClient = useQueryClient();
 
-  const refetch = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [masterRes, cats] = await Promise.all([
-        inventoryProductService.master(),
-        inventoryStockService.categories(),
-      ]);
-      const normalized = masterRes.data.map((p) => ({ ...p, stocks: p.stocks ?? [] }));
-      cache.set(PRODUCTS_KEY, normalized);
-      cache.set(CATEGORIES_KEY, cats);
-      setItems(normalized);
-      setSummary({ ...EMPTY_SUMMARY, ...masterRes.summary });
-      setCategories(cats);
-    } catch {
-      toast.error('Error al cargar productos');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: queryKeys.inventory.products,
+    queryFn: async () => {
+      const masterRes = await inventoryProductService.master();
+      return masterRes.data.map((p) => ({ ...p, stocks: p.stocks ?? [] }));
+    },
+  });
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const { data: masterRes } = useQuery({
+    queryKey: ['inventory', 'products', 'summary'],
+    queryFn: () => inventoryProductService.master(),
+  });
+  const summary: InventoryMasterSummary = { ...EMPTY_SUMMARY, ...masterRes?.summary };
 
-  const createProduct = useCallback(async (payload: CreateProductPayload) => {
-    const created = await inventoryProductService.create(payload);
-    setItems((prev) => {
-      const next = [...prev, created];
-      cache.set(PRODUCTS_KEY, next);
-      return next;
-    });
-    setSummary((prev) => ({ ...prev, products: prev.products + 1 }));
-    return created;
-  }, []);
+  const { data: categories = [] } = useQuery({
+    queryKey: queryKeys.inventory.categories,
+    queryFn: () => inventoryStockService.categories(),
+  });
 
-  const updateProduct = useCallback(async (uid: string, payload: Partial<CreateProductPayload>) => {
-    const updated = await inventoryProductService.update(uid, payload);
-    setItems((prev) => {
-      const next = prev.map((p) => (p.uid === uid ? updated : p));
-      cache.set(PRODUCTS_KEY, next);
-      return next;
-    });
-    return updated;
-  }, []);
+  const createProduct = useMutation({
+    mutationFn: (payload: CreateProductPayload) => inventoryProductService.create(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.products });
+      toast.success('Producto creado');
+    },
+    onError: () => toast.error('Error al crear producto'),
+  });
 
-  const removeProduct = useCallback(async (uid: string) => {
-    await inventoryProductService.remove(uid);
-    setItems((prev) => {
-      const next = prev.filter((p) => p.uid !== uid);
-      cache.set(PRODUCTS_KEY, next);
-      return next;
-    });
-    setSummary((prev) => ({ ...prev, products: Math.max(0, prev.products - 1) }));
-  }, []);
+  const updateProduct = useMutation({
+    mutationFn: ({ uid, payload }: { uid: string; payload: Partial<CreateProductPayload> }) =>
+      inventoryProductService.update(uid, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.products });
+      toast.success('Producto actualizado');
+    },
+    onError: () => toast.error('Error al actualizar producto'),
+  });
+
+  const removeProduct = useMutation({
+    mutationFn: (uid: string) => inventoryProductService.remove(uid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.products });
+      toast.success('Producto eliminado');
+    },
+    onError: () => toast.error('Error al eliminar producto'),
+  });
 
   return {
     items,
     summary,
-    categories,
+    categories: categories as InventoryCategory[],
     isLoading,
-    refetch,
-    createProduct,
-    updateProduct,
-    removeProduct,
+    refetch: () => queryClient.invalidateQueries({ queryKey: queryKeys.inventory.products }),
+    createProduct: (payload: CreateProductPayload) => createProduct.mutateAsync(payload),
+    updateProduct: (uid: string, payload: Partial<CreateProductPayload>) =>
+      updateProduct.mutateAsync({ uid, payload }),
+    removeProduct: (uid: string) => removeProduct.mutateAsync(uid),
   };
 }

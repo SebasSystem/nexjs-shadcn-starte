@@ -3,7 +3,6 @@
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import { PROJECT_STATUS_CONFIG } from 'src/_mock/_projects';
 import { formatDate } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
 import { paths } from 'src/routes/paths';
@@ -28,7 +27,8 @@ import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
 import { ProjectDrawer } from '../components/ProjectDrawer';
 import { ProjectStatusBadge } from '../components/ProjectStatusBadge';
 import { useProjects } from '../hooks/useProjects';
-import type { Project, ProjectStatus } from '../types';
+import type { Project, ProjectPayload, ProjectStatus } from '../types';
+import { PROJECT_STATUS_CONFIG } from '../types';
 
 // ─── Column helper ────────────────────────────────────────────────────────────
 
@@ -49,7 +49,7 @@ function getProgressColor(progress: number, status: ProjectStatus) {
 
 export function ProjectsView() {
   const router = useRouter();
-  const { projects, stats, createProject, updateProject, cancelProject } = useProjects();
+  const { projects, stats, createProject, updateProject } = useProjects();
 
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -62,7 +62,7 @@ export function ProjectsView() {
       const matchSearch =
         !search ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.clientName.toLowerCase().includes(search.toLowerCase());
+        p.client_name.toLowerCase().includes(search.toLowerCase());
       const matchStatus = filterStatus === 'all' || p.status === filterStatus;
       return matchSearch && matchStatus;
     });
@@ -75,7 +75,7 @@ export function ProjectsView() {
         cell: (info) => (
           <div>
             <p className="text-subtitle2 text-foreground font-medium">{info.getValue()}</p>
-            <p className="text-caption text-muted-foreground">{info.row.original.clientName}</p>
+            <p className="text-caption text-muted-foreground">{info.row.original.client_name}</p>
           </div>
         ),
       }),
@@ -87,13 +87,13 @@ export function ProjectsView() {
         header: 'Manager',
         cell: (info) => <span className="text-body2">{info.getValue()}</span>,
       }),
-      columnHelper.accessor('startDate', {
+      columnHelper.accessor('start_date', {
         header: 'Inicio',
         cell: (info) => (
           <span className="text-body2 text-muted-foreground">{formatDate(info.getValue())}</span>
         ),
       }),
-      columnHelper.accessor('endDate', {
+      columnHelper.accessor('end_date', {
         header: 'Fin est.',
         cell: (info) => {
           const date = new Date(info.getValue());
@@ -138,7 +138,7 @@ export function ProjectsView() {
         cell: (info) => (
           <button
             className="text-muted-foreground hover:text-primary transition-colors"
-            onClick={() => router.push(paths.projects.detail(info.row.original.id))}
+            onClick={() => router.push(paths.projects.detail(info.row.original.uid))}
           >
             <Icon name="Eye" size={15} />
           </button>
@@ -188,6 +188,13 @@ export function ProjectsView() {
       iconClassName: 'bg-error/10 text-error',
     },
   ];
+
+  const handleCreate = async (payload: ProjectPayload) => createProject(payload);
+  const handleUpdate = async (uid: string, changes: Partial<ProjectPayload>) =>
+    updateProject(uid, changes);
+  const handleCancel = (uid: string) => {
+    updateProject(uid, { status: 'cancelled' as ProjectStatus });
+  };
 
   return (
     <PageContainer>
@@ -285,9 +292,9 @@ export function ProjectsView() {
         mode={drawerMode}
         project={selectedProject}
         onClose={() => setDrawerOpen(false)}
-        onCreate={createProject}
-        onUpdate={updateProject}
-        onCancel={cancelProject}
+        onCreate={handleCreate}
+        onUpdate={handleUpdate}
+        onCancel={handleCancel}
       />
     </PageContainer>
   );

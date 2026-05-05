@@ -79,7 +79,10 @@ export function DashboardSkeleton() {
       {/* Cotizaciones */}
       <SectionCard noPadding>
         <div className="px-5 pt-5 pb-4">
-          <SectionTitle title="Últimas Cotizaciones" subtitle="Cotizaciones creadas recientemente" />
+          <SectionTitle
+            title="Últimas Cotizaciones"
+            subtitle="Cotizaciones creadas recientemente"
+          />
         </div>
         <TableContainer>
           <Table>

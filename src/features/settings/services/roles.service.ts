@@ -1,42 +1,42 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
 
-import type { Rol } from '../types/settings.types';
+import type { Role } from '../types/settings.types';
 
-function mapRol(raw: Record<string, unknown>): Rol {
+function mapRole(raw: Record<string, unknown>): Role {
   return {
-    id: raw.uid as string,
-    nombre: raw.name as string,
-    descripcion: (raw.description as string) ?? '',
-    totalUsuarios: 0, // no viene en la respuesta del backend
-    permisos: [], // se carga por separado con GET /rbac/permissions
-    esDefecto: (raw.is_system as boolean) ?? false,
-    creadoEn: (raw.created_at as string) ?? new Date().toISOString(),
+    uid: raw.uid as string,
+    name: raw.name as string,
+    description: (raw.description as string) ?? '',
+    total_users: 0, // not returned by the backend
+    permissions: [], // loaded separately via GET /rbac/permissions
+    is_default: (raw.is_system as boolean) ?? false,
+    created_at: (raw.created_at as string) ?? new Date().toISOString(),
   };
 }
 
 export const rolesService = {
-  async getAll(): Promise<Rol[]> {
+  async getAll(): Promise<Role[]> {
     const res = await axiosInstance.get(endpoints.rbac.roles);
     const payload = res.data?.data ?? res.data;
-    return (Array.isArray(payload) ? payload : []).map(mapRol);
+    return (Array.isArray(payload) ? payload : []).map(mapRole);
   },
 
-  async create(data: Omit<Rol, 'id' | 'creadoEn' | 'totalUsuarios'>): Promise<Rol> {
+  async create(data: Omit<Role, 'uid' | 'created_at' | 'total_users'>): Promise<Role> {
     const res = await axiosInstance.post(endpoints.rbac.roles, {
-      name: data.nombre,
-      description: data.descripcion,
+      name: data.name,
+      description: data.description,
     });
     const payload = res.data?.data ?? res.data;
-    return mapRol(payload);
+    return mapRole(payload);
   },
 
-  async update(id: string, data: Partial<Rol>): Promise<Rol> {
+  async update(id: string, data: Partial<Role>): Promise<Role> {
     const res = await axiosInstance.put(endpoints.rbac.role(id), {
-      name: data.nombre,
-      description: data.descripcion,
+      name: data.name,
+      description: data.description,
     });
     const payload = res.data?.data ?? res.data;
-    return mapRol(payload);
+    return mapRole(payload);
   },
 
   async delete(id: string): Promise<void> {

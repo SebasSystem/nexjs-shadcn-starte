@@ -1,48 +1,36 @@
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+'use client';
 
-import { ProductivityService } from '../services/productivity.service';
-import type { Interaccion, TipoInteraccion } from '../types/productivity.types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from 'src/lib/query-keys';
 
-export const useInteractions = (contactoId: string) => {
-  const [data, setData] = useState<Interaccion[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+import { productivityService } from '../services/productivity.service';
+import type { InteractionType } from '../types/productivity.types';
 
-  const fetchItems = useCallback(async () => {
+export function useInteractions(contactUid: string) {
+  const queryClient = useQueryClient();
+
+  const queryKey = queryKeys.productivity.interactions.byContact(contactUid);
+
+  const { data: interactions = [], isLoading } = useQuery({
+    queryKey,
+    queryFn: () => productivityService.listInteractions(contactUid),
+    enabled: !!contactUid,
+  });
+
+  const addInteraction = async (type: InteractionType, content: string): Promise<boolean> => {
     try {
-      setIsLoading(true);
-      const items = await ProductivityService.getInteracciones(contactoId);
-      setData(items);
-    } catch {
-      toast.error('Error al cargar interacciones');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [contactoId]);
-
-  useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
-
-  const addInteraccion = async (tipo: TipoInteraccion, contenido: string) => {
-    try {
-      setIsSubmitting(true);
-      await ProductivityService.createInteraccion({
-        contactoId,
-        tipo,
-        contenido,
-      });
-      await fetchItems();
-      toast.success('Interacción registrada exitosamente');
+      await productivityService.createInteraction(contactUid, { type, content });
+      queryClient.invalidateQueries({ queryKey });
       return true;
     } catch {
-      toast.error('Error al registrar interacción');
       return false;
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  return { data, isLoading, isSubmitting, addInteraccion, refresh: fetchItems };
-};
+  return {
+    data: interactions,
+    isLoading,
+    addInteraction,
+    refetch: () => queryClient.invalidateQueries({ queryKey }),
+  };
+}

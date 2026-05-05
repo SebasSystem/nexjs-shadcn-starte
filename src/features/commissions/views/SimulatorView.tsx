@@ -1,7 +1,8 @@
 'use client';
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { usePlans } from 'src/features/commissions/hooks/use-plans';
 import { useSimulator } from 'src/features/commissions/hooks/use-simulator';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
@@ -15,52 +16,77 @@ import {
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 
-type TramoDesglose = {
-  tramoInfo: string;
-  rangoTxt: string;
-  porcentaje: number;
-  montoQueEntraEnTramo: number;
-  comisionGenerada: number;
-};
+import type { SimulateBreakdownItem } from '../services/commission.service';
 
+type TramoDesglose = SimulateBreakdownItem;
 const columnHelper = createColumnHelper<TramoDesglose>();
 
 export const SimulatorView = () => {
   const [acordeonAbierto, setAcordeonAbierto] = useState(false);
+  const { plans } = usePlans();
 
   const {
-    plan,
-    ventasAcumuladas,
-    setVentasAcumuladas,
-    ventaHipotetica,
-    setVentaHipotetica,
-    desglose,
-    totalComisionHipotetica,
-    tramoActual,
+    planUid,
+    setPlanUid,
+    accumulatedSales,
+    setAccumulatedSales,
+    hypotheticalSale,
+    setHypotheticalSale,
+    breakdown,
+    totalCommission,
+    currentTier,
+    isSimulating,
+    simulate,
     resetForm,
   } = useSimulator();
 
+  // Default to first active plan
+  useEffect(() => {
+    const activePlans = plans.filter((p) => p.status === 'ACTIVO');
+    if (activePlans.length > 0 && !planUid) {
+      setPlanUid(activePlans[0].uid);
+    }
+  }, [plans, planUid, setPlanUid]);
+
+  // Auto-simulate when values change
+  const simulateRef = useRef(simulate);
+
+  useEffect(() => {
+    simulateRef.current = simulate;
+  });
+
+  useEffect(() => {
+    if (hypotheticalSale > 0 || accumulatedSales > 0) {
+      simulateRef.current();
+    }
+  }, [hypotheticalSale, accumulatedSales, planUid]);
+
+  const selectedPlan = plans.find((p) => p.uid === planUid);
+
   // Calcular cuánto falta para el siguiente tramo
   const siguienteTramo = (() => {
-    if (!tramoActual || tramoActual.hasta === null) return null;
-    const tramosOrdenados = [...plan.tramos].sort((a, b) => a.desde - b.desde);
-    const idxActual = tramosOrdenados.findIndex((t) => t.id === tramoActual.id);
-    if (idxActual === -1 || idxActual >= tramosOrdenados.length - 1) return null;
-    const siguiente = tramosOrdenados[idxActual + 1];
-    const falta = tramoActual.hasta + 1 - ventasAcumuladas;
-    return { tramo: siguiente, faltaMonto: Math.max(0, falta), numero: idxActual + 2 };
+    if (!selectedPlan || !currentTier || selectedPlan.tiers.length <= 1) return null;
+    const tiersSorted = [...selectedPlan.tiers].sort((a, b) => a.threshold - b.threshold);
+    const currentIdx = tiersSorted.findIndex((t) => t.threshold === currentTier.amountInTier);
+    if (currentIdx >= 0 && currentIdx < tiersSorted.length - 1) {
+      const next = tiersSorted[currentIdx + 1];
+      const falta = next.threshold - accumulatedSales;
+      return { tramo: next, faltaMonto: Math.max(0, falta), numero: currentIdx + 2 };
+    }
+    return null;
   })();
 
-  const mostrarDesglose = ventaHipotetica > 0 || ventasAcumuladas > 0;
+  const mostrarDesglose = (hypotheticalSale > 0 || accumulatedSales > 0) && breakdown.length > 0;
 
   const COLUMNS = useMemo(
     () => [
-      columnHelper.accessor('tramoInfo', {
+      columnHelper.accessor('tierInfo', {
         header: 'Tramo / Rango',
         cell: (info) => {
           const row = info.row.original;
-          const aplica = row.montoQueEntraEnTramo > 0;
+          const aplica = row.amountInTier > 0;
           return (
             <div>
               <div
@@ -68,18 +94,18 @@ export const SimulatorView = () => {
               >
                 {info.getValue()}
               </div>
-              <div className="text-xs text-muted-foreground">{row.rangoTxt}</div>
+              <div className="text-xs text-muted-foreground">{row.rangeText}</div>
             </div>
           );
         },
       }),
-      columnHelper.accessor('porcentaje', {
+      columnHelper.accessor('percent', {
         header: 'Apl. %',
         cell: (info) => (
           <div className="text-center font-medium text-muted-foreground">{info.getValue()}%</div>
         ),
       }),
-      columnHelper.accessor('montoQueEntraEnTramo', {
+      columnHelper.accessor('amountInTier', {
         header: 'Monto en Tramo',
         cell: (info) => (
           <div className="text-right text-muted-foreground">
@@ -87,7 +113,7 @@ export const SimulatorView = () => {
           </div>
         ),
       }),
-      columnHelper.accessor('comisionGenerada', {
+      columnHelper.accessor('commissionGenerated', {
         header: 'Comisión',
         cell: (info) => (
           <div className="text-right font-bold text-blue-600">
@@ -100,11 +126,14 @@ export const SimulatorView = () => {
   );
 
   const { table } = useTable({
-    data: desglose,
+    data: breakdown,
     columns: COLUMNS,
-    // Disable pagination completely to show all tramos
     defaultRowsPerPage: 100,
   });
+
+  const planOptions = plans
+    .filter((p) => p.status === 'ACTIVO')
+    .map((p) => ({ value: p.uid, label: p.name }));
 
   return (
     <PageContainer fluid className="pb-10 min-w-0 w-full space-y-6">
@@ -122,30 +151,33 @@ export const SimulatorView = () => {
               Simulación
             </h3>
 
+            <SelectField
+              value={planUid}
+              onChange={(val) => setPlanUid(val as string)}
+              label="Plan de Comisión"
+              options={planOptions}
+            />
+
             <div className="space-y-2">
               <Input
                 label="Ventas acumuladas en el periodo"
                 hint="Ingresa las ventas ya realizadas en el mes actual"
                 type="number"
-                value={ventasAcumuladas || ''}
-                onChange={(e) => setVentasAcumuladas(Number(e.target.value))}
+                value={accumulatedSales || ''}
+                onChange={(e) => setAccumulatedSales(Number(e.target.value))}
                 placeholder="0.00"
                 size="lg"
                 leftIcon={<span className="text-muted-foreground font-medium">$</span>}
                 inputClassName="text-lg"
               />
               {/* Indicador de tramo actual — feedback inmediato */}
-              {tramoActual && (
+              {currentTier && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg text-sm transition-colors">
                   <span className="text-indigo-500 font-bold">📍</span>
                   <span className="text-indigo-700 font-medium">
-                    Estás en Tramo {tramoActual.numero} — {tramoActual.porcentajeAplicado}% de
-                    comisión
+                    Estás en {currentTier.tierInfo} — {currentTier.percent}% de comisión
                   </span>
-                  <span className="text-indigo-500 text-xs ml-auto">
-                    ${tramoActual.desde.toLocaleString()} –{' '}
-                    {tramoActual.hasta ? '$' + tramoActual.hasta.toLocaleString() : '∞'}
-                  </span>
+                  <span className="text-indigo-500 text-xs ml-auto">{currentTier.rangeText}</span>
                 </div>
               )}
             </div>
@@ -155,8 +187,8 @@ export const SimulatorView = () => {
                 label="Venta hipotética a simular"
                 hint="¿Cuánto más esperas vender?"
                 type="number"
-                value={ventaHipotetica || ''}
-                onChange={(e) => setVentaHipotetica(Number(e.target.value))}
+                value={hypotheticalSale || ''}
+                onChange={(e) => setHypotheticalSale(Number(e.target.value))}
                 placeholder="0.00"
                 size="lg"
                 leftIcon={<span className="text-blue-600 font-bold">$</span>}
@@ -174,23 +206,26 @@ export const SimulatorView = () => {
             Nueva Simulación
           </Button>
 
-          <div className="mt-4 bg-muted/20 p-4 rounded-lg border text-sm">
-            <p className="font-semibold text-foreground mb-1">
-              📋 Plan aplicado: &quot;{plan.nombre}&quot;
-            </p>
-            <p className="text-muted-foreground">
-              Tipo: {plan.tipo === 'VENTA' ? 'Por Venta' : plan.tipo}
-            </p>
-            <p className="text-muted-foreground">
-              Base: {plan.porcentajeBase}% | Tramos: {plan.tramos.length} configurados
-            </p>
-            <a
-              href="/hr/commissions/plans"
-              className="text-blue-600 text-xs font-medium mt-2 inline-block hover:underline"
-            >
-              Ver detalle del plan →
-            </a>
-          </div>
+          {selectedPlan && (
+            <div className="mt-4 bg-muted/20 p-4 rounded-lg border text-sm">
+              <p className="font-semibold text-foreground mb-1">
+                📋 Plan aplicado: &quot;{selectedPlan.name}&quot;
+              </p>
+              <p className="text-muted-foreground">
+                Tipo: {selectedPlan.type === 'VENTA' ? 'Por Venta' : selectedPlan.type}
+              </p>
+              <p className="text-muted-foreground">
+                Base: {selectedPlan.base_percentage}% | Tramos: {selectedPlan.tiers.length}{' '}
+                configurados
+              </p>
+              <a
+                href="/hr/commissions/plans"
+                className="text-blue-600 text-xs font-medium mt-2 inline-block hover:underline"
+              >
+                Ver detalle del plan →
+              </a>
+            </div>
+          )}
         </SectionCard>
 
         {/* Panel Derecho: Resultados */}
@@ -200,10 +235,10 @@ export const SimulatorView = () => {
               Comisión Total Proyectada
             </h3>
             <div className="text-5xl font-extrabold text-blue-600 tracking-tight">
-              ${totalComisionHipotetica.toLocaleString()}
+              {isSimulating ? '...' : `$${totalCommission.toLocaleString()}`}
             </div>
             <p className="text-sm text-muted-foreground mt-4 font-medium">
-              Sobre la venta hipotética de ${ventaHipotetica.toLocaleString()}
+              Sobre la venta hipotética de ${hypotheticalSale.toLocaleString()}
             </p>
           </SectionCard>
 
@@ -234,10 +269,10 @@ export const SimulatorView = () => {
                         TOTAL
                       </TableCell>
                       <TableCell className="px-6 py-4 text-right font-medium text-muted-foreground">
-                        ${ventaHipotetica.toLocaleString()}
+                        ${hypotheticalSale.toLocaleString()}
                       </TableCell>
                       <TableCell className="px-6 py-4 text-right font-bold text-blue-600 text-lg">
-                        ${totalComisionHipotetica.toLocaleString()}
+                        ${totalCommission.toLocaleString()}
                       </TableCell>
                     </TableRow>
                   </TableBody>
@@ -281,7 +316,7 @@ export const SimulatorView = () => {
                     para entrar al <span className="font-bold">Tramo {siguienteTramo.numero}</span>{' '}
                     con{' '}
                     <span className="font-bold text-green-700">
-                      {siguienteTramo.tramo.porcentajeAplicado}%
+                      {siguienteTramo.tramo.percentage}%
                     </span>{' '}
                     de comisión.
                   </p>
@@ -290,15 +325,15 @@ export const SimulatorView = () => {
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Progreso hacia el siguiente tramo</span>
                       <span className="font-medium">
-                        ${ventasAcumuladas.toLocaleString()} / $
-                        {siguienteTramo.tramo.desde.toLocaleString()}
+                        ${accumulatedSales.toLocaleString()} / $
+                        {siguienteTramo.tramo.threshold.toLocaleString()}
                       </span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
                       <div
                         className="bg-yellow-400 h-2 rounded-full transition-all duration-700"
                         style={{
-                          width: `${Math.min(100, (ventasAcumuladas / siguienteTramo.tramo.desde) * 100)}%`,
+                          width: `${Math.min(100, (accumulatedSales / siguienteTramo.tramo.threshold) * 100)}%`,
                         }}
                       />
                     </div>
@@ -311,14 +346,14 @@ export const SimulatorView = () => {
                     </span>{' '}
                     más, tu tasa sube al{' '}
                     <span className="font-semibold text-green-700">
-                      {siguienteTramo.tramo.porcentajeAplicado}%
+                      {siguienteTramo.tramo.percentage}%
                     </span>{' '}
                     — eso significa{' '}
                     <span className="font-bold text-blue-700">
                       +$
                       {(
                         siguienteTramo.faltaMonto *
-                        (siguienteTramo.tramo.porcentajeAplicado / 100)
+                        (siguienteTramo.tramo.percentage / 100)
                       ).toFixed(2)}
                     </span>{' '}
                     de comisión adicional por cada peso nuevo en ese tramo.

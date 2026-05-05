@@ -1,83 +1,71 @@
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+'use client';
 
-import { planesService } from '../services/plans.service';
-import type { PlanComision } from '../types/commissions.types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { queryKeys } from 'src/lib/query-keys';
+
+import {
+  type CreatePlanPayload,
+  plansService,
+  type UpdatePlanPayload,
+} from '../services/plans.service';
+import type { CommissionPlan } from '../types/commissions.types';
 
 export const usePlans = () => {
-  const [planes, setPlanes] = useState<PlanComision[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const queryClient = useQueryClient();
 
-  const fetchPlanes = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await planesService.getPlanes();
-      setPlanes(data);
-    } catch (error) {
-      toast.error('Error al cargar los planes de comisión');
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const {
+    data: plans = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.commissions.plans,
+    queryFn: () => plansService.getPlans(),
+  });
 
-  useEffect(() => {
-    fetchPlanes();
-  }, [fetchPlanes]);
-
-  const addPlan = async (data: Omit<PlanComision, 'id'>) => {
-    setIsSubmitting(true);
-    try {
-      const newPlan = await planesService.createPlan(data);
-      setPlanes((prev) => [...prev, newPlan]);
+  const createMutation = useMutation({
+    mutationFn: (data: CreatePlanPayload) => plansService.createPlan(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.commissions.plans });
       toast.success('Plan creado correctamente');
-      return true;
-    } catch {
-      toast.error('Error al crear el plan');
-      return false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+    onError: () => toast.error('Error al crear el plan'),
+  });
 
-  const updatePlan = async (id: string, data: Partial<PlanComision>) => {
-    setIsSubmitting(true);
-    try {
-      const updated = await planesService.updatePlan(id, data);
-      setPlanes((prev) => prev.map((plan) => (plan.id === id ? { ...plan, ...updated } : plan)));
+  const updateMutation = useMutation({
+    mutationFn: ({ uid, data }: { uid: string; data: UpdatePlanPayload }) =>
+      plansService.updatePlan(uid, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.commissions.plans });
       toast.success('Plan actualizado correctamente');
-      return true;
-    } catch {
-      toast.error('Error al actualizar el plan');
-      return false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+    onError: () => toast.error('Error al actualizar el plan'),
+  });
 
-  const deletePlan = async (id: string) => {
-    setIsSubmitting(true);
-    try {
-      await planesService.deletePlan(id);
-      setPlanes((prev) => prev.filter((p) => p.id !== id));
+  const deleteMutation = useMutation({
+    mutationFn: (uid: string) => plansService.deletePlan(uid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.commissions.plans });
       toast.success('Plan eliminado correctamente');
-      return true;
-    } catch {
-      toast.error('Error al eliminar el plan');
-      return false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+    onError: () => toast.error('Error al eliminar el plan'),
+  });
 
   return {
-    planes,
+    plans,
     isLoading,
-    isSubmitting,
-    fetchPlanes,
-    addPlan,
-    updatePlan,
-    deletePlan,
+    isError,
+    isSubmitting: createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
+    fetchPlans: refetch,
+    createPlan: async (data: CreatePlanPayload): Promise<CommissionPlan> => {
+      return await createMutation.mutateAsync(data);
+    },
+    updatePlan: async (uid: string, data: UpdatePlanPayload): Promise<CommissionPlan> => {
+      return await updateMutation.mutateAsync({ uid, data });
+    },
+    deletePlan: async (uid: string): Promise<void> => {
+      await deleteMutation.mutateAsync(uid);
+    },
   };
 };

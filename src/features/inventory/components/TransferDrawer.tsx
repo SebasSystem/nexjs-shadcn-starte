@@ -165,18 +165,23 @@ export function TransferDrawer({
               onChange={(e) => setQuantity(e.target.value)}
               error={errors.quantity}
             />
-            {selectedProduct && fromWarehouseUid && toWarehouseUid && qty > 0 && !wouldGoNegative && (
-              <div className="rounded-lg bg-primary/5 border border-primary/20 px-3 py-2.5 mt-2">
-                <p className="text-caption text-muted-foreground">
-                  Origen quedará con{' '}
-                  <span className="font-semibold text-foreground">{availableInOrigin - qty}</span> uds · Destino tendrá{' '}
-                  <span className="font-semibold text-foreground">
-                    {(toStock?.available_stock ?? 0) + qty}
-                  </span>{' '}
-                  uds
-                </p>
-              </div>
-            )}
+            {selectedProduct &&
+              fromWarehouseUid &&
+              toWarehouseUid &&
+              qty > 0 &&
+              !wouldGoNegative && (
+                <div className="rounded-lg bg-primary/5 border border-primary/20 px-3 py-2.5 mt-2">
+                  <p className="text-caption text-muted-foreground">
+                    Origen quedará con{' '}
+                    <span className="font-semibold text-foreground">{availableInOrigin - qty}</span>{' '}
+                    uds · Destino tendrá{' '}
+                    <span className="font-semibold text-foreground">
+                      {(toStock?.available_stock ?? 0) + qty}
+                    </span>{' '}
+                    uds
+                  </p>
+                </div>
+              )}
           </div>
 
           <Textarea

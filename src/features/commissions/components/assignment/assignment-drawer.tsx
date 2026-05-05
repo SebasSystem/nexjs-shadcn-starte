@@ -16,14 +16,13 @@ import {
 } from 'src/shared/components/ui/sheet';
 
 import { type AssignmentForm, assignmentSchema } from '../../schemas/assignment.schema';
-import { type AsignacionPlan } from '../../types/commissions.types';
-import { type PlanComision } from '../../types/commissions.types';
+import type { CommissionAssignment, CommissionPlan } from '../../types/commissions.types';
 
 interface AssignmentDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  asignacion: AsignacionPlan | null;
-  planesDisponibles: PlanComision[];
+  asignacion: CommissionAssignment | null;
+  planesDisponibles: CommissionPlan[];
   onSave: (data: AssignmentForm) => Promise<boolean>;
 }
 
@@ -44,30 +43,30 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
     mode: 'onChange',
   });
 
-  const watchPlanId = useWatch({ control, name: 'planId' });
-  const planInfo = planesDisponibles.find((p) => p.id === watchPlanId);
+  const watchPlanId = useWatch({ control, name: 'plan_uid' });
+  const planInfo = planesDisponibles.find((p) => p.uid === watchPlanId);
 
   useEffect(() => {
     if (isOpen && asignacion) {
       reset({
-        id: asignacion.id,
-        vendedorId: asignacion.vendedorId,
-        vendedorNombre: asignacion.vendedorNombre,
-        equipoId: asignacion.equipoId,
-        equipoNombre: asignacion.equipoNombre,
-        planId: asignacion.planId || '',
-        planNombre: asignacion.planNombre || '',
-        fechaInicio: asignacion.fechaInicio || new Date().toISOString().split('T')[0],
-        fechaFin: asignacion.fechaFin || '',
-        estado: 'ACTIVO',
+        uid: asignacion.uid,
+        user_uid: asignacion.user_uid,
+        user_name: asignacion.user_name,
+        team_uid: asignacion.team_uid,
+        team_name: asignacion.team_name,
+        plan_uid: asignacion.plan_uid || '',
+        plan_name: asignacion.plan_name || '',
+        start_date: asignacion.start_date || new Date().toISOString().split('T')[0],
+        end_date: asignacion.end_date || '',
+        status: 'ACTIVO',
       });
     }
   }, [isOpen, asignacion, reset]);
 
   const onSubmit = async (data: AssignmentForm) => {
-    if (data.planId) {
-      const p = planesDisponibles.find((x) => x.id === data.planId);
-      if (p) data.planNombre = p.nombre;
+    if (data.plan_uid) {
+      const p = planesDisponibles.find((x) => x.uid === data.plan_uid);
+      if (p) data.plan_name = p.name;
     }
     const success = await onSave(data);
     if (success) onClose();
@@ -76,8 +75,8 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
   const planOptions = [
     { value: '', label: '-- Seleccionar Plan --' },
     ...planesDisponibles
-      .filter((p) => p.estado === 'ACTIVO')
-      .map((p) => ({ value: p.id, label: `${p.nombre} (${p.tipo})` })),
+      .filter((p) => p.status === 'ACTIVO')
+      .map((p) => ({ value: p.uid, label: `${p.name} (${p.type})` })),
   ];
 
   return (
@@ -86,11 +85,11 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg shrink-0">
-              {asignacion?.vendedorNombre.charAt(0)}
+              {asignacion?.user_name.charAt(0)}
             </div>
             <div>
-              <SheetTitle>{asignacion?.vendedorNombre}</SheetTitle>
-              <SheetDescription>Equipo: {asignacion?.equipoNombre}</SheetDescription>
+              <SheetTitle>{asignacion?.user_name}</SheetTitle>
+              <SheetDescription>Equipo: {asignacion?.team_name}</SheetDescription>
             </div>
           </div>
         </SheetHeader>
@@ -99,7 +98,7 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
           <div className="py-6 space-y-6">
             <FormSelectField
               control={control}
-              name="planId"
+              name="plan_uid"
               label="Plan de Comisión"
               required
               options={planOptions}
@@ -110,16 +109,16 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
                 <p className="font-semibold text-foreground mb-1">Resumen del Plan</p>
                 <ul className="text-muted-foreground space-y-1">
                   <li>
-                    Tipo: <span className="font-medium text-foreground">{planInfo.tipo}</span>
+                    Tipo: <span className="font-medium text-foreground">{planInfo.type}</span>
                   </li>
                   <li>
                     Base:{' '}
-                    <span className="font-medium text-foreground">{planInfo.porcentajeBase}%</span>
+                    <span className="font-medium text-foreground">{planInfo.base_percentage}%</span>
                   </li>
                   <li>
                     Tramos Escalonados:{' '}
                     <span className="font-medium text-foreground">
-                      {planInfo.tramos?.length} configurados
+                      {planInfo.tiers?.length} configurados
                     </span>
                   </li>
                 </ul>
@@ -129,12 +128,12 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <FormInput
                 control={control}
-                name="fechaInicio"
+                name="start_date"
                 type="date"
                 label="Vigencia Inicio"
                 required
               />
-              <FormInput control={control} name="fechaFin" type="date" label="Vigencia Fin" />
+              <FormInput control={control} name="end_date" type="date" label="Vigencia Fin" />
             </div>
           </div>
         </div>

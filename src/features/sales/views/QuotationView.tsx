@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
-import type { ProductLine, Quotation } from 'src/features/sales/types/sales.types';
+import type { Quotation, QuotationItem } from 'src/features/sales/types/sales.types';
 import { formatMoney } from 'src/lib/currency';
 import { paths } from 'src/routes/paths';
 import { PageContainer } from 'src/shared/components/layouts/page';
@@ -15,35 +15,32 @@ import { Input } from 'src/shared/components/ui/input';
 
 import { OpportunityTimeline } from '../components/OpportunityTimeline';
 import { useSalesContext } from '../context/SalesContext';
+import { useQuotationById } from '../hooks/useQuotation';
+import { STATUS_LABELS } from '../types/sales.types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function calcLineTotal(line: ProductLine): number {
-  return line.unitPrice * line.qty * (1 - line.discount / 100);
+function calcLineTotal(item: QuotationItem): number {
+  return item.list_unit_price * item.quantity * (1 - item.discount_percent / 100);
 }
 
-function calcTotals(products: ProductLine[]) {
-  const subtotal = products.reduce((s, p) => s + p.unitPrice * p.qty, 0);
-  const discount = products.reduce((s, p) => s + p.unitPrice * p.qty * (p.discount / 100), 0);
+function calcTotals(items: QuotationItem[]) {
+  const subtotal = items.reduce((s, p) => s + p.list_unit_price * p.quantity, 0);
+  const discount = items.reduce(
+    (s, p) => s + p.list_unit_price * p.quantity * (p.discount_percent / 100),
+    0
+  );
   const total = subtotal - discount;
-  const units = products.reduce((s, p) => s + p.qty, 0);
-  return { subtotal, discount, total, units, productCount: products.length };
+  const units = items.reduce((s, p) => s + p.quantity, 0);
+  return { subtotal, discount, total, units, productCount: items.length };
 }
 
-const STATUS_LABELS: Record<Quotation['status'], string> = {
-  borrador: 'Borrador',
-  enviada: 'Enviada al cliente',
-  aprobada: 'Aprobada',
-  rechazada: 'Rechazada',
-  convertida: 'Convertida a Factura',
-};
-
-const STATUS_COLORS: Record<Quotation['status'], string> = {
-  borrador: 'bg-amber-500/10 text-amber-600',
-  enviada: 'bg-blue-500/10 text-blue-600',
-  aprobada: 'bg-emerald-500/10 text-emerald-600',
-  rechazada: 'bg-red-500/10 text-red-600',
-  convertida: 'bg-purple-500/10 text-purple-600',
+const STATUS_COLORS: Record<string, string> = {
+  draft: 'bg-amber-500/10 text-amber-600',
+  sent: 'bg-blue-500/10 text-blue-600',
+  approved: 'bg-emerald-500/10 text-emerald-600',
+  rejected: 'bg-red-500/10 text-red-600',
+  cancelled: 'bg-purple-500/10 text-purple-600',
 };
 
 // ─── View ─────────────────────────────────────────────────────────────────────
@@ -54,89 +51,102 @@ interface QuotationViewProps {
 
 export function QuotationView({ quotationId }: QuotationViewProps) {
   const router = useRouter();
-  const {
-    opportunities,
-    getQuotationById,
-    getQuotationByOpportunity,
-    saveQuotation,
-    convertQuotationToInvoice,
-    getInvoiceByQuotation,
-  } = useSalesContext();
+  const { saveQuotation, convertQuotationToInvoice, invoices, opportunities } = useSalesContext();
+  const { quotation: apiQuotation } = useQuotationById(quotationId);
 
-  // Resolver la cotización: puede ser existente (por id) o nueva (desde opp)
-  const isOppId = quotationId.startsWith('opp-');
-  const actualOppId = isOppId ? quotationId : undefined;
+  // Find linked opportunity for timeline
+  const opp =
+    opportunities.find((o) => o.uid === quotationId) ??
+    (apiQuotation ? opportunities.find((o) => o.uid === apiQuotation.quoteable_uid) : undefined);
 
-  const existingById = !isOppId ? getQuotationById(quotationId) : undefined;
-  const existingByOpp = actualOppId ? getQuotationByOpportunity(actualOppId) : undefined;
-  const existing = existingById ?? existingByOpp;
+  // Load quotation from API or create a local draft — no useEffect needed
+  const [localQuotation, setLocalQuotation] = useState<Quotation | null>(() => {
+    if (apiQuotation) return apiQuotation;
+    // If no API quotation yet, create a local draft
+    return {
+      uid: `COT-${crypto.randomUUID().split('-')[0]}`,
+      quote_number: `COT-${crypto.randomUUID().split('-')[0]}`,
+      title: opp?.title ?? '',
+      status: 'draft',
+      currency: 'USD',
+      subtotal: 0,
+      discount_total: 0,
+      total: 0,
+      owner_user_uid: '',
+      created_by_user_uid: '',
+      items: [],
+      quoteable_type: 'opportunity',
+      quoteable_uid: quotationId,
+      notes: '',
+      created_at: new Date().toISOString().split('T')[0],
+      updated_at: new Date().toISOString(),
+    };
+  });
 
-  const opp = isOppId
-    ? opportunities.find((o) => o.id === actualOppId)
-    : existing?.opportunityId
-      ? opportunities.find((o) => o.id === existing.opportunityId)
-      : null;
-
-  const [quotation, setQuotation] = useState<Quotation>(
-    () =>
-      existing ?? {
-        id: `COT-${crypto.randomUUID().split('-')[0]}`,
-        opportunityId: actualOppId ?? opp?.id ?? '',
-        client: opp?.clientName ?? '',
-        priceList: 'B2C - Consumidor Final',
-        date: new Date().toISOString().split('T')[0],
-        seller: 'Admin Software',
-        status: 'borrador',
-        products: [],
-        internalNotes: '',
-      }
-  );
+  const quotation = localQuotation;
 
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
 
-  // ── Products ───────────────────────────────────────────────────────────────
+  // ── Items ────────────────────────────────────────────────────────────────────
 
   const addLine = useCallback(() => {
-    setQuotation((prev) => ({
-      ...prev,
-      products: [
-        ...prev.products,
-        {
-          id: `line-${crypto.randomUUID().split('-')[0]}`,
-          name: '',
-          sku: '',
-          qty: 1,
-          unitPrice: 0,
-          discount: 0,
-        },
-      ],
-    }));
+    setLocalQuotation((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        items: [
+          ...prev.items,
+          {
+            uid: `line-${crypto.randomUUID().split('-')[0]}`,
+            description: '',
+            sku: '',
+            quantity: 1,
+            list_unit_price: 0,
+            discount_percent: 0,
+            net_unit_price: 0,
+            line_total: 0,
+            discount_total: 0,
+          },
+        ],
+      };
+    });
   }, []);
 
-  const updateLine = useCallback((id: string, field: keyof ProductLine, rawValue: string) => {
-    setQuotation((prev) => ({
-      ...prev,
-      products: prev.products.map((p) => {
-        if (p.id !== id) return p;
-        const numFields: (keyof ProductLine)[] = ['qty', 'unitPrice', 'discount'];
-        const value = numFields.includes(field) ? Number(rawValue) : rawValue;
-        return { ...p, [field]: value };
-      }),
-    }));
+  const updateLine = useCallback((uid: string, field: keyof QuotationItem, rawValue: string) => {
+    setLocalQuotation((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        items: prev.items.map((item) => {
+          if (item.uid !== uid) return item;
+          const numFields: (keyof QuotationItem)[] = [
+            'quantity',
+            'list_unit_price',
+            'discount_percent',
+          ];
+          const value = numFields.includes(field) ? Number(rawValue) : rawValue;
+          return { ...item, [field]: value };
+        }),
+      };
+    });
   }, []);
 
-  const removeLine = useCallback((id: string) => {
-    setQuotation((prev) => ({
-      ...prev,
-      products: prev.products.filter((p) => p.id !== id),
-    }));
+  const removeLine = useCallback((uid: string) => {
+    setLocalQuotation((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        items: prev.items.filter((item) => item.uid !== uid),
+      };
+    });
   }, []);
 
-  // ── Actions ────────────────────────────────────────────────────────────────
+  // ── Actions ──────────────────────────────────────────────────────────────────
 
   const handleSave = async () => {
+    if (!quotation) return;
     setIsSaving(true);
     await new Promise((r) => setTimeout(r, 400));
     saveQuotation(quotation);
@@ -145,39 +155,58 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   };
 
   const handleSend = async () => {
+    if (!quotation) return;
     setIsSending(true);
     await new Promise((r) => setTimeout(r, 400));
-    const updated = { ...quotation, status: 'enviada' as const };
-    setQuotation(updated);
+    const updated = { ...quotation, status: 'sent' as const };
+    setLocalQuotation(updated);
     saveQuotation(updated);
     setIsSending(false);
     toast.success('Cotización enviada al cliente');
   };
 
   const handleReject = () => {
-    const updated = { ...quotation, status: 'rechazada' as const };
-    setQuotation(updated);
+    if (!quotation) return;
+    const updated = { ...quotation, status: 'rejected' as const };
+    setLocalQuotation(updated);
     saveQuotation(updated);
     toast.info('Cotización marcada como rechazada');
   };
 
   const handleConvert = async () => {
+    if (!quotation) return;
     setIsConverting(true);
     await new Promise((r) => setTimeout(r, 600));
-    const invoice = convertQuotationToInvoice(quotation.id);
-    saveQuotation({ ...quotation, status: 'convertida' });
-    router.push(paths.sales.invoice(invoice.id));
+    const invoice = await convertQuotationToInvoice(quotation.uid);
+    saveQuotation({ ...quotation, status: 'cancelled' });
+    if (invoice) {
+      router.push(paths.sales.invoice(invoice.uid));
+    }
   };
 
-  const invoice = getInvoiceByQuotation(quotation.id);
+  // Find linked invoice from context's invoices array
+  const invoice = quotation
+    ? invoices.find((inv) => inv.quotation_uid === quotation.uid)
+    : undefined;
 
-  const isBorrador = quotation.status === 'borrador';
-  const isEnviada = quotation.status === 'enviada' || quotation.status === 'aprobada';
-  const isConvertida = quotation.status === 'convertida';
-  const isRechazada = quotation.status === 'rechazada';
-  const isEditable = isBorrador;
+  // ── Loading guard ────────────────────────────────────────────────────────────
+  if (!quotation) {
+    return (
+      <PageContainer fluid className="pb-10">
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Cargando cotización…</p>
+        </div>
+      </PageContainer>
+    );
+  }
 
-  const totals = calcTotals(quotation.products);
+  const isDraft = quotation.status === 'draft';
+  const isSent = quotation.status === 'sent' || quotation.status === 'approved';
+  const isCancelled = quotation.status === 'cancelled';
+  const isRejected = quotation.status === 'rejected';
+  const isEditable = isDraft;
+
+  const totals = calcTotals(quotation.items);
 
   return (
     <PageContainer fluid className="pb-10">
@@ -192,19 +221,17 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             Volver al Pipeline
           </button>
           <div className="flex items-center gap-3">
-            <h1 className="text-h4 text-foreground">{quotation.id}</h1>
+            <h1 className="text-h4 text-foreground">{quotation.quote_number}</h1>
             <Badge
               variant="soft"
               className={`px-3 py-1 text-xs font-semibold rounded-full border-none ${
-                STATUS_COLORS[quotation.status]
+                STATUS_COLORS[quotation.status] ?? ''
               }`}
             >
-              {STATUS_LABELS[quotation.status]}
+              {STATUS_LABELS[quotation.status] ?? quotation.status}
             </Badge>
           </div>
-          <p className="text-body2 text-muted-foreground mt-1">
-            Detalle de oportunidad y cotización
-          </p>
+          <p className="text-body2 text-muted-foreground mt-1">{quotation.title}</p>
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 w-full md:w-auto shrink-0 mt-2 md:mt-0">
@@ -216,8 +243,8 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             Volver
           </Button>
 
-          {/* Borrador: guardar + enviar al cliente */}
-          {isBorrador && (
+          {/* Draft: save + send */}
+          {isDraft && (
             <>
               <Button variant="outline" onClick={handleSave} loading={isSaving}>
                 <Icon name="Save" size={16} />
@@ -235,7 +262,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
                 onClick={handleSend}
                 loading={isSending}
-                disabled={quotation.products.length === 0}
+                disabled={quotation.items.length === 0}
               >
                 <Icon name="Send" size={16} />
                 Enviar al cliente
@@ -243,8 +270,8 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             </>
           )}
 
-          {/* Enviada: ver preview + convertir a factura */}
-          {isEnviada && (
+          {/* Sent/Approved: preview + convert to invoice */}
+          {isSent && (
             <>
               <Button
                 variant="outline"
@@ -272,19 +299,19 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             </>
           )}
 
-          {/* Convertida: ver factura */}
-          {isConvertida && invoice && (
+          {/* Cancelled: view invoice */}
+          {isCancelled && invoice && (
             <Button
               className="bg-purple-600 hover:bg-purple-700 text-white font-semibold"
-              onClick={() => router.push(paths.sales.invoice(invoice.id))}
+              onClick={() => router.push(paths.sales.invoice(invoice.uid))}
             >
               <Icon name="FileText" size={16} />
               Ver Factura
             </Button>
           )}
 
-          {/* Rechazada: solo lectura */}
-          {isRechazada && (
+          {/* Rejected: read only */}
+          {isRejected && (
             <span className="text-sm text-muted-foreground italic px-2">
               Esta cotización fue rechazada
             </span>
@@ -296,7 +323,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
         {/* LEFT — Main content */}
         <div className="space-y-6">
-          {/* Información General */}
+          {/* General Info */}
           <Card className="border-none shadow-card">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-6">
@@ -307,39 +334,46 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <Input
-                  label="Cliente"
-                  required
-                  value={quotation.client}
-                  onChange={(e) => setQuotation((p) => ({ ...p, client: e.target.value }))}
-                  placeholder="Seleccionar cliente..."
+                  label="Título"
+                  value={quotation.title}
+                  onChange={(e) =>
+                    setLocalQuotation((p) => ({ ...p, title: e.target.value }) as Quotation)
+                  }
+                  placeholder="Título de la cotización"
                   disabled={!isEditable}
                 />
                 <Input
-                  label="Lista de Precios"
-                  value={quotation.priceList}
-                  onChange={(e) => setQuotation((p) => ({ ...p, priceList: e.target.value }))}
-                  placeholder="ej: B2C - Consumidor Final"
+                  label="Moneda"
+                  value={quotation.currency}
+                  onChange={(e) =>
+                    setLocalQuotation((p) => ({ ...p, currency: e.target.value }) as Quotation)
+                  }
+                  placeholder="USD"
                   disabled={!isEditable}
                 />
                 <Input
-                  label="Fecha"
+                  label="Fecha de creación"
                   type="date"
-                  value={quotation.date}
-                  onChange={(e) => setQuotation((p) => ({ ...p, date: e.target.value }))}
+                  value={quotation.created_at}
+                  onChange={(e) =>
+                    setLocalQuotation((p) => ({ ...p, created_at: e.target.value }) as Quotation)
+                  }
                   disabled={!isEditable}
                 />
                 <Input
-                  label="Vendedor"
-                  value={quotation.seller}
-                  onChange={(e) => setQuotation((p) => ({ ...p, seller: e.target.value }))}
-                  placeholder="María González"
+                  label="Válido hasta"
+                  type="date"
+                  value={quotation.valid_until ?? ''}
+                  onChange={(e) =>
+                    setLocalQuotation((p) => ({ ...p, valid_until: e.target.value }) as Quotation)
+                  }
                   disabled={!isEditable}
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Líneas de Producto */}
+          {/* Line Items */}
           <Card className="border-none shadow-card overflow-hidden py-0 gap-0">
             <div className="flex items-center justify-between px-6 py-5 border-b border-border/40">
               <div className="flex items-center gap-2">
@@ -379,7 +413,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {quotation.products.length === 0 ? (
+                  {quotation.items.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                         <div className="flex flex-col items-center gap-2">
@@ -391,25 +425,25 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                       </td>
                     </tr>
                   ) : (
-                    quotation.products.map((line, i) => (
+                    quotation.items.map((item, i) => (
                       <tr
-                        key={line.id}
+                        key={item.uid}
                         className={`group hover:bg-muted/10 transition-colors ${
-                          i < quotation.products.length - 1 && 'border-b border-border/40'
+                          i < quotation.items.length - 1 && 'border-b border-border/40'
                         }`}
                       >
                         <td className="px-6 py-4">
                           <input
                             className="w-full bg-transparent border-none outline-none font-medium text-foreground placeholder:text-muted-foreground/50 focus:ring-0"
-                            placeholder="Nombre del producto"
-                            value={line.name}
-                            onChange={(e) => updateLine(line.id, 'name', e.target.value)}
+                            placeholder="Descripción del producto"
+                            value={item.description}
+                            onChange={(e) => updateLine(item.uid, 'description', e.target.value)}
                           />
                           <input
                             className="w-full mt-1 bg-transparent border-none outline-none text-xs text-muted-foreground placeholder:text-muted-foreground/30 focus:ring-0"
                             placeholder="SKU"
-                            value={line.sku}
-                            onChange={(e) => updateLine(line.id, 'sku', e.target.value)}
+                            value={item.sku ?? ''}
+                            onChange={(e) => updateLine(item.uid, 'sku', e.target.value)}
                           />
                         </td>
                         <td className="px-4 py-4">
@@ -418,8 +452,8 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                               className="w-16 text-center border border-border/50 rounded-lg py-1.5 text-sm font-medium focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all"
                               type="number"
                               min={1}
-                              value={line.qty}
-                              onChange={(e) => updateLine(line.id, 'qty', e.target.value)}
+                              value={item.quantity}
+                              onChange={(e) => updateLine(item.uid, 'quantity', e.target.value)}
                             />
                           </div>
                         </td>
@@ -429,8 +463,10 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                             type="number"
                             min={0}
                             step={0.01}
-                            value={line.unitPrice}
-                            onChange={(e) => updateLine(line.id, 'unitPrice', e.target.value)}
+                            value={item.list_unit_price}
+                            onChange={(e) =>
+                              updateLine(item.uid, 'list_unit_price', e.target.value)
+                            }
                           />
                         </td>
                         <td className="px-4 py-4">
@@ -440,14 +476,16 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                               type="number"
                               min={0}
                               max={100}
-                              value={line.discount}
-                              onChange={(e) => updateLine(line.id, 'discount', e.target.value)}
+                              value={item.discount_percent}
+                              onChange={(e) =>
+                                updateLine(item.uid, 'discount_percent', e.target.value)
+                              }
                             />
                             <span className="text-muted-foreground text-xs">%</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right font-bold text-foreground">
-                          {formatMoney(calcLineTotal(line), {
+                          {formatMoney(calcLineTotal(item), {
                             scope: 'tenant',
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
@@ -455,7 +493,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                         </td>
                         <td className="px-4 py-4">
                           <button
-                            onClick={() => removeLine(line.id)}
+                            onClick={() => removeLine(item.uid)}
                             className="opacity-0 group-hover:opacity-100 p-2 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all"
                           >
                             <Icon name="Trash2" size={16} />
@@ -469,13 +507,25 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             </div>
           </Card>
 
-          {/* Oportunidad Timeline (Si hay contexto) */}
+          {/* Notes */}
+          {quotation.notes && (
+            <Card className="border-none shadow-card">
+              <CardContent className="p-6">
+                <h2 className="text-sm font-bold text-foreground mb-2">Notas internas</h2>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {quotation.notes}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Opportunity Timeline */}
           {opp ? <OpportunityTimeline opportunity={opp} /> : null}
         </div>
 
         {/* RIGHT — Sidebar */}
         <div className="space-y-6">
-          {/* Resumen */}
+          {/* Summary */}
           <Card className="border-none shadow-card py-0">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-5">
@@ -518,7 +568,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             </CardContent>
           </Card>
 
-          {/* Estadísticas */}
+          {/* Stats */}
           <Card className="border-none shadow-card bg-indigo-500 text-white dark:bg-indigo-600 gap-0 py-0">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-6">
@@ -539,57 +589,6 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
               </div>
             </CardContent>
           </Card>
-
-          {/* Estado del Lead / Próxima Actividad */}
-          {opp ? (
-            <Card className="border-none shadow-card py-0">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Icon name="TrendingUp" size={16} className="text-amber-500" />
-                  <h2 className="text-sm font-bold text-foreground">Estado del Lead</h2>
-                </div>
-
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1 block">
-                      Probabilidad
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-full bg-muted/30 rounded-full h-2">
-                        <div
-                          className="bg-primary h-2 rounded-full transition-all"
-                          style={{ width: `${opp.probability || 0}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-bold w-9 text-right">
-                        {opp.probability || 0}%
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1 block">
-                      Próxima Actividad
-                    </span>
-                    {opp.nextActivityAt ? (
-                      <div className="p-3 bg-indigo-500/10 rounded-lg text-sm border border-indigo-500/20 text-indigo-700 dark:text-indigo-400 font-medium">
-                        {new Date(opp.nextActivityAt).toLocaleString('es-ES', {
-                          day: '2-digit',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </div>
-                    ) : (
-                      <span className="text-sm text-foreground/60 italic">Sin programar</span>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {/* Notas Internas Ocultado, pues ahora TODO vive en el Timeline Principal */}
         </div>
       </div>
     </PageContainer>

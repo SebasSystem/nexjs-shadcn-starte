@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MOCK_COMPETITORS } from 'src/_mock/_intelligence';
+import type { Competitor } from 'src/features/intelligence/types';
 import { Button } from 'src/shared/components/ui/button';
 import {
   Dialog,
@@ -23,21 +23,28 @@ type Step = 'outcome' | 'reason';
 interface OutcomeDialogProps {
   open: boolean;
   clientName: string;
+  competitors: Competitor[];
   onConfirm: (outcome: 'ganado' | 'perdido', lostReason?: LostReasonInfo) => void;
   onCancel: () => void;
 }
 
-const COMPETITOR_OPTIONS = [
-  { value: '', label: 'Sin competidor identificado' },
-  ...MOCK_COMPETITORS.map((c) => ({ value: c.id, label: c.name })),
-];
+const DEFAULT_REASON = { category: 'price', competitor_uid: '', detail: '' };
 
-const DEFAULT_REASON = { category: 'price', competitorId: '', detail: '' };
-
-export function OutcomeDialog({ open, clientName, onConfirm, onCancel }: OutcomeDialogProps) {
+export function OutcomeDialog({
+  open,
+  clientName,
+  competitors,
+  onConfirm,
+  onCancel,
+}: OutcomeDialogProps) {
   const [step, setStep] = useState<Step>('outcome');
   const [reason, setReason] = useState(DEFAULT_REASON);
   const [error, setError] = useState('');
+
+  const competitorOptions = [
+    { value: '', label: 'Sin competidor identificado' },
+    ...competitors.map((c) => ({ value: c.uid, label: c.name })),
+  ];
 
   const reset = () => {
     setStep('outcome');
@@ -55,11 +62,11 @@ export function OutcomeDialog({ open, clientName, onConfirm, onCancel }: Outcome
       setError('Agregá un detalle sobre lo que pasó.');
       return;
     }
-    const competitor = MOCK_COMPETITORS.find((c) => c.id === reason.competitorId);
+    const competitor = competitors.find((c) => c.uid === reason.competitor_uid);
     onConfirm('perdido', {
       category: reason.category as LostReasonInfo['category'],
-      competitorId: reason.competitorId || undefined,
-      competitorName: competitor?.name,
+      competitor_uid: reason.competitor_uid || undefined,
+      competitor_name: competitor?.name,
       detail: reason.detail.trim(),
     });
     reset();
@@ -123,9 +130,9 @@ export function OutcomeDialog({ open, clientName, onConfirm, onCancel }: Outcome
               />
               <SelectField
                 label="Competidor que ganó"
-                options={COMPETITOR_OPTIONS}
-                value={reason.competitorId}
-                onChange={(v) => setReason((p) => ({ ...p, competitorId: v as string }))}
+                options={competitorOptions}
+                value={reason.competitor_uid}
+                onChange={(v) => setReason((p) => ({ ...p, competitor_uid: v as string }))}
                 clearable
                 placeholder="Sin competidor identificado"
               />

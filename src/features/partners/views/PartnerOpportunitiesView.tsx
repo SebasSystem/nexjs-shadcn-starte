@@ -3,7 +3,6 @@
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { PARTNER_OPP_STATUS_CONFIG } from 'src/_mock/_partners';
 import { formatDate } from 'src/lib/date';
 import {
   PageContainer,
@@ -26,6 +25,7 @@ import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/u
 import { PartnerOpportunityDrawer } from '../components/PartnerOpportunityDrawer';
 import { usePartners } from '../hooks/usePartners';
 import type { PartnerOpportunity } from '../types';
+import { PARTNER_OPP_STATUS_CONFIG } from '../types';
 
 // ─── Column helper ────────────────────────────────────────────────────────────
 
@@ -40,9 +40,8 @@ export function PartnerOpportunitiesView() {
     opportunityStats,
     createOpportunity,
     updateOpportunity,
-    approveOpportunity,
-    rejectOpportunity,
-    convertOpportunity,
+    validateOpportunity,
+    closeOpportunity,
   } = usePartners();
 
   const [search, setSearch] = useState('');
@@ -56,18 +55,18 @@ export function PartnerOpportunitiesView() {
     return opportunities.filter((o) => {
       const matchSearch =
         !search ||
-        o.partnerName.toLowerCase().includes(search.toLowerCase()) ||
-        o.clientName.toLowerCase().includes(search.toLowerCase()) ||
+        o.partner_name.toLowerCase().includes(search.toLowerCase()) ||
+        o.client_name.toLowerCase().includes(search.toLowerCase()) ||
         o.product.toLowerCase().includes(search.toLowerCase());
       const matchStatus = filterStatus === 'all' || o.status === filterStatus;
-      const matchPartner = filterPartner === 'all' || o.partnerId === filterPartner;
+      const matchPartner = filterPartner === 'all' || o.partner_uid === filterPartner;
       return matchSearch && matchStatus && matchPartner;
     });
   }, [opportunities, search, filterStatus, filterPartner]);
 
   const COLUMNS = useMemo(
     () => [
-      columnHelper.accessor('clientName', {
+      columnHelper.accessor('client_name', {
         header: 'Oportunidad',
         cell: (info) => (
           <div>
@@ -78,11 +77,11 @@ export function PartnerOpportunitiesView() {
           </div>
         ),
       }),
-      columnHelper.accessor('partnerName', {
+      columnHelper.accessor('partner_name', {
         header: 'Partner',
         cell: (info) => <span className="text-body2">{info.getValue()}</span>,
       }),
-      columnHelper.accessor('estimatedValue', {
+      columnHelper.accessor('estimated_value', {
         header: () => <div className="text-right w-full">Valor est.</div>,
         cell: (info) => (
           <div className="text-right">
@@ -93,13 +92,13 @@ export function PartnerOpportunitiesView() {
           </div>
         ),
       }),
-      columnHelper.accessor('registeredDate', {
+      columnHelper.accessor('registered_date', {
         header: 'Registrada',
         cell: (info) => (
           <span className="text-body2 text-muted-foreground">{formatDate(info.getValue())}</span>
         ),
       }),
-      columnHelper.accessor('assignedToInternal', {
+      columnHelper.accessor('assigned_to_internal', {
         header: 'Asignado a',
         cell: (info) => (
           <span className="text-body2 text-muted-foreground">{info.getValue() ?? '—'}</span>
@@ -120,7 +119,7 @@ export function PartnerOpportunitiesView() {
         id: 'actions',
         header: 'Acciones',
         cell: (info) => {
-          const { status, partnerName } = info.row.original;
+          const { status, partner_name } = info.row.original;
           return (
             <div className="flex items-center gap-2">
               {status === 'pending' && (
@@ -130,42 +129,36 @@ export function PartnerOpportunitiesView() {
                     color="success"
                     variant="soft"
                     className="h-6 text-[11px] px-2"
-                    onClick={() => {
-                      approveOpportunity(info.row.original.id);
-                      toast.success(
-                        `Oportunidad aprobada. ${partnerName} tiene exclusividad sobre este cliente.`
-                      );
+                    onClick={async () => {
+                      const ok = await validateOpportunity([info.row.original.uid]);
+                      if (ok) {
+                        toast.success(
+                          `Oportunidad validada. ${partner_name} tiene exclusividad sobre este cliente.`
+                        );
+                      } else {
+                        toast.error('Error al validar la oportunidad');
+                      }
                     }}
                   >
-                    Aprobar
+                    Validar
                   </Button>
                   <Button
                     size="sm"
                     color="error"
                     variant="soft"
                     className="h-6 text-[11px] px-2"
-                    onClick={() => {
-                      rejectOpportunity(info.row.original.id);
-                      toast.success('Oportunidad rechazada.');
+                    onClick={async () => {
+                      const ok = await closeOpportunity(info.row.original.uid);
+                      if (ok) {
+                        toast.success('Oportunidad cerrada.');
+                      } else {
+                        toast.error('Error al cerrar la oportunidad');
+                      }
                     }}
                   >
-                    Rechazar
+                    Cerrar
                   </Button>
                 </>
-              )}
-              {status === 'approved' && (
-                <Button
-                  size="sm"
-                  color="info"
-                  variant="soft"
-                  className="h-6 text-[11px] px-2"
-                  onClick={() => {
-                    convertOpportunity(info.row.original.id);
-                    toast.success('Oportunidad marcada como convertida al pipeline.');
-                  }}
-                >
-                  Convertir
-                </Button>
               )}
               <button
                 className="text-muted-foreground hover:text-primary transition-colors ml-1"
@@ -182,7 +175,7 @@ export function PartnerOpportunitiesView() {
         },
       }),
     ],
-    [approveOpportunity, rejectOpportunity, convertOpportunity]
+    [validateOpportunity, closeOpportunity]
   );
 
   const { table, dense, onChangeDense } = useTable({
@@ -311,7 +304,7 @@ export function PartnerOpportunitiesView() {
             label="Partner"
             options={[
               { value: 'all', label: 'Todos los partners' },
-              ...partners.map((p) => ({ value: p.id, label: p.name })),
+              ...partners.map((p) => ({ value: p.uid, label: p.name })),
             ]}
             value={filterPartner}
             onChange={(v) => setFilterPartner(v as string)}

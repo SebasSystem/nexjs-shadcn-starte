@@ -1,6 +1,7 @@
 'use client';
 
 import type { DashboardCoreData } from 'src/features/dashboard/types/dashboard.types';
+import { formatMoney } from 'src/lib/currency';
 import { Chart, useChart } from 'src/shared/components/chart';
 import { Icon } from 'src/shared/components/ui';
 
@@ -40,7 +41,7 @@ export function DashboardKpiCards({ data }: Props) {
     },
     {
       label: 'MRR Proyectado',
-      value: data.kpis.mrr > 0 ? `$${data.kpis.mrr.toLocaleString('es-AR')}` : '--',
+      value: data.kpis.mrr > 0 ? formatMoney(data.kpis.mrr, { maximumFractionDigits: 0 }) : '--',
       trendLabel: 'Este mes',
       trendUp: true,
       chartData: [0, 0, 0, 0, 0, 0, 0, 0, 0, data.kpis.mrr],

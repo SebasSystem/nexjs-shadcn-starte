@@ -18,27 +18,11 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
-// ─── Types & Mock Data ───────────────────────────────────────────────────────
+import { SalesPageSkeleton } from '../components/SalesPageSkeleton';
+import { useCurrencyRates } from '../hooks/useCurrencyRates';
+import type { CurrencyRate } from '../types/sales.types';
 
-type CurrencyRow = {
-  code: string;
-  name: string;
-  rate: string;
-  lastUpdate: string;
-  status: 'active' | 'outdated';
-};
-
-const INITIAL_CURRENCIES: CurrencyRow[] = [
-  { code: 'EUR', name: 'Euro', rate: '0.92', lastUpdate: '2024-01-13', status: 'outdated' },
-  {
-    code: 'COP',
-    name: 'Peso colombiano',
-    rate: '4000',
-    lastUpdate: '2024-01-15',
-    status: 'active',
-  },
-  { code: 'MXN', name: 'Peso mexicano', rate: '17.15', lastUpdate: '2024-01-15', status: 'active' },
-];
+// ─── Config ───────────────────────────────────────────────────────────────────
 
 const BASE_CURRENCY_OPTIONS = [
   { value: 'USD', label: 'USD — Dólar estadounidense' },
@@ -47,21 +31,25 @@ const BASE_CURRENCY_OPTIONS = [
   { value: 'COP', label: 'COP — Peso colombiano' },
 ];
 
-// ─── Column helper ────────────────────────────────────────────────────────────
-
-const columnHelper = createColumnHelper<CurrencyRow>();
+const columnHelper = createColumnHelper<CurrencyRate>();
 
 // ─── View ─────────────────────────────────────────────────────────────────────
 
 export function MultiCurrencyView() {
+  const { rates, setRates, isLoading } = useCurrencyRates();
   const [baseCurrency, setBaseCurrency] = useState(() => getCurrencyPreferences('tenant').currency);
-  const [currencies, setCurrencies] = useState<CurrencyRow[]>(INITIAL_CURRENCIES);
 
-  const updateRate = useCallback((code: string, value: string) => {
-    setCurrencies((prev) => prev.map((c) => (c.code === code ? { ...c, rate: value } : c)));
-  }, []);
+  const updateRate = useCallback(
+    (code: string, value: string) => {
+      const updated = rates.map((r) =>
+        r.code === code ? { ...r, rate: parseFloat(value) || r.rate } : r
+      );
+      setRates(updated);
+    },
+    [rates, setRates]
+  );
 
-  const hasOutdated = currencies.some((c) => c.status === 'outdated');
+  const hasOutdated = rates.some((r) => r.status === 'outdated');
 
   const columns = useMemo(
     () => [
@@ -95,14 +83,14 @@ export function MultiCurrencyView() {
                 value={row.rate}
                 step="0.01"
                 onChange={(e) => updateRate(row.code, e.target.value)}
-                className="w-28 text-center bg-muted/20 border border-border/50 rounded-lg px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                className="w-28 text-center bg-muted/20 border border-border/50 rounded-lg px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors cursor-text"
               />
               <span>{row.code}</span>
             </div>
           );
         },
       }),
-      columnHelper.accessor('lastUpdate', {
+      columnHelper.accessor('last_update', {
         header: () => <div className="text-center w-full">Última Actualización</div>,
         cell: (info) => <div className="text-center text-muted-foreground">{info.getValue()}</div>,
       }),
@@ -139,10 +127,18 @@ export function MultiCurrencyView() {
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: currencies,
+    data: rates,
     columns,
     defaultRowsPerPage: 10,
   });
+
+  if (isLoading)
+    return (
+      <SalesPageSkeleton
+        title="Configuración Multimoneda"
+        subtitle="Gestiona las monedas y tipos de cambio de tu sistema"
+      />
+    );
 
   return (
     <PageContainer className="pb-10">
@@ -151,7 +147,6 @@ export function MultiCurrencyView() {
         subtitle="Gestiona las monedas y tipos de cambio de tu sistema"
       />
 
-      {/* ── Moneda base ──────────────────────────────────────────────────── */}
       <SectionCard className="p-6">
         <h2 className="text-h6 text-foreground mb-4">Moneda base del sistema</h2>
         <div className="flex items-end gap-4">
@@ -167,7 +162,6 @@ export function MultiCurrencyView() {
         </div>
       </SectionCard>
 
-      {/* ── Tipo de cambio — TanStack ─────────────────────────────────────── */}
       <SectionCard noPadding>
         <div className="px-6 py-4">
           <h2 className="text-h6 text-foreground">Tipo de cambio</h2>
@@ -177,15 +171,26 @@ export function MultiCurrencyView() {
           <Table>
             <TableHeadCustom table={table} />
             <TableBody dense={dense}>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+              {table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="py-12 text-center text-muted-foreground text-sm"
+                  >
+                    Sin tipos de cambio configurados
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
@@ -195,11 +200,9 @@ export function MultiCurrencyView() {
         </div>
       </SectionCard>
 
-      {/* ── Visualización doble moneda ────────────────────────────────────── */}
       <div>
         <h2 className="text-h6 text-foreground mb-4">Visualización doble moneda</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {/* Ejemplo */}
           <SectionCard className="p-6 space-y-3">
             <div className="flex items-center gap-2">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
@@ -233,7 +236,6 @@ export function MultiCurrencyView() {
             </div>
           </SectionCard>
 
-          {/* Alerta */}
           {hasOutdated && (
             <SectionCard className="border border-amber-200 bg-amber-50 dark:bg-amber-500/10 dark:border-amber-500/30 flex flex-col justify-between">
               <div className="flex gap-3">
@@ -243,7 +245,11 @@ export function MultiCurrencyView() {
                     Tipo de cambio desactualizado
                   </p>
                   <p className="text-sm text-amber-700 dark:text-amber-500/80 mt-1">
-                    El tipo de cambio EUR tiene más de 24 horas sin actualizar.
+                    {rates
+                      .filter((r) => r.status === 'outdated')
+                      .map((r) => r.code)
+                      .join(', ')}{' '}
+                    tiene más de 24 horas sin actualizar.
                   </p>
                 </div>
               </div>

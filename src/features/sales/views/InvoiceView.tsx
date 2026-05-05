@@ -14,7 +14,8 @@ import { Card, CardContent } from 'src/shared/components/ui/card';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import { RegisterPaymentDrawer } from '../components/RegisterPaymentDrawer';
-import { useInvoice } from '../hooks/useInvoice';
+import { useSalesContext } from '../context/SalesContext';
+import { STATUS_LABELS } from '../types/sales.types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -26,31 +27,12 @@ function formatDate(dateStr: string): string {
   }
 }
 
-const STATUS_CONFIG = {
-  pendiente: {
-    label: 'PENDIENTE',
-    className: 'bg-amber-500/10 text-amber-600',
-  },
-  parcial: {
-    label: 'PARCIAL',
-    className: 'bg-blue-500/10 text-blue-600',
-  },
-  pagada: {
-    label: 'PAGADA',
-    className: 'bg-emerald-500/10 text-emerald-600',
-  },
-  vencida: {
-    label: 'VENCIDA',
-    className: 'bg-red-500/10 text-red-600',
-  },
-} as const;
-
-const METHOD_ICONS: Record<string, string> = {
-  'Transferencia Bancaria': '🏦',
-  'Tarjeta de Crédito': '💳',
-  'Tarjeta de Débito': '💳',
-  Efectivo: '💵',
-  Cheque: '📄',
+const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+  draft: { label: 'BORRADOR', className: 'bg-muted/10 text-muted-foreground' },
+  issued: { label: 'EMITIDA', className: 'bg-amber-500/10 text-amber-600' },
+  partial: { label: 'PARCIAL', className: 'bg-blue-500/10 text-blue-600' },
+  paid: { label: 'PAGADA', className: 'bg-emerald-500/10 text-emerald-600' },
+  overdue: { label: 'VENCIDA', className: 'bg-red-500/10 text-red-600' },
 };
 
 // ─── View ─────────────────────────────────────────────────────────────────────
@@ -61,8 +43,13 @@ interface InvoiceViewProps {
 
 export function InvoiceView({ invoiceId }: InvoiceViewProps) {
   const router = useRouter();
-  const { invoice, registerPayment } = useInvoice(invoiceId);
+  const { invoices, quotations, registerPayment } = useSalesContext();
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false);
+
+  const invoice = invoices.find((inv) => inv.uid === invoiceId);
+  // Resolve line items from source quotation
+  const quotation = invoice ? quotations.find((q) => q.uid === invoice.quotation_uid) : undefined;
+  const lineItems = quotation?.items ?? [];
 
   if (!invoice) {
     return (
@@ -78,22 +65,27 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
     );
   }
 
-  const pendingBalance = Math.max(0, invoice.total - invoice.totalPaid);
-  const paymentPercent = Math.min(100, Math.round((invoice.totalPaid / invoice.total) * 100));
-  const isPaid = invoice.status === 'pagada';
-  const statusConfig = STATUS_CONFIG[invoice.status];
+  const pendingBalance = Math.max(0, invoice.outstanding_total);
+  const paymentPercent = Math.min(100, Math.round((invoice.paid_total / invoice.total) * 100));
+  const isPaid = invoice.status === 'paid';
+  const statusConfig = STATUS_CONFIG[invoice.status] ?? {
+    label: STATUS_LABELS[invoice.status] ?? invoice.status,
+    className: 'bg-muted/10 text-muted-foreground',
+  };
 
-  const handleRegisterPayment = (payment: Omit<Payment, 'id' | 'status'>) => {
+  const handleRegisterPayment = (payment: Omit<Payment, 'uid'>) => {
     registerPayment(invoiceId, payment);
   };
 
-  // Table totals
-  const baseImponible = invoice.products.reduce((s, p) => s + p.subtotal, 0);
-  const totalIva = invoice.products.reduce((s, p) => s + p.subtotal * (p.tax / 100), 0);
+  // Line item totals
+  const baseImponible = lineItems.reduce(
+    (s, item) => s + item.list_unit_price * item.quantity * (1 - item.discount_percent / 100),
+    0
+  );
 
   return (
     <PageContainer fluid className="pb-10">
-      {/* ── Paid banner ────────────────────────────────────────────────── */}
+      {/* Paid banner */}
       {isPaid && (
         <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl mb-6">
           <Icon name="CheckCircle2" size={20} className="text-emerald-500 shrink-0" />
@@ -108,7 +100,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
         </div>
       )}
 
-      {/* ── Breadcrumbs ─────────────────────────────────────────────────── */}
+      {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
         <button
           onClick={() => router.push(paths.sales.pipeline)}
@@ -120,14 +112,14 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
         <Icon name="ChevronRight" size={14} />
         <span>Facturación</span>
         <Icon name="ChevronRight" size={14} />
-        <span className="text-foreground font-medium">{invoice.id}</span>
+        <span className="text-foreground font-medium">{invoice.invoice_number}</span>
       </div>
 
-      {/* ── Two-column layout ─────────────────────────────────────────── */}
+      {/* Two-column layout */}
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] lg:items-start gap-6">
         {/* LEFT */}
         <div className="flex-1 space-y-6 min-w-0">
-          {/* ── Header Card ─────────────────────────────────────────────────── */}
+          {/* Header Card */}
           <Card className="p-6 pb-6 shadow-sm overflow-hidden text-sm border-none shadow-card">
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-4">
@@ -136,7 +128,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                 </div>
                 <div>
                   <h1 className="text-h4 text-foreground leading-tight tracking-tight mb-0.5">
-                    {invoice.id}
+                    {invoice.invoice_number}
                   </h1>
                   <p className="text-muted-foreground text-sm">Factura de venta</p>
                 </div>
@@ -147,7 +139,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
               >
                 <div
                   className={`w-1.5 h-1.5 rounded-full bg-current mr-1.5 ${
-                    invoice.status === 'pendiente'
+                    invoice.status === 'issued' || invoice.status === 'overdue'
                       ? 'animate-[pulse_1.5s_ease-in-out_infinite]'
                       : ''
                   }`}
@@ -161,42 +153,49 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase mb-1">
-                  Cliente
+                  Cotización origen
                 </span>
-                <span className="font-semibold text-foreground text-sm">{invoice.client}</span>
-                <span className="text-xs text-muted-foreground">NIF: {invoice.clientNif}</span>
+                <span className="font-semibold text-foreground text-sm font-mono">
+                  {invoice.quotation_uid}
+                </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase mb-1">
                   Fecha de Emisión
                 </span>
                 <span className="font-semibold text-foreground text-sm">
-                  {formatDate(invoice.issueDate)}
+                  {formatDate(invoice.issued_at)}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  Vencimiento: {formatDate(invoice.dueDate)}
+                  Vencimiento: {formatDate(invoice.due_date)}
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase mb-1">
-                  Forma de Pago
+                  Moneda
+                </span>
+                <span className="font-semibold text-foreground text-sm">{invoice.currency}</span>
+                {invoice.exchange_rate && (
+                  <span className="text-xs text-muted-foreground">
+                    Tasa: {invoice.exchange_rate}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase mb-1">
+                  Entidad
                 </span>
                 <span className="font-semibold text-foreground text-sm">
-                  {invoice.paymentMethod}
+                  {invoice.invoiceable_type}
                 </span>
-                <span className="text-xs text-muted-foreground">30 días</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase mb-1">
-                  Comercial
+                <span className="text-xs text-muted-foreground font-mono">
+                  {invoice.invoiceable_uid}
                 </span>
-                <span className="font-semibold text-foreground text-sm">{invoice.seller}</span>
-                <span className="text-xs text-muted-foreground">Zona Norte</span>
               </div>
             </div>
           </Card>
 
-          {/* Métricas */}
+          {/* Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <Card className="border-none shadow-card gap-0 py-0">
               <CardContent className="p-6">
@@ -218,8 +217,8 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Base imponible:{' '}
-                  {formatMoney(baseImponible, {
+                  Subtotal:{' '}
+                  {formatMoney(invoice.subtotal, {
                     scope: 'tenant',
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
@@ -236,7 +235,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                       Total Pagado
                     </p>
                     <p className="text-2xl font-bold text-foreground">
-                      {formatMoney(invoice.totalPaid, {
+                      {formatMoney(invoice.paid_total, {
                         scope: 'tenant',
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
@@ -247,12 +246,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                     <Icon name="CheckCircle2" size={18} />
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Último pago:{' '}
-                  {invoice.payments.length > 0
-                    ? formatDate(invoice.payments[invoice.payments.length - 1].date)
-                    : '-'}
-                </p>
+                <p className="text-xs text-muted-foreground">-</p>
               </CardContent>
             </Card>
 
@@ -292,13 +286,15 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                     pendingBalance > 0 ? 'text-orange-600/70' : 'text-muted-foreground'
                   }`}
                 >
-                  {pendingBalance > 0 ? 'Vence en 25 días' : 'Sin saldo pendiente'}
+                  {pendingBalance > 0
+                    ? `Vence: ${formatDate(invoice.due_date)}`
+                    : 'Sin saldo pendiente'}
                 </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Barra de progreso de pago */}
+          {/* Payment progress bar */}
           <div className="bg-card rounded-xl border border-border/50 p-6 shadow-sm">
             <div className="flex justify-between items-center text-sm font-semibold text-foreground mb-3">
               <span className="flex items-center gap-2">
@@ -316,7 +312,7 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
             <div className="flex justify-between text-xs text-muted-foreground mt-2 font-medium">
               <span>
                 Pagado:{' '}
-                {formatMoney(invoice.totalPaid, {
+                {formatMoney(invoice.paid_total, {
                   scope: 'tenant',
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
@@ -333,189 +329,122 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
             </div>
           </div>
 
-          {/* Tabla de productos */}
-          <SectionCard noPadding className="border-none shadow-card">
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border/40">
-              <div className="flex items-center gap-2">
-                <Icon name="Box" size={20} className="text-muted-foreground" />
-                <h2 className="text-base font-semibold text-foreground">Productos Facturados</h2>
-              </div>
-              <Badge variant="soft" className="bg-muted text-muted-foreground rounded-full px-3">
-                {invoice.products.length} líneas
-              </Badge>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border/40">
-                    {[
-                      'Código',
-                      'Descripción',
-                      'Cant.',
-                      'Precio Unit.',
-                      'Dto.',
-                      'IVA',
-                      'Importe',
-                    ].map((h, i) => (
-                      <th
-                        key={h}
-                        className={`px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest ${
-                          i > 1 ? 'text-right' : 'text-left'
-                        }`}
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoice.products.map((p, i) => (
-                    <tr
-                      key={p.code}
-                      className={i < invoice.products.length - 1 ? 'border-b border-border/40' : ''}
-                    >
-                      <td className="px-6 py-4">
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] font-mono whitespace-nowrap bg-muted/20 text-muted-foreground border-border/50"
-                        >
-                          {p.code}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="font-semibold text-foreground">{p.name}</p>
-                        <p className="text-xs text-muted-foreground break-words max-w-[200px] truncate">
-                          Detalle en el contrato referencial
-                        </p>
-                      </td>
-                      <td className="px-6 py-4 text-right text-muted-foreground">{p.qty}</td>
-                      <td className="px-6 py-4 text-right text-muted-foreground">
-                        {formatMoney(p.unitPrice, {
-                          scope: 'tenant',
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="px-6 py-4 text-right text-muted-foreground">{p.discount}%</td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="text-xs font-medium text-blue-500 bg-blue-500/10 px-1.5 py-0.5 rounded">
-                          {p.tax}%
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right font-bold text-foreground">
-                        {formatMoney(p.subtotal, {
-                          scope: 'tenant',
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex justify-end p-6 border-t border-border/40 bg-muted/10">
-              <div className="w-full max-w-sm">
-                <div className="flex items-center justify-between text-sm py-1.5 text-muted-foreground">
-                  <span>Base Imponible:</span>
-                  <span className="font-medium text-foreground">
-                    {formatMoney(baseImponible, {
-                      scope: 'tenant',
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
+          {/* Line items (from quotation) */}
+          {lineItems.length > 0 && (
+            <SectionCard noPadding className="border-none shadow-card">
+              <div className="flex items-center justify-between px-6 py-5 border-b border-border/40">
+                <div className="flex items-center gap-2">
+                  <Icon name="Box" size={20} className="text-muted-foreground" />
+                  <h2 className="text-base font-semibold text-foreground">Productos Facturados</h2>
                 </div>
-                <div className="flex items-center justify-between text-sm py-1.5 text-muted-foreground">
-                  <span>IVA (21%):</span>
-                  <span className="font-medium text-foreground">
-                    {formatMoney(totalIva, {
-                      scope: 'tenant',
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/60">
-                  <span className="text-base font-bold text-foreground">Total:</span>
-                  <span className="text-lg font-bold text-blue-600">
-                    {formatMoney(invoice.total, {
-                      scope: 'tenant',
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </SectionCard>
-
-          {/* Historial de pagos — Solo si hay pagos */}
-          {invoice.payments.length > 0 && (
-            <Card className="border-none shadow-card overflow-hidden">
-              <div className="px-6 py-5 border-b border-border/40 flex items-center justify-between">
-                <h2 className="text-sm font-bold text-foreground">Historial de Pagos</h2>
-                <Badge variant="soft" className="bg-emerald-500/10 text-emerald-600 rounded-full">
-                  {invoice.payments.length} transacciones
+                <Badge variant="soft" className="bg-muted text-muted-foreground rounded-full px-3">
+                  {lineItems.length} líneas
                 </Badge>
               </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border/40 bg-muted/10">
-                      <th className="px-6 py-4 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                        Fecha
-                      </th>
-                      <th className="px-6 py-4 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                        Método
-                      </th>
-                      <th className="px-6 py-4 text-right text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                        Monto
-                      </th>
-                      <th className="px-6 py-4 text-left text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                        Referencia
-                      </th>
+                    <tr className="border-b border-border/40">
+                      {['Código', 'Descripción', 'Cant.', 'Precio Unit.', 'Dto.', 'Importe'].map(
+                        (h, i) => (
+                          <th
+                            key={h}
+                            className={`px-6 py-4 text-xs font-bold text-muted-foreground uppercase tracking-widest ${
+                              i > 1 ? 'text-right' : 'text-left'
+                            }`}
+                          >
+                            {h}
+                          </th>
+                        )
+                      )}
                     </tr>
                   </thead>
                   <tbody>
-                    {invoice.payments.map((payment, i) => (
-                      <tr
-                        key={payment.id}
-                        className={`hover:bg-muted/10 transition-colors ${i < invoice.payments.length - 1 ? 'border-b border-border/40' : ''}`}
-                      >
-                        <td className="px-6 py-4 text-muted-foreground font-medium">
-                          {formatDate(payment.date)}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <span>{METHOD_ICONS[payment.method] ?? '💰'}</span>
-                            <span className="font-medium text-foreground">{payment.method}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right font-bold text-emerald-600">
-                          {formatMoney(payment.amount, {
-                            scope: 'tenant',
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </td>
-                        <td className="px-6 py-4 text-muted-foreground font-mono text-xs">
-                          {payment.reference || '-'}
-                        </td>
-                      </tr>
-                    ))}
+                    {lineItems.map((item, i) => {
+                      const lineTotal =
+                        item.list_unit_price * item.quantity * (1 - item.discount_percent / 100);
+                      return (
+                        <tr
+                          key={item.uid}
+                          className={i < lineItems.length - 1 ? 'border-b border-border/40' : ''}
+                        >
+                          <td className="px-6 py-4">
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] font-mono whitespace-nowrap bg-muted/20 text-muted-foreground border-border/50"
+                            >
+                              {item.sku || '-'}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4">
+                            <p className="font-semibold text-foreground">{item.description}</p>
+                          </td>
+                          <td className="px-6 py-4 text-right text-muted-foreground">
+                            {item.quantity}
+                          </td>
+                          <td className="px-6 py-4 text-right text-muted-foreground">
+                            {formatMoney(item.list_unit_price, {
+                              scope: 'tenant',
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </td>
+                          <td className="px-6 py-4 text-right text-muted-foreground">
+                            {item.discount_percent}%
+                          </td>
+                          <td className="px-6 py-4 text-right font-bold text-foreground">
+                            {formatMoney(lineTotal, {
+                              scope: 'tenant',
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
-            </Card>
+
+              <div className="flex justify-end p-6 border-t border-border/40 bg-muted/10">
+                <div className="w-full max-w-sm">
+                  <div className="flex items-center justify-between text-sm py-1.5 text-muted-foreground">
+                    <span>Base Imponible:</span>
+                    <span className="font-medium text-foreground">
+                      {formatMoney(baseImponible, {
+                        scope: 'tenant',
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/60">
+                    <span className="text-base font-bold text-foreground">Total:</span>
+                    <span className="text-lg font-bold text-blue-600">
+                      {formatMoney(invoice.total, {
+                        scope: 'tenant',
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </SectionCard>
+          )}
+
+          {/* No line items fallback */}
+          {lineItems.length === 0 && (
+            <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
+              <Icon name="Box" size={32} className="opacity-30" />
+              <p className="text-sm">Los productos aparecerán aquí desde la cotización asociada.</p>
+            </div>
           )}
         </div>
 
         {/* RIGHT — Sidebar */}
         <div className="space-y-6">
-          {/* Boton Principal */}
           {!isPaid && (
             <Button
               color="primary"
@@ -526,32 +455,9 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
             </Button>
           )}
 
-          {/* Acciones */}
+          {/* Actions */}
           <Card className="border-none shadow-card">
             <CardContent className="p-6">
-              <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-4">
-                Alertas y Recordatorios
-              </h3>
-              <div className="p-4 bg-orange-500/10 rounded-xl border border-orange-500/20 mb-6">
-                <div className="flex items-start gap-3">
-                  <Icon name="Bell" size={16} className="text-orange-500 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="text-xs font-bold text-orange-700 dark:text-orange-400 block mb-1">
-                      Próximo Recordatorio
-                    </span>
-                    <span className="text-sm font-semibold text-foreground mb-2 block">
-                      {invoice.paymentReminderDate
-                        ? formatDate(invoice.paymentReminderDate)
-                        : '24 de Marzo de 2026'}
-                    </span>
-                    <span className="text-xs text-orange-600/80 leading-relaxed block">
-                      Aviso automático programado para enviarse al cliente indicando el pago
-                      pendiente.
-                    </span>
-                  </div>
-                </div>
-              </div>
-
               <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-4">
                 Acciones
               </h3>
@@ -574,17 +480,11 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                   </div>
                   Enviar por Email
                 </button>
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium text-foreground">
-                  <div className="w-8 h-8 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center shrink-0">
-                    <Icon name="CalendarDays" size={15} />
-                  </div>
-                  Programar Recordatorio
-                </button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Card cliente Dark */}
+          {/* Client card placeholder */}
           <Card className="border-none shadow-card bg-slate-900 text-slate-100 dark:bg-slate-950">
             <CardContent className="p-6">
               <div className="flex items-center gap-4 mb-6">
@@ -595,17 +495,25 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
                     Cliente
                   </p>
-                  <p className="font-semibold leading-tight">{invoice.client}</p>
+                  <p className="font-semibold leading-tight font-mono text-xs">
+                    {invoice.invoiceable_uid}
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-3 text-sm mb-5">
                 <div className="flex justify-between items-center text-slate-300">
-                  <span>Facturas activas:</span>
-                  <span className="font-medium text-white">1</span>
+                  <span>Total factura:</span>
+                  <span className="font-medium text-white">
+                    {formatMoney(invoice.total, {
+                      scope: 'tenant',
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-slate-300">
-                  <span>Deuda total:</span>
+                  <span>Saldo pendiente:</span>
                   <span className="font-medium text-orange-400">
                     {formatMoney(pendingBalance, {
                       scope: 'tenant',
@@ -614,23 +522,13 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                     })}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-slate-300">
-                  <span>Cliente desde:</span>
-                  <span className="font-medium text-white">Ene 2024</span>
-                </div>
-              </div>
-
-              <div className="text-center w-full">
-                <button className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center gap-1.5">
-                  Ver ficha completa <Icon name="ChevronRight" size={14} />
-                </button>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* ── Payment Drawer ─────────────────────────────────────────────── */}
+      {/* Payment Drawer */}
       <RegisterPaymentDrawer
         open={paymentDrawerOpen}
         onClose={() => setPaymentDrawerOpen(false)}

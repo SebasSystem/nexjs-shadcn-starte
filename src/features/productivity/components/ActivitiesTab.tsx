@@ -10,7 +10,7 @@ import { SelectField } from 'src/shared/components/ui/select-field';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
 import { useActivities } from '../hooks/use-activities';
-import type { EstadoActividad, TipoActividad } from '../types/productivity.types';
+import type { ActivityStatus, ActivityType } from '../types/productivity.types';
 
 export const ActivitiesTab = ({
   contactoId,
@@ -19,40 +19,46 @@ export const ActivitiesTab = ({
   contactoId: string;
   contactoNombre: string;
 }) => {
-  const { data, isLoading, isSubmitting, addActividad, updateEstado } = useActivities(contactoId);
-  const [tipo, setTipo] = useState<TipoActividad>('TAREA');
-  const [titulo, setTitulo] = useState('');
-  const [descripcion, setDescripcion] = useState('');
-  const [fecha, setFecha] = useState('');
+  const { data, isLoading, addActivity, updateStatus } = useActivities(contactoId);
+  const [type, setType] = useState<ActivityType>('TASK');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreate = async () => {
-    if (!titulo.trim() || !fecha) return;
-    const success = await addActividad({
-      contactoId,
-      contactoNombre,
-      tipo,
-      titulo,
-      descripcion,
-      fechaVencimiento: new Date(fecha).toISOString(),
+    if (!title.trim() || !dueDate) return;
+    setIsSubmitting(true);
+    const success = await addActivity({
+      contact_uid: contactoId,
+      contact_name: contactoNombre,
+      type,
+      title,
+      description,
+      due_date: new Date(dueDate).toISOString(),
     });
+    setIsSubmitting(false);
     if (success) {
-      setTitulo('');
-      setDescripcion('');
-      setFecha('');
-      setTipo('TAREA');
+      setTitle('');
+      setDescription('');
+      setDueDate('');
+      setType('TASK');
     }
   };
 
-  const getEstadoIcon = (estado: EstadoActividad) => {
-    switch (estado) {
-      case 'PENDIENTE':
+  const getStatusIcon = (status: ActivityStatus) => {
+    switch (status) {
+      case 'PENDING':
         return <Icon name="Circle" size={16} className="text-blue-500" />;
-      case 'COMPLETADA':
+      case 'COMPLETED':
         return <Icon name="CheckCircle2" size={16} className="text-emerald-500" />;
-      case 'VENCIDA':
+      case 'OVERDUE':
         return <Icon name="AlertCircle" size={16} className="text-red-500" />;
     }
   };
+
+  const activityTypeLabel =
+    type === 'TASK' ? 'tarea' : type === 'REMINDER' ? 'recordatorio' : 'reunión';
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
@@ -67,40 +73,40 @@ export const ActivitiesTab = ({
             <SelectField
               label="Tipo"
               options={[
-                { value: 'TAREA', label: 'Tarea' },
-                { value: 'RECORDATORIO', label: 'Recordatorio' },
-                { value: 'REUNION', label: 'Reunión' },
+                { value: 'TASK', label: 'Tarea' },
+                { value: 'REMINDER', label: 'Recordatorio' },
+                { value: 'MEETING', label: 'Reunión' },
               ]}
-              value={tipo}
-              onChange={(v) => setTipo(v as TipoActividad)}
+              value={type}
+              onChange={(v) => setType(v as ActivityType)}
             />
             <Input
               label="Fecha"
               type="date"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
             />
           </div>
           <Input
             placeholder="Título de la actividad"
-            value={titulo}
-            onChange={(e) => setTitulo(e.target.value)}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             className="h-9 text-sm font-medium"
           />
           <Textarea
             placeholder="Notas adicionales (opcional)..."
-            value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             className="text-sm min-h-[60px] resize-none"
           />
           <div className="flex justify-end pt-1">
             <Button
               size="sm"
               onClick={handleCreate}
-              disabled={isSubmitting || !titulo.trim() || !fecha}
+              disabled={isSubmitting || !title.trim() || !dueDate}
               className="text-xs h-8"
             >
-              Agendar {tipo.toLowerCase()}
+              Agendar {activityTypeLabel}
             </Button>
           </div>
         </div>
@@ -113,42 +119,50 @@ export const ActivitiesTab = ({
           <div className="text-center text-sm text-gray-400 mt-10">Sin actividades agendadas.</div>
         ) : (
           <div className="space-y-3">
-            {data.map((actividad) => (
+            {data.map((activity) => (
               <div
-                key={actividad.id}
+                key={activity.uid}
                 className={`bg-white p-4 rounded-lg border flex items-start gap-3 transition-colors ${
-                  actividad.estado === 'COMPLETADA'
+                  activity.status === 'COMPLETED'
                     ? 'opacity-60 border-gray-100'
-                    : actividad.estado === 'VENCIDA'
+                    : activity.status === 'OVERDUE'
                       ? 'border-red-200'
                       : 'border-blue-100'
                 }`}
               >
                 <button
                   onClick={() =>
-                    updateEstado(
-                      actividad.id,
-                      actividad.estado === 'COMPLETADA' ? 'PENDIENTE' : 'COMPLETADA'
+                    updateStatus(
+                      activity.uid,
+                      activity.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED'
                     )
                   }
                   className="mt-0.5 hover:scale-110 transition-transform focus:outline-none"
                 >
-                  {getEstadoIcon(actividad.estado)}
+                  {getStatusIcon(activity.status)}
                 </button>
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
                     <h5
-                      className={`text-sm font-medium tracking-tight ${actividad.estado === 'COMPLETADA' ? 'line-through text-gray-500' : 'text-gray-900'}`}
+                      className={`text-sm font-medium tracking-tight ${
+                        activity.status === 'COMPLETED'
+                          ? 'line-through text-gray-500'
+                          : 'text-gray-900'
+                      }`}
                     >
-                      {actividad.titulo}
+                      {activity.title}
                     </h5>
                     <span className="text-[10px] font-semibold tracking-wider text-gray-400 bg-gray-100 px-2 py-0.5 rounded uppercase">
-                      {actividad.tipo}
+                      {activity.type === 'TASK'
+                        ? 'Tarea'
+                        : activity.type === 'REMINDER'
+                          ? 'Recordatorio'
+                          : 'Reunión'}
                     </span>
                   </div>
-                  {actividad.descripcion && (
+                  {activity.description && (
                     <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                      {actividad.descripcion}
+                      {activity.description}
                     </p>
                   )}
                   <div className="flex items-center gap-2 mt-2 text-[11px] font-medium text-gray-500">
@@ -156,16 +170,16 @@ export const ActivitiesTab = ({
                       <Icon
                         name="Clock"
                         size={12}
-                        className={actividad.estado === 'VENCIDA' ? 'text-red-500' : ''}
+                        className={activity.status === 'OVERDUE' ? 'text-red-500' : ''}
                       />
-                      <span className={actividad.estado === 'VENCIDA' ? 'text-red-500' : ''}>
-                        {format(new Date(actividad.fechaVencimiento), 'dd MMM yyyy', {
+                      <span className={activity.status === 'OVERDUE' ? 'text-red-500' : ''}>
+                        {format(new Date(activity.due_date), 'dd MMM yyyy', {
                           locale: es,
                         })}
                       </span>
                     </div>
                     <span>•</span>
-                    <span>Asignado: {actividad.asignadoA}</span>
+                    <span>Asignado: {activity.assigned_to_name}</span>
                   </div>
                 </div>
               </div>

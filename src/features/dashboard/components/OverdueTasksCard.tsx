@@ -1,6 +1,7 @@
 'use client';
 
 import type { DashboardSummary, OverdueTask } from 'src/features/dashboard/types/dashboard.types';
+import { formatTime } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import { Badge, Icon } from 'src/shared/components/ui';
@@ -32,7 +33,7 @@ export function OverdueTasksCard({ summary, overdue_tasks }: Props) {
             <p className="text-caption text-muted-foreground">Requieren atención inmediata</p>
           </div>
         </div>
-        <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+        <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1 cursor-pointer">
           Ver todas <Icon name="ChevronRight" size={14} />
         </button>
       </div>
@@ -60,7 +61,7 @@ export function OverdueTasksCard({ summary, overdue_tasks }: Props) {
           return (
             <div
               key={task.uid}
-              className="flex items-center justify-between px-5 py-3 hover:bg-muted/40 transition-colors"
+              className="flex items-center justify-between px-5 py-3 hover:bg-muted/40 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="p-2 rounded-lg bg-red-500/10 shrink-0">
@@ -84,10 +85,7 @@ export function OverdueTasksCard({ summary, overdue_tasks }: Props) {
                   {label}
                 </Badge>
                 <span className="text-[11px] text-muted-foreground w-20 text-right">
-                  {new Date(task.due_date).toLocaleTimeString('es-AR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {formatTime(task.due_date)}
                 </span>
               </div>
             </div>

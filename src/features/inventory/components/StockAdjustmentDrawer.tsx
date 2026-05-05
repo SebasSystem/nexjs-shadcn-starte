@@ -36,7 +36,6 @@ export function StockAdjustmentDrawer({
   products,
   onSuccess,
 }: StockAdjustmentDrawerProps) {
-
   const [selectedProductUid, setSelectedProductUid] = useState(productUid ?? '');
   const [warehouseUid, setWarehouseUid] = useState('');
   const [operation, setOperation] = useState<'in' | 'out'>('in');
@@ -50,7 +49,9 @@ export function StockAdjustmentDrawer({
   }, [productUid]);
 
   const selectedProduct = products.find((p) => p.uid === selectedProductUid);
-  const currentWarehouseStock = selectedProduct?.stocks.find((s) => s.warehouse_uid === warehouseUid);
+  const currentWarehouseStock = selectedProduct?.stocks.find(
+    (s) => s.warehouse_uid === warehouseUid
+  );
   const qty = Number(quantity) || 0;
   const currentStock = currentWarehouseStock?.available_stock ?? 0;
   const newStock = operation === 'in' ? currentStock + qty : currentStock - qty;
@@ -113,8 +114,12 @@ export function StockAdjustmentDrawer({
               <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5 flex items-center gap-3">
                 <Icon name="Package" size={16} className="text-muted-foreground shrink-0" />
                 <div>
-                  <p className="text-subtitle2 text-foreground font-medium">{selectedProduct.name}</p>
-                  <p className="text-caption text-muted-foreground font-mono">{selectedProduct.sku}</p>
+                  <p className="text-subtitle2 text-foreground font-medium">
+                    {selectedProduct.name}
+                  </p>
+                  <p className="text-caption text-muted-foreground font-mono">
+                    {selectedProduct.sku}
+                  </p>
                 </div>
               </div>
             </div>
@@ -221,8 +226,7 @@ export function StockAdjustmentDrawer({
                 )}
               >
                 <p className="text-caption text-muted-foreground">
-                  Actual:{' '}
-                  <span className="font-semibold text-foreground">{currentStock}</span>
+                  Actual: <span className="font-semibold text-foreground">{currentStock}</span>
                   {' → '}Nuevo:{' '}
                   <span
                     className={cn(

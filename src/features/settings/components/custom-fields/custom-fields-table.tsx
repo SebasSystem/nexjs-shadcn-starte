@@ -23,52 +23,52 @@ import {
 } from 'src/shared/components/ui/dropdown-menu';
 import { Icon } from 'src/shared/components/ui/icon';
 
-import type { CampoPersonalizado, ModuloCampo, TipoCampo } from '../../types/settings.types';
+import type { CustomField, CustomFieldModule, CustomFieldType } from '../../types/settings.types';
 
-const TIPO_LABELS: Record<TipoCampo, string> = {
-  texto: 'Texto',
-  numero: 'Número',
-  fecha: 'Fecha',
+const TYPE_LABELS: Record<CustomFieldType, string> = {
+  text: 'Texto',
+  number: 'Número',
+  date: 'Fecha',
   select: 'Lista de opciones',
-  booleano: 'Sí / No',
+  boolean: 'Sí / No',
 };
 
-const MODULO_LABELS: Record<ModuloCampo, string> = {
-  contactos: 'Contactos',
-  empresas: 'Empresas',
-  oportunidades: 'Oportunidades',
-  productos: 'Productos',
+const MODULE_LABELS: Record<CustomFieldModule, string> = {
+  contacts: 'Contactos',
+  companies: 'Empresas',
+  opportunities: 'Oportunidades',
+  products: 'Productos',
 };
 
-const columnHelper = createColumnHelper<CampoPersonalizado>();
+const columnHelper = createColumnHelper<CustomField>();
 
 interface CustomFieldsTableProps {
-  campos: CampoPersonalizado[];
-  onEdit: (campo: CampoPersonalizado) => void;
-  onDelete: (campo: CampoPersonalizado) => void;
+  fields: CustomField[];
+  onEdit: (field: CustomField) => void;
+  onDelete: (field: CustomField) => void;
 }
 
-export function CustomFieldsTable({ campos, onEdit, onDelete }: CustomFieldsTableProps) {
+export function CustomFieldsTable({ fields, onEdit, onDelete }: CustomFieldsTableProps) {
   const COLUMNS = useMemo(
     () => [
-      columnHelper.accessor('etiqueta', {
+      columnHelper.accessor('label', {
         header: 'Etiqueta',
         cell: (info) => {
-          const campo = info.row.original;
+          const field = info.row.original;
           return (
             <div>
-              <p className="font-medium text-foreground text-sm">{campo.etiqueta}</p>
-              {campo.tipo === 'select' && campo.opciones && (
+              <p className="font-medium text-foreground text-sm">{field.label}</p>
+              {field.type === 'select' && field.options && (
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {campo.opciones.slice(0, 3).join(', ')}
-                  {campo.opciones.length > 3 ? '...' : ''}
+                  {field.options.slice(0, 3).join(', ')}
+                  {field.options.length > 3 ? '...' : ''}
                 </p>
               )}
             </div>
           );
         },
       }),
-      columnHelper.accessor('nombre', {
+      columnHelper.accessor('name', {
         header: 'Nombre técnico',
         cell: (info) => (
           <code className="text-xs bg-muted/60 px-1.5 py-0.5 rounded font-mono">
@@ -76,23 +76,23 @@ export function CustomFieldsTable({ campos, onEdit, onDelete }: CustomFieldsTabl
           </code>
         ),
       }),
-      columnHelper.accessor('tipo', {
+      columnHelper.accessor('type', {
         header: 'Tipo',
         cell: (info) => (
           <Badge variant="outline" className="text-xs">
-            {TIPO_LABELS[info.getValue()]}
+            {TYPE_LABELS[info.getValue()]}
           </Badge>
         ),
       }),
-      columnHelper.accessor('modulo', {
+      columnHelper.accessor('module', {
         header: 'Módulo',
         cell: (info) => (
           <Badge variant="soft" color="default" className="text-xs">
-            {MODULO_LABELS[info.getValue()]}
+            {MODULE_LABELS[info.getValue()]}
           </Badge>
         ),
       }),
-      columnHelper.accessor('requerido', {
+      columnHelper.accessor('required', {
         header: 'Requerido',
         cell: (info) =>
           info.getValue() ? (
@@ -107,22 +107,27 @@ export function CustomFieldsTable({ campos, onEdit, onDelete }: CustomFieldsTabl
         id: 'acciones',
         header: 'Acciones',
         cell: (info) => {
-          const campo = info.row.original;
+          const field = info.row.original;
           return (
             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(campo)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 cursor-pointer"
+                onClick={() => onEdit(field)}
+              >
                 <Icon name="Pencil" size={14} />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <Button variant="ghost" size="icon" className="h-7 w-7 cursor-pointer">
                     <Icon name="MoreHorizontal" size={14} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit(campo)}>Editar campo</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEdit(field)}>Editar campo</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600" onClick={() => onDelete(campo)}>
+                  <DropdownMenuItem className="text-red-600" onClick={() => onDelete(field)}>
                     Eliminar campo
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -136,12 +141,12 @@ export function CustomFieldsTable({ campos, onEdit, onDelete }: CustomFieldsTabl
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: campos,
+    data: fields,
     columns: COLUMNS,
     defaultRowsPerPage: 25,
   });
 
-  if (campos.length === 0) {
+  if (fields.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
         <Icon name="Sliders" size={40} className="mb-3 opacity-40" />

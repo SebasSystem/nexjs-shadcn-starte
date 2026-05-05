@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { COMPETITOR_TIER_CONFIG, MOCK_COMPETITORS } from 'src/_mock/_intelligence';
 import { PageContainer, PageHeader, StatsCard } from 'src/shared/components/layouts/page';
 import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
 
@@ -9,6 +8,7 @@ import { BattlecardCard } from '../components/BattlecardCard';
 import { BattlecardDrawer } from '../components/BattlecardDrawer';
 import { useIntelligence } from '../hooks/useIntelligence';
 import type { Battlecard, CompetitorTier } from '../types';
+import { COMPETITOR_TIER_CONFIG } from '../types';
 
 const TIER_OPTIONS = [
   { value: '', label: 'Todos los tiers' },
@@ -19,7 +19,7 @@ const TIER_OPTIONS = [
 ];
 
 export function BattlecardsView() {
-  const { battlecards, stats, createBattlecard, updateBattlecard, deleteBattlecard } =
+  const { battlecards, stats, competitors, createBattlecard, updateBattlecard, deleteBattlecard } =
     useIntelligence();
 
   const [search, setSearch] = useState('');
@@ -31,18 +31,18 @@ export function BattlecardsView() {
     const q = search.toLowerCase();
     return battlecards.filter((bc) => {
       const matchesSearch =
-        !q || bc.competitorName.toLowerCase().includes(q) || bc.summary.toLowerCase().includes(q);
+        !q || bc.competitor_name.toLowerCase().includes(q) || bc.summary.toLowerCase().includes(q);
 
       if (!matchesSearch) return false;
 
       if (tierFilter) {
-        const competitor = MOCK_COMPETITORS.find((c) => c.id === bc.competitorId);
+        const competitor = competitors.find((c) => c.uid === bc.competitor_uid);
         return competitor?.tier === (tierFilter as CompetitorTier);
       }
 
       return true;
     });
-  }, [battlecards, search, tierFilter]);
+  }, [battlecards, competitors, search, tierFilter]);
 
   const handleEdit = (bc: Battlecard) => {
     setEditing(bc);
@@ -71,20 +71,20 @@ export function BattlecardsView() {
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <StatsCard
           title="Competidores"
-          value={stats.totalCompetitors}
+          value={stats.total_competitors}
           icon={<Icon name="Target" size={18} />}
           iconClassName="bg-primary/10 text-primary"
         />
         <StatsCard
           title="Win rate promedio"
-          value={`${stats.avgWinRate}%`}
+          value={`${stats.avg_win_rate}%`}
           icon={<Icon name="TrendingUp" size={18} />}
           iconClassName="bg-success/10 text-success"
-          trendUp={stats.avgWinRate >= 50}
+          trendUp={stats.avg_win_rate >= 50}
         />
         <StatsCard
           title="Mayor amenaza"
-          value={stats.topCompetitor}
+          value={stats.top_competitor}
           icon={<Icon name="Swords" size={18} />}
           iconClassName="bg-error/10 text-error"
         />
@@ -134,7 +134,7 @@ export function BattlecardsView() {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((bc) => (
             <BattlecardCard
-              key={bc.id}
+              key={bc.uid}
               battlecard={bc}
               onEdit={handleEdit}
               onDelete={deleteBattlecard}
@@ -146,6 +146,7 @@ export function BattlecardsView() {
       <BattlecardDrawer
         open={drawerOpen}
         item={editing}
+        competitors={competitors}
         onClose={handleClose}
         onCreate={createBattlecard}
         onUpdate={updateBattlecard}

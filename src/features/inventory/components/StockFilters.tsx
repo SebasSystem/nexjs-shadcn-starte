@@ -1,0 +1,70 @@
+import { Icon, Input, SelectField } from 'src/shared/components/ui';
+
+interface StockFiltersProps {
+  search: string;
+  onSearch: (v: string) => void;
+  filterCategory: string;
+  onFilterCategory: (v: string) => void;
+  filterStatus: string;
+  onFilterStatus: (v: string) => void;
+  filterWarehouse: string;
+  onFilterWarehouse: (v: string) => void;
+  categories: { uid: string; name: string }[];
+  warehouses: { uid: string; name: string }[];
+}
+
+export function StockFilters({
+  search,
+  onSearch,
+  filterCategory,
+  onFilterCategory,
+  filterStatus,
+  onFilterStatus,
+  filterWarehouse,
+  onFilterWarehouse,
+  categories,
+  warehouses,
+}: StockFiltersProps) {
+  return (
+    <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+      <div className="flex-1 min-w-48">
+        <Input
+          label="Buscar"
+          placeholder="Buscar por nombre o SKU..."
+          value={search}
+          onChange={(e) => onSearch(e.target.value)}
+          leftIcon={<Icon name="Search" size={15} />}
+        />
+      </div>
+      <SelectField
+        label="Categoría"
+        options={[
+          { value: 'all', label: 'Todas' },
+          ...categories.map((c) => ({ value: c.uid, label: c.name })),
+        ]}
+        value={filterCategory}
+        onChange={(v) => onFilterCategory(v as string)}
+      />
+      <SelectField
+        label="Estado"
+        options={[
+          { value: 'all', label: 'Todos los estados' },
+          { value: 'normal', label: 'Normal' },
+          { value: 'low', label: 'Stock bajo' },
+          { value: 'out', label: 'Sin stock' },
+        ]}
+        value={filterStatus}
+        onChange={(v) => onFilterStatus(v as string)}
+      />
+      <SelectField
+        label="Bodega"
+        options={[
+          { value: 'all', label: 'Todas' },
+          ...warehouses.map((w) => ({ value: w.uid, label: w.name })),
+        ]}
+        value={filterWarehouse}
+        onChange={(v) => onFilterWarehouse(v as string)}
+      />
+    </div>
+  );
+}

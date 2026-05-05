@@ -1,20 +1,25 @@
-import { useMemo, useState } from 'react';
-import { MOCK_PROJECTS } from 'src/_mock/_projects';
+'use client';
 
-import type { Milestone, Project, ProjectResource, ProjectStatus } from '../types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { queryKeys } from 'src/lib/query-keys';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+import { projectsService } from '../services/projects.service';
+import type { MilestonePayload, ProjectPayload, ProjectResourcePayload } from '../types';
 
-function calcProgress(milestones: Milestone[]): number {
-  if (milestones.length === 0) return 0;
-  const done = milestones.filter((m) => m.status === 'completed').length;
-  return Math.round((done / milestones.length) * 100);
-}
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Hook
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function useProjects() {
-  const [projects, setProjects] = useState<Project[]>(MOCK_PROJECTS);
+  const queryClient = useQueryClient();
+
+  const { data: projects = [], isLoading } = useQuery({
+    queryKey: queryKeys.projects.list,
+    queryFn: () => projectsService.list(),
+  });
+
+  // ─── Stats (derived) ────────────────────────────────────────────────────
 
   const stats = useMemo(() => {
     const active = projects.filter(
@@ -29,103 +34,96 @@ export function useProjects() {
     return { active, completed, onHold, delayedMilestones };
   }, [projects]);
 
-  function getProjectById(id: string): Project | undefined {
-    return projects.find((p) => p.id === id);
-  }
+  // ─── CRUD: Projects ────────────────────────────────────────────────────
 
-  function createProject(
-    data: Omit<Project, 'id' | 'milestones' | 'resources' | 'progress' | 'createdAt'>
-  ) {
-    const newProject: Project = {
-      ...data,
-      id: `proj-${Date.now()}`,
-      milestones: [],
-      resources: [],
-      progress: 0,
-      createdAt: new Date().toISOString(),
-    };
-    setProjects((prev) => [newProject, ...prev]);
-  }
+  const createProject = async (payload: ProjectPayload): Promise<boolean> => {
+    try {
+      await projectsService.create(payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
-  function updateProject(id: string, changes: Partial<Project>) {
-    setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...changes } : p)));
-  }
+  const updateProject = async (uid: string, payload: Partial<ProjectPayload>): Promise<boolean> => {
+    try {
+      await projectsService.update(uid, payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
-  function deleteProject(id: string) {
-    setProjects((prev) => prev.filter((p) => p.id !== id));
-  }
+  const deleteProject = async (uid: string): Promise<void> => {
+    await projectsService.remove(uid);
+    queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+  };
 
-  function cancelProject(id: string) {
-    setProjects((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: 'cancelled' as ProjectStatus } : p))
-    );
-  }
+  // ─── Milestones ────────────────────────────────────────────────────────
 
-  function addMilestone(projectId: string, milestone: Omit<Milestone, 'id'>) {
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id !== projectId) return p;
-        const newMilestones = [...p.milestones, { ...milestone, id: `ms-${Date.now()}` }];
-        return { ...p, milestones: newMilestones, progress: calcProgress(newMilestones) };
-      })
-    );
-  }
+  const addMilestone = async (projectUid: string, payload: MilestonePayload): Promise<boolean> => {
+    try {
+      await projectsService.addMilestone(projectUid, payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
-  function updateMilestone(projectId: string, milestoneId: string, changes: Partial<Milestone>) {
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id !== projectId) return p;
-        const newMilestones = p.milestones.map((m) =>
-          m.id === milestoneId ? { ...m, ...changes } : m
-        );
-        return { ...p, milestones: newMilestones, progress: calcProgress(newMilestones) };
-      })
-    );
-  }
+  const updateMilestone = async (
+    projectUid: string,
+    milestoneUid: string,
+    payload: Partial<MilestonePayload>
+  ): Promise<boolean> => {
+    try {
+      await projectsService.updateMilestone(projectUid, milestoneUid, payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
-  function deleteMilestone(projectId: string, milestoneId: string) {
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id !== projectId) return p;
-        const newMilestones = p.milestones.filter((m) => m.id !== milestoneId);
-        return { ...p, milestones: newMilestones, progress: calcProgress(newMilestones) };
-      })
-    );
-  }
+  const deleteMilestone = async (projectUid: string, milestoneUid: string): Promise<void> => {
+    await projectsService.removeMilestone(projectUid, milestoneUid);
+    queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+  };
 
-  function addResource(projectId: string, resource: Omit<ProjectResource, 'id'>) {
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id !== projectId) return p;
-        return {
-          ...p,
-          resources: [...p.resources, { ...resource, id: `res-${Date.now()}` }],
-        };
-      })
-    );
-  }
+  // ─── Resources ─────────────────────────────────────────────────────────
 
-  function removeResource(projectId: string, resourceId: string) {
-    setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id !== projectId) return p;
-        return { ...p, resources: p.resources.filter((r) => r.id !== resourceId) };
-      })
-    );
-  }
+  const addResource = async (
+    projectUid: string,
+    payload: ProjectResourcePayload
+  ): Promise<boolean> => {
+    try {
+      await projectsService.addResource(projectUid, payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const removeResource = async (projectUid: string, resourceUid: string): Promise<void> => {
+    await projectsService.removeResource(projectUid, resourceUid);
+    queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+  };
 
   return {
     projects,
+    isLoading,
     stats,
-    getProjectById,
     createProject,
     updateProject,
     deleteProject,
-    cancelProject,
     addMilestone,
     updateMilestone,
     deleteMilestone,
     addResource,
     removeResource,
+    refetch: () => queryClient.invalidateQueries({ queryKey: queryKeys.projects.list }),
   };
 }

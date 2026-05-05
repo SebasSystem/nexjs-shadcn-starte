@@ -1,6 +1,7 @@
 'use client';
 
 import type { RecentActivity } from 'src/features/dashboard/types/dashboard.types';
+import { formatDate } from 'src/lib/date';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import { Icon } from 'src/shared/components/ui';
 
@@ -29,7 +30,7 @@ export function RecentActivitiesList({ activities }: Props) {
             <p className="text-caption text-muted-foreground">Últimas actividades del equipo</p>
           </div>
         </div>
-        <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+        <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1 cursor-pointer">
           Ver todas <Icon name="ChevronRight" size={14} />
         </button>
       </div>
@@ -38,7 +39,7 @@ export function RecentActivitiesList({ activities }: Props) {
         {activities.map((activity) => (
           <div
             key={activity.uid}
-            className="flex items-center justify-between px-5 py-3 hover:bg-muted/40 transition-colors"
+            className="flex items-center justify-between px-5 py-3 hover:bg-muted/40 transition-colors cursor-pointer"
           >
             <div className="flex items-center gap-3 min-w-0">
               <div className="p-2 rounded-lg bg-muted shrink-0">
@@ -57,10 +58,7 @@ export function RecentActivitiesList({ activities }: Props) {
               </div>
             </div>
             <span className="text-[11px] text-muted-foreground shrink-0 ml-2">
-              {new Date(activity.scheduled_at).toLocaleDateString('es-AR', {
-                day: '2-digit',
-                month: 'short',
-              })}
+              {formatDate(activity.scheduled_at, { month: 'short' })}
             </span>
           </div>
         ))}

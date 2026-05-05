@@ -1,87 +1,74 @@
-// Simulamos el servicio HTTP de comisiones - planes
-import type { PlanComision } from '../types/commissions.types';
+import axiosInstance, { endpoints } from 'src/lib/axios';
 
-// Mock data en memoria
-let MOCK_PLANES: PlanComision[] = [
-  {
-    id: 'plan-1',
-    nombre: 'Plan Élite 2025',
-    tipo: 'VENTA',
-    porcentajeBase: 3,
-    estado: 'ACTIVO',
-    fechaInicio: '2025-01-01',
-    rolesAplicables: ['Senior', 'Junior'],
-    tramos: [
-      { id: 'tramo-1-1', desde: 0, hasta: 5000, porcentajeAplicado: 3 },
-      { id: 'tramo-1-2', desde: 5001, hasta: 10000, porcentajeAplicado: 5 },
-      { id: 'tramo-1-3', desde: 10001, hasta: null, porcentajeAplicado: 8 },
-    ],
-  },
-  {
-    id: 'plan-2',
-    nombre: 'Plan Intro',
-    tipo: 'VENTA',
-    porcentajeBase: 2,
-    estado: 'ACTIVO',
-    fechaInicio: '2025-02-01',
-    rolesAplicables: ['Trainee', 'Junior'],
-    tramos: [
-      { id: 'tramo-2-1', desde: 0, hasta: 2000, porcentajeAplicado: 2 },
-      { id: 'tramo-2-2', desde: 2001, hasta: null, porcentajeAplicado: 4 },
-    ],
-  },
-  {
-    id: 'plan-3',
-    nombre: 'Plan Margen Alto',
-    tipo: 'MARGEN',
-    porcentajeBase: 5,
-    estado: 'INACTIVO',
-    fechaInicio: '2024-01-01',
-    fechaFin: '2024-12-31',
-    rolesAplicables: ['Senior', 'Gerente'],
-    tramos: [
-      { id: 'tramo-3-1', desde: 0, hasta: 1000, porcentajeAplicado: 5 },
-      { id: 'tramo-3-2', desde: 1001, hasta: null, porcentajeAplicado: 10 },
-    ],
-  },
-];
+import type { CommissionPlan, CommissionTier } from '../types/commissions.types';
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+function mapTier(raw: Record<string, unknown>): CommissionTier {
+  return {
+    uid: (raw.uid as string) ?? String(raw.threshold),
+    threshold: raw.threshold as number,
+    percentage: raw.percent as number,
+  };
+}
 
-export const planesService = {
-  getPlanes: async (): Promise<PlanComision[]> => {
-    await delay(600);
-    return [...MOCK_PLANES];
-  },
+function mapPlan(raw: Record<string, unknown>): CommissionPlan {
+  return {
+    uid: raw.uid as string,
+    name: raw.name as string,
+    type: raw.type as CommissionPlan['type'],
+    base_percentage: raw.base_percentage as number,
+    tiers: ((raw.tiers_json ?? raw.tiers) as Record<string, unknown>[]).map(mapTier),
+    applicable_roles: (raw.applicable_roles as string[]) ?? [],
+    start_date: raw.start_date as string,
+    end_date: raw.end_date as string | undefined,
+    status: raw.status as CommissionPlan['status'],
+  };
+}
 
-  getPlanById: async (id: string): Promise<PlanComision | undefined> => {
-    await delay(300);
-    return MOCK_PLANES.find((p) => p.id === id);
+export interface CreatePlanPayload {
+  name: string;
+  type: string;
+  base_percentage: number;
+  tiers: { threshold: number; percent: number }[];
+  applicable_roles: string[];
+  start_date: string;
+  end_date?: string;
+  status?: string;
+}
+
+export interface UpdatePlanPayload {
+  name?: string;
+  type?: string;
+  base_percentage?: number;
+  tiers?: { threshold: number; percent: number }[];
+  applicable_roles?: string[];
+  start_date?: string;
+  end_date?: string;
+  status?: string;
+}
+
+export const plansService = {
+  async getPlans(): Promise<CommissionPlan[]> {
+    const res = await axiosInstance.get(endpoints.commissions.plans.list);
+    const payload = res.data?.data ?? res.data;
+    return (Array.isArray(payload) ? payload : []).map(mapPlan);
   },
 
-  createPlan: async (planData: Omit<PlanComision, 'id'>): Promise<PlanComision> => {
-    await delay(800);
-    const newPlan: PlanComision = {
-      ...planData,
-      id: `plan-${Date.now()}`,
-    };
-    MOCK_PLANES.push(newPlan);
-    return newPlan;
+  async getPlanById(uid: string): Promise<CommissionPlan> {
+    const res = await axiosInstance.get(endpoints.commissions.plans.update(uid));
+    return mapPlan(res.data?.data ?? res.data);
   },
 
-  updatePlan: async (id: string, planData: Partial<PlanComision>): Promise<PlanComision> => {
-    await delay(800);
-    const index = MOCK_PLANES.findIndex((p) => p.id === id);
-    if (index === -1) throw new Error('Plan no encontrado');
-
-    MOCK_PLANES[index] = { ...MOCK_PLANES[index], ...planData };
-    return MOCK_PLANES[index];
+  async createPlan(data: CreatePlanPayload): Promise<CommissionPlan> {
+    const res = await axiosInstance.post(endpoints.commissions.plans.create, data);
+    return mapPlan(res.data?.data ?? res.data);
   },
 
-  deletePlan: async (id: string): Promise<boolean> => {
-    await delay(500);
-    const initialLength = MOCK_PLANES.length;
-    MOCK_PLANES = MOCK_PLANES.filter((p) => p.id !== id);
-    return MOCK_PLANES.length !== initialLength;
+  async updatePlan(uid: string, data: UpdatePlanPayload): Promise<CommissionPlan> {
+    const res = await axiosInstance.put(endpoints.commissions.plans.update(uid), data);
+    return mapPlan(res.data?.data ?? res.data);
+  },
+
+  async deletePlan(uid: string): Promise<void> {
+    await axiosInstance.delete(endpoints.commissions.plans.update(uid));
   },
 };

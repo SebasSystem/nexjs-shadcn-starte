@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { MATERIAL_TYPE_CONFIG } from 'src/_mock/_partners';
 import { formatDate } from 'src/lib/date';
 import {
   PageContainer,
@@ -14,6 +13,7 @@ import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
 import { MaterialCard } from '../components/MaterialCard';
 import { MaterialUploadDrawer } from '../components/MaterialUploadDrawer';
 import { usePartners } from '../hooks/usePartners';
+import { MATERIAL_TYPE_CONFIG } from '../types';
 
 // ─── Main View ────────────────────────────────────────────────────────────────
 
@@ -130,7 +130,7 @@ export function PartnerPortalView() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((material) => (
-              <MaterialCard key={material.id} material={material} />
+              <MaterialCard key={material.uid} material={material} />
             ))}
           </div>
         )}

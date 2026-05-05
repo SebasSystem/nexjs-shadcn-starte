@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import {
   PageContainer,
@@ -13,9 +14,10 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { SegmentBuilderDrawer } from '../components/segments/segment-builder-drawer';
 import { SegmentsTable } from '../components/segments/segments-table';
 import { useSegments } from '../hooks/use-segments';
-import type { Segment, SegmentForm } from '../types/segments.types';
+import type { Segment, SegmentPayload } from '../types/segments.types';
 
 export const SegmentsView = () => {
+  const router = useRouter();
   const { segments, isLoading, createSegment, updateSegment, deleteSegment } = useSegments();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -31,20 +33,18 @@ export const SegmentsView = () => {
     setIsDrawerOpen(true);
   };
 
-  const handleRun = (segment: Segment) => {
-    alert(
-      `Ejecutando Segmento: ${segment.nombre}\nBuscando en la base de datos... Se encontraron ${segment.totalContactos} registros coincidentes.`
-    );
+  const handleView = (segment: Segment) => {
+    router.push(`/contacts?segment=${segment.uid}`);
   };
 
-  const handleSave = async (form: SegmentForm): Promise<boolean> => {
-    if (selectedSegment) return updateSegment(selectedSegment.id, form);
-    return createSegment(form);
+  const handleSave = async (payload: SegmentPayload): Promise<boolean> => {
+    if (selectedSegment) return updateSegment(selectedSegment.uid, payload);
+    return createSegment(payload);
   };
 
-  // Métricas analíticas básicas agregadas de la base de segmentos (Mock para Dashboard Analítico)
+  // Métricas analíticas básicas agregadas de la base de segmentos
   const totalSaved = segments.length;
-  const totalAudience = segments.reduce((sum, s) => sum + s.totalContactos, 0);
+  const totalAudience = segments.reduce((sum, s) => sum + s.total_contacts, 0);
 
   return (
     <PageContainer>
@@ -65,17 +65,17 @@ export const SegmentsView = () => {
           title="Segmentos Guardados"
           value={totalSaved.toString()}
           icon={<Icon name="Filter" className="h-5 w-5 text-blue-500" />}
-          trend="+12% este mes"
+          trend="del total de contactos"
         />
         <StatsCard
           title="Audiencia Total Indexada"
           value={totalAudience.toLocaleString()}
           icon={<Icon name="Users" className="h-5 w-5 text-emerald-500" />}
-          trend="+5.2% crecimiento mensual"
+          trend="del total de contactos"
         />
         <StatsCard
           title="Velocidad Media de Query"
-          value="42ms"
+          value="—"
           icon={<Icon name="DatabaseZap" className="h-5 w-5 text-orange-500" />}
           trend="Rendimiento del motor GIN"
         />
@@ -113,13 +113,13 @@ export const SegmentsView = () => {
             segments={segments}
             onEdit={handleEdit}
             onDelete={deleteSegment}
-            onRun={handleRun}
+            onView={handleView}
           />
         )}
       </SectionCard>
 
       <SegmentBuilderDrawer
-        key={isDrawerOpen ? (selectedSegment?.id ?? 'new') : 'closed'}
+        key={isDrawerOpen ? (selectedSegment?.uid ?? 'new') : 'closed'}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         segment={selectedSegment}

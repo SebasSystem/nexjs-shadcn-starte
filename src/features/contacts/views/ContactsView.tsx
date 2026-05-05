@@ -11,13 +11,13 @@ import { ContactDetailDrawer } from '../components/contact-detail-drawer';
 import { ContactDrawer } from '../components/contact-drawer';
 import { ContactsTable } from '../components/contacts-table';
 import { useContacts } from '../hooks/use-contacts';
-import type { Contacto, ContactoForm, TipoEntidad } from '../types/contacts.types';
+import type { Contact, ContactPayload, ContactType } from '../types/contacts.types';
 
-const TABS: { value: 'ALL' | TipoEntidad; label: string }[] = [
+const TABS: { value: 'ALL' | ContactType; label: string }[] = [
   { value: 'ALL', label: 'Todos' },
-  { value: 'B2B', label: 'Empresas (B2B)' },
-  { value: 'B2C', label: 'Personas (B2C)' },
-  { value: 'B2G', label: 'Instituciones (B2G)' },
+  { value: 'company', label: 'Empresas (B2B)' },
+  { value: 'person', label: 'Personas (B2C)' },
+  { value: 'government', label: 'Instituciones (B2G)' },
 ];
 
 export const ContactsView = () => {
@@ -31,32 +31,32 @@ export const ContactsView = () => {
     deleteContacto,
   } = useContacts();
 
-  const [tab, setTab] = useState<'ALL' | TipoEntidad>('ALL');
+  const [tab, setTab] = useState<'ALL' | ContactType>('ALL');
   const [search, setSearch] = useState('');
-  const [filterEstado, setFilterEstado] = useState('ALL');
+  const [filterStatus, setFilterStatus] = useState('ALL');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [selectedContacto, setSelectedContacto] = useState<Contacto | null>(null);
+  const [selectedContacto, setSelectedContacto] = useState<Contact | null>(null);
 
-  const empresas = useMemo(() => contactos.filter((c) => c.tipo === 'B2B'), [contactos]);
+  const empresas = useMemo(() => contactos.filter((c) => c.type === 'company'), [contactos]);
 
   const filtered = useMemo(() => {
     return contactos.filter((c) => {
-      const matchTab = tab === 'ALL' || c.tipo === tab;
-      const matchEstado = filterEstado === 'ALL' || c.estado === filterEstado;
+      const matchTab = tab === 'ALL' || c.type === tab;
+      const matchStatus = filterStatus === 'ALL' || c.status === filterStatus;
       const matchSearch =
-        c.nombre.toLowerCase().includes(search.toLowerCase()) ||
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
         c.email.toLowerCase().includes(search.toLowerCase());
-      return matchTab && matchEstado && matchSearch;
+      return matchTab && matchStatus && matchSearch;
     });
-  }, [contactos, tab, search, filterEstado]);
+  }, [contactos, tab, search, filterStatus]);
 
   const counts = useMemo(
     () => ({
       ALL: contactos.length,
-      B2B: contactos.filter((c) => c.tipo === 'B2B').length,
-      B2C: contactos.filter((c) => c.tipo === 'B2C').length,
-      B2G: contactos.filter((c) => c.tipo === 'B2G').length,
+      company: contactos.filter((c) => c.type === 'company').length,
+      person: contactos.filter((c) => c.type === 'person').length,
+      government: contactos.filter((c) => c.type === 'government').length,
     }),
     [contactos]
   );
@@ -66,25 +66,25 @@ export const ContactsView = () => {
     setIsDrawerOpen(true);
   };
 
-  const handleEdit = (c: Contacto) => {
+  const handleEdit = (c: Contact) => {
     setSelectedContacto(c);
     setIsDetailOpen(false);
     setIsDrawerOpen(true);
   };
 
-  const handleViewDetail = (c: Contacto) => {
+  const handleViewDetail = (c: Contact) => {
     setSelectedContacto(c);
     setIsDetailOpen(true);
   };
 
-  const handleSave = async (form: ContactoForm): Promise<boolean> => {
-    if (selectedContacto) return updateContacto(selectedContacto.id, form);
+  const handleSave = async (form: ContactPayload): Promise<boolean> => {
+    if (selectedContacto) return updateContacto(selectedContacto.uid, form);
     return createContacto(form);
   };
 
   // Sync selectedContacto with latest data after mutations
   const currentContacto = selectedContacto
-    ? (contactos.find((c) => c.id === selectedContacto.id) ?? selectedContacto)
+    ? (contactos.find((c) => c.uid === selectedContacto.uid) ?? selectedContacto)
     : null;
 
   return (
@@ -93,20 +93,20 @@ export const ContactsView = () => {
         title="Directorio CRM"
         subtitle="Gestiona empresas, personas e instituciones de tu base comercial"
         action={
-          <Button color="primary" onClick={handleOpenNew} className="gap-2">
+          <Button color="primary" onClick={handleOpenNew} className="gap-2 cursor-pointer">
             <Icon name="Plus" className="h-4 w-4" />
             Nuevo contacto
           </Button>
         }
       />
 
-      {/* Tabs de tipo */}
+      {/* Type tabs */}
       <div className="flex gap-1 border-b border-border/40">
         {TABS.map(({ value, label }) => (
           <button
             key={value}
             onClick={() => setTab(value)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
+            className={`px-4 py-2.5 text-sm font-medium transition-colors relative cursor-pointer ${
               tab === value
                 ? 'text-blue-600 border-b-2 border-blue-600 -mb-px'
                 : 'text-muted-foreground hover:text-foreground'
@@ -138,12 +138,12 @@ export const ContactsView = () => {
             label="Estado"
             options={[
               { value: 'ALL', label: 'Todos los estados' },
-              { value: 'ACTIVO', label: 'Activo' },
-              { value: 'PROSPECTO', label: 'Prospecto' },
-              { value: 'INACTIVO', label: 'Inactivo' },
+              { value: 'active', label: 'Activo' },
+              { value: 'prospect', label: 'Prospecto' },
+              { value: 'inactive', label: 'Inactivo' },
             ]}
-            value={filterEstado}
-            onChange={(v) => setFilterEstado(v as string)}
+            value={filterStatus}
+            onChange={(v) => setFilterStatus(v as string)}
           />
         </div>
         {isLoading ? (
@@ -158,7 +158,7 @@ export const ContactsView = () => {
               contactos={filtered}
               onEdit={handleEdit}
               onViewDetail={handleViewDetail}
-              onDelete={(c) => deleteContacto(c.id)}
+              onDelete={(c) => deleteContacto(c.uid)}
             />
             <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
               {filtered.length} contacto{filtered.length !== 1 ? 's' : ''}
@@ -169,7 +169,7 @@ export const ContactsView = () => {
       </SectionCard>
 
       <ContactDrawer
-        key={isDrawerOpen ? (selectedContacto?.id ?? 'new') : 'closed'}
+        key={isDrawerOpen ? (selectedContacto?.uid ?? 'new') : 'closed'}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         contacto={selectedContacto}

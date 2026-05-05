@@ -1,17 +1,127 @@
-import type { LinkedInProfile } from 'src/features/automation/types';
+// ─── Entity Types (snake_case — must match Laravel backend JSON keys) ─────────
 
-// ─── Checklist ────────────────────────────────────────────────────────────────
-
-export interface ChecklistItem {
-  id: string;
-  text: string;
-  done: boolean;
+export interface Opportunity {
+  uid: string;
+  title: string;
+  amount: number;
+  expected_close_date: string;
+  stage_uid: string;
+  stage_name: string;
+  currency: string;
+  description?: string;
+  won_at?: string;
+  lost_at?: string;
+  opportunityable_type: string;
+  opportunityable_uid: string;
+  owner_user_uid: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface StageHistoryEntry {
-  stage: StageId;
-  enteredAt: string;
-  exitedAt?: string;
+export interface PipelineStage {
+  uid: string;
+  key: string;
+  name: string;
+  position: number;
+  probability_percent: number;
+  is_won: boolean;
+  is_lost: boolean;
+  is_active: boolean;
+  color?: string; // frontend-assigned, not from backend
+}
+
+export interface Quotation {
+  uid: string;
+  quote_number: string;
+  title: string;
+  status: 'draft' | 'sent' | 'approved' | 'rejected' | 'cancelled';
+  currency: string;
+  exchange_rate?: number;
+  local_currency?: string;
+  valid_until?: string;
+  subtotal: number;
+  discount_total: number;
+  total: number;
+  reserved_items_count?: number;
+  reservation_indicator?: string;
+  owner_user_uid: string;
+  created_by_user_uid: string;
+  price_book_uid?: string;
+  notes?: string;
+  items: QuotationItem[];
+  quoteable_type: string;
+  quoteable_uid: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuotationItem {
+  uid: string;
+  description: string;
+  sku?: string;
+  quantity: number;
+  list_unit_price: number;
+  discount_percent: number;
+  net_unit_price: number;
+  unit_cost?: number;
+  margin_percent?: number;
+  line_total: number;
+  discount_total: number;
+  product_uid?: string;
+  warehouse_uid?: string;
+}
+
+export interface Invoice {
+  uid: string;
+  invoice_number: string;
+  quotation_uid: string;
+  issued_at: string;
+  due_date: string;
+  status: 'draft' | 'issued' | 'partial' | 'paid' | 'overdue';
+  total: number;
+  paid_total: number;
+  outstanding_total: number;
+  subtotal: number;
+  discount_total: number;
+  currency: string;
+  quote_currency?: string;
+  exchange_rate?: number;
+  meta?: Record<string, unknown>;
+  invoiceable_type: string;
+  invoiceable_uid: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Payment {
+  uid: string;
+  amount: number;
+  method: string;
+  payment_date: string;
+  external_reference?: string;
+  invoice_uid: string;
+  meta?: Record<string, unknown>;
+}
+
+// ─── Standalone Types (used by separate endpoints — not embedded in Opportunity) ─
+
+export type ActivityType = 'llamada' | 'email' | 'reunion' | 'demo' | 'seguimiento';
+export type ActivityStatus = 'pendiente' | 'completada' | 'cancelada';
+
+export interface Activity {
+  uid: string;
+  type: ActivityType;
+  date: string;
+  responsible: string;
+  status: ActivityStatus;
+  notes?: string;
+}
+
+export interface Note {
+  uid: string;
+  content: string;
+  author: string;
+  created_at: string;
 }
 
 export type LostReasonCategory =
@@ -26,143 +136,78 @@ export type LostReasonCategory =
 
 export interface LostReasonInfo {
   category: LostReasonCategory;
-  competitorId?: string;
-  competitorName?: string;
+  competitor_uid?: string;
+  competitor_name?: string;
   detail: string;
 }
 
-// ─── Actividades y Notas ───────────────────────────────────────────────────────
+// ─── Finance Dashboard ────────────────────────────────────────────────────────
 
-export type ActivityType = 'llamada' | 'email' | 'reunion' | 'demo' | 'seguimiento';
-export type ActivityStatus = 'pendiente' | 'completada' | 'cancelada';
-
-export interface Activity {
-  id: string;
-  type: ActivityType;
-  date: string;
-  responsible: string;
-  status: ActivityStatus;
-  notes?: string;
+export interface FinanceDashboardStats {
+  monthly_sales: number;
+  monthly_sales_growth_percent: number;
+  pending_invoices_count: number;
+  pending_invoices_amount: number;
+  overdue_portfolio: number;
+  overdue_clients_count: number;
+  average_margin_percent: number;
+  margin_target_percent: number;
 }
 
-export interface Note {
-  id: string;
-  content: string;
-  author: string;
-  createdAt: string;
-}
-
-export type LeadSource =
-  | 'Web'
-  | 'Facebook Ads'
-  | 'LinkedIn'
-  | 'Referido'
-  | 'Evento'
-  | 'Email'
-  | 'Otro';
-
-// ─── Pipeline ────────────────────────────────────────────────────────────────
-
-export type StageId = 'leads' | 'contactado' | 'negociacion' | 'cerrado';
-
-export interface PipelineStage {
-  id: StageId;
-  label: string;
-  color: string;
-}
-
-export interface Opportunity {
-  id: string;
-  clientName: string;
-  contactName?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  estimatedAmount: number;
-  expectedCloseDate: string;
-  stage: StageId;
-  quotationId: string | null;
-  createdAt: string;
-  stageEnteredAt: string;
-  stageHistory: StageHistoryEntry[];
-  checklist: ChecklistItem[];
-  lostReason?: LostReasonInfo;
-
-  // Nuevos campos del flujo final
-  source: LeadSource;
-  mainProduct?: string;
-  owner?: string;
-  probability?: number;
-
-  activities: Activity[];
-  notes: Note[];
-
-  lastActivityAt?: string;
-  nextActivityAt?: string;
-
-  outcome?: 'ganado' | 'perdido';
-  leadScore?: 'hot' | 'warm' | 'cold';
-  leadScoreValue?: number;
-  linkedIn?: LinkedInProfile;
-}
-
-// ─── Cotizaciones ─────────────────────────────────────────────────────────────
-
-export interface ProductLine {
-  id: string;
-  name: string;
-  sku: string;
-  qty: number;
-  unitPrice: number;
-  discount: number; // porcentaje
-}
-
-export interface Quotation {
-  id: string;
-  opportunityId: string;
-  client: string;
-  priceList: string;
-  date: string;
-  seller: string;
-  status: 'borrador' | 'enviada' | 'aprobada' | 'rechazada' | 'convertida';
-  products: ProductLine[];
-  internalNotes: string;
-}
-
-// ─── Facturas ─────────────────────────────────────────────────────────────────
-
-export interface Payment {
-  id: string;
-  method: string;
-  date: string;
-  reference: string;
+export interface FinanceDashboardInvoice {
+  uid: string;
+  invoice_number: string;
+  client_name: string;
+  issued_at: string;
   amount: number;
-  status: 'confirmado' | 'pendiente';
+  status: 'issued' | 'partial' | 'paid' | 'overdue' | 'draft';
 }
 
-export interface InvoiceLine {
+export interface FinanceDashboard {
+  stats: FinanceDashboardStats;
+  weekly_sales: number[];
+  recent_invoices: FinanceDashboardInvoice[];
+}
+
+// ─── Currency Rates ───────────────────────────────────────────────────────────
+
+export interface CurrencyRate {
   code: string;
   name: string;
-  description?: string;
-  qty: number;
-  unitPrice: number;
-  discount: number;
-  tax: number;
-  subtotal: number;
+  rate: number;
+  last_update: string;
+  status: 'active' | 'outdated';
 }
 
-export interface Invoice {
-  id: string;
-  quotationId: string;
-  client: string;
-  clientNif: string;
-  issueDate: string;
-  dueDate: string;
-  paymentMethod: string;
-  seller: string;
-  status: 'pendiente' | 'parcial' | 'pagada' | 'vencida';
-  total: number;
-  totalPaid: number;
-  products: InvoiceLine[];
-  payments: Payment[];
-  paymentReminderDate?: string;
+// ─── Credit Rules ─────────────────────────────────────────────────────────────
+
+export interface CreditRuleSettings {
+  max_days: number;
+  max_amount: number;
+  auto_block: boolean;
 }
+
+export interface CreditException {
+  uid: string;
+  client_name: string;
+  client_identifier: string;
+  credit_limit: number;
+  max_days: number;
+  is_active: boolean;
+}
+
+// ─── Status Labels: English codes (from backend) → Spanish UI labels ──────────
+
+export const STATUS_LABELS: Record<string, string> = {
+  // Quotation statuses
+  draft: 'Borrador',
+  sent: 'Enviada',
+  approved: 'Aprobada',
+  rejected: 'Rechazada',
+  cancelled: 'Cancelada',
+  // Invoice statuses
+  issued: 'Emitida',
+  partial: 'Parcial',
+  paid: 'Pagada',
+  overdue: 'Vencida',
+};

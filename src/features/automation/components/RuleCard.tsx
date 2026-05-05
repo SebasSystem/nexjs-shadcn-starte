@@ -13,8 +13,8 @@ import { RuleStatusBadge } from './RuleStatusBadge';
 
 interface RuleCardProps {
   rule: AutomationRule;
-  onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
+  onToggle: (uid: string) => void;
+  onDelete: (uid: string) => void;
 }
 
 function formatDate(dateStr?: string): string {
@@ -50,7 +50,8 @@ export function RuleCard({ rule, onToggle, onDelete }: RuleCardProps) {
         <div className="flex items-center gap-2 text-xs">
           <span className="text-muted-foreground">Trigger:</span>
           <span className="font-medium text-foreground">
-            {TRIGGER_SOURCE_LABELS[rule.triggerSource]} · {TRIGGER_EVENT_LABELS[rule.triggerEvent]}
+            {TRIGGER_SOURCE_LABELS[rule.trigger_source]} ·{' '}
+            {TRIGGER_EVENT_LABELS[rule.trigger_event]}
           </span>
         </div>
         <div className="flex items-center gap-2 text-xs">
@@ -61,11 +62,11 @@ export function RuleCard({ rule, onToggle, onDelete }: RuleCardProps) {
         </div>
         <div className="flex items-center gap-2 text-xs">
           <span className="text-muted-foreground">Ejecuciones:</span>
-          <span className="font-medium text-foreground">{rule.runCount}</span>
-          {rule.lastRunAt && (
+          <span className="font-medium text-foreground">{rule.run_count}</span>
+          {rule.last_run_at && (
             <>
               <span className="text-muted-foreground">·</span>
-              <span className="text-muted-foreground">Último: {formatDate(rule.lastRunAt)}</span>
+              <span className="text-muted-foreground">Último: {formatDate(rule.last_run_at)}</span>
             </>
           )}
         </div>
@@ -76,7 +77,7 @@ export function RuleCard({ rule, onToggle, onDelete }: RuleCardProps) {
           variant="outline"
           size="sm"
           className="h-8 px-3 text-xs gap-1.5"
-          onClick={() => router.push(paths.automation.ruleEdit(rule.id))}
+          onClick={() => router.push(paths.automation.ruleEdit(rule.uid))}
         >
           <Icon name="Pencil" size={12} />
           Editar
@@ -85,7 +86,7 @@ export function RuleCard({ rule, onToggle, onDelete }: RuleCardProps) {
           variant="outline"
           size="sm"
           className="h-8 px-3 text-xs gap-1.5"
-          onClick={() => onToggle(rule.id)}
+          onClick={() => onToggle(rule.uid)}
         >
           <Icon name="Power" size={12} />
           {rule.enabled ? 'Pausar' : 'Activar'}
@@ -94,7 +95,7 @@ export function RuleCard({ rule, onToggle, onDelete }: RuleCardProps) {
           variant="outline"
           size="sm"
           className="h-8 px-3 text-xs gap-1.5 text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/60 ml-auto"
-          onClick={() => onDelete(rule.id)}
+          onClick={() => onDelete(rule.uid)}
         >
           <Icon name="Trash2" size={12} />
           Eliminar

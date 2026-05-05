@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   description: 'Sistema de gestión empresarial',
 };
 
+import { QueryProvider } from 'src/lib/query-provider';
 import { I18nProvider } from 'src/locales/i18n-provider';
 import { detectLanguage } from 'src/locales/server';
 import { AuthProvider } from 'src/shared/auth/context/jwt';
@@ -62,7 +63,9 @@ export default async function RootLayout({
         <ThemeProvider>
           <ProgressBar />
           <I18nProvider lang={lang}>
-            <AuthProvider>{children}</AuthProvider>
+            <QueryProvider>
+              <AuthProvider>{children}</AuthProvider>
+            </QueryProvider>
           </I18nProvider>
         </ThemeProvider>
       </body>

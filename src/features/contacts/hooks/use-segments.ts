@@ -1,78 +1,47 @@
-import { useState } from 'react';
+'use client';
 
-import type { Segment, SegmentForm } from '../types/segments.types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from 'src/lib/query-keys';
 
-const MOCK_SEGMENTS: Segment[] = [
-  {
-    id: 'seg-1',
-    nombre: 'B2B Activos',
-    descripcion: 'Empresas B2B con estado ACTIVO creadas en el último año.',
-    logica: 'AND',
-    reglas: [
-      { id: 'r1', field: 'tipo', operator: 'equals', value: 'B2B' },
-      { id: 'r2', field: 'estado', operator: 'equals', value: 'ACTIVO' },
-    ],
-    totalContactos: 145,
-    creadoEn: new Date(Date.now() - 86400000 * 10).toISOString(),
-    ultimaActualizacion: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-  {
-    id: 'seg-2',
-    nombre: 'Clientes VIP o en Riesgo',
-    descripcion: 'Clientes etiquetados como VIP o que estén en Lista Negra.',
-    logica: 'OR',
-    reglas: [
-      { id: 'r3', field: 'etiqueta', operator: 'contains', value: 'VIP' },
-      { id: 'r4', field: 'etiqueta', operator: 'contains', value: 'Lista Negra' },
-    ],
-    totalContactos: 32,
-    creadoEn: new Date(Date.now() - 86400000 * 5).toISOString(),
-    ultimaActualizacion: new Date(Date.now() - 86400000 * 1).toISOString(),
-  },
-];
+import { segmentsService } from '../services/segments.service';
+import type { SegmentPayload } from '../types/segments.types';
 
-export const useSegments = () => {
-  const [segments, setSegments] = useState<Segment[]>(MOCK_SEGMENTS);
-  const [isLoading, setIsLoading] = useState(false);
+export function useSegments() {
+  const queryClient = useQueryClient();
 
-  const createSegment = async (form: SegmentForm): Promise<boolean> => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 800)); // Simulando red
+  const { data: segments = [], isLoading } = useQuery({
+    queryKey: queryKeys.contacts.segments.list,
+    queryFn: () => segmentsService.list(),
+  });
 
-    // Métrica mock calculada en base a filtros (aleatoria para el demo)
-    const randomTotal = Math.floor(Math.random() * 500) + 10;
-
-    const newSegment: Segment = {
-      ...form,
-      id: Math.random().toString(36).substr(2, 9),
-      totalContactos: randomTotal,
-      creadoEn: new Date().toISOString(),
-      ultimaActualizacion: new Date().toISOString(),
-    };
-
-    setSegments((prev) => [newSegment, ...prev]);
-    setIsLoading(false);
-    return true;
+  const createSegment = async (payload: SegmentPayload): Promise<boolean> => {
+    try {
+      await segmentsService.create(payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.segments.list });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  const updateSegment = async (id: string, form: Partial<SegmentForm>): Promise<boolean> => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 800)); // Simulando red
-    setSegments((prev) =>
-      prev.map((s) =>
-        s.id === id ? { ...s, ...form, ultimaActualizacion: new Date().toISOString() } : s
-      )
-    );
-    setIsLoading(false);
-    return true;
+  const updateSegment = async (uid: string, payload: Partial<SegmentPayload>): Promise<boolean> => {
+    try {
+      await segmentsService.update(uid, payload);
+      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.segments.list });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
-  const deleteSegment = async (id: string): Promise<boolean> => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600)); // Simulando red
-    setSegments((prev) => prev.filter((s) => s.id !== id));
-    setIsLoading(false);
-    return true;
+  const deleteSegment = async (uid: string): Promise<boolean> => {
+    try {
+      await segmentsService.remove(uid);
+      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.segments.list });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   return {
@@ -81,5 +50,6 @@ export const useSegments = () => {
     createSegment,
     updateSegment,
     deleteSegment,
+    refetch: () => queryClient.invalidateQueries({ queryKey: queryKeys.contacts.segments.list }),
   };
-};
+}

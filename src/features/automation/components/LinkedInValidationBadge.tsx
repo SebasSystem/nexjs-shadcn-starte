@@ -31,8 +31,8 @@ function getStatusDot(score: number) {
 }
 
 export function LinkedInValidationBadge({ profile, className }: LinkedInValidationBadgeProps) {
-  const scoreColor = getScoreColor(profile.validationScore);
-  const statusDot = getStatusDot(profile.validationScore);
+  const scoreColor = getScoreColor(profile.validation_score);
+  const statusDot = getStatusDot(profile.validation_score);
 
   return (
     <TooltipProvider>
@@ -46,7 +46,7 @@ export function LinkedInValidationBadge({ profile, className }: LinkedInValidati
             )}
           >
             <Icon name="Linkedin" size={10} className="shrink-0" />
-            <span>{profile.validationScore}</span>
+            <span>{profile.validation_score}</span>
             <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', statusDot)} />
           </span>
         </TooltipTrigger>
@@ -56,8 +56,8 @@ export function LinkedInValidationBadge({ profile, className }: LinkedInValidati
             {profile.title && <p>{profile.title}</p>}
             {profile.company && <p className="text-background/70">{profile.company}</p>}
             <p className="text-background/60">
-              {VALIDATION_STATUS_LABELS[profile.validationStatus]}
-              {profile.lastChecked && ` · ${profile.lastChecked}`}
+              {VALIDATION_STATUS_LABELS[profile.validation_status]}
+              {profile.last_checked && ` · ${profile.last_checked}`}
             </p>
           </div>
         </TooltipContent>

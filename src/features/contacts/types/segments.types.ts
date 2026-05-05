@@ -1,35 +1,41 @@
-export type FieldType = 'tipo' | 'etiqueta' | 'estado' | 'fecha_creacion';
-
-export type Operator =
-  | 'equals'
-  | 'not_equals'
-  | 'contains'
-  | 'greater_than'
-  | 'less_than'
-  | 'in'
-  | 'not_in';
-
-export interface Rule {
-  id: string;
-  field: FieldType;
-  operator: Operator;
+export interface SegmentRule {
+  uid: string;
+  field: string;
+  operator: string;
   value: string | number | string[];
 }
 
 export interface Segment {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  reglas: Rule[];
-  logica: 'AND' | 'OR';
-  totalContactos: number; // Métrica analítica rápida
-  creadoEn: string;
-  ultimaActualizacion: string;
+  uid: string;
+  name: string;
+  description: string;
+  logic: 'AND' | 'OR';
+  rules: SegmentRule[];
+  total_contacts: number;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface SegmentForm {
-  nombre: string;
-  descripcion: string;
-  reglas: Rule[];
-  logica: 'AND' | 'OR';
+export interface SegmentPayload {
+  name: string;
+  description: string;
+  logic: 'AND' | 'OR';
+  rules: Omit<SegmentRule, 'uid'>[];
 }
+
+export const SEGMENT_FIELDS: { value: string; label: string }[] = [
+  { value: 'type', label: 'Type' },
+  { value: 'status', label: 'Status' },
+  { value: 'country', label: 'Country' },
+  { value: 'city', label: 'City' },
+  { value: 'industry', label: 'Industry' },
+  { value: 'company_size', label: 'Company Size' },
+  { value: 'job_title', label: 'Job Title' },
+  { value: 'email', label: 'Email' },
+  { value: 'phone', label: 'Phone' },
+  { value: 'tax_id', label: 'Tax ID' },
+  { value: 'id_number', label: 'ID Number' },
+  { value: 'institution_type', label: 'Institution Type' },
+  { value: 'created_at', label: 'Created At' },
+  { value: 'updated_at', label: 'Updated At' },
+];

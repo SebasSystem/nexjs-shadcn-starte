@@ -10,7 +10,7 @@ import {
   TenantUser,
 } from 'src/features/admin/types/admin.types';
 import { formatMoney } from 'src/lib/currency';
-import { formatDate, formatRelative, toDate } from 'src/lib/date';
+import { diffDays, formatDate, formatRelative } from 'src/lib/date';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
@@ -48,7 +48,7 @@ function getInitials(nombre: string) {
     .toUpperCase();
 }
 function getDaysSince(dateStr: string) {
-  return Math.floor((Date.now() - toDate(dateStr).getTime()) / 86400000);
+  return diffDays(dateStr);
 }
 
 export function TenantDetailDrawer({

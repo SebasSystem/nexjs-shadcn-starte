@@ -2,7 +2,6 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { LOST_REASON_LABELS, LOST_REASON_OPTIONS, MOCK_COMPETITORS } from 'src/_mock/_intelligence';
 import { formatMoney } from 'src/lib/currency';
 import { formatDate } from 'src/lib/date';
 import {
@@ -23,38 +22,49 @@ import {
 } from 'src/shared/components/table';
 import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
 
-import { LostDealDrawer } from '../components/LostDealDrawer';
+import { LostReasonDrawer } from '../components/LostReasonDrawer';
 import { LostReasonHeatmap } from '../components/LostReasonHeatmap';
 import { useIntelligence } from '../hooks/useIntelligence';
-import type { LostDeal, LostReasonCategory } from '../types';
-const col = createColumnHelper<LostDeal>();
-
-const COMPETITOR_FILTER_OPTIONS = [
-  { value: '', label: 'Todos los competidores' },
-  { value: 'none', label: 'Sin competidor' },
-  ...MOCK_COMPETITORS.map((c) => ({ value: c.id, label: c.name })),
-];
-
-const REASON_FILTER_OPTIONS = [{ value: '', label: 'Todas las razones' }, ...LOST_REASON_OPTIONS];
+import type { LostReason, LostReasonCategory } from '../types';
+import { LOST_REASON_LABELS, LOST_REASON_OPTIONS } from '../types';
+const col = createColumnHelper<LostReason>();
 
 export function LostReasonsView() {
-  const { lostDeals, stats, heatmapData, createLostDeal, updateLostDeal, deleteLostDeal } =
-    useIntelligence();
+  const {
+    lostReasons,
+    stats,
+    competitors,
+    heatmapData,
+    createLostReason,
+    updateLostReason,
+    deleteLostReason,
+  } = useIntelligence();
 
   const [search, setSearch] = useState('');
   const [reasonFilter, setReasonFilter] = useState('');
   const [competitorFilter, setCompetitorFilter] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editing, setEditing] = useState<LostDeal | null>(null);
+  const [editing, setEditing] = useState<LostReason | null>(null);
+
+  const COMPETITOR_FILTER_OPTIONS = useMemo(
+    () => [
+      { value: '', label: 'Todos los competidores' },
+      { value: 'none', label: 'Sin competidor' },
+      ...competitors.map((c) => ({ value: c.uid, label: c.name })),
+    ],
+    [competitors]
+  );
+
+  const REASON_FILTER_OPTIONS = [{ value: '', label: 'Todas las razones' }, ...LOST_REASON_OPTIONS];
 
   const columns = useMemo(
     () => [
-      col.accessor('opportunityName', {
+      col.accessor('opportunity_name', {
         header: 'Deal',
         cell: (info) => (
           <div>
             <p className="text-body2 font-medium text-foreground">{info.getValue()}</p>
-            <p className="text-caption text-muted-foreground">{info.row.original.clientName}</p>
+            <p className="text-caption text-muted-foreground">{info.row.original.client_name}</p>
           </div>
         ),
       }),
@@ -69,7 +79,7 @@ export function LostReasonsView() {
           </span>
         ),
       }),
-      col.accessor('competitorName', {
+      col.accessor('competitor_name', {
         header: 'Competidor',
         cell: (info) =>
           info.getValue() ? (
@@ -80,7 +90,7 @@ export function LostReasonsView() {
             <span className="text-caption text-muted-foreground">—</span>
           ),
       }),
-      col.accessor('lostReasonCategory', {
+      col.accessor('lost_reason_category', {
         header: 'Razón',
         cell: (info) => (
           <Badge variant="soft" color="warning">
@@ -88,13 +98,13 @@ export function LostReasonsView() {
           </Badge>
         ),
       }),
-      col.accessor('lostDate', {
+      col.accessor('lost_date', {
         header: 'Fecha',
         cell: (info) => (
           <span className="text-caption text-muted-foreground">{formatDate(info.getValue())}</span>
         ),
       }),
-      col.accessor('salesRepName', {
+      col.accessor('sales_rep_name', {
         header: 'Vendedor',
         cell: (info) => <span className="text-body2">{info.getValue()}</span>,
       }),
@@ -120,7 +130,7 @@ export function LostReasonsView() {
               color="error"
               onClick={(e) => {
                 e.stopPropagation();
-                deleteLostDeal(row.original.id);
+                deleteLostReason(row.original.uid);
               }}
             >
               <Icon name="Trash2" size={14} />
@@ -129,26 +139,26 @@ export function LostReasonsView() {
         ),
       }),
     ],
-    [deleteLostDeal]
+    [deleteLostReason]
   );
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return lostDeals.filter((d) => {
+    return lostReasons.filter((d) => {
       if (
         q &&
-        !d.opportunityName.toLowerCase().includes(q) &&
-        !d.clientName.toLowerCase().includes(q)
+        !d.opportunity_name.toLowerCase().includes(q) &&
+        !d.client_name.toLowerCase().includes(q)
       )
         return false;
-      if (reasonFilter && d.lostReasonCategory !== reasonFilter) return false;
+      if (reasonFilter && d.lost_reason_category !== reasonFilter) return false;
       if (competitorFilter) {
-        if (competitorFilter === 'none' && d.competitorId) return false;
-        if (competitorFilter !== 'none' && d.competitorId !== competitorFilter) return false;
+        if (competitorFilter === 'none' && d.competitor_uid) return false;
+        if (competitorFilter !== 'none' && d.competitor_uid !== competitorFilter) return false;
       }
       return true;
     });
-  }, [lostDeals, search, reasonFilter, competitorFilter]);
+  }, [lostReasons, search, reasonFilter, competitorFilter]);
 
   const { table, dense, onChangeDense } = useTable({ data: filtered, columns });
 
@@ -161,7 +171,7 @@ export function LostReasonsView() {
     <PageContainer>
       <PageHeader
         title="Razones de Pérdida"
-        subtitle={`${lostDeals.length} deals registrados`}
+        subtitle={`${lostReasons.length} deals registrados`}
         action={
           <Button color="primary" onClick={() => setDrawerOpen(true)}>
             <Icon name="Plus" size={16} />
@@ -174,34 +184,34 @@ export function LostReasonsView() {
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <StatsCard
           title="Deals perdidos"
-          value={stats.totalLostDeals}
+          value={stats.total_lost_deals}
           icon={<Icon name="TrendingDown" size={18} />}
           iconClassName="bg-error/10 text-error"
           trendUp={false}
         />
         <StatsCard
           title="Monto total perdido"
-          value={`$${(stats.totalLostAmount / 1000).toFixed(0)}k`}
+          value={`$${(stats.total_lost_amount / 1000).toFixed(0)}k`}
           icon={<Icon name="DollarSign" size={18} />}
           iconClassName="bg-warning/10 text-warning"
           trendUp={false}
         />
         <StatsCard
           title="Razón principal"
-          value={LOST_REASON_LABELS[stats.topLostReason]}
+          value={LOST_REASON_LABELS[stats.top_lost_reason]}
           icon={<Icon name="AlertCircle" size={18} />}
           iconClassName="bg-warning/10 text-warning"
         />
         <StatsCard
           title="Competidor más frecuente"
-          value={stats.topCompetitor}
+          value={stats.top_competitor}
           icon={<Icon name="Swords" size={18} />}
           iconClassName="bg-error/10 text-error"
         />
       </div>
 
       {/* Heatmap */}
-      <LostReasonHeatmap data={heatmapData} />
+      <LostReasonHeatmap data={heatmapData} competitors={competitors} />
 
       {/* Filtros */}
       <div className="flex flex-wrap items-end gap-3">
@@ -270,12 +280,13 @@ export function LostReasonsView() {
         </div>
       </SectionCard>
 
-      <LostDealDrawer
+      <LostReasonDrawer
         open={drawerOpen}
         item={editing}
+        competitors={competitors}
         onClose={handleClose}
-        onCreate={createLostDeal}
-        onUpdate={updateLostDeal}
+        onCreate={createLostReason}
+        onUpdate={updateLostReason}
       />
     </PageContainer>
   );

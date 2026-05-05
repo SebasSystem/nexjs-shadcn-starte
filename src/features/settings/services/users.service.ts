@@ -7,14 +7,14 @@ function mapUser(raw: Record<string, unknown>): SettingsUser {
   const isLocked = lockedUntil && lockedUntil > new Date();
 
   return {
-    id: raw.uid as string,
-    nombre: raw.name as string,
+    uid: raw.uid as string,
+    name: raw.name as string,
     email: raw.email as string,
-    rolId: '',
-    rolNombre: '',
-    estado: isLocked ? 'INACTIVO' : 'ACTIVO',
-    ultimoAcceso: (raw.last_login_at as string) ?? '',
-    creadoEn: (raw.created_at as string) ?? '',
+    role_uid: '',
+    role_name: '',
+    status: isLocked ? 'INACTIVO' : 'ACTIVO',
+    last_access_at: (raw.last_login_at as string) ?? '',
+    created_at: (raw.created_at as string) ?? '',
   };
 }
 
@@ -25,12 +25,12 @@ export const usersService = {
     return (Array.isArray(payload) ? payload : []).map(mapUser);
   },
 
-  // POST /users — pendiente de ruteo en backend. Stub optimista por ahora.
+  // POST /users — pending backend routing. Optimistic stub for now.
   async create(
-    data: Omit<SettingsUser, 'id' | 'creadoEn' | 'ultimoAcceso'>
+    data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_access_at'>
   ): Promise<SettingsUser> {
     const res = await axiosInstance.post(endpoints.users.create, {
-      name: data.nombre,
+      name: data.name,
       email: data.email,
       password: (data as Record<string, unknown>).password ?? '',
     });
@@ -38,25 +38,25 @@ export const usersService = {
     return mapUser(payload);
   },
 
-  // PUT /users/{uid} — pendiente de ruteo en backend.
+  // PUT /users/{uid} — pending backend routing.
   async update(id: string, data: Partial<SettingsUser>): Promise<SettingsUser> {
     const res = await axiosInstance.put(endpoints.users.update(id), {
-      name: data.nombre,
+      name: data.name,
       email: data.email,
     });
     const payload = res.data?.data ?? res.data;
     return mapUser(payload);
   },
 
-  // No hay endpoint de toggle estado — optimista local
-  async toggleEstado(id: string): Promise<SettingsUser> {
+  // No toggle-status endpoint — optimistic local
+  async toggleStatus(id: string): Promise<SettingsUser> {
     const users = await usersService.getAll();
-    const user = users.find((u) => u.id === id);
+    const user = users.find((u) => u.uid === id);
     if (!user) throw new Error('Usuario no encontrado');
-    return { ...user, estado: user.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO' };
+    return { ...user, status: user.status === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO' };
   },
 
-  // DELETE /users/{uid} — pendiente de ruteo en backend.
+  // DELETE /users/{uid} — pending backend routing.
   async delete(id: string): Promise<void> {
     await axiosInstance.delete(endpoints.users.delete(id));
   },

@@ -7,7 +7,7 @@ import { BulkAssignmentDrawer } from 'src/features/commissions/components/assign
 import { useAssignment } from 'src/features/commissions/hooks/use-assignment';
 import { usePlans } from 'src/features/commissions/hooks/use-plans';
 import type { AssignmentForm } from 'src/features/commissions/schemas/assignment.schema';
-import type { AsignacionPlan } from 'src/features/commissions/types/commissions.types';
+import type { CommissionAssignment } from 'src/features/commissions/types/commissions.types';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
@@ -15,10 +15,10 @@ import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
 export const AssignmentView = () => {
-  const { asignaciones, isLoading: isAsigLoading, updateAsignacion } = useAssignment();
-  const { planes } = usePlans();
+  const { assignments, isLoading: isAsigLoading, updateAssignment } = useAssignment();
+  const { plans } = usePlans();
 
-  const [selectedAsignacion, setSelectedAsignacion] = useState<AsignacionPlan | null>(null);
+  const [selectedAsignacion, setSelectedAsignacion] = useState<CommissionAssignment | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isMasivaOpen, setIsMasivaOpen] = useState(false);
 
@@ -26,7 +26,7 @@ export const AssignmentView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [equipoFilter, setEquipoFilter] = useState('');
 
-  const handleEdit = (asignacion: AsignacionPlan) => {
+  const handleEdit = (asignacion: CommissionAssignment) => {
     setSelectedAsignacion(asignacion);
     setIsDrawerOpen(true);
   };
@@ -36,21 +36,25 @@ export const AssignmentView = () => {
       `¿Estás seguro de ${nuevoEstado === 'ACTIVO' ? 'activar' : 'desactivar'} esta asignación de plan?`
     );
     if (isConfirmed) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      updateAsignacion(id, { estado: nuevoEstado as any });
+      updateAssignment(id, { status: nuevoEstado });
     }
   };
 
-  const handleSave = async (data: AssignmentForm) => {
+  const handleSave = async (data: AssignmentForm): Promise<boolean> => {
     if (selectedAsignacion) {
-      return await updateAsignacion(selectedAsignacion.id, data);
+      const result = await updateAssignment(selectedAsignacion.uid, {
+        plan_uid: data.plan_uid,
+        start_date: data.start_date,
+        end_date: data.end_date || undefined,
+      });
+      return !!result;
     }
     return false;
   };
 
-  const filteredAsignaciones = asignaciones.filter((a) => {
-    const matchName = a.vendedorNombre.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchEquipo = equipoFilter ? a.equipoNombre === equipoFilter : true;
+  const filteredAsignaciones = assignments.filter((a) => {
+    const matchName = a.user_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchEquipo = equipoFilter ? a.team_name === equipoFilter : true;
     return matchName && matchEquipo;
   });
 
@@ -85,9 +89,9 @@ export const AssignmentView = () => {
             onChange={(val) => setEquipoFilter(val as string)}
             options={[
               { value: '', label: 'Todos los equipos' },
-              { value: 'Ventas Directas', label: 'Ventas Directas' },
-              { value: 'Mayoristas', label: 'Mayoristas' },
-              { value: 'KAM', label: 'KAM' },
+              { value: 'Ventas Norte', label: 'Ventas Norte' },
+              { value: 'Ventas Sur', label: 'Ventas Sur' },
+              { value: 'Ventas Centro', label: 'Ventas Centro' },
             ]}
           />
         </div>
@@ -104,14 +108,14 @@ export const AssignmentView = () => {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         asignacion={selectedAsignacion}
-        planesDisponibles={planes}
+        planesDisponibles={plans}
         onSave={handleSave}
       />
 
       <BulkAssignmentDrawer
         isOpen={isMasivaOpen}
         onClose={() => setIsMasivaOpen(false)}
-        planesDisponibles={planes}
+        planesDisponibles={plans}
       />
     </PageContainer>
   );

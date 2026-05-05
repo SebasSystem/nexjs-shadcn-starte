@@ -26,10 +26,11 @@ export function CarteraChart({ top_tags }: Props) {
         title="Distribución de Cartera"
         subtitle="Contactos por Etiqueta (Tags)"
         action={
-          <Link href={paths.settings.tags}>
-            <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
-              Gestionar Etiquetas →
-            </button>
+          <Link
+            href={paths.settings.tags}
+            className="text-xs font-medium text-primary hover:text-primary/80 transition-colors cursor-pointer"
+          >
+            Gestionar Etiquetas →
           </Link>
         }
       />

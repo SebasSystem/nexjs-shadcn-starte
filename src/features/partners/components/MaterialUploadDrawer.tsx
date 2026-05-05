@@ -15,7 +15,7 @@ import {
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 
-import type { MaterialType, PortalMaterial } from '../types';
+import type { MaterialType, PortalMaterialPayload } from '../types';
 
 const TYPE_OPTIONS: { value: MaterialType; label: string }[] = [
   { value: 'deck', label: 'Presentación' },
@@ -28,7 +28,7 @@ const TYPE_OPTIONS: { value: MaterialType; label: string }[] = [
 interface Props {
   open: boolean;
   onClose: () => void;
-  onUpload: (data: Omit<PortalMaterial, 'id' | 'downloadCount'>) => void;
+  onUpload: (data: PortalMaterialPayload) => Promise<boolean>;
 }
 
 export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
@@ -49,33 +49,37 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
   const handleUpload = async () => {
     if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 500));
 
     const tags = tagsInput
       .split(',')
       .map((t) => t.trim())
       .filter(Boolean);
 
-    onUpload({
+    const data: PortalMaterialPayload = {
       title,
       description,
       type,
-      fileName: `${title.toLowerCase().replace(/\s+/g, '-')}.pdf`,
-      fileSize: '2.4 MB',
-      uploadedAt: new Date().toISOString().split('T')[0],
-      uploadedBy: 'Juan Díaz',
+      file_name: `${title.toLowerCase().replace(/\s+/g, '-')}.pdf`,
+      file_size: '2.4 MB',
+      uploaded_at: new Date().toISOString().split('T')[0],
+      uploaded_by: 'Juan Díaz',
       tags,
-    });
+    };
 
-    toast.success(`"${title}" subido. Disponible para todos los partners.`);
+    const ok = await onUpload(data);
+    if (ok) {
+      toast.success(`"${title}" subido. Disponible para todos los partners.`);
+      setTitle('');
+      setDescription('');
+      setType('deck');
+      setTagsInput('');
+      setErrors({});
+      onClose();
+    } else {
+      toast.error('Error al subir el material');
+    }
+
     setLoading(false);
-
-    setTitle('');
-    setDescription('');
-    setType('deck');
-    setTagsInput('');
-    setErrors({});
-    onClose();
   };
 
   return (

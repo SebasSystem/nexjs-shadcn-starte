@@ -41,21 +41,21 @@ interface TagDrawerProps {
 }
 
 export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSave }) => {
-  const [nombre, setNombre] = useState(tag?.nombre ?? '');
+  const [name, setName] = useState(tag?.name ?? '');
   const [color, setColor] = useState<TagColor>(tag?.color ?? 'blue');
-  const [entidades, setEntidades] = useState<TagEntity[]>(tag?.entidades ?? []);
+  const [entities, setEntities] = useState<TagEntity[]>(tag?.entities ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleEntity = (entity: TagEntity) => {
-    setEntidades((prev) =>
+    setEntities((prev) =>
       prev.includes(entity) ? prev.filter((e) => e !== entity) : [...prev, entity]
     );
   };
 
   const handleSave = async () => {
-    if (!nombre.trim() || entidades.length === 0) return;
+    if (!name.trim() || entities.length === 0) return;
     setIsSubmitting(true);
-    const success = await onSave({ nombre, color, entidades });
+    const success = await onSave({ name, color, entities });
     setIsSubmitting(false);
     if (success) onClose();
   };
@@ -74,8 +74,8 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
           <Input
             label="Nombre de la etiqueta"
             required
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             placeholder="Ej. VIP, Lista Negra, Referido..."
           />
 
@@ -88,7 +88,7 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
                   type="button"
                   onClick={() => setColor(c.value)}
                   className={cn(
-                    'w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all',
+                    'w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer',
                     BadgeColorMap[c.value],
                     color === c.value
                       ? 'ring-2 ring-offset-2 ring-primary scale-110'
@@ -111,8 +111,8 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
                   type="button"
                   onClick={() => toggleEntity(e.value)}
                   className={cn(
-                    'px-3 py-2 text-sm rounded-lg border flex items-center gap-2 transition-colors',
-                    entidades.includes(e.value)
+                    'px-3 py-2 text-sm rounded-lg border flex items-center gap-2 transition-colors cursor-pointer',
+                    entities.includes(e.value)
                       ? 'bg-primary/10 border-primary text-primary font-medium'
                       : 'bg-transparent border-border hover:bg-muted text-muted-foreground'
                   )}
@@ -120,18 +120,18 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
                   <div
                     className={cn(
                       'w-4 h-4 rounded-sm border flex items-center justify-center',
-                      entidades.includes(e.value)
+                      entities.includes(e.value)
                         ? 'bg-primary border-primary text-primary-foreground'
                         : 'border-muted-foreground/30'
                     )}
                   >
-                    {entidades.includes(e.value) && <Icon name="Check" size={12} />}
+                    {entities.includes(e.value) && <Icon name="Check" size={12} />}
                   </div>
                   {e.label}
                 </button>
               ))}
             </div>
-            {entidades.length === 0 && (
+            {entities.length === 0 && (
               <p className="text-xs text-red-500 mt-1">Selecciona al menos un módulo.</p>
             )}
           </div>
@@ -145,7 +145,7 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
             type="button"
             color="primary"
             onClick={handleSave}
-            disabled={!nombre.trim() || entidades.length === 0 || isSubmitting}
+            disabled={!name.trim() || entities.length === 0 || isSubmitting}
           >
             {isSubmitting ? 'Guardando...' : 'Guardar Etiqueta'}
           </Button>

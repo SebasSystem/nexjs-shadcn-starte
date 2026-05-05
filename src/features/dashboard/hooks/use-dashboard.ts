@@ -1,15 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { dashboardService } from 'src/features/dashboard/services/dashboard.service';
 import type {
   DashboardCoreData,
   RecentActivity,
 } from 'src/features/dashboard/types/dashboard.types';
-import { cache } from 'src/lib/cache';
-
-const CACHE_KEY = 'dashboard:core';
-const ACTIVITIES_CACHE_KEY = 'dashboard:activities';
+import { queryKeys } from 'src/lib/query-keys';
 
 const EMPTY_CORE: DashboardCoreData = {
   summary: { new_customers_today: 0, overdue_tasks_today: 0, tasks_supported: false },
@@ -29,15 +26,11 @@ const EMPTY_CORE: DashboardCoreData = {
 };
 
 export function useDashboard() {
-  const cached = cache.get<DashboardCoreData>(CACHE_KEY);
-  const [data, setData] = useState<DashboardCoreData>(cached ?? EMPTY_CORE);
-  const [isLoading, setIsLoading] = useState(!cached);
-
-  const refetch = useCallback(async () => {
-    setIsLoading(true);
-    try {
+  const { data: raw, isLoading } = useQuery({
+    queryKey: queryKeys.dashboard.core,
+    queryFn: async () => {
       const result = await dashboardService.getCore();
-      const merged: DashboardCoreData = {
+      return {
         ...EMPTY_CORE,
         ...result,
         summary: { ...EMPTY_CORE.summary, ...result.summary },
@@ -45,43 +38,20 @@ export function useDashboard() {
         totals: { ...EMPTY_CORE.totals, ...result.totals },
         kpis: { ...EMPTY_CORE.kpis, ...result.kpis },
       };
-      cache.set(CACHE_KEY, merged);
-      setData(merged);
-    } catch {
-      setData(EMPTY_CORE);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+  });
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-
-  return { data, isLoading, refetch };
+  return { data: raw ?? EMPTY_CORE, isLoading, refetch: () => {} };
 }
 
 export function useDashboardActivities() {
-  const cached = cache.get<RecentActivity[]>(ACTIVITIES_CACHE_KEY);
-  const [activities, setActivities] = useState<RecentActivity[]>(cached ?? []);
-  const [isLoading, setIsLoading] = useState(!cached);
-
-  const refetch = useCallback(async () => {
-    setIsLoading(true);
-    try {
+  const { data: activities = [], isLoading } = useQuery({
+    queryKey: queryKeys.dashboard.activities,
+    queryFn: async () => {
       const result = await dashboardService.getRecentActivities(10);
-      cache.set(ACTIVITIES_CACHE_KEY, result);
-      setActivities(result);
-    } catch {
-      setActivities([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      return result as RecentActivity[];
+    },
+  });
 
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-
-  return { activities, isLoading, refetch };
+  return { activities, isLoading, refetch: () => {} };
 }

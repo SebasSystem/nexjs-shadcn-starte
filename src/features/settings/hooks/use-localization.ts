@@ -1,34 +1,31 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from 'src/lib/query-keys';
 
 import { localizationService } from '../services/localization.service';
-import type { ConfigLocalizacion } from '../types/settings.types';
+import type { LocalizationConfig } from '../types/settings.types';
 
 export function useLocalization() {
-  const [config, setConfig] = useState<ConfigLocalizacion | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    localizationService.get().then((data) => {
-      setConfig(data);
-      setIsLoading(false);
-    });
-  }, []);
+  const { data: config = null, isLoading } = useQuery({
+    queryKey: queryKeys.settings.localization,
+    queryFn: () => localizationService.get(),
+  });
 
-  const saveConfig = async (data: Partial<ConfigLocalizacion>): Promise<boolean> => {
-    setIsSaving(true);
-    try {
-      const updated = await localizationService.update(data);
-      setConfig(updated);
+  const saveMutation = useMutation({
+    mutationFn: (data: Partial<LocalizationConfig>) => localizationService.update(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.localization }),
+  });
+
+  return {
+    config,
+    isLoading,
+    isSaving: saveMutation.isPending,
+    saveConfig: async (data: Partial<LocalizationConfig>): Promise<boolean> => {
+      await saveMutation.mutateAsync(data);
       return true;
-    } catch {
-      return false;
-    } finally {
-      setIsSaving(false);
-    }
+    },
   };
-
-  return { config, isLoading, isSaving, saveConfig };
 }

@@ -94,9 +94,8 @@ export function GoodsReceiptDrawer({
               operation: 'in',
               quantity: i.quantity,
               comment:
-                [orderRef ? `OC: ${orderRef}` : null, notes || null]
-                  .filter(Boolean)
-                  .join(' — ') || undefined,
+                [orderRef ? `OC: ${orderRef}` : null, notes || null].filter(Boolean).join(' — ') ||
+                undefined,
             })
           )
       );
@@ -185,9 +184,7 @@ export function GoodsReceiptDrawer({
                           value={item.product_uid}
                           onChange={(v) => updateItem(index, 'product_uid', v as string)}
                           placeholder="Seleccionar producto..."
-                          error={
-                            errors[`item-${index}-dup`] || errors[`item-${index}-product_uid`]
-                          }
+                          error={errors[`item-${index}-dup`] || errors[`item-${index}-product_uid`]}
                         />
                         {selectedProduct && currentStock !== null && (
                           <p className="text-caption text-muted-foreground">
@@ -223,17 +220,20 @@ export function GoodsReceiptDrawer({
                       )}
                     </div>
 
-                    {selectedProduct && warehouseUid && item.quantity >= 1 && currentStock !== null && (
-                      <div className="flex items-center gap-2 text-caption text-muted-foreground">
-                        <Icon name="ArrowRight" size={12} className="text-success" />
-                        <span>
-                          Nuevo stock:{' '}
-                          <span className="font-semibold text-success">
-                            {currentStock + item.quantity} uds
+                    {selectedProduct &&
+                      warehouseUid &&
+                      item.quantity >= 1 &&
+                      currentStock !== null && (
+                        <div className="flex items-center gap-2 text-caption text-muted-foreground">
+                          <Icon name="ArrowRight" size={12} className="text-success" />
+                          <span>
+                            Nuevo stock:{' '}
+                            <span className="font-semibold text-success">
+                              {currentStock + item.quantity} uds
+                            </span>
                           </span>
-                        </span>
-                      </div>
-                    )}
+                        </div>
+                      )}
                   </div>
                 );
               })}

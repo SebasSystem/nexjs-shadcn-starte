@@ -1,36 +1,25 @@
-import { MOCK_CAMPOS_PERSONALIZADOS } from 'src/_mock/_settings';
+import axiosInstance, { endpoints } from 'src/lib/axios';
 
-import type { CampoPersonalizado } from '../types/settings.types';
-
-let _campos = [...MOCK_CAMPOS_PERSONALIZADOS];
+import type { CustomField } from '../types/settings.types';
 
 export const customFieldsService = {
-  getAll: async (): Promise<CampoPersonalizado[]> => {
-    await new Promise((r) => setTimeout(r, 400));
-    return [..._campos];
+  async getAll(): Promise<CustomField[]> {
+    const res = await axiosInstance.get(endpoints.settings.customFields.list);
+    const payload = res.data?.data ?? res.data;
+    return Array.isArray(payload) ? payload : [];
   },
 
-  create: async (
-    data: Omit<CampoPersonalizado, 'id' | 'creadoEn'>
-  ): Promise<CampoPersonalizado> => {
-    await new Promise((r) => setTimeout(r, 500));
-    const newCampo: CampoPersonalizado = {
-      ...data,
-      id: `cf${Date.now()}`,
-      creadoEn: new Date().toISOString(),
-    };
-    _campos = [..._campos, newCampo];
-    return newCampo;
+  async create(data: Omit<CustomField, 'uid' | 'created_at'>): Promise<CustomField> {
+    const res = await axiosInstance.post(endpoints.settings.customFields.create, data);
+    return res.data?.data ?? res.data;
   },
 
-  update: async (id: string, data: Partial<CampoPersonalizado>): Promise<CampoPersonalizado> => {
-    await new Promise((r) => setTimeout(r, 500));
-    _campos = _campos.map((c) => (c.id === id ? { ...c, ...data } : c));
-    return _campos.find((c) => c.id === id)!;
+  async update(uid: string, data: Partial<CustomField>): Promise<CustomField> {
+    const res = await axiosInstance.put(endpoints.settings.customFields.update(uid), data);
+    return res.data?.data ?? res.data;
   },
 
-  delete: async (id: string): Promise<void> => {
-    await new Promise((r) => setTimeout(r, 400));
-    _campos = _campos.filter((c) => c.id !== id);
+  async delete(uid: string): Promise<void> {
+    await axiosInstance.delete(endpoints.settings.customFields.delete(uid));
   },
 };

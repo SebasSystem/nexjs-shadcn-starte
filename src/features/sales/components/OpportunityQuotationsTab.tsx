@@ -8,33 +8,28 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import { useSalesContext } from '../context/SalesContext';
-import type { Opportunity } from '../types/sales.types';
+import type { Opportunity, PipelineStage } from '../types/sales.types';
+import { STATUS_LABELS } from '../types/sales.types';
 
 const STATUS_COLOR: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info'> = {
-  borrador: 'default',
-  enviada: 'info',
-  aprobada: 'success',
-  rechazada: 'error',
-  convertida: 'success',
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  borrador: 'Borrador',
-  enviada: 'Enviada',
-  aprobada: 'Aprobada',
-  rechazada: 'Rechazada',
-  convertida: 'Convertida',
+  draft: 'default',
+  sent: 'info',
+  approved: 'success',
+  rejected: 'error',
+  cancelled: 'error',
 };
 
 interface OpportunityQuotationsTabProps {
   opportunity: Opportunity;
+  stages: PipelineStage[];
 }
 
-export function OpportunityQuotationsTab({ opportunity }: OpportunityQuotationsTabProps) {
+export function OpportunityQuotationsTab({ opportunity, stages }: OpportunityQuotationsTabProps) {
   const router = useRouter();
   const { quotations } = useSalesContext();
-  const linked = quotations.filter((q) => q.opportunityId === opportunity.id);
-  const isTerminal = opportunity.stage === 'cerrado';
+  const linked = quotations.filter((q) => q.quoteable_uid === opportunity.uid);
+  const currentStage = stages.find((s) => s.uid === opportunity.stage_uid);
+  const isTerminal = currentStage?.is_won || currentStage?.is_lost;
 
   return (
     <div className="space-y-3">
@@ -48,7 +43,7 @@ export function OpportunityQuotationsTab({ opportunity }: OpportunityQuotationsT
             <Button
               size="sm"
               color="primary"
-              onClick={() => router.push(paths.sales.quotation(opportunity.id))}
+              onClick={() => router.push(paths.sales.quotation(opportunity.uid))}
             >
               <Icon name="Plus" size={14} />
               Crear cotización
@@ -58,23 +53,27 @@ export function OpportunityQuotationsTab({ opportunity }: OpportunityQuotationsT
       ) : (
         <>
           {linked.map((q) => {
-            const total = q.products.reduce(
-              (sum, p) => sum + p.unitPrice * p.qty * (1 - p.discount / 100),
+            const total = q.items.reduce(
+              (sum, item) =>
+                sum + item.list_unit_price * item.quantity * (1 - item.discount_percent / 100),
               0
             );
+            const statusLabel = STATUS_LABELS[q.status] ?? q.status;
             return (
               <div
-                key={q.id}
+                key={q.uid}
                 className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border/50 hover:border-border transition-colors"
               >
                 <div className="flex flex-col gap-0.5 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-body2 font-bold text-foreground font-mono">{q.id}</span>
+                    <span className="text-body2 font-bold text-foreground font-mono">
+                      {q.quote_number}
+                    </span>
                     <Badge variant="soft" color={STATUS_COLOR[q.status] ?? 'default'}>
-                      {STATUS_LABEL[q.status]}
+                      {statusLabel}
                     </Badge>
                   </div>
-                  <span className="text-caption text-muted-foreground">{q.date}</span>
+                  <span className="text-caption text-muted-foreground">{q.created_at}</span>
                   <span className="text-caption font-semibold text-foreground">
                     {formatMoney(total, { scope: 'tenant', maximumFractionDigits: 0 })}
                   </span>
@@ -82,7 +81,7 @@ export function OpportunityQuotationsTab({ opportunity }: OpportunityQuotationsT
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push(paths.sales.quotation(q.id))}
+                  onClick={() => router.push(paths.sales.quotation(q.uid))}
                 >
                   Ver
                   <Icon name="ArrowRight" size={13} />
@@ -95,7 +94,7 @@ export function OpportunityQuotationsTab({ opportunity }: OpportunityQuotationsT
               variant="outline"
               size="sm"
               className="w-full"
-              onClick={() => router.push(paths.sales.quotation(opportunity.id))}
+              onClick={() => router.push(paths.sales.quotation(opportunity.uid))}
             >
               <Icon name="Plus" size={14} />
               Nueva cotización

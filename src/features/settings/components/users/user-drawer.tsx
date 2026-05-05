@@ -16,18 +16,18 @@ import {
 } from 'src/shared/components/ui/sheet';
 import { z } from 'zod';
 
-import type { EstadoUsuario, SettingsUser } from '../../types/settings.types';
-import type { Rol } from '../../types/settings.types';
-import type { Equipo } from '../../types/settings.types';
+import type { SettingsUser, UserStatus } from '../../types/settings.types';
+import type { Role } from '../../types/settings.types';
+import type { Team } from '../../types/settings.types';
 
 const schema = z.object({
-  nombre: z.string().min(2, 'Requerido'),
+  name: z.string().min(2, 'Requerido'),
   email: z.string().email('Email inválido'),
-  rolId: z.string().min(1, 'Selecciona un rol'),
-  rolNombre: z.string().optional(),
-  equipoId: z.string().optional(),
-  equipoNombre: z.string().optional(),
-  estado: z.enum(['ACTIVO', 'INACTIVO', 'PENDIENTE']),
+  role_uid: z.string().min(1, 'Selecciona un rol'),
+  role_name: z.string().optional(),
+  team_uid: z.string().optional(),
+  team_name: z.string().optional(),
+  status: z.enum(['ACTIVO', 'INACTIVO', 'PENDIENTE']),
 });
 
 type UserForm = z.infer<typeof schema>;
@@ -36,12 +36,12 @@ interface UserDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   user: SettingsUser | null;
-  roles: Rol[];
-  equipos: Equipo[];
-  onSave: (data: Omit<SettingsUser, 'id' | 'creadoEn' | 'ultimoAcceso'>) => Promise<boolean>;
+  roles: Role[];
+  equipos: Team[];
+  onSave: (data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_access_at'>) => Promise<boolean>;
 }
 
-const ESTADO_OPTIONS = [
+const STATUS_OPTIONS = [
   { value: 'ACTIVO', label: 'Activo' },
   { value: 'PENDIENTE', label: 'Pendiente' },
   { value: 'INACTIVO', label: 'Inactivo' },
@@ -63,44 +63,44 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
   } = useForm<UserForm>({
     resolver: zodResolver(schema),
     mode: 'onChange',
-    defaultValues: { estado: 'ACTIVO' },
+    defaultValues: { status: 'ACTIVO' },
   });
 
   useEffect(() => {
     if (isOpen) {
       if (user) {
         reset({
-          nombre: user.nombre,
+          name: user.name,
           email: user.email,
-          rolId: user.rolId,
-          equipoId: user.equipoId ?? '',
-          estado: user.estado,
+          role_uid: user.role_uid,
+          team_uid: user.team_uid ?? '',
+          status: user.status,
         });
       } else {
-        reset({ nombre: '', email: '', rolId: '', equipoId: '', estado: 'ACTIVO' });
+        reset({ name: '', email: '', role_uid: '', team_uid: '', status: 'ACTIVO' });
       }
     }
   }, [isOpen, user, reset]);
 
   const onSubmit = async (data: UserForm) => {
-    const rol = roles.find((r) => r.id === data.rolId);
-    const equipo = equipos.find((e) => e.id === data.equipoId);
+    const role = roles.find((r) => r.uid === data.role_uid);
+    const equipo = equipos.find((e) => e.uid === data.team_uid);
     const success = await onSave({
-      nombre: data.nombre,
+      name: data.name,
       email: data.email,
-      rolId: data.rolId,
-      rolNombre: rol?.nombre ?? '',
-      equipoId: data.equipoId || undefined,
-      equipoNombre: equipo?.nombre || undefined,
-      estado: data.estado as EstadoUsuario,
+      role_uid: data.role_uid,
+      role_name: role?.name ?? '',
+      team_uid: data.team_uid || undefined,
+      team_name: equipo?.name || undefined,
+      status: data.status as UserStatus,
     });
     if (success) onClose();
   };
 
-  const rolOptions = roles.map((r) => ({ value: r.id, label: r.nombre }));
+  const roleOptions = roles.map((r) => ({ value: r.uid, label: r.name }));
   const equipoOptions = [
     { value: '', label: 'Sin equipo' },
-    ...equipos.map((e) => ({ value: e.id, label: e.nombre })),
+    ...equipos.map((e) => ({ value: e.uid, label: e.name })),
   ];
 
   return (
@@ -119,7 +119,7 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
           <div className="py-6 space-y-5">
             <FormInput
               control={control}
-              name="nombre"
+              name="name"
               label="Nombre completo"
               required
               placeholder="Ej. Carlos Mendoza"
@@ -137,25 +137,25 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
 
             <FormSelectField
               control={control}
-              name="rolId"
+              name="role_uid"
               label="Rol"
               required
-              options={rolOptions}
+              options={roleOptions}
               placeholder="Seleccionar rol..."
             />
 
             <FormSelectField
               control={control}
-              name="equipoId"
+              name="team_uid"
               label="Equipo"
               options={equipoOptions}
             />
 
             <FormSelectField
               control={control}
-              name="estado"
+              name="status"
               label="Estado"
-              options={ESTADO_OPTIONS}
+              options={STATUS_OPTIONS}
             />
           </div>
         </div>

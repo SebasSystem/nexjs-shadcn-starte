@@ -1,85 +1,68 @@
-import { useCallback, useEffect, useState } from 'react';
+'use client';
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { queryKeys } from 'src/lib/query-keys';
 
-import type { RegistroComision } from '../types/commissions.types';
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const MOCK_REGISTROS: RegistroComision[] = [
-  {
-    id: 'reg-1',
-    vendedorId: 'vend-1',
-    vendedorNombre: 'Carlos Martínez',
-    equipoId: 'eq-1',
-    periodo: 'Febrero 2025',
-    ventasPeriodo: 8040,
-    planAplicado: 'Plan Élite 2025',
-    comisionCalculada: 402,
-    estado: 'PENDIENTE',
-  },
-  {
-    id: 'reg-2',
-    vendedorId: 'vend-2',
-    vendedorNombre: 'Ana Gómez',
-    equipoId: 'eq-2',
-    periodo: 'Febrero 2025',
-    ventasPeriodo: 12500,
-    planAplicado: 'Plan Intro',
-    comisionCalculada: 450,
-    estado: 'APROBADO',
-  },
-  {
-    id: 'reg-3',
-    vendedorId: 'vend-1',
-    vendedorNombre: 'Carlos Martínez',
-    equipoId: 'eq-1',
-    periodo: 'Enero 2025',
-    ventasPeriodo: 9200,
-    planAplicado: 'Plan Élite 2025',
-    comisionCalculada: 460,
-    estado: 'PAGADO',
-  },
-];
+import { commissionService } from '../services/commission.service';
+import type { CommissionRun } from '../types/commissions.types';
 
 export const useHistory = () => {
-  const [registros, setRegistros] = useState<RegistroComision[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchRegistros = useCallback(async () => {
-    setIsLoading(true);
+  const {
+    data: runs = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.commissions.runs,
+    queryFn: () => commissionService.getRuns(),
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: (uid: string) => commissionService.approveRun(uid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.commissions.runs });
+    },
+    onError: () => toast.error('Error al aprobar'),
+  });
+
+  const payMutation = useMutation({
+    mutationFn: (uid: string) => commissionService.payRun(uid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.commissions.runs });
+    },
+    onError: () => toast.error('Error al marcar como pagado'),
+  });
+
+  const bulkApprove = async (uids: string[]) => {
     try {
-      await delay(700);
-      setRegistros([...MOCK_REGISTROS]);
+      await Promise.all(uids.map((uid) => approveMutation.mutateAsync(uid)));
+      toast.success(`${uids.length} registro(s) aprobado(s)`);
     } catch {
-      toast.error('Error al cargar historial');
-    } finally {
-      setIsLoading(false);
+      toast.error('Error al aprobar algunos registros');
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    fetchRegistros();
-  }, [fetchRegistros]);
-
-  const cambiarEstado = async (ids: string[], nuevoEstado: 'APROBADO' | 'PAGADO') => {
-    setIsLoading(true);
+  const bulkPay = async (uids: string[]) => {
     try {
-      await delay(600);
-      setRegistros((prev) =>
-        prev.map((r) => (ids.includes(r.id) ? { ...r, estado: nuevoEstado } : r))
-      );
-      toast.success(`${ids.length} registro(s) marcado(s) como ${nuevoEstado}`);
+      await Promise.all(uids.map((uid) => payMutation.mutateAsync(uid)));
+      toast.success(`${uids.length} registro(s) marcado(s) como pagado(s)`);
     } catch {
-      toast.error('Error al cambiar de estado');
-    } finally {
-      setIsLoading(false);
+      toast.error('Error al pagar algunos registros');
     }
   };
 
   return {
-    registros,
+    runs,
     isLoading,
-    fetchRegistros,
-    cambiarEstado,
+    isError,
+    fetchRuns: refetch,
+    bulkApprove,
+    bulkPay,
   };
 };
+
+// Keep backward-compatible type alias
+export type { CommissionRun as RegistroComision };

@@ -1,16 +1,15 @@
 import { Badge } from 'src/shared/components/ui/badge';
 
-import type { EstadoContacto } from '../types/contacts.types';
+import type { ContactStatus } from '../types/contacts.types';
 
-const CONFIG: Record<EstadoContacto, { label: string; color: 'success' | 'default' | 'warning' }> =
-  {
-    ACTIVO: { label: 'Activo', color: 'success' },
-    PROSPECTO: { label: 'Prospecto', color: 'warning' },
-    INACTIVO: { label: 'Inactivo', color: 'default' },
-  };
+const CONFIG: Record<ContactStatus, { label: string; color: 'success' | 'default' | 'warning' }> = {
+  active: { label: 'Activo', color: 'success' },
+  prospect: { label: 'Prospecto', color: 'warning' },
+  inactive: { label: 'Inactivo', color: 'default' },
+};
 
-export function ContactStatusBadge({ estado }: { estado: EstadoContacto }) {
-  const { label, color } = CONFIG[estado] ?? CONFIG.INACTIVO;
+export function ContactStatusBadge({ status }: { status: ContactStatus }) {
+  const { label, color } = CONFIG[status] ?? CONFIG.inactive;
   return (
     <Badge variant="soft" color={color}>
       {label}

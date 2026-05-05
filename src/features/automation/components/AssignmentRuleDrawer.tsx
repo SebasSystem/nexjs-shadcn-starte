@@ -3,7 +3,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { MOCK_AUTOMATION_USERS } from 'src/_mock/_automation';
 import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
@@ -36,8 +35,8 @@ interface AssignmentRuleDrawerProps {
   open: boolean;
   item: AssignmentRule | null;
   onClose: () => void;
-  onCreate: (rule: Omit<AssignmentRule, 'id' | 'createdAt' | 'roundRobinIndex'>) => void;
-  onUpdate: (id: string, updates: Partial<AssignmentRule>) => void;
+  onCreate: (rule: Omit<AssignmentRule, 'uid' | 'created_at' | 'round_robin_index'>) => void;
+  onUpdate: (uid: string, updates: Partial<AssignmentRule>) => void;
 }
 
 export function AssignmentRuleDrawer({
@@ -55,8 +54,8 @@ export function AssignmentRuleDrawer({
       name: '',
       type: 'round_robin',
       description: '',
-      userIds: [],
-      geoMapping: {},
+      user_ids: [],
+      geo_mapping: {},
     },
   });
 
@@ -66,48 +65,48 @@ export function AssignmentRuleDrawer({
         name: item.name,
         type: item.type,
         description: item.description ?? '',
-        userIds: item.userIds,
-        geoMapping: item.geoMapping ?? {},
+        user_ids: item.user_ids,
+        geo_mapping: item.geo_mapping ?? {},
       });
     } else {
       form.reset({
         name: '',
         type: 'round_robin',
         description: '',
-        userIds: [],
-        geoMapping: {},
+        user_ids: [],
+        geo_mapping: {},
       });
     }
   }, [item, form]);
 
   const watchedType = useWatch({ control: form.control, name: 'type' });
-  const watchedUserIds = useWatch({ control: form.control, name: 'userIds' });
-  const watchedGeoMapping = useWatch({ control: form.control, name: 'geoMapping' });
+  const watchedUserIds = useWatch({ control: form.control, name: 'user_ids' });
+  const watchedGeoMapping = useWatch({ control: form.control, name: 'geo_mapping' });
 
   const toggleUser = (userId: string) => {
     const current = watchedUserIds;
     const next = current.includes(userId)
       ? current.filter((id) => id !== userId)
       : [...current, userId];
-    form.setValue('userIds', next);
+    form.setValue('user_ids', next);
   };
 
   const handleSubmit = form.handleSubmit((data) => {
     if (isEditing && item) {
-      onUpdate(item.id, {
+      onUpdate(item.uid, {
         name: data.name,
         type: data.type,
         description: data.description,
-        userIds: data.userIds,
-        geoMapping: data.geoMapping,
+        user_ids: data.user_ids,
+        geo_mapping: data.geo_mapping,
       });
     } else {
       onCreate({
         name: data.name,
         type: data.type,
         description: data.description,
-        userIds: data.userIds,
-        geoMapping: data.geoMapping,
+        user_ids: data.user_ids,
+        geo_mapping: data.geo_mapping,
         enabled: true,
       });
     }
@@ -152,7 +151,8 @@ export function AssignmentRuleDrawer({
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">Usuarios asignables</p>
             <div className="space-y-2">
-              {MOCK_AUTOMATION_USERS.map((user) => (
+              {/* TODO: Replace with backend users list */}
+              {([] as { id: string; name: string }[]).map((user) => (
                 <label
                   key={user.id}
                   className={cn(
@@ -200,7 +200,8 @@ export function AssignmentRuleDrawer({
                             <SelectField
                               options={[
                                 { value: '', label: 'Sin asignar' },
-                                ...MOCK_AUTOMATION_USERS.map((u) => ({
+                                /* TODO: Replace with backend users */
+                                ...([] as { id: string; name: string }[]).map((u) => ({
                                   value: u.id,
                                   label: u.name,
                                 })),
@@ -208,7 +209,7 @@ export function AssignmentRuleDrawer({
                               value={currentUser}
                               onChange={(v) => {
                                 const current = watchedGeoMapping ?? {};
-                                form.setValue('geoMapping', {
+                                form.setValue('geo_mapping', {
                                   ...current,
                                   [country]: v ? [v as string] : [],
                                 });

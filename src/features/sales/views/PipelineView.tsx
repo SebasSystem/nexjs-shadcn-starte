@@ -1,14 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import type { LostReasonInfo, Opportunity, StageId } from 'src/features/sales/types/sales.types';
+import { useIntelligence } from 'src/features/intelligence/hooks/useIntelligence';
+import type { LostReasonInfo } from 'src/features/sales/types/sales.types';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
-import { NewOpportunityDrawer } from '../components/NewOpportunityDrawer';
+import {
+  NewOpportunityDrawer,
+  type NewOpportunityPayload,
+} from '../components/NewOpportunityDrawer';
 import { OpportunityPanel } from '../components/OpportunityPanel';
 import { OutcomeDialog } from '../components/OutcomeDialog';
 import { PipelineChevron } from '../components/PipelineChevron';
@@ -38,30 +42,42 @@ const MAIN_PRODUCTS = [
 
 export function PipelineView() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [pendingMove, setPendingMove] = useState<{ oppId: string } | null>(null);
+  const [pendingMove, setPendingMove] = useState<{ oppUid: string } | null>(null);
   const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
 
-  const { stages, opportunitiesByStage, addOpportunity, filters, setFilters } = usePipeline();
-  const { moveOpportunity, opportunities } = useSalesContext();
+  const { stages, opportunitiesByStage, search, setSearch } = usePipeline();
+  const { addOpportunity, moveOpportunity, opportunities } = useSalesContext();
+  const { competitors = [] } = useIntelligence();
   const { selectedId, isOpen, openPanel, closePanel, daysInStage, agingLevel } =
     useOpportunityPanel();
 
   const pendingOpportunity = pendingMove
-    ? opportunities.find((o) => o.id === pendingMove.oppId)
+    ? opportunities.find((o) => o.uid === pendingMove.oppUid)
     : undefined;
 
-  const handleColumnDrop = (oppId: string, targetStage: StageId) => {
-    if (targetStage === 'cerrado') {
-      setPendingMove({ oppId });
+  const handleColumnDrop = (oppUid: string, targetStageUid: string) => {
+    const targetStage = stages.find((s) => s.uid === targetStageUid);
+    const isTerminal = targetStage?.is_won || targetStage?.is_lost;
+    if (isTerminal) {
+      setPendingMove({ oppUid });
       setOutcomeDialogOpen(true);
     } else {
-      moveOpportunity(oppId, targetStage);
+      moveOpportunity(oppUid, targetStageUid);
     }
   };
 
-  const handleOutcomeConfirm = (outcome: 'ganado' | 'perdido', lostReason?: LostReasonInfo) => {
+  const handleOutcomeConfirm = async (
+    outcome: 'ganado' | 'perdido',
+    _lostReason?: LostReasonInfo
+  ) => {
     if (!pendingMove) return;
-    moveOpportunity(pendingMove.oppId, 'cerrado', { outcome, lostReason });
+    // Find the appropriate terminal stage UID
+    const terminalStage = stages.find((s) => (outcome === 'ganado' ? s.is_won : s.is_lost));
+    const stageUid = terminalStage?.uid;
+    if (stageUid) {
+      await moveOpportunity(pendingMove.oppUid, stageUid);
+    }
+    // TODO: persist lostReason via lost-opportunity API endpoint when available
     setOutcomeDialogOpen(false);
     setPendingMove(null);
   };
@@ -71,12 +87,7 @@ export function PipelineView() {
     setPendingMove(null);
   };
 
-  const handleSaveOpportunity = (
-    data: Omit<
-      Opportunity,
-      'id' | 'createdAt' | 'stageEnteredAt' | 'stageHistory' | 'checklist' | 'lostReason'
-    >
-  ) => {
+  const handleSaveOpportunity = (data: NewOpportunityPayload) => {
     addOpportunity(data);
   };
 
@@ -100,8 +111,8 @@ export function PipelineView() {
             <Input
               label="Buscar"
               placeholder="Buscar por cliente o contacto..."
-              value={filters.search}
-              onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               leftIcon={<Icon name="Search" size={16} />}
             />
           </div>
@@ -110,16 +121,18 @@ export function PipelineView() {
               <SelectField
                 label="Origen"
                 options={[{ value: '', label: 'Cualquier origen' }, ...ORIGIN_OPTIONS]}
-                value={filters.source}
-                onChange={(v) => setFilters((p) => ({ ...p, source: v as string }))}
+                value=""
+                onChange={() => {}}
+                disabled
               />
             </div>
             <div className="w-full sm:w-48">
               <SelectField
                 label="Producto"
                 options={[{ value: '', label: 'Cualquier producto' }, ...MAIN_PRODUCTS]}
-                value={filters.mainProduct}
-                onChange={(v) => setFilters((p) => ({ ...p, mainProduct: v as string }))}
+                value=""
+                onChange={() => {}}
+                disabled
               />
             </div>
           </div>
@@ -136,9 +149,10 @@ export function PipelineView() {
           <div className="flex gap-4 w-full">
             {stages.map((stage) => (
               <PipelineColumn
-                key={stage.id}
+                key={stage.uid}
                 stage={stage}
-                opportunities={opportunitiesByStage.get(stage.id) ?? []}
+                stages={stages}
+                opportunities={opportunitiesByStage.get(stage.uid) ?? []}
                 onCardDrop={handleColumnDrop}
                 onOpenPanel={openPanel}
               />
@@ -152,6 +166,7 @@ export function PipelineView() {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onSave={handleSaveOpportunity}
+        stages={stages}
       />
 
       {/* Panel lateral de oportunidad */}
@@ -161,12 +176,14 @@ export function PipelineView() {
         onClose={closePanel}
         daysInStage={daysInStage}
         agingLevel={agingLevel}
+        stages={stages}
       />
 
       {/* Dialog de cierre */}
       <OutcomeDialog
         open={outcomeDialogOpen}
-        clientName={pendingOpportunity?.clientName ?? ''}
+        clientName={pendingOpportunity?.title ?? ''}
+        competitors={competitors}
         onConfirm={handleOutcomeConfirm}
         onCancel={handleOutcomeCancel}
       />

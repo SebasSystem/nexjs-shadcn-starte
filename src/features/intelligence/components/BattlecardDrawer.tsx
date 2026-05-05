@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { MOCK_COMPETITORS } from 'src/_mock/_intelligence';
 import {
   Button,
   SelectField,
@@ -19,23 +18,39 @@ import { Input, Textarea } from 'src/shared/components/ui';
 import { Icon } from 'src/shared/components/ui';
 
 import { type BattlecardFormData, battlecardSchema } from '../schemas/battlecard.schema';
-import type { Battlecard } from '../types';
+import type { Battlecard, Competitor } from '../types';
 import { ObjectionItem } from './ObjectionItem';
 
 interface Props {
   open: boolean;
   item?: Battlecard | null;
+  competitors: Competitor[];
   onClose: () => void;
   onCreate: (
     data: Omit<
       Battlecard,
-      'id' | 'winRate' | 'dealsTracked' | 'dealsWon' | 'createdAt' | 'updatedAt'
+      | 'uid'
+      | 'win_rate'
+      | 'deals_tracked'
+      | 'deals_won'
+      | 'created_at'
+      | 'updated_at'
+      | 'deals_value'
     >
-  ) => void;
-  onUpdate: (id: string, changes: Partial<Battlecard>) => void;
+  ) => Promise<boolean>;
+  onUpdate: (
+    uid: string,
+    changes: Partial<
+      Omit<
+        Battlecard,
+        'uid' | 'win_rate' | 'deals_tracked' | 'deals_won' | 'created_at' | 'updated_at'
+      >
+    >
+  ) => Promise<boolean>;
 }
 
-const COMPETITOR_OPTIONS = MOCK_COMPETITORS.map((c) => ({ value: c.id, label: c.name }));
+const COMPETITOR_OPTIONS_FROM = (competitors: Competitor[]) =>
+  competitors.map((c) => ({ value: c.uid, label: c.name }));
 
 const DEFAULT_VALUES: BattlecardFormData = {
   competitorId: '',
@@ -45,7 +60,7 @@ const DEFAULT_VALUES: BattlecardFormData = {
   objections: [{ objection: '', response: '' }],
 };
 
-export function BattlecardDrawer({ open, item, onClose, onCreate, onUpdate }: Props) {
+export function BattlecardDrawer({ open, item, competitors, onClose, onCreate, onUpdate }: Props) {
   const isEdit = !!item;
 
   const {
@@ -81,10 +96,10 @@ export function BattlecardDrawer({ open, item, onClose, onCreate, onUpdate }: Pr
     if (open) {
       if (item) {
         reset({
-          competitorId: item.competitorId,
+          competitorId: item.competitor_uid,
           summary: item.summary,
-          ourStrengths: item.ourStrengths.map((v) => ({ value: v })),
-          theirStrengths: item.theirStrengths.map((v) => ({ value: v })),
+          ourStrengths: item.our_strengths.map((v) => ({ value: v })),
+          theirStrengths: item.their_strengths.map((v) => ({ value: v })),
           objections: item.objections.map(({ id, objection, response }) => ({
             id,
             objection,
@@ -97,14 +112,14 @@ export function BattlecardDrawer({ open, item, onClose, onCreate, onUpdate }: Pr
     }
   }, [open, item, reset]);
 
-  const onSubmit = (data: BattlecardFormData) => {
-    const competitor = MOCK_COMPETITORS.find((c) => c.id === data.competitorId);
+  const onSubmit = async (data: BattlecardFormData) => {
+    const competitor = competitors.find((c) => c.uid === data.competitorId);
     const payload = {
-      competitorId: data.competitorId,
-      competitorName: competitor?.name ?? '',
+      competitor_uid: data.competitorId,
+      competitor_name: competitor?.name ?? '',
       summary: data.summary,
-      ourStrengths: data.ourStrengths.map((s) => s.value),
-      theirStrengths: data.theirStrengths.map((s) => s.value),
+      our_strengths: data.ourStrengths.map((s) => s.value),
+      their_strengths: data.theirStrengths.map((s) => s.value),
       objections: data.objections.map((o, i) => ({
         id: o.id ?? `obj-${Date.now()}-${i}`,
         objection: o.objection,
@@ -112,14 +127,15 @@ export function BattlecardDrawer({ open, item, onClose, onCreate, onUpdate }: Pr
       })),
     };
 
+    let success: boolean;
     if (isEdit && item) {
-      onUpdate(item.id, payload);
-      toast.success('Battlecard actualizada');
+      success = await onUpdate(item.uid, payload);
+      if (success) toast.success('Battlecard actualizada');
     } else {
-      onCreate(payload);
-      toast.success('Battlecard creada');
+      success = await onCreate(payload);
+      if (success) toast.success('Battlecard creada');
     }
-    onClose();
+    if (success) onClose();
   };
 
   return (
@@ -152,7 +168,7 @@ export function BattlecardDrawer({ open, item, onClose, onCreate, onUpdate }: Pr
                   <SelectField
                     label="Competidor *"
                     required
-                    options={COMPETITOR_OPTIONS}
+                    options={COMPETITOR_OPTIONS_FROM(competitors)}
                     value={field.value}
                     onChange={(v) => field.onChange(v as string)}
                     placeholder="Seleccioná el competidor"

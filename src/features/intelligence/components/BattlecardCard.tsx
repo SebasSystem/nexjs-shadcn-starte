@@ -7,7 +7,7 @@ import type { Battlecard } from '../types';
 interface Props {
   battlecard: Battlecard;
   onEdit: (bc: Battlecard) => void;
-  onDelete: (id: string) => void;
+  onDelete: (uid: string) => void;
 }
 
 function WinRateBar({ rate }: { rate: number }) {
@@ -36,7 +36,7 @@ export function BattlecardCard({ battlecard, onEdit, onDelete }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="text-subtitle2 font-bold text-foreground">{battlecard.competitorName}</h3>
+          <h3 className="text-subtitle2 font-bold text-foreground">{battlecard.competitor_name}</h3>
         </div>
         <div className="flex gap-1 shrink-0">
           <Button
@@ -51,7 +51,7 @@ export function BattlecardCard({ battlecard, onEdit, onDelete }: Props) {
             variant="ghost"
             size="icon"
             color="error"
-            onClick={() => onDelete(battlecard.id)}
+            onClick={() => onDelete(battlecard.uid)}
             aria-label="Eliminar battlecard"
           >
             <Icon name="Trash2" size={15} />
@@ -60,11 +60,11 @@ export function BattlecardCard({ battlecard, onEdit, onDelete }: Props) {
       </div>
 
       {/* Win rate */}
-      <WinRateBar rate={battlecard.winRate} />
+      <WinRateBar rate={battlecard.win_rate} />
 
       {/* Deals */}
       <p className="text-caption text-muted-foreground">
-        {battlecard.dealsWon} ganados de {battlecard.dealsTracked} deals
+        {battlecard.deals_won} ganados de {battlecard.deals_tracked} deals
       </p>
 
       {/* Nuestras ventajas (top 3) */}
@@ -73,15 +73,15 @@ export function BattlecardCard({ battlecard, onEdit, onDelete }: Props) {
           Nuestras ventajas
         </p>
         <ul className="space-y-1">
-          {battlecard.ourStrengths.slice(0, 3).map((s, i) => (
+          {battlecard.our_strengths.slice(0, 3).map((s, i) => (
             <li key={i} className="flex items-start gap-1.5 text-caption text-muted-foreground">
               <Icon name="CheckCircle2" size={13} className="text-success shrink-0 mt-0.5" />
               {s}
             </li>
           ))}
-          {battlecard.ourStrengths.length > 3 && (
+          {battlecard.our_strengths.length > 3 && (
             <li className="text-caption text-muted-foreground/60">
-              +{battlecard.ourStrengths.length - 3} más...
+              +{battlecard.our_strengths.length - 3} más...
             </li>
           )}
         </ul>

@@ -3,7 +3,6 @@ import type {
   Tenant,
   TenantActividadItem,
   TenantFacturaItem,
-  TenantUser,
 } from 'src/features/admin/types/admin.types';
 import axiosInstance, { endpoints } from 'src/lib/axios';
 

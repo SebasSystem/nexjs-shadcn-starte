@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const ruleConditionSchema = z.object({
-  id: z.string(),
+  uid: z.string(),
   field: z.string().min(1, 'El campo es requerido'),
   operator: z.enum([
     'equals',
@@ -19,13 +19,13 @@ const ruleConditionSchema = z.object({
 });
 
 const conditionGroupSchema = z.object({
-  id: z.string(),
+  uid: z.string(),
   logic: z.enum(['AND', 'OR']),
   conditions: z.array(ruleConditionSchema),
 });
 
 const automationActionSchema = z.object({
-  id: z.string(),
+  uid: z.string(),
   sequence: z.number(),
   type: z.enum([
     'create_lead',
@@ -36,13 +36,13 @@ const automationActionSchema = z.object({
     'apply_tag',
   ]),
   config: z.object({
-    assignmentRuleId: z.string().optional(),
-    activityType: z.string().optional(),
-    activityNotes: z.string().optional(),
-    fieldName: z.string().optional(),
-    fieldValue: z.union([z.string(), z.number()]).optional(),
-    notificationMessage: z.string().optional(),
-    notifyUserId: z.string().optional(),
+    assignment_rule_id: z.string().optional(),
+    activity_type: z.string().optional(),
+    activity_notes: z.string().optional(),
+    field_name: z.string().optional(),
+    field_value: z.union([z.string(), z.number()]).optional(),
+    notification_message: z.string().optional(),
+    notify_user_id: z.string().optional(),
     tag: z.string().optional(),
   }),
 });
@@ -50,8 +50,8 @@ const automationActionSchema = z.object({
 export const ruleSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
   description: z.string().optional(),
-  triggerSource: z.enum(['crm', 'linkedin', 'facebook', 'time']),
-  triggerEvent: z.enum([
+  trigger_source: z.enum(['crm', 'linkedin', 'facebook', 'time']),
+  trigger_event: z.enum([
     'lead_created',
     'lead_stage_changed',
     'lead_lost',
@@ -66,13 +66,13 @@ export const ruleSchema = z.object({
     'stage_duration_exceeded',
     'inactivity_days',
   ]),
-  triggerConfig: z
+  trigger_config: z
     .object({
-      daysThreshold: z.number().optional(),
-      stageId: z.string().optional(),
+      days_threshold: z.number().optional(),
+      stage_id: z.string().optional(),
     })
     .optional(),
-  conditionGroups: z.array(conditionGroupSchema),
+  condition_groups: z.array(conditionGroupSchema),
   actions: z.array(automationActionSchema),
 });
 

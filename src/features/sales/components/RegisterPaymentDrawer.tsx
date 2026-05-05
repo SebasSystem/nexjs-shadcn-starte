@@ -19,7 +19,7 @@ interface RegisterPaymentDrawerProps {
   open: boolean;
   onClose: () => void;
   pendingBalance: number;
-  onConfirm: (payment: Omit<Payment, 'id' | 'status'>) => void;
+  onConfirm: (payment: Omit<Payment, 'uid'>) => void;
 }
 
 const PAYMENT_METHOD_OPTIONS = [
@@ -39,8 +39,8 @@ export function RegisterPaymentDrawer({
   const { currency } = getCurrencyPreferences('tenant');
   const [form, setForm] = useState({
     method: 'Transferencia Bancaria',
-    date: new Date().toISOString().split('T')[0],
-    reference: '',
+    payment_date: new Date().toISOString().split('T')[0],
+    external_reference: '',
     amount: String(pendingBalance.toFixed(2)),
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -49,10 +49,11 @@ export function RegisterPaymentDrawer({
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!form.method) newErrors.method = 'Selecciona un método de pago';
-    if (!form.date) newErrors.date = 'La fecha es requerida';
-    const amount = Number(form.amount);
-    if (!form.amount || amount <= 0) newErrors.amount = 'El monto debe ser mayor a 0';
-    if (amount > pendingBalance) newErrors.amount = 'El monto no puede superar el saldo pendiente';
+    if (!form.payment_date) newErrors.date = 'La fecha es requerida';
+    const amountVal = Number(form.amount);
+    if (!form.amount || amountVal <= 0) newErrors.amount = 'El monto debe ser mayor a 0';
+    if (amountVal > pendingBalance)
+      newErrors.amount = 'El monto no puede superar el saldo pendiente';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -63,9 +64,11 @@ export function RegisterPaymentDrawer({
     await new Promise((r) => setTimeout(r, 500));
     onConfirm({
       method: form.method,
-      date: form.date,
-      reference: form.reference,
+      payment_date: form.payment_date,
+      external_reference: form.external_reference || undefined,
       amount: Number(Number(form.amount).toFixed(2)),
+      invoice_uid: '',
+      meta: {},
     });
     setLoading(false);
     onClose();
@@ -74,8 +77,8 @@ export function RegisterPaymentDrawer({
   const handleClose = () => {
     setForm({
       method: 'Transferencia Bancaria',
-      date: new Date().toISOString().split('T')[0],
-      reference: '',
+      payment_date: new Date().toISOString().split('T')[0],
+      external_reference: '',
       amount: String(pendingBalance.toFixed(2)),
     });
     setErrors({});
@@ -91,7 +94,7 @@ export function RegisterPaymentDrawer({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          {/* Saldo pendiente (informativo) */}
+          {/* Saldo pendiente */}
           <div className="bg-warning/10 border border-warning/20 rounded-xl p-4">
             <p className="text-xs font-medium text-warning/80 uppercase tracking-wide mb-1">
               Saldo Pendiente Actual
@@ -120,17 +123,17 @@ export function RegisterPaymentDrawer({
             label="Fecha de Pago"
             required
             type="date"
-            value={form.date}
-            onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
-            error={errors.date}
+            value={form.payment_date}
+            onChange={(e) => setForm((p) => ({ ...p, payment_date: e.target.value }))}
+            error={errors.date ?? errors.payment_date}
           />
 
           {/* Referencia */}
           <Input
             label="Referencia"
             placeholder="ej: TRF-2024-0099 (opcional)"
-            value={form.reference}
-            onChange={(e) => setForm((p) => ({ ...p, reference: e.target.value }))}
+            value={form.external_reference}
+            onChange={(e) => setForm((p) => ({ ...p, external_reference: e.target.value }))}
           />
 
           {/* Monto */}

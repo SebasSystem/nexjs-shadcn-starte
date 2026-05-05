@@ -1,55 +1,36 @@
 'use client';
 
-import { differenceInDays } from 'date-fns';
-import { LinkedInValidationBadge } from 'src/features/automation/components/LinkedInValidationBadge';
-import type { Opportunity } from 'src/features/sales/types/sales.types';
+import type { Opportunity, PipelineStage } from 'src/features/sales/types/sales.types';
 import { formatMoney } from 'src/lib/currency';
+import { diffDays } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
 import { Icon } from 'src/shared/components/ui/icon';
 
-import { STAGE_AGING_THRESHOLDS, STAGE_PROBABILITY } from '../config/pipeline.config';
-import type { AgingLevel } from '../hooks/useOpportunityPanel';
+import { computeLeadScore } from '../config/pipeline.config';
 import { DealAvatar } from './DealAvatar';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
+  stages: PipelineStage[];
   stageColor: string;
-  onOpenPanel: (id: string) => void;
+  onOpenPanel: (uid: string) => void;
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getActivityStatus(lastActivityAt?: string, createdAt?: string) {
-  const dateStr = lastActivityAt || createdAt;
+function getActivityStatus(updatedAt?: string, createdAt?: string) {
+  const dateStr = updatedAt || createdAt;
   if (!dateStr) return { color: 'bg-slate-400', label: 'Sin datos' };
-  const refDate = new Date(dateStr + (dateStr.includes('T') ? '' : 'T12:00:00'));
-  const diff = differenceInDays(new Date(), refDate);
-  if (diff <= 3) return { color: 'bg-emerald-500', label: lastActivityAt ? 'Reciente' : 'Nuevo' };
+  const diff = diffDays(dateStr);
+  if (diff <= 3) return { color: 'bg-emerald-500', label: updatedAt ? 'Reciente' : 'Nuevo' };
   if (diff <= 7) return { color: 'bg-amber-500', label: 'Falta atención' };
   return { color: 'bg-red-500', label: 'En riesgo' };
 }
 
-function getAgingLevel(opportunity: Opportunity): AgingLevel {
-  if (!opportunity.stageEnteredAt) return 'normal';
-  const days = differenceInDays(new Date(), new Date(opportunity.stageEnteredAt));
-  const t = STAGE_AGING_THRESHOLDS[opportunity.stage];
-  if (days >= t.stalled) return 'stalled';
-  if (days >= t.risk) return 'risk';
-  if (days >= t.warning) return 'warning';
-  return 'normal';
-}
-
 function getDaysInStage(opportunity: Opportunity): number {
-  if (!opportunity.stageEnteredAt) return 0;
-  return differenceInDays(new Date(), new Date(opportunity.stageEnteredAt));
+  if (!opportunity.created_at) return 0;
+  return diffDays(opportunity.created_at);
 }
-
-const AGING_BADGE: Record<AgingLevel, { className: string } | null> = {
-  normal: null,
-  warning: { className: 'bg-warning/10 text-warning' },
-  risk: { className: 'bg-orange-500/10 text-orange-500' },
-  stalled: { className: 'bg-destructive/10 text-destructive' },
-};
 
 const LEAD_SCORE_CONFIG = {
   hot: {
@@ -66,27 +47,34 @@ const LEAD_SCORE_CONFIG = {
   },
 } as const;
 
-export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: OpportunityCardProps) {
-  const isClosed = opportunity.stage === 'cerrado';
-  const isArchived = isClosed && opportunity.outcome === 'perdido';
-  const isGanado = isClosed && opportunity.outcome === 'ganado';
-  const activityIndicator = getActivityStatus(opportunity.lastActivityAt, opportunity.createdAt);
-  const agingLevel = getAgingLevel(opportunity);
+export function OpportunityCard({
+  opportunity,
+  stages,
+  stageColor,
+  onOpenPanel,
+}: OpportunityCardProps) {
+  const currentStage = stages.find((s) => s.uid === opportunity.stage_uid);
+  const isWon = currentStage?.is_won ?? false;
+  const isLost = currentStage?.is_lost ?? false;
+  const isTerminal = isWon || isLost;
+  const probability = currentStage?.probability_percent ?? 0;
+
+  const activityIndicator = getActivityStatus(opportunity.updated_at, opportunity.created_at);
   const daysInStage = getDaysInStage(opportunity);
-  const agingBadge = AGING_BADGE[agingLevel];
-  const checklistDone = opportunity.checklist?.filter((i) => i.done).length ?? 0;
-  const checklistTotal = opportunity.checklist?.length ?? 0;
-  const checklistVisible = opportunity.checklist?.slice(0, 3) ?? [];
-  const checklistHidden = checklistTotal > 3 ? checklistTotal - 3 : 0;
-  const weightedAmount = opportunity.estimatedAmount * STAGE_PROBABILITY[opportunity.stage];
-  const leadScoreCfg = opportunity.leadScore ? LEAD_SCORE_CONFIG[opportunity.leadScore] : null;
+  const weightedAmount = opportunity.amount * (probability / 100);
+
+  const { label: leadScoreLabel, score: leadScoreValue } = computeLeadScore(opportunity, stages);
+  const leadScoreCfg = LEAD_SCORE_CONFIG[leadScoreLabel];
+
+  // Display name fallback: title (backend) → uid
+  const displayName = opportunity.title || opportunity.uid;
 
   return (
     <div
-      onClick={() => onOpenPanel(opportunity.id)}
-      draggable={!isClosed}
+      onClick={() => onOpenPanel(opportunity.uid)}
+      draggable={!isTerminal}
       onDragStart={(e) => {
-        e.dataTransfer.setData('text/plain', opportunity.id);
+        e.dataTransfer.setData('text/plain', opportunity.uid);
         e.dataTransfer.effectAllowed = 'move';
         (e.currentTarget as HTMLElement).style.opacity = '0.45';
       }}
@@ -96,49 +84,42 @@ export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: Opport
       className={cn(
         'group relative bg-card rounded-2xl border border-border/60 p-4 select-none',
         'transition-all duration-200',
-        !isClosed &&
+        !isTerminal &&
           'cursor-grab active:cursor-grabbing hover:shadow-lg hover:shadow-black/5 hover:border-border hover:-translate-y-0.5',
-        isGanado && 'cursor-pointer hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5',
-        isArchived && 'opacity-55 cursor-pointer'
+        isWon && 'cursor-pointer hover:shadow-lg hover:shadow-black/5 hover:-translate-y-0.5',
+        isLost && 'opacity-55 cursor-pointer'
       )}
     >
-      {/* Left accent bar based on stage */}
-      {/* <div
-        className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full"
-        style={{ backgroundColor: stageColor }}
-      /> */}
-
       {/* Row 1: Avatar + name + badges */}
       <div className="flex items-start gap-2.5">
-        <DealAvatar name={opportunity.clientName} size="sm" />
+        <DealAvatar name={displayName} size="sm" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-foreground leading-snug truncate group-hover:text-primary transition-colors">
-            {opportunity.clientName}
+            {displayName}
           </p>
-          {opportunity.mainProduct && (
+          {opportunity.stage_name && (
             <div className="flex items-center gap-1 mt-0.5">
-              <Icon name="Package" size={10} className="text-muted-foreground shrink-0" />
               <span className="text-[10px] text-muted-foreground truncate">
-                {opportunity.mainProduct}
+                {opportunity.stage_name}
               </span>
             </div>
           )}
         </div>
         {/* Right badges column */}
         <div className="flex flex-col items-end gap-1 shrink-0">
-          {isGanado && (
+          {isWon && (
             <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
               <Icon name="Trophy" size={8} />
               Ganado
             </span>
           )}
-          {isArchived && (
+          {isLost && (
             <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive">
               <Icon name="XCircle" size={8} />
               Perdido
             </span>
           )}
-          {leadScoreCfg && !isClosed && (
+          {!isTerminal && leadScoreCfg && (
             <span
               className={cn(
                 'flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full',
@@ -149,13 +130,8 @@ export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: Opport
               {leadScoreCfg.label}
             </span>
           )}
-          {agingBadge && daysInStage > 0 && !isClosed && (
-            <span
-              className={cn(
-                'flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full',
-                agingBadge.className
-              )}
-            >
+          {daysInStage > 0 && !isTerminal && (
+            <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-muted/40 text-muted-foreground">
               <Icon name="AlertTriangle" size={8} />
               {daysInStage}d
             </span>
@@ -166,69 +142,27 @@ export function OpportunityCard({ opportunity, stageColor, onOpenPanel }: Opport
       {/* Amount section */}
       <div className="mt-4">
         <span className="text-base font-extrabold" style={{ color: stageColor }}>
-          {formatMoney(opportunity.estimatedAmount, { scope: 'tenant', maximumFractionDigits: 0 })}
+          {formatMoney(opportunity.amount, { scope: 'tenant', maximumFractionDigits: 0 })}
         </span>
-        {!isClosed && (
+        {!isTerminal && (
           <p className="text-[10px] text-muted-foreground mt-0.5">
             ≈ {formatMoney(weightedAmount, { scope: 'tenant', maximumFractionDigits: 0 })} ponderado
+            ({probability}%)
           </p>
         )}
       </div>
 
-      {/* Checklist (after amount, as requested) */}
-      {checklistTotal > 0 && !isClosed && (
-        <div className="mt-3 space-y-1.5">
-          {checklistVisible.map((item) => (
-            <div key={item.id} className="flex items-center gap-2">
-              <div
-                className={cn(
-                  'w-3.5 h-3.5 rounded-sm border flex items-center justify-center shrink-0',
-                  item.done ? 'bg-success border-success' : 'border-border/60'
-                )}
-              >
-                {item.done && <Icon name="Check" size={8} className="text-white" />}
-              </div>
-              <span
-                className={cn(
-                  'text-[10px] text-muted-foreground truncate leading-snug',
-                  item.done && 'line-through opacity-40'
-                )}
-              >
-                {item.text}
-              </span>
-            </div>
-          ))}
-          {checklistHidden > 0 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenPanel(opportunity.id);
-              }}
-              className="text-[10px] text-primary hover:underline pl-5 font-medium"
-            >
-              +{checklistHidden} más
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Footer: activity status + checklist summary */}
+      {/* Footer: activity status + lead score value */}
       <div className="mt-3 pt-2.5 border-t border-border/30 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <div className={cn('w-1.5 h-1.5 rounded-full shrink-0', activityIndicator.color)} />
           <span className="text-[10px] text-muted-foreground">{activityIndicator.label}</span>
         </div>
         <div className="flex items-center gap-2">
-          {opportunity.source === 'LinkedIn' && opportunity.linkedIn && (
-            <LinkedInValidationBadge profile={opportunity.linkedIn} />
-          )}
-          {checklistTotal > 0 && (
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Icon name="CheckSquare" size={10} />
-              <span>
-                {checklistDone}/{checklistTotal}
-              </span>
-            </div>
+          {!isTerminal && (
+            <span className="text-[10px] text-muted-foreground font-mono">
+              {leadScoreValue}/100
+            </span>
           )}
         </div>
       </div>

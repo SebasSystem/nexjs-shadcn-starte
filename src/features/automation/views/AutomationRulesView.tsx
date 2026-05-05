@@ -15,7 +15,7 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 
 import { RuleStatusBadge } from '../components/RuleStatusBadge';
-import { useAutomation } from '../hooks/useAutomation';
+import { useAutomationRules } from '../hooks/useAutomationRules';
 import { TRIGGER_EVENT_LABELS, TRIGGER_SOURCE_LABELS } from '../types';
 
 function formatDate(dateStr?: string): string {
@@ -29,7 +29,7 @@ function formatDate(dateStr?: string): string {
 
 export function AutomationRulesView() {
   const router = useRouter();
-  const { rules, stats, toggleRule, deleteRule } = useAutomation();
+  const { rules, stats, toggleRule, deleteRule, isLoading } = useAutomationRules();
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -83,113 +83,126 @@ export function AutomationRulesView() {
         />
       </div>
 
-      <SectionCard noPadding>
-        <div className="p-5 border-b border-border/40">
-          <Input
-            label="Buscar"
-            placeholder="Buscar reglas..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            leftIcon={<Icon name="Search" size={15} />}
-          />
-        </div>
+      {isLoading && filtered.length === 0 && (
+        <SectionCard>
+          <p className="text-sm text-muted-foreground text-center py-8">Cargando reglas...</p>
+        </SectionCard>
+      )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border/50">
-                <th className="text-left px-5 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Nombre
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Trigger
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Fuente
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Acciones
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Última ej.
-                </th>
-                <th className="text-right px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Ej.
-                </th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-5 py-12 text-center text-sm text-muted-foreground">
-                    Sin resultados
-                  </td>
+      {!isLoading && (
+        <SectionCard noPadding>
+          <div className="p-5 border-b border-border/40">
+            <Input
+              label="Buscar"
+              placeholder="Buscar reglas..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              leftIcon={<Icon name="Search" size={15} />}
+            />
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/50">
+                  <th className="text-left px-5 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Nombre
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Trigger
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Fuente
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Acciones
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Última ej.
+                  </th>
+                  <th className="text-right px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                    Ej.
+                  </th>
+                  <th className="px-4 py-3" />
                 </tr>
-              )}
-              {filtered.map((rule) => (
-                <tr
-                  key={rule.id}
-                  className="border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
-                >
-                  <td className="px-5 py-3">
-                    <p className="font-semibold text-foreground">{rule.name}</p>
-                    {rule.description && (
-                      <p className="text-xs text-muted-foreground truncate max-w-[240px]">
-                        {rule.description}
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-foreground">
-                    {TRIGGER_EVENT_LABELS[rule.triggerEvent]}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {TRIGGER_SOURCE_LABELS[rule.triggerSource]}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{rule.actions.length}</td>
-                  <td className="px-4 py-3">
-                    <RuleStatusBadge enabled={rule.enabled} />
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {formatDate(rule.lastRunAt)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-right font-mono text-foreground">
-                    {rule.runCount}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        title="Editar"
-                        onClick={() => router.push(paths.automation.ruleEdit(rule.id))}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      >
-                        <Icon name="Pencil" size={14} />
-                      </button>
-                      <button
-                        title={rule.enabled ? 'Pausar' : 'Activar'}
-                        onClick={() => toggleRule(rule.id)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      >
-                        <Icon name="Power" size={14} />
-                      </button>
-                      <button
-                        title="Eliminar"
-                        onClick={() => deleteRule(rule.id)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      >
-                        <Icon name="Trash2" size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </SectionCard>
+              </thead>
+              <tbody>
+                {filtered.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-5 py-12 text-center text-sm text-muted-foreground"
+                    >
+                      Sin resultados
+                    </td>
+                  </tr>
+                )}
+                {filtered.map((rule) => (
+                  <tr
+                    key={rule.uid}
+                    className="border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
+                  >
+                    <td className="px-5 py-3">
+                      <p className="font-semibold text-foreground">{rule.name}</p>
+                      {rule.description && (
+                        <p className="text-xs text-muted-foreground truncate max-w-[240px]">
+                          {rule.description}
+                        </p>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-foreground">
+                      {TRIGGER_EVENT_LABELS[rule.trigger_event]}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {TRIGGER_SOURCE_LABELS[rule.trigger_source]}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {rule.actions.length}
+                    </td>
+                    <td className="px-4 py-3">
+                      <RuleStatusBadge enabled={rule.enabled} />
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {formatDate(rule.last_run_at)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right font-mono text-foreground">
+                      {rule.run_count}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          title="Editar"
+                          onClick={() => router.push(paths.automation.ruleEdit(rule.uid))}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                        >
+                          <Icon name="Pencil" size={14} />
+                        </button>
+                        <button
+                          title={rule.enabled ? 'Pausar' : 'Activar'}
+                          onClick={() => toggleRule(rule.uid)}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                        >
+                          <Icon name="Power" size={14} />
+                        </button>
+                        <button
+                          title="Eliminar"
+                          onClick={() => deleteRule(rule.uid)}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                        >
+                          <Icon name="Trash2" size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </SectionCard>
+      )}
     </PageContainer>
   );
 }

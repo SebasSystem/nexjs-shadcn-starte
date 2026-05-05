@@ -14,7 +14,7 @@ import {
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 
-import type { Milestone, MilestoneStatus } from '../types';
+import type { Milestone, MilestonePayload, MilestoneStatus } from '../types';
 
 const STATUS_OPTIONS: { value: MilestoneStatus; label: string }[] = [
   { value: 'pending', label: 'Pendiente' },
@@ -28,22 +28,24 @@ interface Props {
   mode: 'create' | 'edit';
   milestone?: Milestone | null;
   onClose: () => void;
-  onSave: (data: Omit<Milestone, 'id'>) => void;
+  onSave: (data: MilestonePayload) => Promise<boolean>;
 }
 
 interface FormProps {
   milestone?: Milestone | null;
   isEdit: boolean;
   onClose: () => void;
-  onSave: (data: Omit<Milestone, 'id'>) => void;
+  onSave: (data: MilestonePayload) => Promise<boolean>;
 }
 
 function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
   const init = isEdit && milestone;
   const [name, setName] = useState(init ? milestone.name : '');
   const [description, setDescription] = useState(init ? (milestone.description ?? '') : '');
-  const [assignedTo, setAssignedTo] = useState(init ? milestone.assignedTo : '');
-  const [dueDate, setDueDate] = useState(init ? milestone.dueDate : '');
+  const [assignedTo, setAssignedTo] = useState(
+    init ? (milestone.assigned_to_name ?? milestone.assigned_to_uid) : ''
+  );
+  const [dueDate, setDueDate] = useState(init ? milestone.due_date : '');
   const [status, setStatus] = useState<MilestoneStatus>(init ? milestone.status : 'pending');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -60,9 +62,20 @@ function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
   const handleSave = async () => {
     if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 350));
-    onSave({ name, description, assignedTo, dueDate, status });
-    toast.success(isEdit ? 'Hito actualizado' : 'Hito agregado');
+
+    const payload: MilestonePayload = {
+      name,
+      description,
+      due_date: dueDate,
+      status,
+      assigned_to_uid: assignedTo,
+      assigned_to_name: assignedTo,
+    };
+
+    const ok = await onSave(payload);
+    if (ok) toast.success(isEdit ? 'Hito actualizado' : 'Hito agregado');
+    else toast.error(isEdit ? 'Error al actualizar el hito' : 'Error al agregar el hito');
+
     setLoading(false);
     onClose();
   };
@@ -136,7 +149,7 @@ export function MilestoneDrawer({ open, mode, milestone, onClose, onSave }: Prop
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="w-full sm:max-w-sm flex flex-col overflow-y-auto">
         <MilestoneForm
-          key={`${open}-${milestone?.id ?? 'new'}`}
+          key={`${open}-${milestone?.uid ?? 'new'}`}
           milestone={milestone}
           isEdit={isEdit}
           onClose={onClose}

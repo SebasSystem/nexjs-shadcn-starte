@@ -1,57 +1,46 @@
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+'use client';
 
-import { ProductivityService } from '../services/productivity.service';
-import type { Documento } from '../types/productivity.types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from 'src/lib/query-keys';
 
-export const useVault = (contactoId: string) => {
-  const [data, setData] = useState<Documento[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+import { productivityService } from '../services/productivity.service';
 
-  const fetchItems = useCallback(async () => {
+export function useVault(entityType: string, entityUid: string) {
+  const queryClient = useQueryClient();
+
+  const queryKey = queryKeys.productivity.documents.byContact(entityUid);
+
+  const { data: documents = [], isLoading } = useQuery({
+    queryKey,
+    queryFn: () => productivityService.listDocuments(entityType, entityUid),
+    enabled: !!entityUid,
+  });
+
+  const uploadFile = async (file: File): Promise<boolean> => {
     try {
-      setIsLoading(true);
-      const items = await ProductivityService.getDocumentos(contactoId);
-      setData(items);
-    } catch {
-      toast.error('Error al cargar documentos');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [contactoId]);
-
-  useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
-
-  const uploadFile = async (file: File) => {
-    try {
-      setIsUploading(true);
-      await ProductivityService.uploadDocumento(contactoId, file);
-      await fetchItems();
-      toast.success('Documento subido con éxito');
+      await productivityService.uploadDocument(entityType, entityUid, file);
+      queryClient.invalidateQueries({ queryKey });
       return true;
-    } catch (uploadError) {
-      toast.error(uploadError instanceof Error ? uploadError.message : 'Error al subir documento');
-      return false;
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const deleteFile = async (id: string) => {
-    try {
-      setIsUploading(true);
-      await ProductivityService.deleteDocumento(id);
-      await fetchItems();
-      toast.success('Documento eliminado');
     } catch {
-      toast.error('Error al eliminar');
-    } finally {
-      setIsUploading(false);
+      return false;
     }
   };
 
-  return { data, isLoading, isUploading, uploadFile, deleteFile, refresh: fetchItems };
-};
+  const deleteFile = async (docUid: string): Promise<boolean> => {
+    try {
+      await productivityService.deleteDocument(entityType, entityUid, docUid);
+      queryClient.invalidateQueries({ queryKey });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  return {
+    data: documents,
+    isLoading,
+    uploadFile,
+    deleteFile,
+    refetch: () => queryClient.invalidateQueries({ queryKey }),
+  };
+}

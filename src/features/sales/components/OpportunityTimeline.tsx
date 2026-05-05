@@ -19,8 +19,6 @@ import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
-import { useSalesContext } from '../context/SalesContext';
-
 interface OpportunityTimelineProps {
   opportunity: Opportunity;
 }
@@ -34,15 +32,28 @@ const ACTIVITY_ICONS: Record<ActivityType | 'nota', IconName> = {
   nota: 'MessageSquare',
 };
 
-export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
-  const {
-    addNoteToOpportunity,
-    addActivityToOpportunity,
-    updateNoteInOpportunity,
-    removeNoteFromOpportunity,
-    updateActivityInOpportunity,
-    removeActivityFromOpportunity,
-  } = useSalesContext();
+// ─── Local state types (replaces embedded notes/activities on Opportunity) ─────
+
+interface LocalNote {
+  id: string;
+  content: string;
+  author: string;
+  createdAt: string;
+}
+
+interface LocalActivity {
+  id: string;
+  type: ActivityType;
+  date: string;
+  responsible: string;
+  status: 'pendiente' | 'completada' | 'cancelada';
+  notes?: string;
+}
+
+export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTimelineProps) {
+  // ─── Local state (frontend-only — backend API integration coming soon) ────
+  const [notes, setNotes] = useState<LocalNote[]>([]);
+  const [activities, setActivities] = useState<LocalActivity[]>([]);
   const [activeTab, setActiveTab] = useState<'nota' | 'actividad'>('nota');
   const [newNote, setNewNote] = useState('');
 
@@ -67,11 +78,15 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
     if (!editingContent.trim() && item.type === 'nota') return;
 
     if (item.type === 'nota') {
-      updateNoteInOpportunity(opportunity.id, item.id, editingContent.trim());
+      setNotes((prev) =>
+        prev.map((n) => (n.id === item.id ? { ...n, content: editingContent.trim() } : n))
+      );
     } else {
-      updateActivityInOpportunity(opportunity.id, item.id, {
-        notes: editingContent.trim() || undefined,
-      });
+      setActivities((prev) =>
+        prev.map((a) =>
+          a.id === item.id ? { ...a, notes: editingContent.trim() || undefined } : a
+        )
+      );
     }
     setEditingId(null);
   };
@@ -79,9 +94,9 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
   const confirmDelete = () => {
     if (deleteItem) {
       if (deleteItem.type === 'nota') {
-        removeNoteFromOpportunity(opportunity.id, deleteItem.id);
+        setNotes((prev) => prev.filter((n) => n.id !== deleteItem.id));
       } else {
-        removeActivityFromOpportunity(opportunity.id, deleteItem.id);
+        setActivities((prev) => prev.filter((a) => a.id !== deleteItem.id));
       }
       setDeleteItem(null);
     }
@@ -89,35 +104,44 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
 
   const handleAddNote = () => {
     if (!newNote.trim()) return;
-    addNoteToOpportunity(opportunity.id, {
-      content: newNote.trim(),
-      author: 'Admin', // Usuario logueado (mock)
-    });
+    setNotes((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        content: newNote.trim(),
+        author: 'Admin',
+        createdAt: new Date().toISOString(),
+      },
+    ]);
     setNewNote('');
   };
 
   const handleAddActivity = () => {
     if (!newActivity.date) return;
-    addActivityToOpportunity(opportunity.id, {
-      type: newActivity.type,
-      date: new Date(newActivity.date).toISOString(),
-      responsible: 'Admin',
-      status: 'pendiente',
-      notes: newActivity.notes.trim() || undefined,
-    });
+    setActivities((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        type: newActivity.type,
+        date: new Date(newActivity.date).toISOString(),
+        responsible: 'Admin',
+        status: 'pendiente',
+        notes: newActivity.notes.trim() || undefined,
+      },
+    ]);
     setNewActivity({ type: 'llamada', date: '', notes: '' });
   };
 
-  // Mezclar y ordenar notas y actividades
+  // Merge and sort notes and activities
   const timelineItems = [
-    ...opportunity.notes.map((n) => ({
+    ...notes.map((n) => ({
       id: n.id,
       date: new Date(n.createdAt),
       type: 'nota' as const,
       content: n.content,
       author: n.author,
     })),
-    ...opportunity.activities.map((a) => ({
+    ...activities.map((a) => ({
       id: a.id,
       date: new Date(a.date),
       type: a.type as ActivityType | 'nota',

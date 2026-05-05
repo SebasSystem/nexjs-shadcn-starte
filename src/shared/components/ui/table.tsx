@@ -60,9 +60,7 @@ function TableBody({
         {children}
         {isEmpty && emptyContent !== false && (
           <tr>
-            <td colSpan={100}>
-              {emptyContent ?? <TableEmptyState />}
-            </td>
+            <td colSpan={100}>{emptyContent ?? <TableEmptyState />}</td>
           </tr>
         )}
       </tbody>

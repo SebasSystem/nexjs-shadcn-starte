@@ -14,7 +14,7 @@ import {
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 
-import type { Partner, PartnerStatus, PartnerType } from '../types';
+import type { Partner, PartnerPayload, PartnerStatus, PartnerType } from '../types';
 
 const TYPE_OPTIONS: { value: PartnerType; label: string }[] = [
   { value: 'distributor', label: 'Distribuidor' },
@@ -33,16 +33,16 @@ interface Props {
   mode: 'create' | 'edit';
   partner?: Partner | null;
   onClose: () => void;
-  onCreate: (data: Omit<Partner, 'id' | 'registeredOpportunities' | 'convertedDeals'>) => void;
-  onUpdate: (id: string, changes: Partial<Partner>) => void;
+  onCreate: (data: PartnerPayload) => Promise<boolean>;
+  onUpdate: (uid: string, data: Partial<PartnerPayload>) => Promise<boolean>;
 }
 
 interface FormProps {
   partner?: Partner | null;
   isEdit: boolean;
   onClose: () => void;
-  onCreate: (data: Omit<Partner, 'id' | 'registeredOpportunities' | 'convertedDeals'>) => void;
-  onUpdate: (id: string, changes: Partial<Partner>) => void;
+  onCreate: (data: PartnerPayload) => Promise<boolean>;
+  onUpdate: (uid: string, data: Partial<PartnerPayload>) => Promise<boolean>;
 }
 
 function PartnerForm({ partner, isEdit, onClose, onCreate, onUpdate }: FormProps) {
@@ -51,8 +51,8 @@ function PartnerForm({ partner, isEdit, onClose, onCreate, onUpdate }: FormProps
   const [type, setType] = useState<PartnerType>(init ? partner.type : 'distributor');
   const [status, setStatus] = useState<PartnerStatus>(init ? partner.status : 'active');
   const [region, setRegion] = useState(init ? partner.region : '');
-  const [contactName, setContactName] = useState(init ? partner.contactName : '');
-  const [contactEmail, setContactEmail] = useState(init ? partner.contactEmail : '');
+  const [contactName, setContactName] = useState(init ? partner.contact_name : '');
+  const [contactEmail, setContactEmail] = useState(init ? partner.contact_email : '');
   const [phone, setPhone] = useState(init ? (partner.phone ?? '') : '');
   const [notes, setNotes] = useState(init ? (partner.notes ?? '') : '');
   const [loading, setLoading] = useState(false);
@@ -73,30 +73,38 @@ function PartnerForm({ partner, isEdit, onClose, onCreate, onUpdate }: FormProps
   const handleSave = async () => {
     if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 400));
 
-    const data = {
+    const data: PartnerPayload = {
       name,
       type,
       status,
       region,
-      contactName,
-      contactEmail,
+      contact_name: contactName,
+      contact_email: contactEmail,
       phone: phone || undefined,
       notes: notes || undefined,
-      joinedDate: new Date().toISOString().split('T')[0],
+      joined_date: new Date().toISOString().split('T')[0],
     };
 
     if (isEdit && partner) {
-      onUpdate(partner.id, data);
-      toast.success('Partner actualizado');
+      const ok = await onUpdate(partner.uid, data);
+      if (ok) {
+        toast.success('Partner actualizado');
+        onClose();
+      } else {
+        toast.error('Error al actualizar el partner');
+      }
     } else {
-      onCreate(data);
-      toast.success('Partner creado');
+      const ok = await onCreate(data);
+      if (ok) {
+        toast.success('Partner creado');
+        onClose();
+      } else {
+        toast.error('Error al crear el partner');
+      }
     }
 
     setLoading(false);
-    onClose();
   };
 
   return (
@@ -194,7 +202,7 @@ export function PartnerDrawer({ open, mode, partner, onClose, onCreate, onUpdate
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="w-full sm:max-w-md flex flex-col overflow-y-auto">
         <PartnerForm
-          key={`${open}-${partner?.id ?? 'new'}`}
+          key={`${open}-${partner?.uid ?? 'new'}`}
           partner={partner}
           isEdit={isEdit}
           onClose={onClose}

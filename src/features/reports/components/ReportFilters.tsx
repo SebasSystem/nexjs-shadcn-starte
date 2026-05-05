@@ -1,22 +1,62 @@
 import React, { useState } from 'react';
-import { MOCK_CATEGORIES } from 'src/_mock/_inventories';
 import { cn } from 'src/lib/utils';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
 
-export function ReportFilters() {
+import { useReportFilters } from '../hooks/use-reports';
+import type { ReportFilterParams } from '../types';
+
+interface ReportFiltersProps {
+  onFiltersChange?: (filters: ReportFilterParams) => void;
+}
+
+export function ReportFilters({ onFiltersChange }: ReportFiltersProps) {
   const [expanded, setExpanded] = useState(true);
   const [period, setPeriod] = useState('Este mes');
   const [warehouse, setWarehouse] = useState('all');
   const [category, setCategory] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  const { filterOptions, isLoading: filtersLoading } = useReportFilters();
 
   const showCustomDate = period === 'Personalizado';
   const hasFilters = period !== 'Este mes' || warehouse !== 'all' || category !== 'all';
+
+  const emitFilters = (p: string, w: string, c: string, sd: string, ed: string) => {
+    if (onFiltersChange) {
+      onFiltersChange({
+        period: p,
+        warehouse: w,
+        category: c,
+        ...(sd ? { start_date: sd } : {}),
+        ...(ed ? { end_date: ed } : {}),
+      });
+    }
+  };
 
   const handleClear = () => {
     setPeriod('Este mes');
     setWarehouse('all');
     setCategory('all');
+    setStartDate('');
+    setEndDate('');
+    emitFilters('Este mes', 'all', 'all', '', '');
+  };
+
+  const handlePeriodChange = (p: string) => {
+    setPeriod(p);
+    emitFilters(p, warehouse, category, startDate, endDate);
+  };
+
+  const handleWarehouseChange = (v: string) => {
+    setWarehouse(v);
+    emitFilters(period, v, category, startDate, endDate);
+  };
+
+  const handleCategoryChange = (v: string) => {
+    setCategory(v);
+    emitFilters(period, warehouse, v, startDate, endDate);
   };
 
   if (!expanded) {
@@ -58,14 +98,14 @@ export function ReportFilters() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-        {/* Período */}
+        {/* Period */}
         <div className="md:col-span-6 flex flex-col gap-2">
           <p className="text-caption font-semibold text-muted-foreground">Período</p>
           <div className="flex flex-wrap items-center gap-2">
             {['Hoy', 'Esta semana', 'Este mes', 'Este trimestre', 'Personalizado'].map((p) => (
               <button
                 key={p}
-                onClick={() => setPeriod(p)}
+                onClick={() => handlePeriodChange(p)}
                 className={cn(
                   'px-3 py-1.5 text-caption font-semibold rounded-lg transition-colors border',
                   period === p
@@ -80,40 +120,51 @@ export function ReportFilters() {
           {showCustomDate && (
             <div className="flex items-center gap-2 mt-2">
               <div className="flex-1">
-                <Input type="date" leftIcon={<Icon name="CalendarDays" size={14} />} />
+                <Input
+                  type="date"
+                  leftIcon={<Icon name="CalendarDays" size={14} />}
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    emitFilters(period, warehouse, category, e.target.value, endDate);
+                  }}
+                />
               </div>
               <span className="text-muted-foreground">—</span>
               <div className="flex-1">
-                <Input type="date" leftIcon={<Icon name="CalendarDays" size={14} />} />
+                <Input
+                  type="date"
+                  leftIcon={<Icon name="CalendarDays" size={14} />}
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    emitFilters(period, warehouse, category, startDate, e.target.value);
+                  }}
+                />
               </div>
             </div>
           )}
         </div>
 
-        {/* Bodega */}
+        {/* Warehouse */}
         <div className="md:col-span-3">
           <SelectField
             label="Bodega"
-            options={[
-              { value: 'all', label: 'Todas' },
-              { value: 'main', label: 'Bodega Principal' },
-              { value: 'store', label: 'Tienda' },
-            ]}
+            disabled={filtersLoading}
+            options={[{ value: 'all', label: 'Todas' }, ...filterOptions.warehouses]}
             value={warehouse}
-            onChange={(v) => setWarehouse(v as string)}
+            onChange={(v) => handleWarehouseChange(v as string)}
           />
         </div>
 
-        {/* Categoría */}
+        {/* Category */}
         <div className="md:col-span-3">
           <SelectField
             label="Categoría"
-            options={[
-              { value: 'all', label: 'Todas las categorías' },
-              ...MOCK_CATEGORIES.map((c) => ({ value: c.id, label: c.name })),
-            ]}
+            disabled={filtersLoading}
+            options={[{ value: 'all', label: 'Todas las categorías' }, ...filterOptions.categories]}
             value={category}
-            onChange={(v) => setCategory(v as string)}
+            onChange={(v) => handleCategoryChange(v as string)}
           />
         </div>
       </div>

@@ -1,7 +1,7 @@
-import { PROJECT_STATUS_CONFIG } from 'src/_mock/_projects';
 import { Badge } from 'src/shared/components/ui';
 
 import type { ProjectStatus } from '../types';
+import { PROJECT_STATUS_CONFIG } from '../types';
 
 interface Props {
   status: ProjectStatus;

@@ -15,58 +15,59 @@ import {
 } from 'src/shared/components/ui/sheet';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
-import type { AccionPermiso, PermisoModulo, Rol } from '../../types/settings.types';
+import type { ModulePermission, PermissionAction, Role } from '../../types/settings.types';
 
-const MODULOS = [
-  { id: 'm1', nombre: 'Inventario' },
-  { id: 'm2', nombre: 'Ventas' },
-  { id: 'm3', nombre: 'Reportes' },
-  { id: 'm4', nombre: 'RH / Comisiones' },
-  { id: 'm5', nombre: 'Configuración' },
+const MODULES = [
+  { id: 'm1', name: 'Inventario' },
+  { id: 'm2', name: 'Ventas' },
+  { id: 'm3', name: 'Reportes' },
+  { id: 'm4', name: 'RH / Comisiones' },
+  { id: 'm5', name: 'Configuración' },
 ];
 
-const ACCIONES: AccionPermiso[] = ['ver', 'crear', 'editar', 'eliminar'];
+const ACTIONS: PermissionAction[] = ['ver', 'crear', 'editar', 'eliminar'];
 
 interface RoleDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  rol: Rol | null;
-  onSave: (data: Omit<Rol, 'id' | 'creadoEn' | 'totalUsuarios'>) => Promise<boolean>;
+  role: Role | null;
+  onSave: (data: Omit<Role, 'uid' | 'created_at' | 'total_users'>) => Promise<boolean>;
 }
 
-export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, onSave }) => {
-  const [nombre, setNombre] = useState(rol?.nombre ?? '');
-  const [descripcion, setDescripcion] = useState(rol?.descripcion ?? '');
-  const [permisos, setPermisos] = useState<PermisoModulo[]>(
-    rol?.permisos ?? MODULOS.map((m) => ({ moduloId: m.id, moduloNombre: m.nombre, acciones: [] }))
+export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, onSave }) => {
+  const [name, setName] = useState(role?.name ?? '');
+  const [description, setDescription] = useState(role?.description ?? '');
+  const [permissions, setPermissions] = useState<ModulePermission[]>(
+    role?.permissions ??
+      MODULES.map((m) => ({ module_uid: m.id, module_name: m.name, actions: [] }))
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const toggleAccion = (moduloId: string, accion: AccionPermiso) => {
-    setPermisos((prev) =>
+  const toggleAction = (moduleUid: string, action: PermissionAction) => {
+    setPermissions((prev) =>
       prev.map((p) => {
-        if (p.moduloId !== moduloId) return p;
-        const tiene = p.acciones.includes(accion);
-        let newAcciones = tiene ? p.acciones.filter((a) => a !== accion) : [...p.acciones, accion];
-        if (newAcciones.some((a) => a !== 'ver') && !newAcciones.includes('ver')) {
-          newAcciones = ['ver', ...newAcciones];
+        if (p.module_uid !== moduleUid) return p;
+        const has = p.actions.includes(action);
+        let newActions = has ? p.actions.filter((a) => a !== action) : [...p.actions, action];
+        if (newActions.some((a) => a !== 'ver') && !newActions.includes('ver')) {
+          newActions = ['ver', ...newActions];
         }
-        return { ...p, acciones: newAcciones };
+        return { ...p, actions: newActions };
       })
     );
   };
 
-  const hasAccion = (moduloId: string, accion: AccionPermiso) =>
-    permisos.find((p) => p.moduloId === moduloId)?.acciones.includes(accion) ?? false;
+  const hasAction = (moduleUid: string, action: PermissionAction) =>
+    permissions.find((p) => p.module_uid === moduleUid)?.actions.includes(action) ?? false;
 
   const handleSave = async () => {
-    if (!nombre.trim()) return;
+    if (!name.trim()) return;
     setIsSubmitting(true);
     const success = await onSave({
-      nombre,
-      descripcion,
-      permisos: permisos.filter((p) => p.acciones.length > 0),
-      esDefecto: false,
+      name,
+      description,
+      permissions: permissions.filter((p) => p.actions.length > 0),
+      is_default: false,
     });
     setIsSubmitting(false);
     if (success) onClose();
@@ -76,23 +77,23 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
     <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[520px] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
-          <SheetTitle>{rol ? 'Editar Rol' : 'Nuevo Rol'}</SheetTitle>
+          <SheetTitle>{role ? 'Editar Rol' : 'Nuevo Rol'}</SheetTitle>
           <SheetDescription>Define el nombre y los permisos por módulo</SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <div className="py-6 space-y-6">
             <Input
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               label="Nombre del rol"
               required
               placeholder="Ej. Gerente de Zona"
             />
 
             <Textarea
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               label="Descripción"
               rows={2}
               placeholder="Describe brevemente este rol..."
@@ -109,7 +110,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
                       <th className="text-left py-2.5 px-4 font-semibold text-foreground w-[40%]">
                         Módulo
                       </th>
-                      {ACCIONES.map((a) => (
+                      {ACTIONS.map((a) => (
                         <th
                           key={a}
                           className="text-center py-2.5 px-2 font-semibold text-foreground capitalize w-[15%]"
@@ -120,7 +121,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
                     </tr>
                   </thead>
                   <tbody>
-                    {MODULOS.map((modulo, idx) => (
+                    {MODULES.map((modulo, idx) => (
                       <tr
                         key={modulo.id}
                         className={cn(
@@ -128,20 +129,20 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
                           idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'
                         )}
                       >
-                        <td className="py-2.5 px-4 font-medium text-foreground">{modulo.nombre}</td>
-                        {ACCIONES.map((accion) => (
-                          <td key={accion} className="py-2.5 px-2 text-center">
+                        <td className="py-2.5 px-4 font-medium text-foreground">{modulo.name}</td>
+                        {ACTIONS.map((action) => (
+                          <td key={action} className="py-2.5 px-2 text-center">
                             <button
                               type="button"
-                              onClick={() => toggleAccion(modulo.id, accion)}
+                              onClick={() => toggleAction(modulo.id, action)}
                               className={cn(
-                                'w-6 h-6 rounded border-2 flex items-center justify-center mx-auto transition-colors',
-                                hasAccion(modulo.id, accion)
+                                'w-6 h-6 rounded border-2 flex items-center justify-center mx-auto transition-colors cursor-pointer',
+                                hasAction(modulo.id, action)
                                   ? 'bg-primary border-primary text-primary-foreground'
                                   : 'border-border bg-background hover:border-primary/50'
                               )}
                             >
-                              {hasAccion(modulo.id, accion) && (
+                              {hasAction(modulo.id, action) && (
                                 <Icon name="Check" size={12} strokeWidth={3} />
                               )}
                             </button>
@@ -163,7 +164,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, rol, on
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="button" onClick={handleSave} disabled={!nombre.trim() || isSubmitting}>
+          <Button type="button" onClick={handleSave} disabled={!name.trim() || isSubmitting}>
             {isSubmitting ? 'Guardando...' : 'Guardar Rol'}
           </Button>
         </SheetFooter>

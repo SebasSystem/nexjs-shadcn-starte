@@ -4,14 +4,14 @@ export type TagEntity = 'CONTACT' | 'DEAL' | 'LEAD' | 'COMPANY';
 
 export interface Tag {
   id: string;
-  nombre: string;
+  name: string;
   color: TagColor;
-  entidades: TagEntity[];
-  creadoEn: string;
+  entities: TagEntity[];
+  created_at: string;
 }
 
 export interface TagForm {
-  nombre: string;
+  name: string;
   color: TagColor;
-  entidades: TagEntity[];
+  entities: TagEntity[];
 }

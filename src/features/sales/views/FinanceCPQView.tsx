@@ -1,9 +1,11 @@
 'use client';
 
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useCallback, useMemo, useState } from 'react';
 import { formatMoney, getCurrencyPreferences } from 'src/lib/currency';
 import { formatDate } from 'src/lib/date';
+import { queryKeys } from 'src/lib/query-keys';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
   Table,
@@ -29,40 +31,17 @@ import {
 } from 'src/shared/components/ui/sheet';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
+import { quotationService } from '../services/quotation.service';
+import type { QuotationItem } from '../types/sales.types';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface LineItem {
-  id: string;
-  product: string;
-  qty: number;
-  unitPrice: number;
-  discount: number;
+type LineItem = Omit<QuotationItem, 'discount_total' | 'line_total'> & {
   margin: number;
   stock: number;
-}
+};
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const INITIAL_LINES: LineItem[] = [
-  {
-    id: '1',
-    product: 'Licencia Enterprise Anual',
-    qty: 2,
-    unitPrice: 45000,
-    discount: 0,
-    margin: 50.0,
-    stock: 999,
-  },
-  {
-    id: '2',
-    product: 'Módulo CRM Avanzado',
-    qty: 1,
-    unitPrice: 15000,
-    discount: 10,
-    margin: 60.0,
-    stock: 999,
-  },
-];
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const CLIENT_TYPE_OPTIONS = [
   { value: 'B2C', label: 'B2C' },
@@ -86,7 +65,24 @@ const PRICE_LIST_OPTIONS = [
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function lineTotal(line: LineItem): number {
-  return line.qty * line.unitPrice * (1 - line.discount / 100);
+  return line.quantity * line.list_unit_price * (1 - line.discount_percent / 100);
+}
+
+function lineDiscountTotal(line: LineItem): number {
+  return line.quantity * line.list_unit_price * (line.discount_percent / 100);
+}
+
+function emptyLine(): LineItem {
+  return {
+    uid: '',
+    description: '',
+    quantity: 1,
+    list_unit_price: 0,
+    discount_percent: 0,
+    net_unit_price: 0,
+    margin: 0,
+    stock: 0,
+  };
 }
 
 // ─── Column helper ────────────────────────────────────────────────────────────
@@ -183,13 +179,15 @@ function InvoicePreviewDrawer({ open, onClose, lines }: InvoicePreviewDrawerProp
                   <tbody>
                     {lines.map((line) => (
                       <tr
-                        key={line.id}
+                        key={line.uid || crypto.randomUUID()}
                         className="border-b border-border/30 hover:bg-muted/10 transition-colors"
                       >
-                        <td className="px-4 py-3 text-foreground">{line.product}</td>
-                        <td className="px-4 py-3 text-center text-muted-foreground">{line.qty}</td>
+                        <td className="px-4 py-3 text-foreground">{line.description}</td>
+                        <td className="px-4 py-3 text-center text-muted-foreground">
+                          {line.quantity}
+                        </td>
                         <td className="px-4 py-3 text-right text-muted-foreground">
-                          {formatMoney(line.unitPrice, {
+                          {formatMoney(line.list_unit_price, {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}
@@ -247,13 +245,17 @@ function InvoicePreviewDrawer({ open, onClose, lines }: InvoicePreviewDrawerProp
 // ─── Main View ────────────────────────────────────────────────────────────────
 
 export function FinanceCPQView() {
-  const [lines, setLines] = useState<LineItem[]>(INITIAL_LINES);
+  const queryClient = useQueryClient();
+
+  const [lines, setLines] = useState<LineItem[]>([]);
   const [client, setClient] = useState('');
   const [clientType, setClientType] = useState('B2B');
   const [currency, setCurrency] = useState(() => getCurrencyPreferences('tenant').currency);
   const [priceList, setPriceList] = useState('standard');
   const [validUntil, setValidUntil] = useState('');
   const [notes, setNotes] = useState('');
+  const [quotationUid, setQuotationUid] = useState<string | null>(null);
+  const [quoteNumber, setQuoteNumber] = useState('');
   const [invoiceDrawerOpen, setInvoiceDrawerOpen] = useState(false);
 
   const subtotal = lines.reduce((s, l) => s + lineTotal(l), 0);
@@ -261,56 +263,113 @@ export function FinanceCPQView() {
   const total = subtotal + iva;
   const avgMargin = lines.length > 0 ? lines.reduce((s, l) => s + l.margin, 0) / lines.length : 0;
 
+  const discountTotal = lines.reduce((s, l) => s + lineDiscountTotal(l), 0);
+
+  // ─── Mutations ──────────────────────────────────────────────────────────
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const items: QuotationItem[] = lines.map((l) => ({
+        uid: l.uid || '',
+        description: l.description,
+        quantity: l.quantity,
+        list_unit_price: l.list_unit_price,
+        discount_percent: l.discount_percent,
+        net_unit_price: l.list_unit_price * (1 - l.discount_percent / 100),
+        line_total: lineTotal(l),
+        discount_total: lineDiscountTotal(l),
+      }));
+
+      const payload = {
+        title: client || 'Cotización sin título',
+        currency,
+        local_currency: currency,
+        valid_until: validUntil || undefined,
+        notes: notes || undefined,
+        subtotal,
+        discount_total: discountTotal,
+        total,
+        items,
+      };
+
+      if (quotationUid) {
+        return quotationService.update(quotationUid, payload);
+      }
+      return quotationService.create(payload);
+    },
+    onSuccess: (data) => {
+      if (!quotationUid) {
+        setQuotationUid(data.uid);
+        setQuoteNumber(data.quote_number);
+        // Update local line UIDs from server response
+        if (data.items?.length) {
+          setLines((prev) =>
+            prev.map((l, i) => ({
+              ...l,
+              uid: data.items[i]?.uid ?? l.uid,
+            }))
+          );
+        }
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.sales.quotations });
+    },
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async (status: 'approved' | 'rejected' | 'cancelled') => {
+      if (!quotationUid) throw new Error('Guardá el borrador primero');
+      return quotationService.update(quotationUid, { status } as Partial<
+        import('../types/sales.types').Quotation
+      >);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sales.quotations });
+    },
+  });
+
+  // ─── Line management ────────────────────────────────────────────────────
+
   const addLine = useCallback(() => {
-    setLines((prev) => [
-      ...prev,
-      {
-        id: String(Date.now()),
-        product: '',
-        qty: 1,
-        unitPrice: 0,
-        discount: 0,
-        margin: 0,
-        stock: 0,
-      },
-    ]);
+    setLines((prev) => [...prev, { ...emptyLine(), uid: `new-${Date.now()}` }]);
   }, []);
 
-  const removeLine = useCallback((id: string) => {
-    setLines((prev) => prev.filter((l) => l.id !== id));
+  const removeLine = useCallback((uid: string) => {
+    setLines((prev) => prev.filter((l) => l.uid !== uid));
   }, []);
 
-  const updateLine = useCallback((id: string, field: keyof LineItem, value: string | number) => {
-    setLines((prev) => prev.map((l) => (l.id === id ? { ...l, [field]: value } : l)));
+  const updateLine = useCallback((uid: string, field: keyof LineItem, value: string | number) => {
+    setLines((prev) => prev.map((l) => (l.uid === uid ? { ...l, [field]: value } : l)));
   }, []);
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('product', {
+      columnHelper.accessor('description', {
         header: 'Producto',
         cell: (info) => (
           <input
             value={info.getValue()}
-            onChange={(e) => updateLine(info.row.original.id, 'product', e.target.value)}
+            onChange={(e) => updateLine(info.row.original.uid, 'description', e.target.value)}
             placeholder="Nombre del producto"
             className="w-full min-w-[160px] bg-transparent border-b border-border/40 focus:border-primary outline-none text-sm text-foreground py-0.5 placeholder:text-muted-foreground/40"
           />
         ),
       }),
-      columnHelper.accessor('qty', {
+      columnHelper.accessor('quantity', {
         header: () => <div className="text-center w-full">Cantidad</div>,
         cell: (info) => (
           <div className="flex justify-center">
             <input
               type="number"
               value={info.getValue()}
-              onChange={(e) => updateLine(info.row.original.id, 'qty', Number(e.target.value))}
+              onChange={(e) =>
+                updateLine(info.row.original.uid, 'quantity', Number(e.target.value))
+              }
               className="w-16 text-center bg-transparent border-b border-border/40 focus:border-primary outline-none text-sm text-foreground py-0.5"
             />
           </div>
         ),
       }),
-      columnHelper.accessor('unitPrice', {
+      columnHelper.accessor('list_unit_price', {
         header: () => <div className="text-right w-full">Precio Unit.</div>,
         cell: (info) => (
           <div className="flex justify-end">
@@ -318,21 +377,23 @@ export function FinanceCPQView() {
               type="number"
               value={info.getValue()}
               onChange={(e) =>
-                updateLine(info.row.original.id, 'unitPrice', Number(e.target.value))
+                updateLine(info.row.original.uid, 'list_unit_price', Number(e.target.value))
               }
               className="w-28 text-right bg-transparent border-b border-border/40 focus:border-primary outline-none text-sm text-foreground py-0.5"
             />
           </div>
         ),
       }),
-      columnHelper.accessor('discount', {
+      columnHelper.accessor('discount_percent', {
         header: () => <div className="text-center w-full">Desc. %</div>,
         cell: (info) => (
           <div className="flex justify-center">
             <input
               type="number"
               value={info.getValue()}
-              onChange={(e) => updateLine(info.row.original.id, 'discount', Number(e.target.value))}
+              onChange={(e) =>
+                updateLine(info.row.original.uid, 'discount_percent', Number(e.target.value))
+              }
               className="w-14 text-center bg-transparent border-b border-border/40 focus:border-primary outline-none text-sm text-foreground py-0.5"
             />
           </div>
@@ -374,7 +435,7 @@ export function FinanceCPQView() {
         cell: (info) => (
           <div className="flex justify-center">
             <button
-              onClick={() => removeLine(info.row.original.id)}
+              onClick={() => removeLine(info.row.original.uid)}
               className="text-muted-foreground hover:text-red-500 transition-colors p-1 rounded hover:bg-red-500/10"
             >
               <Icon name="Trash2" size={15} />
@@ -436,7 +497,12 @@ export function FinanceCPQView() {
                 value={validUntil}
                 onChange={(e) => setValidUntil(e.target.value)}
               />
-              <Input label="N° Cotización" value="COT-2024-0847" readOnly className="bg-muted/20" />
+              <Input
+                label="N° Cotización"
+                value={quoteNumber || '—'}
+                readOnly
+                className="bg-muted/20"
+              />
             </div>
           </SectionCard>
 
@@ -527,13 +593,26 @@ export function FinanceCPQView() {
 
             {/* Action buttons */}
             <div className="pt-2 space-y-2">
-              <Button variant="outline" className="w-full">
-                Guardar borrador
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => saveMutation.mutate()}
+                disabled={saveMutation.isPending}
+              >
+                {saveMutation.isPending ? 'Guardando...' : 'Guardar borrador'}
               </Button>
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white">Aprobar</Button>
+              <Button
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => updateStatusMutation.mutate('approved')}
+                disabled={updateStatusMutation.isPending || !quotationUid}
+              >
+                {updateStatusMutation.isPending ? 'Aprobando...' : 'Aprobar'}
+              </Button>
               <Button
                 variant="outline"
                 className="w-full border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
+                onClick={() => updateStatusMutation.mutate('rejected')}
+                disabled={updateStatusMutation.isPending || !quotationUid}
               >
                 Rechazar
               </Button>

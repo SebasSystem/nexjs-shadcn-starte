@@ -4,6 +4,7 @@ import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import React, { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useHistory } from 'src/features/commissions/hooks/use-history';
+import type { CommissionRun } from 'src/features/commissions/types/commissions.types';
 import { cn } from 'src/lib/utils';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
@@ -30,72 +31,11 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui/sheet';
 
-// Mock detail data por registro
-const MOCK_DETALLES: Record<
-  string,
-  {
-    ventas: { fecha: string; cliente: string; monto: number }[];
-    desglose: {
-      tramo: string;
-      rango: string;
-      porcentaje: number;
-      monto: number;
-      comision: number;
-    }[];
-    timeline: { accion: string; actor: string; fecha: string }[];
-  }
-> = {
-  'reg-1': {
-    ventas: [
-      { fecha: '10/02/2025', cliente: 'Distribuidora Alfa', monto: 5000 },
-      { fecha: '22/02/2025', cliente: 'Comercial Beta S.A.', monto: 3040 },
-    ],
-    desglose: [
-      { tramo: 'Tramo 1', rango: '$0 – $5,000', porcentaje: 3, monto: 5000, comision: 150 },
-      { tramo: 'Tramo 2', rango: '$5,001 – $10,000', porcentaje: 5, monto: 3040, comision: 152 },
-    ],
-    timeline: [
-      { accion: 'Creado', actor: 'Sistema', fecha: '01/03/2025' },
-      { accion: 'Pendiente de aprobación', actor: 'Sistema', fecha: '01/03/2025' },
-    ],
-  },
-  'reg-2': {
-    ventas: [
-      { fecha: '05/02/2025', cliente: 'TechCorp Ltda.', monto: 10000 },
-      { fecha: '18/02/2025', cliente: 'Soluciones Gamma', monto: 2500 },
-    ],
-    desglose: [
-      { tramo: 'Tramo 1', rango: '$0 – $5,000', porcentaje: 3, monto: 5000, comision: 150 },
-      { tramo: 'Tramo 2', rango: '$5,001 – $10,000', porcentaje: 5, monto: 5000, comision: 250 },
-      { tramo: 'Tramo 3', rango: '$10,001+', porcentaje: 8, monto: 2500, comision: 200 },
-    ],
-    timeline: [
-      { accion: 'Creado', actor: 'Sistema', fecha: '01/03/2025' },
-      { accion: 'Aprobado', actor: 'Admin RH', fecha: '05/03/2025' },
-    ],
-  },
-  'reg-3': {
-    ventas: [
-      { fecha: '12/01/2025', cliente: 'Grupo Delta', monto: 5000 },
-      { fecha: '25/01/2025', cliente: 'Empresa Epsilon', monto: 4200 },
-    ],
-    desglose: [
-      { tramo: 'Tramo 1', rango: '$0 – $5,000', porcentaje: 3, monto: 5000, comision: 150 },
-      { tramo: 'Tramo 2', rango: '$5,001 – $10,000', porcentaje: 5, monto: 4200, comision: 210 },
-    ],
-    timeline: [
-      { accion: 'Creado', actor: 'Sistema', fecha: '01/02/2025' },
-      { accion: 'Aprobado', actor: 'Admin RH', fecha: '03/02/2025' },
-      { accion: 'Pagado', actor: 'Admin RH', fecha: '15/02/2025' },
-    ],
-  },
-};
-
-type RegistroHistory = ReturnType<typeof useHistory>['registros'][0];
-const columnHelper = createColumnHelper<RegistroHistory>();
+type RunRow = CommissionRun;
+const columnHelper = createColumnHelper<RunRow>();
 
 export const HistoryView = () => {
-  const { registros, isLoading, cambiarEstado } = useHistory();
+  const { runs, isLoading, bulkApprove, bulkPay } = useHistory();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -115,12 +55,12 @@ export const HistoryView = () => {
   });
 
   const handleSelectAll = useCallback(() => {
-    if (selectedIds.length === registros.length) {
+    if (selectedIds.length === runs.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(registros.map((r) => r.id));
+      setSelectedIds(runs.map((r) => r.uid));
     }
-  }, [selectedIds.length, registros]);
+  }, [selectedIds.length, runs]);
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -138,7 +78,7 @@ export const HistoryView = () => {
     toast.success('Reporte listo. [Descargar PDF]');
   };
 
-  const allSelected = registros.length > 0 && selectedIds.length === registros.length;
+  const allSelected = runs.length > 0 && selectedIds.length === runs.length;
 
   const COLUMNS = useMemo(
     () => [
@@ -157,13 +97,13 @@ export const HistoryView = () => {
             <input
               type="checkbox"
               className="rounded border-input text-primary focus:ring-primary"
-              checked={selectedIds.includes(info.row.original.id)}
-              onChange={() => toggleSelect(info.row.original.id)}
+              checked={selectedIds.includes(info.row.original.uid)}
+              onChange={() => toggleSelect(info.row.original.uid)}
             />
           </div>
         ),
       }),
-      columnHelper.accessor('vendedorNombre', {
+      columnHelper.accessor('user_name', {
         header: 'Vendedor',
         cell: (info) => (
           <div className="flex items-center gap-3">
@@ -174,21 +114,21 @@ export const HistoryView = () => {
           </div>
         ),
       }),
-      columnHelper.accessor('periodo', {
+      columnHelper.accessor('period', {
         header: 'Periodo',
         cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
       }),
-      columnHelper.accessor('ventasPeriodo', {
+      columnHelper.accessor('total_sales', {
         header: 'Ventas',
         cell: (info) => (
           <span className="text-foreground">${info.getValue().toLocaleString()}</span>
         ),
       }),
-      columnHelper.accessor('planAplicado', {
+      columnHelper.accessor('plan_applied', {
         header: 'Plan',
         cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
       }),
-      columnHelper.accessor('comisionCalculada', {
+      columnHelper.accessor('calculated_commission', {
         header: 'Comisión',
         cell: (info) => (
           <div className="text-right font-bold text-foreground">
@@ -196,23 +136,23 @@ export const HistoryView = () => {
           </div>
         ),
       }),
-      columnHelper.accessor('estado', {
+      columnHelper.accessor('status', {
         header: 'Estado',
         cell: (info) => {
           const st = info.getValue();
-          if (st === 'PENDIENTE')
+          if (st === 'PENDING')
             return (
               <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded-full">
                 Pendiente
               </span>
             );
-          if (st === 'APROBADO')
+          if (st === 'APPROVED')
             return (
               <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">
                 Aprobado
               </span>
             );
-          if (st === 'PAGADO')
+          if (st === 'PAID')
             return (
               <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full">
                 Pagado
@@ -225,13 +165,13 @@ export const HistoryView = () => {
         id: 'detalle',
         header: 'Detalle',
         cell: (info) => {
-          const isExpanded = expandedId === info.row.original.id;
+          const isExpanded = expandedId === info.row.original.uid;
           return (
             <div className="text-center w-full flex justify-center">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleExpand(info.row.original.id);
+                  toggleExpand(info.row.original.uid);
                 }}
                 className="text-muted-foreground hover:text-blue-600 transition-colors p-1 rounded"
               >
@@ -249,30 +189,30 @@ export const HistoryView = () => {
     [selectedIds, allSelected, expandedId, handleSelectAll]
   );
 
-  const filteredRegistros = useMemo(() => {
-    return registros.filter((r) => {
-      const matchSearch = r.vendedorNombre.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchPeriodo = periodoFilter ? r.periodo === periodoFilter : true;
-      const matchEstado = estadoFilter ? r.estado === estadoFilter : true;
+  const filteredRuns = useMemo(() => {
+    return runs.filter((r) => {
+      const matchSearch = r.user_name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchPeriodo = periodoFilter ? r.period === periodoFilter : true;
+      const matchEstado = estadoFilter ? r.status === estadoFilter : true;
       return matchSearch && matchPeriodo && matchEstado;
     });
-  }, [registros, searchTerm, periodoFilter, estadoFilter]);
+  }, [runs, searchTerm, periodoFilter, estadoFilter]);
 
   const { table, dense, onChangeDense } = useTable({
-    data: filteredRegistros,
+    data: filteredRuns,
     columns: COLUMNS,
     defaultRowsPerPage: 10,
   });
 
-  const pendientes = registros.filter((r) => r.estado === 'PENDIENTE');
-  const sumaPendientes = pendientes.reduce((acc, r) => acc + r.comisionCalculada, 0);
-  const aprobados = registros.filter((r) => r.estado === 'APROBADO');
-  const sumaAprobados = aprobados.reduce((acc, r) => acc + r.comisionCalculada, 0);
-  const pagados = registros.filter((r) => r.estado === 'PAGADO');
-  const sumaPagados = pagados.reduce((acc, r) => acc + r.comisionCalculada, 0);
+  const pendientes = runs.filter((r) => r.status === 'PENDING');
+  const sumaPendientes = pendientes.reduce((acc, r) => acc + r.calculated_commission, 0);
+  const aprobados = runs.filter((r) => r.status === 'APPROVED');
+  const sumaAprobados = aprobados.reduce((acc, r) => acc + r.calculated_commission, 0);
+  const pagados = runs.filter((r) => r.status === 'PAID');
+  const sumaPagados = pagados.reduce((acc, r) => acc + r.calculated_commission, 0);
 
-  const seleccionPendientes = selectedIds.filter((id) => pendientes.find((r) => r.id === id));
-  const seleccionAprobados = selectedIds.filter((id) => aprobados.find((r) => r.id === id));
+  const seleccionPendientes = selectedIds.filter((id) => pendientes.find((r) => r.uid === id));
+  const seleccionAprobados = selectedIds.filter((id) => aprobados.find((r) => r.uid === id));
 
   return (
     <PageContainer fluid className="pb-20 min-w-0 w-full space-y-6">
@@ -354,9 +294,9 @@ export const HistoryView = () => {
             onChange={(val) => setEstadoFilter(val as string)}
             options={[
               { value: '', label: 'Todos los estados' },
-              { value: 'PENDIENTE', label: 'Pendiente' },
-              { value: 'APROBADO', label: 'Aprobado' },
-              { value: 'PAGADO', label: 'Pagado' },
+              { value: 'PENDING', label: 'Pendiente' },
+              { value: 'APPROVED', label: 'Aprobado' },
+              { value: 'PAID', label: 'Pagado' },
             ]}
           />
           <Button
@@ -387,8 +327,7 @@ export const HistoryView = () => {
                 <TableHeadCustom table={table} />
                 <TableBody dense={dense}>
                   {table.getRowModel().rows.map((row) => {
-                    const isExpanded = expandedId === row.original.id;
-                    const detalle = MOCK_DETALLES[row.original.id];
+                    const isExpanded = expandedId === row.original.uid;
 
                     return (
                       <React.Fragment key={row.id}>
@@ -397,7 +336,7 @@ export const HistoryView = () => {
                             'transition-colors cursor-pointer',
                             isExpanded && 'bg-blue-50/30'
                           )}
-                          onClick={() => toggleExpand(row.original.id)}
+                          onClick={() => toggleExpand(row.original.uid)}
                         >
                           {row.getVisibleCells().map((cell) => (
                             <TableCell key={cell.id} className={!dense ? 'py-4' : undefined}>
@@ -407,133 +346,17 @@ export const HistoryView = () => {
                         </TableRow>
 
                         {/* Fila expandible */}
-                        {isExpanded && detalle && (
+                        {isExpanded && (
                           <TableRow>
                             <TableCell
                               colSpan={row.getVisibleCells().length}
                               className="bg-muted/10 p-0"
                             >
-                              <div className="px-6 py-5 grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* Ventas del periodo */}
-                                <div>
-                                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                                    Ventas del Periodo
-                                  </h4>
-                                  <Table>
-                                    <thead className="text-muted-foreground">
-                                      <tr>
-                                        <th className="text-left font-medium text-xs py-2">
-                                          Fecha
-                                        </th>
-                                        <th className="text-left font-medium text-xs py-2">
-                                          Cliente
-                                        </th>
-                                        <th className="text-right font-medium text-xs py-2">
-                                          Monto
-                                        </th>
-                                      </tr>
-                                    </thead>
-                                    <TableBody>
-                                      {detalle.ventas.map((v, i) => (
-                                        <TableRow key={i}>
-                                          <TableCell className="py-2 text-xs text-muted-foreground">
-                                            {v.fecha}
-                                          </TableCell>
-                                          <TableCell className="py-2 text-xs font-medium text-foreground">
-                                            {v.cliente}
-                                          </TableCell>
-                                          <TableCell className="py-2 text-xs text-right font-semibold">
-                                            ${v.monto.toLocaleString()}
-                                          </TableCell>
-                                        </TableRow>
-                                      ))}
-                                    </TableBody>
-                                  </Table>
-                                </div>
-
-                                {/* Desglose por tramos */}
-                                <div>
-                                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                                    Desglose por Tramos
-                                  </h4>
-                                  <Table>
-                                    <thead className="text-muted-foreground">
-                                      <tr>
-                                        <th className="text-left font-medium text-xs py-2">
-                                          Tramo
-                                        </th>
-                                        <th className="text-center font-medium text-xs py-2">%</th>
-                                        <th className="text-right font-medium text-xs py-2">
-                                          Comisión
-                                        </th>
-                                      </tr>
-                                    </thead>
-                                    <TableBody>
-                                      {detalle.desglose.map((d, i) => (
-                                        <TableRow key={i}>
-                                          <TableCell className="py-2">
-                                            <div className="font-medium text-xs text-foreground">
-                                              {d.tramo}
-                                            </div>
-                                            <div className="text-[10px] text-muted-foreground">
-                                              {d.rango}
-                                            </div>
-                                          </TableCell>
-                                          <TableCell className="py-2 text-center text-xs text-muted-foreground">
-                                            {d.porcentaje}%
-                                          </TableCell>
-                                          <TableCell className="py-2 text-right text-xs font-bold text-blue-600">
-                                            ${d.comision.toLocaleString()}
-                                          </TableCell>
-                                        </TableRow>
-                                      ))}
-                                      <TableRow>
-                                        <TableCell
-                                          colSpan={2}
-                                          className="py-2 font-bold text-xs text-foreground text-right pr-2"
-                                        >
-                                          Total
-                                        </TableCell>
-                                        <TableCell className="py-2 text-right text-xs font-bold text-blue-700">
-                                          ${row.original.comisionCalculada.toLocaleString()}
-                                        </TableCell>
-                                      </TableRow>
-                                    </TableBody>
-                                  </Table>
-                                </div>
-
-                                {/* Timeline de estados */}
-                                <div>
-                                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                                    Historial de Estados
-                                  </h4>
-                                  <div className="space-y-3">
-                                    {detalle.timeline.map((t, i) => (
-                                      <div key={i} className="flex gap-3 items-start">
-                                        <div className="flex flex-col items-center">
-                                          <div
-                                            className={`w-2.5 h-2.5 rounded-full mt-0.5 shrink-0 ${
-                                              i === detalle.timeline.length - 1
-                                                ? 'bg-blue-500'
-                                                : 'bg-muted-foreground/30'
-                                            }`}
-                                          />
-                                          {i < detalle.timeline.length - 1 && (
-                                            <div className="w-px bg-border mt-1 min-h-[16px] flex-1" />
-                                          )}
-                                        </div>
-                                        <div>
-                                          <p className="text-xs font-semibold text-foreground">
-                                            {t.accion}
-                                          </p>
-                                          <p className="text-[10px] text-muted-foreground mt-0.5">
-                                            {t.actor} · {t.fecha}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
+                              <div className="px-6 py-5 text-center text-muted-foreground text-sm">
+                                Comisión total:{' '}
+                                <span className="font-bold text-blue-600">
+                                  ${row.original.calculated_commission.toLocaleString()}
+                                </span>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -563,7 +386,7 @@ export const HistoryView = () => {
               size="sm"
               className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
               disabled={seleccionPendientes.length === 0}
-              onClick={() => cambiarEstado(seleccionPendientes, 'APROBADO')}
+              onClick={() => bulkApprove(seleccionPendientes)}
             >
               Aprobar ({seleccionPendientes.length})
             </Button>
@@ -571,7 +394,7 @@ export const HistoryView = () => {
               size="sm"
               className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               disabled={seleccionAprobados.length === 0}
-              onClick={() => cambiarEstado(seleccionAprobados, 'PAGADO')}
+              onClick={() => bulkPay(seleccionAprobados)}
             >
               Marcar Pagados ({seleccionAprobados.length})
             </Button>

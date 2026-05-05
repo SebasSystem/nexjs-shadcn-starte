@@ -85,7 +85,7 @@ export function LowStockTable({ low_stock_products }: Props) {
             <p className="text-body2 text-muted-foreground">Requieren atención inmediata</p>
           </div>
         </div>
-        <button className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border/60 text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+        <button className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border/60 text-muted-foreground hover:border-primary hover:text-primary transition-colors cursor-pointer">
           Exportar CSV
         </button>
       </div>

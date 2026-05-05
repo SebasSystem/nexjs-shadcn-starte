@@ -24,7 +24,7 @@ export function useSettingsUsers() {
   }, [fetchUsers]);
 
   const createUser = async (
-    data: Omit<SettingsUser, 'id' | 'creadoEn' | 'ultimoAcceso'>
+    data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_access_at'>
   ): Promise<boolean> => {
     try {
       const newUser = await usersService.create(data);
@@ -38,21 +38,21 @@ export function useSettingsUsers() {
   const updateUser = async (id: string, data: Partial<SettingsUser>): Promise<boolean> => {
     try {
       const updated = await usersService.update(id, data);
-      setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
+      setUsers((prev) => prev.map((u) => (u.uid === id ? updated : u)));
       return true;
     } catch {
       return false;
     }
   };
 
-  const toggleEstado = async (id: string): Promise<void> => {
-    const updated = await usersService.toggleEstado(id);
-    setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
+  const toggleStatus = async (id: string): Promise<void> => {
+    const updated = await usersService.toggleStatus(id);
+    setUsers((prev) => prev.map((u) => (u.uid === id ? updated : u)));
   };
 
   const deleteUser = async (id: string): Promise<void> => {
     await usersService.delete(id);
-    setUsers((prev) => prev.filter((u) => u.id !== id));
+    setUsers((prev) => prev.filter((u) => u.uid !== id));
   };
 
   return {
@@ -60,7 +60,7 @@ export function useSettingsUsers() {
     isLoading,
     createUser,
     updateUser,
-    toggleEstado,
+    toggleStatus,
     deleteUser,
     refetch: fetchUsers,
   };

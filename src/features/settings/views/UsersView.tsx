@@ -20,22 +20,22 @@ import { useTeams } from '../hooks/use-teams';
 import type { SettingsUser } from '../types/settings.types';
 
 export const UsersView = () => {
-  const { users, isLoading, createUser, updateUser, toggleEstado, deleteUser } = useSettingsUsers();
+  const { users, isLoading, createUser, updateUser, toggleStatus, deleteUser } = useSettingsUsers();
   const { roles } = useRoles();
-  const { equipos } = useTeams();
+  const { teams } = useTeams();
 
   const [search, setSearch] = useState('');
-  const [filterRol, setFilterRol] = useState('ALL');
-  const [filterEstado, setFilterEstado] = useState('ALL');
+  const [filterRole, setFilterRole] = useState('ALL');
+  const [filterStatus, setFilterStatus] = useState('ALL');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SettingsUser | null>(null);
 
   const stats = useMemo(
     () => ({
       total: users.length,
-      activos: users.filter((u) => u.estado === 'ACTIVO').length,
-      pendientes: users.filter((u) => u.estado === 'PENDIENTE').length,
-      inactivos: users.filter((u) => u.estado === 'INACTIVO').length,
+      activos: users.filter((u) => u.status === 'ACTIVO').length,
+      pendientes: users.filter((u) => u.status === 'PENDIENTE').length,
+      inactivos: users.filter((u) => u.status === 'INACTIVO').length,
     }),
     [users]
   );
@@ -43,13 +43,13 @@ export const UsersView = () => {
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
       const matchSearch =
-        u.nombre.toLowerCase().includes(search.toLowerCase()) ||
+        u.name.toLowerCase().includes(search.toLowerCase()) ||
         u.email.toLowerCase().includes(search.toLowerCase());
-      const matchRol = filterRol === 'ALL' || u.rolId === filterRol;
-      const matchEstado = filterEstado === 'ALL' || u.estado === filterEstado;
-      return matchSearch && matchRol && matchEstado;
+      const matchRole = filterRole === 'ALL' || u.role_uid === filterRole;
+      const matchStatus = filterStatus === 'ALL' || u.status === filterStatus;
+      return matchSearch && matchRole && matchStatus;
     });
-  }, [users, search, filterRol, filterEstado]);
+  }, [users, search, filterRole, filterStatus]);
 
   const handleOpenNew = () => {
     setSelectedUser(null);
@@ -61,8 +61,8 @@ export const UsersView = () => {
     setIsDrawerOpen(true);
   };
 
-  const handleSave = async (data: Omit<SettingsUser, 'id' | 'creadoEn' | 'ultimoAcceso'>) => {
-    if (selectedUser) return updateUser(selectedUser.id, data);
+  const handleSave = async (data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_access_at'>) => {
+    if (selectedUser) return updateUser(selectedUser.uid, data);
     return createUser(data);
   };
 
@@ -129,10 +129,10 @@ export const UsersView = () => {
               label="Rol"
               options={[
                 { value: 'ALL', label: 'Todos los roles' },
-                ...roles.map((r) => ({ value: r.id, label: r.nombre })),
+                ...roles.map((r) => ({ value: r.uid, label: r.name })),
               ]}
-              value={filterRol}
-              onChange={(v) => setFilterRol(v as string)}
+              value={filterRole}
+              onChange={(v) => setFilterRole(v as string)}
             />
             <SelectField
               label="Estado"
@@ -142,8 +142,8 @@ export const UsersView = () => {
                 { value: 'PENDIENTE', label: 'Pendiente' },
                 { value: 'INACTIVO', label: 'Inactivo' },
               ]}
-              value={filterEstado}
-              onChange={(v) => setFilterEstado(v as string)}
+              value={filterStatus}
+              onChange={(v) => setFilterStatus(v as string)}
             />
           </div>
         </div>
@@ -158,8 +158,8 @@ export const UsersView = () => {
             <UsersTable
               users={filteredUsers}
               onEdit={handleEdit}
-              onToggleEstado={(u) => toggleEstado(u.id)}
-              onDelete={(u) => deleteUser(u.id)}
+              onToggleStatus={(u: SettingsUser) => toggleStatus(u.uid)}
+              onDelete={(u: SettingsUser) => deleteUser(u.uid)}
             />
             <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
               {filteredUsers.length} usuario{filteredUsers.length !== 1 ? 's' : ''}
@@ -173,7 +173,7 @@ export const UsersView = () => {
         onClose={() => setIsDrawerOpen(false)}
         user={selectedUser}
         roles={roles}
-        equipos={equipos}
+        equipos={teams}
         onSave={handleSave}
       />
     </PageContainer>

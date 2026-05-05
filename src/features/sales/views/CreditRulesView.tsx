@@ -13,66 +13,25 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
+import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { Switch } from 'src/shared/components/ui/switch';
 
-// ─── Types & Mock Data ───────────────────────────────────────────────────────
-
-type CreditException = {
-  id: string;
-  initials: string;
-  name: string;
-  rfc: string;
-  limit: number;
-  days: number;
-  active: boolean;
-};
-
-const CREDIT_EXCEPTIONS: CreditException[] = [
-  {
-    id: '1',
-    initials: 'TM',
-    name: 'Tecnologías Modernas S.A.',
-    rfc: 'TMO880512ABC',
-    limit: 150000,
-    days: 60,
-    active: true,
-  },
-  {
-    id: '2',
-    initials: 'GI',
-    name: 'Grupo Industrial del Norte',
-    rfc: 'GIN850723XYZ',
-    limit: 300000,
-    days: 90,
-    active: true,
-  },
-  {
-    id: '3',
-    initials: 'DC',
-    name: 'Distribuidora Central',
-    rfc: 'DCE890315DEF',
-    limit: 75000,
-    days: 45,
-    active: false,
-  },
-];
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-// ─── Column helper ────────────────────────────────────────────────────────────
+import { SalesPageSkeleton } from '../components/SalesPageSkeleton';
+import { useCreditRules } from '../hooks/useCreditRules';
+import type { CreditException } from '../types/sales.types';
 
 const columnHelper = createColumnHelper<CreditException>();
 
-// ─── View ─────────────────────────────────────────────────────────────────────
-
 export function CreditRulesView() {
-  const [autoBlock, setAutoBlock] = useState(true);
-  const [maxDays, setMaxDays] = useState('30');
-  const [maxAmount, setMaxAmount] = useState('50000');
+  const { rules, exceptions, isLoading, saveRules } = useCreditRules();
+
+  const [maxDays, setMaxDays] = useState(() => (rules ? String(rules.max_days) : ''));
+  const [maxAmount, setMaxAmount] = useState(() => (rules ? String(rules.max_amount) : ''));
+  const [autoBlock, setAutoBlock] = useState(() => (rules ? rules.auto_block : true));
 
   const columns = useMemo(
     () => [
@@ -81,20 +40,26 @@ export function CreditRulesView() {
         header: 'Cliente',
         cell: (info) => {
           const row = info.row.original;
+          const initials = row.client_name
+            .split(' ')
+            .slice(0, 2)
+            .map((w) => w[0])
+            .join('')
+            .toUpperCase();
           return (
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                {row.initials}
+                {initials}
               </div>
               <div>
-                <p className="font-medium text-foreground">{row.name}</p>
-                <p className="text-xs text-muted-foreground">RFC: {row.rfc}</p>
+                <p className="font-medium text-foreground">{row.client_name}</p>
+                <p className="text-xs text-muted-foreground">{row.client_identifier}</p>
               </div>
             </div>
           );
         },
       }),
-      columnHelper.accessor('limit', {
+      columnHelper.accessor('credit_limit', {
         header: () => <div className="text-right w-full">Límite Especial</div>,
         cell: (info) => (
           <div className="text-right font-semibold text-foreground">
@@ -102,13 +67,13 @@ export function CreditRulesView() {
           </div>
         ),
       }),
-      columnHelper.accessor('days', {
+      columnHelper.accessor('max_days', {
         header: () => <div className="text-center w-full">Días Cartera</div>,
         cell: (info) => (
           <div className="text-center text-muted-foreground">{info.getValue()} días</div>
         ),
       }),
-      columnHelper.accessor('active', {
+      columnHelper.accessor('is_active', {
         header: () => <div className="text-center w-full">Estado</div>,
         cell: (info) => (
           <div className="flex justify-center">
@@ -122,13 +87,9 @@ export function CreditRulesView() {
         id: 'actions',
         header: () => <div className="text-center w-full">Acciones</div>,
         cell: () => (
-          <div className="flex items-center justify-center gap-2">
-            <button className="text-muted-foreground hover:text-primary transition-colors p-1 rounded-lg hover:bg-primary/10">
-              <Icon name="Pencil" size={15} />
-            </button>
-            <button className="text-muted-foreground hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-500/10">
-              <Icon name="Trash2" size={15} />
-            </button>
+          <div className="flex items-center justify-center gap-1">
+            <EditButton onClick={() => {}} />
+            <DeleteButton onClick={() => {}} />
           </div>
         ),
       }),
@@ -137,10 +98,26 @@ export function CreditRulesView() {
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: CREDIT_EXCEPTIONS,
+    data: exceptions,
     columns,
     defaultRowsPerPage: 10,
   });
+
+  const handleSaveRules = async () => {
+    await saveRules({
+      max_days: parseInt(maxDays, 10),
+      max_amount: parseFloat(maxAmount),
+      auto_block: autoBlock,
+    });
+  };
+
+  if (isLoading)
+    return (
+      <SalesPageSkeleton
+        title="Reglas de Bloqueo de Crédito"
+        subtitle="Configura las políticas de crédito para controlar el riesgo financiero"
+      />
+    );
 
   return (
     <PageContainer className="pb-10">
@@ -149,7 +126,6 @@ export function CreditRulesView() {
         subtitle="Configura las políticas de crédito para controlar el riesgo financiero"
       />
 
-      {/* ── Global Credit Rules ──────────────────────────────────────────── */}
       <SectionCard className="p-6 space-y-5">
         <h2 className="text-h6 text-foreground">Reglas globales de crédito</h2>
 
@@ -170,7 +146,6 @@ export function CreditRulesView() {
           />
         </div>
 
-        {/* Auto-block toggle */}
         <div className="flex items-center justify-between p-4 rounded-xl bg-muted/20 border border-border/40">
           <div className="flex-1 mr-4">
             <p className="text-sm font-semibold text-foreground">
@@ -190,11 +165,12 @@ export function CreditRulesView() {
         </div>
 
         <div className="flex justify-end">
-          <Button color="primary">Guardar configuración</Button>
+          <Button color="primary" onClick={handleSaveRules}>
+            Guardar configuración
+          </Button>
         </div>
       </SectionCard>
 
-      {/* ── Client Exceptions Table — TanStack ───────────────────────────── */}
       <SectionCard noPadding>
         <div className="px-6 py-4 flex items-center justify-between">
           <h2 className="text-h6 text-foreground">Excepciones por cliente</h2>
@@ -208,15 +184,26 @@ export function CreditRulesView() {
           <Table>
             <TableHeadCustom table={table} />
             <TableBody dense={dense}>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+              {table.getRowModel().rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="py-12 text-center text-muted-foreground text-sm"
+                  >
+                    Sin excepciones configuradas
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>

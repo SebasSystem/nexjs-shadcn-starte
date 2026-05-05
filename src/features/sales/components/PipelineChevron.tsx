@@ -1,6 +1,5 @@
 'use client';
 
-import { STAGE_ACCENT_COLORS, STAGE_PROBABILITY } from '../config/pipeline.config';
 import type { PipelineStage } from '../types/sales.types';
 
 interface PipelineChevronProps {
@@ -11,17 +10,30 @@ export function PipelineChevron({ stages }: PipelineChevronProps) {
   const N = stages.length;
   const D = 24; // arrow depth in px
 
+  // Provide default colors if stage doesn't have one
+  const CHEVRON_FALLBACKS = [
+    { bg: '#93C5FD', accent: '#2563EB', text: '#1E3A8A' },
+    { bg: '#7DD3FC', accent: '#0284C7', text: '#0C4A6E' },
+    { bg: '#FCD34D', accent: '#D97706', text: '#78350F' },
+    { bg: '#86EFAC', accent: '#16A34A', text: '#14532D' },
+    { bg: '#C4B5FD', accent: '#7C3AED', text: '#4C1D95' },
+    { bg: '#FDA4AF', accent: '#E11D48', text: '#881337' },
+    { bg: '#FDBA74', accent: '#EA580C', text: '#7C2D12' },
+    { bg: '#A7F3D0', accent: '#059669', text: '#064E3B' },
+  ];
+
   return (
     <div className="relative mb-5" style={{ height: 88 }}>
       {stages.map((stage, idx) => {
         const isFirst = idx === 0;
         const isLast = idx === N - 1;
-        const prob = Math.round((STAGE_PROBABILITY[stage.id] ?? 0) * 100);
+        const prob = Math.round(stage.probability_percent);
         const slotPct = 100 / N;
-        const meta = STAGE_ACCENT_COLORS[stage.id as keyof typeof STAGE_ACCENT_COLORS] ?? {
-          accent: '#6B7280',
-          text: '#111827',
-        };
+
+        const fallback = CHEVRON_FALLBACKS[idx % CHEVRON_FALLBACKS.length];
+        const accentColor = stage.color ?? fallback.accent;
+        const textColor = fallback.text;
+        const bgColor = stage.color ?? fallback.bg;
 
         const clipPath = isFirst
           ? `polygon(0 0, calc(100% - ${D}px) 0, 100% 50%, calc(100% - ${D}px) 100%, 0 100%)`
@@ -35,12 +47,12 @@ export function PipelineChevron({ stages }: PipelineChevronProps) {
 
         return (
           <div
-            key={stage.id}
+            key={stage.uid}
             className="absolute inset-y-0 flex items-center select-none"
             style={{
               left,
               width,
-              backgroundColor: stage.color,
+              backgroundColor: bgColor,
               clipPath,
               zIndex: N - idx,
               paddingLeft: isFirst ? D + 12 : 2 * D + 12,
@@ -51,15 +63,15 @@ export function PipelineChevron({ stages }: PipelineChevronProps) {
               {/* Step number — saturated bubble on pastel bg */}
               <span
                 className="w-11 h-11 rounded-full flex items-center justify-center text-base font-bold text-white shrink-0"
-                style={{ backgroundColor: meta.accent }}
+                style={{ backgroundColor: accentColor }}
               >
                 {idx + 1}
               </span>
 
-              {/* Stage info — dark text for contrast on pastel */}
-              <div className="min-w-0" style={{ color: meta.text }}>
+              {/* Stage info */}
+              <div className="min-w-0" style={{ color: textColor }}>
                 <p className="text-[17px] font-bold leading-tight truncate tracking-wide">
-                  {stage.label}
+                  {stage.name}
                 </p>
                 <p className="text-[12px] font-semibold leading-tight opacity-70 mt-0.5">
                   {prob}% prob. cierre

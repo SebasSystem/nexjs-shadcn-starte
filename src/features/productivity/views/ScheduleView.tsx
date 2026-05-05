@@ -10,28 +10,14 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import { ActivityDrawer } from '../components/ActivityDrawer';
-import { useAgendaItems } from '../hooks/use-agenda-items';
-import type { Actividad, ActividadSource, EstadoActividad } from '../types/productivity.types';
-
-// ─── Source badge config ──────────────────────────────────────────────────────
-
-const SOURCE_CONFIG: Record<ActividadSource, { label: string; className: string } | undefined> = {
-  pipeline: {
-    label: 'Pipeline',
-    className: 'bg-blue-50 text-blue-700 border-blue-200',
-  },
-  project: {
-    label: 'Proyecto',
-    className: 'bg-violet-50 text-violet-700 border-violet-200',
-  },
-  agenda: undefined, // no badge for manually created items
-};
+import { SOURCE_CONFIG, useAgendaItems } from '../hooks/use-agenda-items';
+import type { Activity, ActivitySource, ActivityStatus } from '../types/productivity.types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const getEstadoIcon = (estado: EstadoActividad) => {
-  switch (estado) {
-    case 'PENDIENTE':
+const getStatusIcon = (status: ActivityStatus) => {
+  switch (status) {
+    case 'PENDING':
       return (
         <Icon
           name="Circle"
@@ -39,9 +25,9 @@ const getEstadoIcon = (estado: EstadoActividad) => {
           className="text-gray-300 hover:text-blue-500 transition-colors"
         />
       );
-    case 'COMPLETADA':
+    case 'COMPLETED':
       return <Icon name="CheckCircle2" size={20} className="text-emerald-500" />;
-    case 'VENCIDA':
+    case 'OVERDUE':
       return (
         <Icon
           name="AlertCircle"
@@ -52,8 +38,8 @@ const getEstadoIcon = (estado: EstadoActividad) => {
   }
 };
 
-const getRelativeDateGroup = (dateStr: string, estado: EstadoActividad) => {
-  if (estado === 'COMPLETADA') return 'Completadas';
+const getRelativeDateGroup = (dateStr: string, status: ActivityStatus) => {
+  if (status === 'COMPLETED') return 'Completadas';
   const d = new Date(dateStr);
   if (isPast(d) && !isToday(d)) return 'Vencidas';
   if (isToday(d)) return 'Para Hoy';
@@ -75,10 +61,10 @@ const GROUP_ORDERS = {
 
 export const ScheduleView = () => {
   const router = useRouter();
-  const { data, isLoading, updateEstado, addActividad } = useAgendaItems();
+  const { data, isLoading, updateStatus, addActivity } = useAgendaItems();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [filterTab, setFilterTab] = useState<'Pendientes' | 'Todas' | 'Completadas'>('Pendientes');
-  const [filterSource, setFilterSource] = useState<'all' | ActividadSource>('all');
+  const [filterSource, setFilterSource] = useState<'all' | ActivitySource>('all');
 
   const usuarios = useMemo(
     () => [
@@ -92,9 +78,9 @@ export const ScheduleView = () => {
     return data.filter((a) => {
       const matchTab =
         filterTab === 'Pendientes'
-          ? a.estado !== 'COMPLETADA'
+          ? a.status !== 'COMPLETED'
           : filterTab === 'Completadas'
-            ? a.estado === 'COMPLETADA'
+            ? a.status === 'COMPLETED'
             : true;
       const matchSource = filterSource === 'all' || a.source === filterSource;
       return matchTab && matchSource;
@@ -102,9 +88,9 @@ export const ScheduleView = () => {
   }, [data, filterTab, filterSource]);
 
   const groupedData = useMemo(() => {
-    const groups: Record<string, Actividad[]> = {};
+    const groups: Record<string, Activity[]> = {};
     filteredData.forEach((a) => {
-      const g = getRelativeDateGroup(a.fechaVencimiento, a.estado);
+      const g = getRelativeDateGroup(a.due_date, a.status);
       if (!groups[g]) groups[g] = [];
       groups[g].push(a);
     });
@@ -119,19 +105,18 @@ export const ScheduleView = () => {
     () => ({
       vencidas: data.filter(
         (a) =>
-          a.estado === 'VENCIDA' ||
-          (isPast(new Date(a.fechaVencimiento)) &&
-            !isToday(new Date(a.fechaVencimiento)) &&
-            a.estado !== 'COMPLETADA')
+          a.status === 'OVERDUE' ||
+          (isPast(new Date(a.due_date)) &&
+            !isToday(new Date(a.due_date)) &&
+            a.status !== 'COMPLETED')
       ).length,
-      hoy: data.filter((a) => isToday(new Date(a.fechaVencimiento)) && a.estado !== 'COMPLETADA')
-        .length,
-      completadas: data.filter((a) => a.estado === 'COMPLETADA').length,
+      hoy: data.filter((a) => isToday(new Date(a.due_date)) && a.status !== 'COMPLETED').length,
+      completadas: data.filter((a) => a.status === 'COMPLETED').length,
     }),
     [data]
   );
 
-  const sourceFilterOptions: { value: 'all' | ActividadSource; label: string }[] = [
+  const sourceFilterOptions: { value: 'all' | ActivitySource; label: string }[] = [
     { value: 'all', label: 'Todas las fuentes' },
     { value: 'agenda', label: 'Agenda manual' },
     { value: 'pipeline', label: 'Pipeline' },
@@ -254,18 +239,18 @@ export const ScheduleView = () => {
               </h4>
 
               <div className="grid grid-cols-1 gap-3">
-                {items.map((actividad) => {
-                  const sourceCfg = actividad.source ? SOURCE_CONFIG[actividad.source] : undefined;
+                {items.map((activity) => {
+                  const sourceCfg = activity.source ? SOURCE_CONFIG[activity.source] : undefined;
                   const isReadOnly =
-                    actividad.source === 'pipeline' || actividad.source === 'project';
+                    activity.source === 'pipeline' || activity.source === 'project';
 
                   return (
                     <SectionCard
-                      key={actividad.id}
+                      key={activity.uid}
                       className={`group flex items-start gap-4 transition-all duration-200 cursor-default ${
-                        actividad.estado === 'COMPLETADA'
+                        activity.status === 'COMPLETED'
                           ? 'opacity-60 hover:opacity-100'
-                          : actividad.estado === 'VENCIDA' || groupName === 'Vencidas'
+                          : activity.status === 'OVERDUE' || groupName === 'Vencidas'
                             ? 'border-red-200 bg-red-50/20 dark:bg-red-500/5'
                             : 'hover:border-primary/40 hover:shadow-md'
                       }`}
@@ -274,9 +259,9 @@ export const ScheduleView = () => {
                       <button
                         onClick={() =>
                           !isReadOnly &&
-                          updateEstado(
-                            actividad.id,
-                            actividad.estado === 'COMPLETADA' ? 'PENDIENTE' : 'COMPLETADA'
+                          updateStatus(
+                            activity.uid,
+                            activity.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED'
                           )
                         }
                         disabled={isReadOnly}
@@ -288,12 +273,12 @@ export const ScheduleView = () => {
                         title={
                           isReadOnly
                             ? 'Actualizá el estado en la fuente original'
-                            : actividad.estado === 'COMPLETADA'
+                            : activity.status === 'COMPLETED'
                               ? 'Marcar como pendiente'
                               : 'Completar'
                         }
                       >
-                        {getEstadoIcon(actividad.estado)}
+                        {getStatusIcon(activity.status)}
                       </button>
 
                       <div className="flex-1 min-w-0">
@@ -301,18 +286,18 @@ export const ScheduleView = () => {
                           <div>
                             <h5
                               className={`text-[15px] leading-tight font-semibold tracking-tight ${
-                                actividad.estado === 'COMPLETADA'
+                                activity.status === 'COMPLETED'
                                   ? 'line-through text-muted-foreground'
                                   : 'text-foreground'
                               }`}
                             >
-                              {actividad.titulo}
+                              {activity.title}
                             </h5>
-                            {actividad.contactoNombre && (
+                            {activity.contact_name && (
                               <div className="text-xs text-primary font-medium mt-1 truncate">
-                                {actividad.source === 'project'
-                                  ? `Proyecto: ${actividad.sourceLabel}`
-                                  : `Cliente: ${actividad.contactoNombre}`}
+                                {activity.source === 'project'
+                                  ? `Proyecto: ${activity.source_label}`
+                                  : `Cliente: ${activity.contact_name}`}
                               </div>
                             )}
                           </div>
@@ -332,21 +317,25 @@ export const ScheduleView = () => {
                             <Badge
                               variant="outline"
                               className={`text-[10px] uppercase font-bold px-2 py-0.5 ${
-                                actividad.tipo === 'REUNION'
+                                activity.type === 'MEETING'
                                   ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                                  : actividad.tipo === 'RECORDATORIO'
+                                  : activity.type === 'REMINDER'
                                     ? 'bg-amber-50 text-amber-700 border-amber-200'
                                     : 'bg-blue-50 text-blue-700 border-blue-200'
                               }`}
                             >
-                              {actividad.tipo}
+                              {activity.type === 'TASK'
+                                ? 'Tarea'
+                                : activity.type === 'REMINDER'
+                                  ? 'Recordatorio'
+                                  : 'Reunión'}
                             </Badge>
 
                             {/* Actions: redirect or more options */}
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              {actividad.sourcePath ? (
+                              {activity.source_path ? (
                                 <button
-                                  onClick={() => router.push(actividad.sourcePath!)}
+                                  onClick={() => router.push(activity.source_path!)}
                                   className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 text-[11px] font-medium"
                                   title="Ir a la fuente"
                                 >
@@ -362,9 +351,9 @@ export const ScheduleView = () => {
                           </div>
                         </div>
 
-                        {actividad.descripcion && (
+                        {activity.description && (
                           <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                            {actividad.descripcion}
+                            {activity.description}
                           </p>
                         )}
 
@@ -380,14 +369,14 @@ export const ScheduleView = () => {
                                 groupName === 'Vencidas' ? 'text-red-600' : 'text-foreground'
                               }
                             >
-                              {format(new Date(actividad.fechaVencimiento), 'dd MMM yyyy', {
+                              {format(new Date(activity.due_date), 'dd MMM yyyy', {
                                 locale: es,
                               })}
                             </span>
                           </div>
                           <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md border border-border/50">
                             <Icon name="User" size={14} className="text-emerald-500" />
-                            <span className="text-foreground">{actividad.asignadoA}</span>
+                            <span className="text-foreground">{activity.assigned_to_name}</span>
                           </div>
                         </div>
                       </div>
@@ -404,7 +393,7 @@ export const ScheduleView = () => {
       <ActivityDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        onSave={addActividad}
+        onSave={addActivity}
         usuarios={usuarios}
       />
     </PageContainer>

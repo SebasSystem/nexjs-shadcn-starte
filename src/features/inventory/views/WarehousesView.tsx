@@ -20,27 +20,16 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import {
-  Button,
-  Icon,
-  Input,
-  SelectField,
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  Switch,
-} from 'src/shared/components/ui';
+import { Button, EditButton, Icon } from 'src/shared/components/ui';
 
-import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { GoodsReceiptDrawer } from '../components/GoodsReceiptDrawer';
+import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { TransferDrawer } from '../components/TransferDrawer';
+import { WarehouseDrawer } from '../components/WarehouseDrawer';
+import { WarehouseFilters } from '../components/WarehouseFilters';
 import { useProducts } from '../hooks/use-products';
 import { useWarehouses } from '../hooks/use-warehouses';
 import type { CreateWarehousePayload, Warehouse } from '../types/inventory.types';
-
-// ─── Column helper ────────────────────────────────────────────────────────────
 
 interface WarehouseRow {
   warehouse: Warehouse;
@@ -48,108 +37,14 @@ interface WarehouseRow {
 
 const columnHelper = createColumnHelper<WarehouseRow>();
 
-// ─── Warehouse Drawer ─────────────────────────────────────────────────────────
-
-interface WarehouseDrawerProps {
-  open: boolean;
-  warehouse?: Warehouse | null;
-  onClose: () => void;
-  onSave: (payload: CreateWarehousePayload) => Promise<void>;
-}
-
-function WarehouseDrawer({ open, warehouse, onClose, onSave }: WarehouseDrawerProps) {
-  const [name, setName] = useState(warehouse?.name ?? '');
-  const [code, setCode] = useState(warehouse?.code ?? '');
-  const [location, setLocation] = useState(warehouse?.location ?? '');
-  const [active, setActive] = useState(warehouse?.is_active ?? true);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
-
-  const validate = () => {
-    const next: Record<string, string> = {};
-    if (!name.trim()) next.name = 'El nombre es requerido';
-    if (!code.trim()) next.code = 'El código es requerido';
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  };
-
-  const handleSave = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      await onSave({ name, code, location: location || undefined, is_active: active });
-      onClose();
-    } catch {
-      toast.error('Error al guardar la bodega');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const isEdit = !!warehouse;
-
-  return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent className="w-full sm:max-w-md flex flex-col">
-        <SheetHeader className="border-b border-border/60 pb-4">
-          <SheetTitle>{isEdit ? 'Editar bodega' : 'Nueva bodega'}</SheetTitle>
-        </SheetHeader>
-
-        <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-          <Input
-            label="Nombre *"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Ej: Bodega Central"
-            error={errors.name}
-          />
-          <Input
-            label="Código *"
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="Ej: MAIN, BCN01"
-            error={errors.code}
-          />
-          <Input
-            label="Ubicación"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Ej: Calle Falsa 123"
-          />
-          <div className="flex items-center justify-between py-1">
-            <div>
-              <p className="text-sm font-medium leading-none">Estado</p>
-              <p className="text-caption text-muted-foreground mt-0.5">
-                {active ? 'Activa' : 'Inactiva'}
-              </p>
-            </div>
-            <Switch checked={active} onCheckedChange={setActive} />
-          </div>
-        </div>
-
-        <SheetFooter className="border-t border-border/60 pt-4 px-4 pb-4">
-          <Button variant="outline" onClick={onClose} disabled={loading}>
-            Cancelar
-          </Button>
-          <Button color="primary" onClick={handleSave} disabled={loading}>
-            {loading ? (
-              <>
-                <Icon name="Loader2" size={15} className="animate-spin" /> Guardando...
-              </>
-            ) : (
-              'Guardar'
-            )}
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-// ─── Main View ────────────────────────────────────────────────────────────────
-
 export function WarehousesView() {
-  const { items: warehouses, summary: warehousesSummary, isLoading, createWarehouse, updateWarehouse } = useWarehouses();
+  const {
+    items: warehouses,
+    summary: warehousesSummary,
+    isLoading,
+    createWarehouse,
+    updateWarehouse,
+  } = useWarehouses();
   const { items: products } = useProducts();
 
   const [search, setSearch] = useState('');
@@ -261,7 +156,12 @@ export function WarehousesView() {
         cell: (info) => {
           const val = info.row.original.warehouse.summary?.total_available;
           return (
-            <div className={cn('text-right font-bold', val != null && val <= 0 ? 'text-error' : 'text-success')}>
+            <div
+              className={cn(
+                'text-right font-bold',
+                val != null && val <= 0 ? 'text-error' : 'text-success'
+              )}
+            >
               {val ?? '—'}
             </div>
           );
@@ -288,7 +188,10 @@ export function WarehousesView() {
           return (
             <div className="w-28">
               <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${pct}%` }}
+                />
               </div>
               <p className="text-[10px] text-muted-foreground mt-0.5">{pct}% del mayor</p>
             </div>
@@ -313,15 +216,12 @@ export function WarehousesView() {
         id: 'actions',
         header: '',
         cell: (info) => (
-          <button
-            className="text-muted-foreground hover:text-primary transition-colors"
+          <EditButton
             onClick={() => {
               setSelectedWarehouse(info.row.original.warehouse);
               setWarehouseDrawerOpen(true);
             }}
-          >
-            <Icon name="Pencil" size={14} />
-          </button>
+          />
         ),
       }),
     ],
@@ -396,29 +296,13 @@ export function WarehousesView() {
         ))}
       </div>
 
-      {/* Table */}
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-end gap-3 px-5 py-4">
-          <div className="flex-1 min-w-48">
-            <Input
-              label="Buscar"
-              placeholder="Buscar por nombre o código..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              leftIcon={<Icon name="Search" size={15} />}
-            />
-          </div>
-          <SelectField
-            label="Stock"
-            options={[
-              { value: 'all', label: 'Todas las bodegas' },
-              { value: 'with_stock', label: 'Solo con stock' },
-            ]}
-            value={filterStock}
-            onChange={(v) => setFilterStock(v as string)}
-          />
-        </div>
-
+        <WarehouseFilters
+          search={search}
+          onSearch={setSearch}
+          filterStock={filterStock}
+          onFilterStock={setFilterStock}
+        />
         <TableContainer>
           <Table>
             <TableHeadCustom table={table} />

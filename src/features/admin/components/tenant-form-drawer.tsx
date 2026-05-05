@@ -47,7 +47,6 @@ export function TenantFormDrawer({
     handleSubmit,
     reset,
     watch,
-    setValue,
     formState: { isSubmitting },
   } = useForm<TenantFormData>({
     resolver: zodResolver(tenantSchema),

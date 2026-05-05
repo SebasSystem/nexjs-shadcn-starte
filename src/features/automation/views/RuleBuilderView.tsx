@@ -14,7 +14,8 @@ import { Textarea } from 'src/shared/components/ui/textarea';
 import { ActionBlock } from '../components/ActionBlock';
 import { ConditionBlock } from '../components/ConditionBlock';
 import { TriggerBlock } from '../components/TriggerBlock';
-import { useAutomation } from '../hooks/useAutomation';
+import { useAssignmentRules } from '../hooks/useAssignmentRules';
+import { useAutomationRules } from '../hooks/useAutomationRules';
 import type { RuleFormData } from '../schemas/rule.schema';
 import { ruleSchema } from '../schemas/rule.schema';
 import type { TriggerEvent, TriggerSource } from '../types';
@@ -25,23 +26,24 @@ interface RuleBuilderViewProps {
 
 export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
   const router = useRouter();
-  const { rules, createRule, updateRule } = useAutomation();
+  const { rules, createRule, updateRule } = useAutomationRules();
+  const { assignmentRules } = useAssignmentRules();
   const defaultGroupId = useId();
   const conditionGroupInitialized = useRef(false);
   const isEditing = !!ruleId;
-  const existingRule = ruleId ? rules.find((r) => r.id === ruleId) : undefined;
+  const existingRule = ruleId ? rules.find((r) => r.uid === ruleId) : undefined;
 
   const form = useForm<RuleFormData>({
     resolver: zodResolver(ruleSchema),
     defaultValues: {
       name: '',
       description: '',
-      triggerSource: 'crm',
-      triggerEvent: 'lead_created',
-      triggerConfig: {},
-      conditionGroups: [
+      trigger_source: 'crm',
+      trigger_event: 'lead_created',
+      trigger_config: {},
+      condition_groups: [
         {
-          id: `grp-${defaultGroupId}`,
+          uid: `grp-${defaultGroupId}`,
           logic: 'AND',
           conditions: [],
         },
@@ -55,42 +57,42 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
       form.reset({
         name: existingRule.name,
         description: existingRule.description ?? '',
-        triggerSource: existingRule.triggerSource,
-        triggerEvent: existingRule.triggerEvent,
-        triggerConfig: existingRule.triggerConfig ?? {},
-        conditionGroups:
-          existingRule.conditionGroups.length > 0
-            ? existingRule.conditionGroups
-            : [{ id: `grp-${defaultGroupId}`, logic: 'AND', conditions: [] }],
+        trigger_source: existingRule.trigger_source,
+        trigger_event: existingRule.trigger_event,
+        trigger_config: existingRule.trigger_config ?? {},
+        condition_groups:
+          existingRule.condition_groups.length > 0
+            ? existingRule.condition_groups
+            : [{ uid: `grp-${defaultGroupId}`, logic: 'AND', conditions: [] }],
         actions: existingRule.actions,
       });
       conditionGroupInitialized.current = true;
     }
   }, [existingRule, form, defaultGroupId]);
 
-  const triggerSource = useWatch({ control: form.control, name: 'triggerSource' });
-  const triggerEvent = useWatch({ control: form.control, name: 'triggerEvent' });
-  const daysThreshold = useWatch({ control: form.control, name: 'triggerConfig.daysThreshold' });
+  const triggerSource = useWatch({ control: form.control, name: 'trigger_source' });
+  const triggerEvent = useWatch({ control: form.control, name: 'trigger_event' });
+  const daysThreshold = useWatch({ control: form.control, name: 'trigger_config.days_threshold' });
 
   const onSubmit = form.handleSubmit((data) => {
     if (isEditing && ruleId) {
       updateRule(ruleId, {
         name: data.name,
         description: data.description,
-        triggerSource: data.triggerSource,
-        triggerEvent: data.triggerEvent,
-        triggerConfig: data.triggerConfig,
-        conditionGroups: data.conditionGroups,
+        trigger_source: data.trigger_source,
+        trigger_event: data.trigger_event,
+        trigger_config: data.trigger_config,
+        condition_groups: data.condition_groups,
         actions: data.actions,
       });
     } else {
       createRule({
         name: data.name,
         description: data.description,
-        triggerSource: data.triggerSource,
-        triggerEvent: data.triggerEvent,
-        triggerConfig: data.triggerConfig,
-        conditionGroups: data.conditionGroups,
+        trigger_source: data.trigger_source,
+        trigger_event: data.trigger_event,
+        trigger_config: data.trigger_config,
+        condition_groups: data.condition_groups,
         actions: data.actions,
         enabled: true,
       });
@@ -143,14 +145,14 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
           triggerSource={triggerSource}
           triggerEvent={triggerEvent}
           daysThreshold={daysThreshold}
-          onSourceChange={(v: TriggerSource) => form.setValue('triggerSource', v)}
-          onEventChange={(v: TriggerEvent) => form.setValue('triggerEvent', v)}
-          onDaysThresholdChange={(v) => form.setValue('triggerConfig.daysThreshold', v)}
+          onSourceChange={(v: TriggerSource) => form.setValue('trigger_source', v)}
+          onEventChange={(v: TriggerEvent) => form.setValue('trigger_event', v)}
+          onDaysThresholdChange={(v) => form.setValue('trigger_config.days_threshold', v)}
         />
 
         <ConditionBlock form={form} groupIndex={0} />
 
-        <ActionBlock form={form} />
+        <ActionBlock form={form} assignmentRules={assignmentRules} />
       </div>
     </PageContainer>
   );

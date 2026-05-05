@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { MOCK_INTERNAL_USERS } from 'src/_mock/_partners';
 import {
   Button,
   Input,
@@ -15,7 +14,12 @@ import {
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 
-import type { Partner, PartnerOpportunity, PartnerOpportunityStatus } from '../types';
+import type {
+  Partner,
+  PartnerOpportunity,
+  PartnerOpportunityPayload,
+  PartnerOpportunityStatus,
+} from '../types';
 
 const STATUS_OPTIONS: { value: PartnerOpportunityStatus; label: string }[] = [
   { value: 'pending', label: 'Pendiente' },
@@ -33,8 +37,8 @@ interface Props {
   opportunity?: PartnerOpportunity | null;
   partners: Partner[];
   onClose: () => void;
-  onCreate: (data: Omit<PartnerOpportunity, 'id'>) => void;
-  onUpdate: (id: string, changes: Partial<PartnerOpportunity>) => void;
+  onCreate: (data: PartnerOpportunityPayload) => Promise<boolean>;
+  onUpdate: (uid: string, data: Partial<PartnerOpportunityPayload>) => Promise<boolean>;
 }
 
 interface FormProps {
@@ -42,8 +46,8 @@ interface FormProps {
   partners: Partner[];
   isEdit: boolean;
   onClose: () => void;
-  onCreate: (data: Omit<PartnerOpportunity, 'id'>) => void;
-  onUpdate: (id: string, changes: Partial<PartnerOpportunity>) => void;
+  onCreate: (data: PartnerOpportunityPayload) => Promise<boolean>;
+  onUpdate: (uid: string, data: Partial<PartnerOpportunityPayload>) => Promise<boolean>;
 }
 
 function OpportunityForm({
@@ -55,12 +59,12 @@ function OpportunityForm({
   onUpdate,
 }: FormProps) {
   const init = isEdit && opportunity;
-  const [partnerId, setPartnerId] = useState(init ? opportunity.partnerId : '');
-  const [clientName, setClientName] = useState(init ? opportunity.clientName : '');
-  const [clientEmail, setClientEmail] = useState(init ? (opportunity.clientEmail ?? '') : '');
+  const [partnerUid, setPartnerUid] = useState(init ? opportunity.partner_uid : '');
+  const [clientName, setClientName] = useState(init ? opportunity.client_name : '');
+  const [clientEmail, setClientEmail] = useState(init ? (opportunity.client_email ?? '') : '');
   const [product, setProduct] = useState(init ? opportunity.product : '');
   const [estimatedValue, setEstimatedValue] = useState(
-    init ? String(opportunity.estimatedValue) : ''
+    init ? String(opportunity.estimated_value) : ''
   );
   const [currency, setCurrency] = useState<'USD' | 'COP' | 'MXN'>(
     init ? opportunity.currency : 'USD'
@@ -69,7 +73,7 @@ function OpportunityForm({
     init ? opportunity.status : 'pending'
   );
   const [assignedToInternal, setAssignedToInternal] = useState(
-    init ? (opportunity.assignedToInternal ?? 'unassigned') : 'unassigned'
+    init ? (opportunity.assigned_to_internal ?? '') : ''
   );
   const [notes, setNotes] = useState(init ? (opportunity.notes ?? '') : '');
   const [loading, setLoading] = useState(false);
@@ -77,7 +81,7 @@ function OpportunityForm({
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!partnerId) errs.partnerId = 'Seleccioná un partner';
+    if (!partnerUid) errs.partnerUid = 'Seleccioná un partner';
     if (!clientName.trim()) errs.clientName = 'El nombre del cliente es requerido';
     if (!product.trim()) errs.product = 'El producto/servicio es requerido';
     if (!estimatedValue || Number(estimatedValue) <= 0)
@@ -89,34 +93,42 @@ function OpportunityForm({
   const handleSave = async () => {
     if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 400));
 
-    const selectedPartner = partners.find((p) => p.id === partnerId);
+    const selectedPartner = partners.find((p) => p.uid === partnerUid);
 
-    const data: Omit<PartnerOpportunity, 'id'> = {
-      partnerId,
-      partnerName: selectedPartner?.name ?? '',
-      clientName,
-      clientEmail: clientEmail || undefined,
+    const data: PartnerOpportunityPayload = {
+      partner_uid: partnerUid,
+      partner_name: selectedPartner?.name ?? '',
+      client_name: clientName,
+      client_email: clientEmail || undefined,
       product,
-      estimatedValue: Number(estimatedValue),
+      estimated_value: Number(estimatedValue),
       currency,
       status,
-      registeredDate: new Date().toISOString().split('T')[0],
-      assignedToInternal: assignedToInternal === 'unassigned' ? undefined : assignedToInternal,
+      registered_date: new Date().toISOString().split('T')[0],
+      assigned_to_internal: assignedToInternal || undefined,
       notes: notes || undefined,
     };
 
     if (isEdit && opportunity) {
-      onUpdate(opportunity.id, data);
-      toast.success('Oportunidad actualizada');
+      const ok = await onUpdate(opportunity.uid, data);
+      if (ok) {
+        toast.success('Oportunidad actualizada');
+        onClose();
+      } else {
+        toast.error('Error al actualizar la oportunidad');
+      }
     } else {
-      onCreate(data);
-      toast.success('Oportunidad registrada');
+      const ok = await onCreate(data);
+      if (ok) {
+        toast.success('Oportunidad registrada');
+        onClose();
+      } else {
+        toast.error('Error al registrar la oportunidad');
+      }
     }
 
     setLoading(false);
-    onClose();
   };
 
   const activePartners = partners.filter((p) => p.status === 'active');
@@ -131,11 +143,11 @@ function OpportunityForm({
         <SelectField
           label="Partner *"
           required
-          options={activePartners.map((p) => ({ value: p.id, label: p.name }))}
-          value={partnerId}
-          onChange={(v) => setPartnerId(v as string)}
+          options={activePartners.map((p) => ({ value: p.uid, label: p.name }))}
+          value={partnerUid}
+          onChange={(v) => setPartnerUid(v as string)}
           placeholder="Seleccioná un partner"
-          error={errors.partnerId}
+          error={errors.partnerUid}
         />
 
         <Input
@@ -190,15 +202,11 @@ function OpportunityForm({
           onChange={(v) => setStatus(v as PartnerOpportunityStatus)}
         />
 
-        <SelectField
+        <Input
           label="Vendedor interno asignado"
-          options={[
-            { value: 'unassigned', label: 'Sin asignar' },
-            ...MOCK_INTERNAL_USERS.map((u) => ({ value: u, label: u })),
-          ]}
           value={assignedToInternal}
-          onChange={(v) => setAssignedToInternal(v as string)}
-          placeholder="Sin asignar"
+          onChange={(e) => setAssignedToInternal(e.target.value)}
+          placeholder="Nombre del vendedor (opcional)"
         />
 
         <Textarea
@@ -236,7 +244,7 @@ export function PartnerOpportunityDrawer({
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="w-full sm:max-w-md flex flex-col overflow-y-auto">
         <OpportunityForm
-          key={`${open}-${opportunity?.id ?? 'new'}`}
+          key={`${open}-${opportunity?.uid ?? 'new'}`}
           opportunity={opportunity}
           partners={partners}
           isEdit={isEdit}

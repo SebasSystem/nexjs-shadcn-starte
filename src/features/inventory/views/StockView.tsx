@@ -19,26 +19,22 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+import { Button, Icon } from 'src/shared/components/ui';
 
 import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { StockAdjustmentDrawer } from '../components/StockAdjustmentDrawer';
 import { StockBadge } from '../components/StockBadge';
+import { StockFilters } from '../components/StockFilters';
 import { useProducts } from '../hooks/use-products';
 import { useWarehouses } from '../hooks/use-warehouses';
 import type { InventoryMasterItem, WarehouseStockEntry } from '../types/inventory.types';
 
-// ─── Column helper ────────────────────────────────────────────────────────────
-
 const columnHelper = createColumnHelper<InventoryMasterItem>();
-
-// ─── Expanded warehouse breakdown ─────────────────────────────────────────────
 
 function WarehouseBreakdownRow({ stocks }: { stocks: WarehouseStockEntry[] }) {
   if (stocks.length === 0) {
     return <p className="text-body2 text-muted-foreground py-2">Sin stock en ninguna bodega.</p>;
   }
-
   return (
     <div className="space-y-2">
       <p className="text-caption text-muted-foreground font-medium uppercase tracking-wide mb-2">
@@ -71,8 +67,6 @@ function WarehouseBreakdownRow({ stocks }: { stocks: WarehouseStockEntry[] }) {
     </div>
   );
 }
-
-// ─── Main View ────────────────────────────────────────────────────────────────
 
 export function StockView() {
   const { items, summary, categories, isLoading, refetch } = useProducts();
@@ -153,7 +147,7 @@ export function StockView() {
           return (
             <button
               onClick={() => toggleRow(info.row.original.uid)}
-              className="text-muted-foreground hover:text-primary transition-colors"
+              className="cursor-pointer text-muted-foreground hover:text-primary transition-colors"
             >
               <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size={15} />
             </button>
@@ -214,7 +208,7 @@ export function StockView() {
               setAdjustProduct(info.row.original);
               setAdjustDrawerOpen(true);
             }}
-            className="text-xs"
+            className="cursor-pointer text-xs"
           >
             <Icon name="SlidersHorizontal" size={13} />
             Ajustar
@@ -274,50 +268,18 @@ export function StockView() {
       </div>
 
       <SectionCard noPadding>
-        <div className="flex flex-wrap items-end gap-3 px-5 py-4">
-          <div className="flex-1 min-w-48">
-            <Input
-              label="Buscar"
-              placeholder="Buscar por nombre o SKU..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              leftIcon={<Icon name="Search" size={15} />}
-            />
-          </div>
-
-          <SelectField
-            label="Categoría"
-            options={[
-              { value: 'all', label: 'Todas' },
-              ...categories.map((c) => ({ value: c.uid, label: c.name })),
-            ]}
-            value={filterCategory}
-            onChange={(v) => setFilterCategory(v as string)}
-          />
-
-          <SelectField
-            label="Estado"
-            options={[
-              { value: 'all', label: 'Todos los estados' },
-              { value: 'normal', label: 'Normal' },
-              { value: 'low', label: 'Stock bajo' },
-              { value: 'out', label: 'Sin stock' },
-            ]}
-            value={filterStatus}
-            onChange={(v) => setFilterStatus(v as string)}
-          />
-
-          <SelectField
-            label="Bodega"
-            options={[
-              { value: 'all', label: 'Todas' },
-              ...warehouses.map((w) => ({ value: w.uid, label: w.name })),
-            ]}
-            value={filterWarehouse}
-            onChange={(v) => setFilterWarehouse(v as string)}
-          />
-        </div>
-
+        <StockFilters
+          search={search}
+          onSearch={setSearch}
+          filterCategory={filterCategory}
+          onFilterCategory={setFilterCategory}
+          filterStatus={filterStatus}
+          onFilterStatus={setFilterStatus}
+          filterWarehouse={filterWarehouse}
+          onFilterWarehouse={setFilterWarehouse}
+          categories={categories}
+          warehouses={warehouses}
+        />
         <TableContainer>
           <Table>
             <TableHeadCustom table={table} />

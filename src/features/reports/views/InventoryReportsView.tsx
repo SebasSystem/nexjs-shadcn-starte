@@ -1,14 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import {
-  mockInventoryB2B,
-  mockInventoryCategories,
-  mockInventoryMovements,
-  mockInventoryRisk,
-  mockInventoryStockByWarehouse,
-} from 'src/_mock/_reports';
+import React, { useState } from 'react';
 import { cn } from 'src/lib/utils';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button, Icon } from 'src/shared/components/ui';
@@ -18,6 +10,8 @@ import { AreaChart, BarChart, DonutChart, LineChart } from '../components/charts
 import { ExportBar } from '../components/ExportBar';
 import { ReportFilters } from '../components/ReportFilters';
 import { ReportTable } from '../components/tables/ReportTable';
+import { useInventoryReport } from '../hooks/use-reports';
+import type { InventoryReportTab, ReportFilterParams } from '../types';
 
 function getKpiMeta(key: string): { icon: IconName; iconBg: string; iconColor: string } {
   const k = key.toLowerCase();
@@ -51,53 +45,29 @@ function getKpiMeta(key: string): { icon: IconName; iconBg: string; iconColor: s
   return { icon: 'BarChart2', iconBg: 'bg-blue-100', iconColor: 'text-blue-600' };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const DATA_MAP: Record<string, () => any> = {
-  bodega: mockInventoryStockByWarehouse,
-  riesgo: mockInventoryRisk,
-  movimientos: mockInventoryMovements,
-  categoria: mockInventoryCategories,
-  b2b: mockInventoryB2B,
-};
-
-const TABS = [
-  { id: 'bodega', label: 'Stock por bodega' },
-  { id: 'riesgo', label: 'Productos en riesgo' },
-  { id: 'movimientos', label: 'Movimientos' },
-  { id: 'categoria', label: 'Resumen por categoría' },
+const TABS: { id: InventoryReportTab; label: string }[] = [
+  { id: 'warehouse', label: 'Stock por bodega' },
+  { id: 'risk', label: 'Productos en riesgo' },
+  { id: 'movements', label: 'Movimientos' },
+  { id: 'category', label: 'Resumen por categoría' },
   { id: 'b2b', label: 'Reservas B2B' },
 ];
 
 export function InventoryReportsView() {
-  const [activeTab, setActiveTab] = useState<string>('bodega');
-  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<InventoryReportTab>('warehouse');
+  const [filters, setFilters] = useState<ReportFilterParams>({ period: 'Este mes' });
   const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 400);
-    return () => clearTimeout(timer);
-  }, [activeTab]);
-
-  const reportData = DATA_MAP[activeTab]();
+  const { data: reportData, isLoading } = useInventoryReport(activeTab, filters);
 
   const doExport = async (type: 'excel' | 'pdf', _fields: string[]) => {
     setExportLoading(type);
     await new Promise((r) => setTimeout(r, 800));
     setExportLoading(null);
-    if (type === 'excel')
-      toast.success(
-        `MOCK: La descarga del archivo Excel se gestionará próximamente desde el backend.`
-      );
-    else
-      toast.info(
-        'La exportación a PDF estará disponible cuando se conecte el servicio de reportes.'
-      );
   };
 
   const renderTabContent = () => {
-    if (loading) {
+    if (isLoading) {
       return (
         <div className="animate-pulse space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -115,14 +85,36 @@ export function InventoryReportsView() {
       );
     }
 
-    const kpis = reportData.kpis || {};
-    const chartData = reportData.chartData || { series: [], categories: [], labels: [] };
-    const tableData = reportData.tableData || [];
-    const mostCritical = reportData.mostCritical;
+    if (!reportData) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+          <Icon name="AlertTriangle" size={48} className="mb-4 text-muted-foreground/40" />
+          <p className="text-body2 font-semibold">No se pudieron cargar los datos del reporte</p>
+          <p className="text-caption mt-1">Verificá tu conexión o intentá más tarde</p>
+        </div>
+      );
+    }
+
+    const { kpis = {}, chart_data, table_data = [], most_critical } = reportData;
+    const chartData = chart_data ?? { series: [], categories: [], labels: [] };
+
+    const namedSeries =
+      Array.isArray(chartData.series) &&
+      chartData.series.length > 0 &&
+      typeof chartData.series[0] === 'object'
+        ? (chartData.series as { name: string; data: number[] }[])
+        : [{ name: 'Valor', data: chartData.series as number[] }];
+
+    const flatSeries: number[] =
+      Array.isArray(chartData.series) &&
+      chartData.series.length > 0 &&
+      typeof chartData.series[0] === 'number'
+        ? (chartData.series as number[])
+        : [];
 
     const columns =
-      tableData.length > 0
-        ? Object.keys(tableData[0])
+      table_data.length > 0
+        ? Object.keys(table_data[0])
             .filter((k) => !k.includes('id') && k !== 'items')
             .map((k) => ({
               id: k,
@@ -172,19 +164,19 @@ export function InventoryReportsView() {
           })}
         </div>
 
-        {/* Gráficas Duplicadas por layout responsivo */}
+        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <SectionCard className="pt-5 pb-2 px-3 sm:px-5 overflow-hidden flex flex-col w-full h-[360px]">
             <h3 className="text-subtitle2 font-bold mb-4 px-2">Comportamiento analítico</h3>
             <div className="flex-1 w-full min-w-0 flex items-center justify-center -ml-2 sm:-ml-0">
-              {activeTab === 'riesgo' ? (
-                <DonutChart labels={chartData.labels} series={chartData.series} />
-              ) : activeTab === 'movimientos' ? (
-                <LineChart categories={chartData.categories} series={chartData.series} />
+              {activeTab === 'risk' ? (
+                <DonutChart labels={chartData.labels ?? []} series={flatSeries} />
+              ) : activeTab === 'movements' ? (
+                <LineChart categories={chartData.categories ?? []} series={namedSeries} />
               ) : (
                 <BarChart
-                  categories={chartData.categories || []}
-                  series={chartData.series}
+                  categories={chartData.categories ?? []}
+                  series={namedSeries}
                   horizontal={activeTab === 'b2b'}
                 />
               )}
@@ -193,30 +185,30 @@ export function InventoryReportsView() {
 
           <SectionCard className="pt-5 pb-2 px-3 sm:px-5 overflow-hidden flex flex-col w-full h-[360px]">
             <h3 className="text-subtitle2 font-bold mb-4 px-2">
-              {activeTab === 'riesgo' ? 'Producto más crítico' : 'Vista de áreas / Comparativa'}
+              {activeTab === 'risk' ? 'Producto más crítico' : 'Vista de áreas / Comparativa'}
             </h3>
             <div className="flex-1 w-full min-w-0 flex items-center justify-center">
-              {activeTab === 'riesgo' && mostCritical ? (
+              {activeTab === 'risk' && most_critical ? (
                 <div className="flex flex-col items-center justify-center text-center p-6 bg-error/10 border border-error/20 rounded-xl w-full h-full">
                   <Icon name="AlertTriangle" size={48} className="text-error mb-4" />
-                  <p className="text-body2 text-muted-foreground">{mostCritical.sku}</p>
+                  <p className="text-body2 text-muted-foreground">{most_critical.sku}</p>
                   <p className="text-subtitle1 font-bold text-foreground mb-4">
-                    {mostCritical.name}
+                    {most_critical.name}
                   </p>
-                  <p className="text-4xl font-black text-error mb-2">{mostCritical.available}</p>
+                  <p className="text-4xl font-black text-error mb-2">{most_critical.available}</p>
                   <p className="text-caption text-muted-foreground mb-4">
-                    Stock disponible frente a {mostCritical.minStock} min.
+                    Stock disponible frente a {most_critical.min_stock} min.
                   </p>
                   <Button variant="outline" size="sm" color="error">
                     Ver en inventario
                   </Button>
                 </div>
-              ) : activeTab === 'categoria' || activeTab === 'b2b' ? (
-                <AreaChart categories={chartData.categories || []} series={chartData.series} />
+              ) : activeTab === 'category' || activeTab === 'b2b' ? (
+                <AreaChart categories={chartData.categories ?? []} series={namedSeries} />
               ) : (
                 <BarChart
-                  categories={chartData.categories || []}
-                  series={chartData.series}
+                  categories={chartData.categories ?? []}
+                  series={namedSeries}
                   stacked={true}
                 />
               )}
@@ -224,17 +216,17 @@ export function InventoryReportsView() {
           </SectionCard>
         </div>
 
-        {/* Tabla nativa */}
+        {/* Table */}
         <div className="w-full">
-          <ReportTable columns={columns} data={tableData} />
+          <ReportTable columns={columns} data={table_data} />
         </div>
       </div>
     );
   };
 
   const columnsContext =
-    reportData && reportData.tableData && reportData.tableData.length > 0
-      ? Object.keys(reportData.tableData[0])
+    reportData?.table_data && reportData.table_data.length > 0
+      ? Object.keys(reportData.table_data[0])
           .filter((k) => !k.includes('id') && k !== 'items')
           .map((k) => ({
             id: k,
@@ -249,12 +241,10 @@ export function InventoryReportsView() {
         subtitle="Analiza y centraliza la información de los diferentes rubros de tu inventario"
       />
 
-      {/* Zona 2: Panel de Filtros */}
       <div className="w-full mb-6">
-        <ReportFilters />
+        <ReportFilters onFiltersChange={setFilters} />
       </div>
 
-      {/* Zona 3: Tabs de Reportes */}
       <div className="flex-none border-b border-border/60 overflow-x-auto w-full mb-6">
         <div className="flex gap-6 min-w-max px-2">
           {TABS.map((tab) => (
@@ -274,16 +264,14 @@ export function InventoryReportsView() {
         </div>
       </div>
 
-      {/* Barra de Exportación */}
       <ExportBar
         columns={columnsContext}
-        hasData={!!reportData && reportData.tableData.length > 0}
+        hasData={!!reportData && reportData.table_data.length > 0}
         loading={exportLoading}
         onExportExcel={(fields) => doExport('excel', fields)}
         onExportPdf={(fields) => doExport('pdf', fields)}
       />
 
-      {/* Contenido Dinámico */}
       <div className="w-full relative pb-4">{renderTabContent()}</div>
     </PageContainer>
   );

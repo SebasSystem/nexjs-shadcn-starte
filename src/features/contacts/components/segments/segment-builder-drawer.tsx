@@ -15,28 +15,24 @@ import {
 } from 'src/shared/components/ui/sheet';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
-import type { FieldType, Operator, Rule, Segment, SegmentForm } from '../../types/segments.types';
+import type { Segment, SegmentPayload, SegmentRule } from '../../types/segments.types';
+import { SEGMENT_FIELDS } from '../../types/segments.types';
 
-const FIELDS: { value: FieldType; label: string }[] = [
-  { value: 'tipo', label: 'Tipo de Entidad' },
-  { value: 'etiqueta', label: 'Etiqueta Visual' },
-  { value: 'estado', label: 'Estado del Cliente' },
-  { value: 'fecha_creacion', label: 'Fecha de Creación' },
-];
-
-const OPERATORS: { value: Operator; label: string }[] = [
+const OPERATORS: { value: string; label: string }[] = [
   { value: 'equals', label: 'Es igual a' },
   { value: 'not_equals', label: 'No es igual a' },
   { value: 'contains', label: 'Contiene' },
   { value: 'greater_than', label: 'Es Mayor que' },
   { value: 'less_than', label: 'Es Menor que' },
+  { value: 'in', label: 'Está en' },
+  { value: 'not_in', label: 'No está en' },
 ];
 
 interface SegmentBuilderDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   segment: Segment | null;
-  onSave: (form: SegmentForm) => Promise<boolean>;
+  onSave: (payload: SegmentPayload) => Promise<boolean>;
 }
 
 export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
@@ -45,36 +41,56 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
   segment,
   onSave,
 }) => {
-  const [nombre, setNombre] = useState(segment?.nombre ?? '');
-  const [descripcion, setDescripcion] = useState(segment?.descripcion ?? '');
-  const [logica, setLogica] = useState<'AND' | 'OR'>(segment?.logica ?? 'AND');
-  const [reglas, setReglas] = useState<Rule[]>(
+  const [name, setName] = useState(segment?.name ?? '');
+  const [description, setDescription] = useState(segment?.description ?? '');
+  const [logic, setLogic] = useState<'AND' | 'OR'>(segment?.logic ?? 'AND');
+  const [rules, setRules] = useState<SegmentRule[]>(
     () =>
-      segment?.reglas ?? [
-        { id: Math.random().toString(), field: 'etiqueta', operator: 'contains', value: '' },
+      segment?.rules ?? [
+        {
+          uid: Math.random().toString(),
+          field: 'status',
+          operator: 'contains',
+          value: '',
+        },
       ]
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const addRule = () => {
-    setReglas((prev) => [
+    setRules((prev) => [
       ...prev,
-      { id: Math.random().toString(), field: 'estado', operator: 'equals', value: '' },
+      {
+        uid: Math.random().toString(),
+        field: 'status',
+        operator: 'equals',
+        value: '',
+      },
     ]);
   };
 
-  const removeRule = (id: string) => {
-    setReglas((prev) => prev.filter((r) => r.id !== id));
+  const removeRule = (uid: string) => {
+    setRules((prev) => prev.filter((r) => r.uid !== uid));
   };
 
-  const updateRule = (id: string, field: keyof Rule, val: string | number | boolean | string[]) => {
-    setReglas((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: val } : r)));
+  const updateRule = (
+    uid: string,
+    field: keyof SegmentRule,
+    val: string | number | boolean | string[]
+  ) => {
+    setRules((prev) => prev.map((r) => (r.uid === uid ? { ...r, [field]: val } : r)));
   };
 
   const handleSave = async () => {
-    if (!nombre.trim() || reglas.length === 0) return;
+    if (!name.trim() || rules.length === 0) return;
     setIsSubmitting(true);
-    const success = await onSave({ nombre, descripcion, reglas, logica });
+    const payload: SegmentPayload = {
+      name,
+      description,
+      logic,
+      rules: rules.map(({ uid: _uid, ...rest }) => rest),
+    };
+    const success = await onSave(payload);
     setIsSubmitting(false);
     if (success) onClose();
   };
@@ -93,8 +109,8 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <Input
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 label="Nombre del Segmento"
                 required
                 placeholder="Ej. Clientes VIP sin compras"
@@ -102,8 +118,8 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
             </div>
             <div className="col-span-2">
               <Textarea
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 label="Descripción"
                 rows={2}
                 placeholder="Opcional. Describe la finalidad de este segmento."
@@ -119,9 +135,9 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
               </div>
               <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-md">
                 <button
-                  onClick={() => setLogica('AND')}
+                  onClick={() => setLogic('AND')}
                   className={`px-3 py-1 text-xs font-bold rounded ${
-                    logica === 'AND'
+                    logic === 'AND'
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:bg-muted'
                   }`}
@@ -129,9 +145,9 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
                   AND (Y)
                 </button>
                 <button
-                  onClick={() => setLogica('OR')}
+                  onClick={() => setLogic('OR')}
                   className={`px-3 py-1 text-xs font-bold rounded ${
-                    logica === 'OR'
+                    logic === 'OR'
                       ? 'bg-orange-500 text-white shadow-sm'
                       : 'text-muted-foreground hover:bg-muted'
                   }`}
@@ -142,44 +158,44 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
             </div>
 
             <div className="space-y-3 bg-muted/20 p-4 rounded-xl border border-border/50">
-              {reglas.map((regla, index) => (
-                <div key={regla.id} className="flex flex-col relative">
+              {rules.map((regla, index) => (
+                <div key={regla.uid} className="flex flex-col relative">
                   {index > 0 && (
                     <div className="absolute -top-7 left-4 h-6 w-px bg-border/80 flex items-center justify-center">
                       <span
-                        className={`text-[9px] font-bold px-1 rounded-sm -ml-3 mt-4 ${logica === 'AND' ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-700'}`}
+                        className={`text-[9px] font-bold px-1 rounded-sm -ml-3 mt-4 ${logic === 'AND' ? 'bg-primary/10 text-primary' : 'bg-orange-100 text-orange-700'}`}
                       >
-                        {logica}
+                        {logic}
                       </span>
                     </div>
                   )}
                   <div className="flex items-center gap-3 bg-card p-3 rounded-lg border border-border shadow-sm z-10">
                     <div className="w-1/3">
                       <SelectField
-                        options={FIELDS}
+                        options={SEGMENT_FIELDS}
                         value={regla.field}
-                        onChange={(val) => updateRule(regla.id, 'field', val as string)}
+                        onChange={(val) => updateRule(regla.uid, 'field', val as string)}
                       />
                     </div>
                     <div className="w-1/3">
                       <SelectField
                         options={OPERATORS}
                         value={regla.operator}
-                        onChange={(val) => updateRule(regla.id, 'operator', val as string)}
+                        onChange={(val) => updateRule(regla.uid, 'operator', val as string)}
                       />
                     </div>
                     <Input
                       className="flex-1"
                       placeholder="Valor a buscar..."
                       value={regla.value}
-                      onChange={(e) => updateRule(regla.id, 'value', e.target.value)}
+                      onChange={(e) => updateRule(regla.uid, 'value', e.target.value)}
                     />
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                      onClick={() => removeRule(regla.id)}
-                      disabled={reglas.length === 1}
+                      onClick={() => removeRule(regla.uid)}
+                      disabled={rules.length === 1}
                     >
                       <Icon name="Trash2" className="h-4 w-4" />
                     </Button>
@@ -208,7 +224,7 @@ export const SegmentBuilderDrawer: React.FC<SegmentBuilderDrawerProps> = ({
             type="button"
             color="primary"
             onClick={handleSave}
-            disabled={!nombre.trim() || reglas.length === 0 || isSubmitting}
+            disabled={!name.trim() || rules.length === 0 || isSubmitting}
             className="gap-2"
           >
             {isSubmitting ? 'Guardando Segmento...' : 'Extraer DB y Guardar Segmento'}

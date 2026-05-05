@@ -1,25 +1,30 @@
 'use client';
 
 import { useState } from 'react';
-import { MOCK_AUTOMATION_USERS } from 'src/_mock/_automation';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import { AssignmentRuleDrawer } from '../components/AssignmentRuleDrawer';
 import { RuleStatusBadge } from '../components/RuleStatusBadge';
-import { useAutomation } from '../hooks/useAutomation';
+import { useAssignmentRules } from '../hooks/useAssignmentRules';
 import type { AssignmentRule } from '../types';
 import { ASSIGNMENT_RULE_TYPE_LABELS } from '../types';
 
+// TODO: Replace with backend users lookup when available
 function getUserNames(userIds: string[]): string {
   if (userIds.length === 0) return '—';
-  return userIds.map((id) => MOCK_AUTOMATION_USERS.find((u) => u.id === id)?.name ?? id).join(', ');
+  return userIds.join(', ');
 }
 
 export function AssignmentRulesView() {
-  const { assignmentRules, createAssignmentRule, updateAssignmentRule, deleteAssignmentRule } =
-    useAutomation();
+  const {
+    assignmentRules,
+    createAssignmentRule,
+    updateAssignmentRule,
+    deleteAssignmentRule,
+    isLoading,
+  } = useAssignmentRules();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<AssignmentRule | null>(null);
 
@@ -67,7 +72,14 @@ export function AssignmentRulesView() {
               </tr>
             </thead>
             <tbody>
-              {assignmentRules.length === 0 && (
+              {isLoading && assignmentRules.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                    Cargando reglas...
+                  </td>
+                </tr>
+              )}
+              {!isLoading && assignmentRules.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-5 py-12 text-center text-sm text-muted-foreground">
                     Sin reglas de asignación. Creá una nueva.
@@ -76,7 +88,7 @@ export function AssignmentRulesView() {
               )}
               {assignmentRules.map((rule) => (
                 <tr
-                  key={rule.id}
+                  key={rule.uid}
                   className="border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors"
                 >
                   <td className="px-5 py-3">
@@ -93,7 +105,7 @@ export function AssignmentRulesView() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Icon name="Users" size={13} className="shrink-0" />
-                      <span>{getUserNames(rule.userIds)}</span>
+                      <span>{getUserNames(rule.user_ids)}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -110,7 +122,7 @@ export function AssignmentRulesView() {
                       </button>
                       <button
                         title="Eliminar"
-                        onClick={() => deleteAssignmentRule(rule.id)}
+                        onClick={() => deleteAssignmentRule(rule.uid)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       >
                         <Icon name="Trash2" size={14} />

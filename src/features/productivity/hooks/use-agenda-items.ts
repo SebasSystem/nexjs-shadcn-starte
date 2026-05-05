@@ -1,153 +1,102 @@
 'use client';
 
 import { isPast, isToday } from 'date-fns';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { toast } from 'sonner';
-import { MOCK_PROJECTS } from 'src/_mock/_projects';
-import { MOCK_OPPORTUNITIES } from 'src/_mock/_sales';
 
-import { ProductivityService } from '../services/productivity.service';
-import type { Actividad, EstadoActividad } from '../types/productivity.types';
+import { useProjects } from '../../projects/hooks/useProjects';
+import type { Activity, ActivitySource, ActivityStatus } from '../types/productivity.types';
+import { useActivities } from './use-activities';
 
-// ─── Map pipeline activity type → TipoActividad ──────────────────────────────
+// ─── Map milestone status → ActivityStatus ──────────────────────────────────
 
-const PIPELINE_TYPE_MAP: Record<string, Actividad['tipo']> = {
-  llamada: 'TAREA',
-  email: 'TAREA',
-  reunion: 'REUNION',
-  demo: 'REUNION',
-  seguimiento: 'RECORDATORIO',
-};
-
-// ─── Map milestone status → EstadoActividad ──────────────────────────────────
-
-function milestoneEstado(status: string, dueDate: string): EstadoActividad {
-  if (status === 'completed') return 'COMPLETADA';
-  if (status === 'delayed') return 'VENCIDA';
+function milestoneStatusToActivityStatus(mStatus: string, dueDate: string): ActivityStatus {
+  if (mStatus === 'completed') return 'COMPLETED';
+  if (mStatus === 'delayed') return 'OVERDUE';
   const d = new Date(dueDate);
-  if (isPast(d) && !isToday(d)) return 'VENCIDA';
-  return 'PENDIENTE';
+  if (isPast(d) && !isToday(d)) return 'OVERDUE';
+  return 'PENDING';
 }
+
+// ─── Source badge config ──────────────────────────────────────────────────────
+
+export const SOURCE_CONFIG: Record<
+  ActivitySource,
+  { label: string; className: string } | undefined
+> = {
+  pipeline: { label: 'Pipeline', className: 'bg-blue-50 text-blue-700 border-blue-200' },
+  project: { label: 'Proyecto', className: 'bg-violet-50 text-violet-700 border-violet-200' },
+  agenda: undefined,
+};
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useAgendaItems() {
-  const [manualItems, setManualItems] = useState<Actividad[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  // Manual activities (no contact filter → all activities)
+  const {
+    data: manualItems,
+    isLoading: manualLoading,
+    addActivity,
+    updateStatus: updateManualStatus,
+    refetch: refetchManual,
+  } = useActivities();
 
-  const fetchManual = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const items = await ProductivityService.getActividades();
-      // Mark manually created items with source = 'agenda'
-      setManualItems(items.map((a) => ({ ...a, source: a.source ?? ('agenda' as const) })));
-    } catch {
-      toast.error('Error al cargar actividades');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  // Project milestones (consumed cross-feature from useProjects)
+  const { projects, isLoading: projectsLoading } = useProjects();
 
-  useEffect(() => {
-    fetchManual();
-  }, [fetchManual]);
+  // ─── Pipeline items (TODO: fetch from pipeline backend) ────────────────
+  const pipelineItems = useMemo((): Activity[] => [], []);
 
-  // ─── Pipeline items ───────────────────────────────────────────────────────
-  const pipelineItems = useMemo((): Actividad[] => {
-    const items: Actividad[] = [];
-    MOCK_OPPORTUNITIES.forEach((opp) => {
-      if (opp.stage === 'cerrado') return;
-      opp.activities.forEach((act) => {
-        if (act.status === 'cancelada') return;
-        const estado: EstadoActividad =
-          act.status === 'completada'
-            ? 'COMPLETADA'
-            : isPast(new Date(act.date)) && !isToday(new Date(act.date))
-              ? 'VENCIDA'
-              : 'PENDIENTE';
-        items.push({
-          id: `pipeline-${act.id}`,
-          tipo: PIPELINE_TYPE_MAP[act.type] ?? 'TAREA',
-          titulo: `${act.type.charAt(0).toUpperCase() + act.type.slice(1)} — ${opp.clientName}`,
-          descripcion: act.notes,
-          estado,
-          fechaVencimiento: act.date,
-          asignadoA: act.responsible,
-          contactoNombre: opp.clientName,
-          source: 'pipeline',
-          sourceId: opp.id,
-          sourcePath: '/sales/pipeline',
-          sourceLabel: opp.clientName,
-        });
-      });
-    });
-    return items;
-  }, []);
-
-  // ─── Project milestone items ──────────────────────────────────────────────
-  const projectItems = useMemo((): Actividad[] => {
-    const items: Actividad[] = [];
-    MOCK_PROJECTS.forEach((project) => {
+  // ─── Project milestone items ────────────────────────────────────────────
+  const projectItems = useMemo((): Activity[] => {
+    const items: Activity[] = [];
+    projects.forEach((project) => {
       if (project.status === 'cancelled' || project.status === 'completed') return;
       project.milestones.forEach((milestone) => {
         items.push({
-          id: `project-${milestone.id}`,
-          tipo: 'TAREA',
-          titulo: milestone.name,
-          descripcion: milestone.description,
-          estado: milestoneEstado(milestone.status, milestone.dueDate),
-          fechaVencimiento: milestone.dueDate,
-          asignadoA: milestone.assignedTo,
-          contactoNombre: project.clientName,
+          uid: `project-${milestone.uid}`,
+          type: 'TASK',
+          title: milestone.name,
+          description: milestone.description,
+          status: milestoneStatusToActivityStatus(milestone.status, milestone.due_date),
+          due_date: milestone.due_date,
+          assigned_to_name: milestone.assigned_to_name ?? '',
+          contact_name: project.client_name,
           source: 'project',
-          sourceId: project.id,
-          sourcePath: `/projects/${project.id}`,
-          sourceLabel: project.name,
+          source_uid: project.uid,
+          source_path: `/projects/${project.uid}`,
+          source_label: project.name,
         });
       });
     });
     return items;
-  }, []);
+  }, [projects]);
 
-  // ─── Unified list ─────────────────────────────────────────────────────────
+  // ─── Unified list ───────────────────────────────────────────────────────
   const allItems = useMemo(
     () => [...manualItems, ...pipelineItems, ...projectItems],
     [manualItems, pipelineItems, projectItems]
   );
 
-  // ─── Update estado (only manual items) ───────────────────────────────────
-  const updateEstado = async (id: string, estado: EstadoActividad) => {
-    // Pipeline and project items can't be updated from Agenda — they're read-only projections
-    if (id.startsWith('pipeline-') || id.startsWith('project-')) {
+  // ─── Update status (only manual items) ──────────────────────────────────
+  const updateStatus = async (uid: string, status: ActivityStatus) => {
+    if (uid.startsWith('pipeline-') || uid.startsWith('project-')) {
       toast.info('Para actualizar este item, andá a la fuente original.');
       return;
     }
     try {
-      await ProductivityService.updateActividadEstado(id, estado);
-      await fetchManual();
+      await updateManualStatus(uid, status);
       toast.success('Estado actualizado');
     } catch {
       toast.error('Error actualizando estado');
     }
   };
 
-  const addActividad = async (payload: Omit<Actividad, 'id' | 'estado'>) => {
-    try {
-      const { asignadoA: _a, ...rest } = payload;
-      await ProductivityService.createActividad(rest);
-      await fetchManual();
-      toast.success('Actividad agendada');
-      return true;
-    } catch {
-      toast.error('Error al agendar actividad');
-      return false;
-    }
-  };
-
   return {
     data: allItems,
-    isLoading,
-    updateEstado,
-    addActividad,
+    isLoading: manualLoading || projectsLoading,
+    updateStatus,
+    addActivity,
+    refetch: refetchManual,
   };
 }

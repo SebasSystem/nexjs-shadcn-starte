@@ -1,11 +1,12 @@
-import { LOST_REASON_LABELS, MOCK_COMPETITORS } from 'src/_mock/_intelligence';
 import { cn } from 'src/lib/utils';
 import { SectionCard } from 'src/shared/components/layouts/page';
 
-import type { HeatmapCell, LostReasonCategory } from '../types';
+import type { Competitor, HeatmapCell, LostReasonCategory } from '../types';
+import { LOST_REASON_LABELS } from '../types';
 
 interface Props {
   data: HeatmapCell[];
+  competitors: Competitor[];
 }
 
 const REASONS: LostReasonCategory[] = [
@@ -19,12 +20,6 @@ const REASONS: LostReasonCategory[] = [
   'other',
 ];
 
-const ROW_IDS = [...MOCK_COMPETITORS.map((c) => c.id), 'none'];
-const ROW_NAMES: Record<string, string> = {
-  ...Object.fromEntries(MOCK_COMPETITORS.map((c) => [c.id, c.name])),
-  none: 'Sin competidor',
-};
-
 function getCellIntensity(count: number, max: number): string {
   if (count === 0 || max === 0) return '';
   const ratio = count / max;
@@ -34,16 +29,22 @@ function getCellIntensity(count: number, max: number): string {
   return 'bg-warning/10 text-warning';
 }
 
-export function LostReasonHeatmap({ data }: Props) {
+export function LostReasonHeatmap({ data, competitors }: Props) {
   const cellMap = new Map<string, number>();
   data.forEach((cell) => {
-    cellMap.set(`${cell.competitorId}-${cell.reason}`, cell.count);
+    cellMap.set(`${cell.competitor_uid}-${cell.reason}`, cell.count);
   });
 
   const maxCount = Math.max(...data.map((c) => c.count), 1);
 
-  const getCount = (competitorId: string, reason: LostReasonCategory) =>
-    cellMap.get(`${competitorId}-${reason}`) ?? 0;
+  const getCount = (competitorUid: string, reason: LostReasonCategory) =>
+    cellMap.get(`${competitorUid}-${reason}`) ?? 0;
+
+  const rowIds = [...competitors.map((c) => c.uid), 'none'];
+  const rowNames: Record<string, string> = {
+    ...Object.fromEntries(competitors.map((c) => [c.uid, c.name])),
+    none: 'Sin competidor',
+  };
 
   return (
     <SectionCard>
@@ -74,13 +75,13 @@ export function LostReasonHeatmap({ data }: Props) {
             </tr>
           </thead>
           <tbody>
-            {ROW_IDS.map((compId) => (
-              <tr key={compId}>
+            {rowIds.map((compUid) => (
+              <tr key={compUid}>
                 <td className="py-1.5 pr-4 font-medium text-foreground whitespace-nowrap text-xs">
-                  {ROW_NAMES[compId]}
+                  {rowNames[compUid]}
                 </td>
                 {REASONS.map((reason) => {
-                  const count = getCount(compId, reason);
+                  const count = getCount(compUid, reason);
                   const intensity = getCellIntensity(count, maxCount);
                   return (
                     <td key={reason} className="py-1.5 px-1 text-center">

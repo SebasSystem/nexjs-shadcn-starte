@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { inventoryStockService } from 'src/features/inventory/services/inventory-stock.service';
 import type {
@@ -9,10 +9,7 @@ import type {
   MovementsSummary,
   TransferStockPayload,
 } from 'src/features/inventory/types/inventory.types';
-import { cache } from 'src/lib/cache';
-
-const CACHE_KEY = 'inventory:movements';
-const SUMMARY_KEY = 'inventory:movements:summary';
+import { queryKeys } from 'src/lib/query-keys';
 
 const EMPTY_SUMMARY: MovementsSummary = { total: 0, entries: 0, transfers: 0, adjustments: 0 };
 
@@ -21,57 +18,51 @@ export function useMovements(filters?: {
   warehouse_uid?: string;
   type?: string;
 }) {
-  const cacheKey = filters ? `${CACHE_KEY}:${JSON.stringify(filters)}` : CACHE_KEY;
-  const [items, setItems] = useState<InventoryMovement[]>(
-    cache.get<InventoryMovement[]>(cacheKey) ?? []
-  );
-  const [summary, setSummary] = useState<MovementsSummary>(
-    cache.get<MovementsSummary>(SUMMARY_KEY) ?? EMPTY_SUMMARY
-  );
-  const [isLoading, setIsLoading] = useState(!cache.get(cacheKey));
+  const queryClient = useQueryClient();
 
-  const refetch = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [result, summaryResult] = await Promise.allSettled([
-        inventoryStockService.movements(filters),
-        inventoryStockService.movementsSummary(),
-      ]);
-      if (result.status === 'fulfilled') {
-        const normalized = Array.isArray(result.value) ? result.value : [];
-        cache.set(cacheKey, normalized);
-        setItems(normalized);
-      }
-      if (summaryResult.status === 'fulfilled') {
-        cache.set(SUMMARY_KEY, summaryResult.value);
-        setSummary(summaryResult.value);
-      }
-    } catch {
-      toast.error('Error al cargar movimientos');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [cacheKey]);
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-
-  const adjust = useCallback(
-    async (payload: AdjustStockPayload) => {
-      await inventoryStockService.adjust(payload);
-      await refetch();
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: [...queryKeys.inventory.movements, filters],
+    queryFn: async () => {
+      const result = await inventoryStockService.movements(filters);
+      return (Array.isArray(result) ? result : []) as InventoryMovement[];
     },
-    [refetch]
-  );
+  });
 
-  const transfer = useCallback(
-    async (payload: TransferStockPayload) => {
-      await inventoryStockService.transfer(payload);
-      await refetch();
+  const { data: summary = EMPTY_SUMMARY } = useQuery({
+    queryKey: queryKeys.inventory.movementsSummary,
+    queryFn: () => inventoryStockService.movementsSummary(),
+    placeholderData: EMPTY_SUMMARY,
+  });
+
+  const adjustMutation = useMutation({
+    mutationFn: (payload: AdjustStockPayload) => inventoryStockService.adjust(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.movements });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.movementsSummary });
+      toast.success('Stock ajustado');
     },
-    [refetch]
-  );
+    onError: () => toast.error('Error al ajustar stock'),
+  });
 
-  return { items, summary, isLoading, refetch, adjust, transfer };
+  const transferMutation = useMutation({
+    mutationFn: (payload: TransferStockPayload) => inventoryStockService.transfer(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.movements });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.movementsSummary });
+      toast.success('Traslado realizado');
+    },
+    onError: () => toast.error('Error al trasladar stock'),
+  });
+
+  return {
+    items,
+    summary,
+    isLoading,
+    refetch: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.movements });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory.movementsSummary });
+    },
+    adjust: (payload: AdjustStockPayload) => adjustMutation.mutateAsync(payload),
+    transfer: (payload: TransferStockPayload) => transferMutation.mutateAsync(payload),
+  };
 }

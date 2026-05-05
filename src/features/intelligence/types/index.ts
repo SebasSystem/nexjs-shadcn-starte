@@ -1,9 +1,11 @@
+import type { BadgeColor } from 'src/shared/components/ui';
+
 // ─── Competitor ───────────────────────────────────────────────────────────────
 
 export type CompetitorTier = 'direct' | 'indirect' | 'emerging';
 
 export interface Competitor {
-  id: string;
+  uid: string;
   name: string;
   website?: string;
   tier: CompetitorTier;
@@ -18,21 +20,22 @@ export interface BattlecardObjection {
 }
 
 export interface Battlecard {
-  id: string;
-  competitorId: string;
-  competitorName: string;
+  uid: string;
+  competitor_uid: string;
+  competitor_name: string;
   summary: string;
-  ourStrengths: string[];
-  theirStrengths: string[];
+  our_strengths: string[];
+  their_strengths: string[];
   objections: BattlecardObjection[];
-  winRate: number;
-  dealsTracked: number;
-  dealsWon: number;
-  updatedAt: string;
-  createdAt: string;
+  win_rate: number;
+  deals_tracked: number;
+  deals_won: number;
+  updated_at: string;
+  created_at: string;
+  deals_value?: number;
 }
 
-// ─── Lost Deal ────────────────────────────────────────────────────────────────
+// ─── Lost Reason ──────────────────────────────────────────────────────────────
 
 export type LostReasonCategory =
   | 'price'
@@ -44,36 +47,60 @@ export type LostReasonCategory =
   | 'no_decision'
   | 'other';
 
-export interface LostDeal {
-  id: string;
-  opportunityName: string;
-  clientName: string;
+export interface LostReason {
+  uid: string;
+  opportunity_name: string;
+  client_name: string;
   amount: number;
   currency: 'USD' | 'COP' | 'MXN';
-  competitorId?: string;
-  competitorName?: string;
-  lostReasonCategory: LostReasonCategory;
-  lostReasonDetail: string;
-  lostDate: string;
-  salesRepName: string;
+  competitor_uid?: string;
+  competitor_name?: string;
+  lost_reason_category: LostReasonCategory;
+  lost_reason_detail: string;
+  lost_date: string;
+  sales_rep_name: string;
 }
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 
 export interface IntelligenceStats {
-  totalCompetitors: number;
-  avgWinRate: number;
-  totalLostDeals: number;
-  totalLostAmount: number;
-  topCompetitor: string;
-  topLostReason: LostReasonCategory;
+  total_competitors: number;
+  avg_win_rate: number;
+  total_lost_deals: number;
+  total_lost_amount: number;
+  top_competitor: string;
+  top_lost_reason: LostReasonCategory;
 }
 
 // ─── Heatmap ─────────────────────────────────────────────────────────────────
 
 export interface HeatmapCell {
-  competitorId: string;
-  competitorName: string;
+  competitor_uid: string;
+  competitor_name: string;
   reason: LostReasonCategory;
   count: number;
 }
+
+// ─── UI Config ────────────────────────────────────────────────────────────────
+
+export const COMPETITOR_TIER_CONFIG: Record<CompetitorTier, { label: string; color: BadgeColor }> =
+  {
+    direct: { label: 'Directo', color: 'error' },
+    indirect: { label: 'Indirecto', color: 'warning' },
+    emerging: { label: 'Emergente', color: 'info' },
+  };
+
+export const LOST_REASON_LABELS: Record<LostReasonCategory, string> = {
+  price: 'Precio',
+  features: 'Funcionalidades',
+  relationship: 'Relación previa',
+  support: 'Soporte / Implementación',
+  timing: 'Timing / Presupuesto',
+  competitor: 'Ganó la competencia',
+  no_decision: 'Sin decisión',
+  other: 'Otro',
+};
+
+export const LOST_REASON_OPTIONS = (
+  Object.entries(LOST_REASON_LABELS) as [LostReasonCategory, string][]
+).map(([value, label]) => ({ value, label }));

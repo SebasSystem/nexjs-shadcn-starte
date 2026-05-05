@@ -1,67 +1,62 @@
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+'use client';
 
-import { asignacionService } from '../services/assignment.service';
-import type { AsignacionPlan } from '../types/commissions.types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { queryKeys } from 'src/lib/query-keys';
+
+import {
+  assignmentService,
+  type CreateAssignmentPayload,
+  type UpdateAssignmentPayload,
+} from '../services/assignment.service';
+import type { CommissionAssignment } from '../types/commissions.types';
 
 export const useAssignment = () => {
-  const [asignaciones, setAsignaciones] = useState<AsignacionPlan[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const queryClient = useQueryClient();
 
-  const fetchAsignaciones = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await asignacionService.getAsignaciones();
-      setAsignaciones(data);
-    } catch (error) {
-      toast.error('Error al cargar las asignaciones');
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const {
+    data: assignments = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: queryKeys.commissions.assignments,
+    queryFn: () => assignmentService.getAssignments(),
+  });
 
-  useEffect(() => {
-    fetchAsignaciones();
-  }, [fetchAsignaciones]);
-
-  const addAsignacion = async (data: Omit<AsignacionPlan, 'id'>) => {
-    setIsSubmitting(true);
-    try {
-      const nueva = await asignacionService.createAsignacion(data);
-      setAsignaciones((prev) => [...prev, nueva]);
+  const createMutation = useMutation({
+    mutationFn: (data: CreateAssignmentPayload) => assignmentService.createAssignment(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.commissions.assignments });
       toast.success('Asignación creada exitosamente');
-      return true;
-    } catch {
-      toast.error('Error al crear la asignación');
-      return false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+    onError: () => toast.error('Error al crear la asignación'),
+  });
 
-  const updateAsignacion = async (id: string, data: Partial<AsignacionPlan>) => {
-    setIsSubmitting(true);
-    try {
-      const updated = await asignacionService.updateAsignacion(id, data);
-      setAsignaciones((prev) => prev.map((asg) => (asg.id === id ? { ...asg, ...updated } : asg)));
+  const updateMutation = useMutation({
+    mutationFn: ({ uid, data }: { uid: string; data: UpdateAssignmentPayload }) =>
+      assignmentService.updateAssignment(uid, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.commissions.assignments });
       toast.success('Asignación actualizada exitosamente');
-      return true;
-    } catch {
-      toast.error('Error al actualizar la asignación');
-      return false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+    onError: () => toast.error('Error al actualizar la asignación'),
+  });
 
   return {
-    asignaciones,
+    assignments,
     isLoading,
-    isSubmitting,
-    fetchAsignaciones,
-    addAsignacion,
-    updateAsignacion,
+    isError,
+    isSubmitting: createMutation.isPending || updateMutation.isPending,
+    fetchAssignments: refetch,
+    createAssignment: async (data: CreateAssignmentPayload): Promise<CommissionAssignment> => {
+      return await createMutation.mutateAsync(data);
+    },
+    updateAssignment: async (
+      uid: string,
+      data: UpdateAssignmentPayload
+    ): Promise<CommissionAssignment> => {
+      return await updateMutation.mutateAsync({ uid, data });
+    },
   };
 };

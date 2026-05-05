@@ -3,7 +3,6 @@
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { RESOURCE_ROLE_CONFIG } from 'src/_mock/_projects';
 import { formatDate } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
 import { paths } from 'src/routes/paths';
@@ -27,6 +26,7 @@ import { ProjectStatusBadge } from '../components/ProjectStatusBadge';
 import { ResourceDrawer } from '../components/ResourceDrawer';
 import { useProjects } from '../hooks/useProjects';
 import type { Milestone, ProjectResource } from '../types';
+import { RESOURCE_ROLE_CONFIG } from '../types';
 
 // ─── Column helpers ───────────────────────────────────────────────────────────
 
@@ -87,8 +87,8 @@ function ResourceCard({ resource, onRemove }: { resource: ProjectResource; onRem
         <div className="flex items-center gap-1.5 text-caption text-muted-foreground">
           <Icon name="Calendar" size={12} />
           <span>
-            {formatDate(resource.startDate)}
-            {resource.endDate ? ` — ${formatDate(resource.endDate)}` : ' → presente'}
+            {formatDate(resource.start_date)}
+            {resource.end_date ? ` — ${formatDate(resource.end_date)}` : ' → presente'}
           </span>
         </div>
       </div>
@@ -110,9 +110,9 @@ interface Props {
 export function ProjectDetailView({ projectId }: Props) {
   const router = useRouter();
   const {
-    getProjectById,
+    projects,
+    createProject,
     updateProject,
-    cancelProject,
     addMilestone,
     updateMilestone,
     deleteMilestone,
@@ -120,7 +120,7 @@ export function ProjectDetailView({ projectId }: Props) {
     removeResource,
   } = useProjects();
 
-  const project = getProjectById(projectId);
+  const project = projects.find((p) => p.uid === projectId);
 
   const [editDrawerOpen, setEditDrawerOpen] = useState(false);
   const [msDrawerOpen, setMsDrawerOpen] = useState(false);
@@ -142,11 +142,11 @@ export function ProjectDetailView({ projectId }: Props) {
         </div>
       ),
     }),
-    msColumnHelper.accessor('assignedTo', {
+    msColumnHelper.accessor('assigned_to_name', {
       header: 'Responsable',
-      cell: (info) => <span className="text-body2">{info.getValue()}</span>,
+      cell: (info) => <span className="text-body2">{info.getValue() ?? '—'}</span>,
     }),
-    msColumnHelper.accessor('dueDate', {
+    msColumnHelper.accessor('due_date', {
       header: 'Fecha límite',
       cell: (info) => {
         const isDelayed = info.row.original.status === 'delayed';
@@ -183,7 +183,7 @@ export function ProjectDetailView({ projectId }: Props) {
           </button>
           <button
             className="text-muted-foreground hover:text-error transition-colors"
-            onClick={() => deleteMilestone(projectId, info.row.original.id)}
+            onClick={() => deleteMilestone(projectId, info.row.original.uid)}
           >
             <Icon name="Trash2" size={14} />
           </button>
@@ -220,7 +220,7 @@ export function ProjectDetailView({ projectId }: Props) {
 
   const progressColor = getProgressColor(project.progress);
   const isOverdue =
-    new Date(project.endDate) < new Date() &&
+    new Date(project.end_date) < new Date() &&
     project.status !== 'completed' &&
     project.status !== 'cancelled';
 
@@ -250,15 +250,15 @@ export function ProjectDetailView({ projectId }: Props) {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
           {[
-            { label: 'Cliente', value: project.clientName },
+            { label: 'Cliente', value: project.client_name },
             { label: 'Manager', value: project.manager },
             {
               label: 'Inicio',
-              value: formatDate(project.startDate),
+              value: formatDate(project.start_date),
             },
             {
               label: 'Fin estimado',
-              value: formatDate(project.endDate),
+              value: formatDate(project.end_date),
               error: isOverdue,
             },
           ].map((item) => (
@@ -366,11 +366,11 @@ export function ProjectDetailView({ projectId }: Props) {
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {project.resources.map((res) => (
+              {project.resources.map((res: ProjectResource) => (
                 <ResourceCard
-                  key={res.id}
+                  key={res.uid}
                   resource={res}
-                  onRemove={() => removeResource(projectId, res.id)}
+                  onRemove={() => removeResource(projectId, res.uid)}
                 />
               ))}
             </div>
@@ -384,9 +384,11 @@ export function ProjectDetailView({ projectId }: Props) {
         mode="edit"
         project={project}
         onClose={() => setEditDrawerOpen(false)}
-        onCreate={() => {}}
+        onCreate={createProject}
         onUpdate={updateProject}
-        onCancel={cancelProject}
+        onCancel={(uid: string) => {
+          updateProject(uid, { status: 'cancelled' });
+        }}
       />
 
       <MilestoneDrawer
@@ -397,12 +399,13 @@ export function ProjectDetailView({ projectId }: Props) {
           setMsDrawerOpen(false);
           setSelectedMilestone(null);
         }}
-        onSave={(data) => {
+        onSave={async (data) => {
           if (msDrawerMode === 'edit' && selectedMilestone) {
-            updateMilestone(projectId, selectedMilestone.id, data);
-          } else {
-            addMilestone(projectId, data);
+            await updateMilestone(projectId, selectedMilestone.uid, data);
+            return true;
           }
+          await addMilestone(projectId, data);
+          return true;
         }}
       />
 

@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { MOCK_CONSULTANTS } from 'src/_mock/_projects';
 import { cn } from 'src/lib/utils';
 import {
   Button,
@@ -15,7 +14,7 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui';
 
-import type { ProjectResource, ResourceRole } from '../types';
+import type { ProjectResourcePayload, ResourceRole } from '../types';
 
 const ROLE_OPTIONS: { value: ResourceRole; label: string }[] = [
   { value: 'manager', label: 'Manager' },
@@ -27,7 +26,7 @@ const ROLE_OPTIONS: { value: ResourceRole; label: string }[] = [
 interface Props {
   open: boolean;
   onClose: () => void;
-  onAssign: (resource: Omit<ProjectResource, 'id'>) => void;
+  onAssign: (resource: ProjectResourcePayload) => Promise<boolean>;
 }
 
 export function ResourceDrawer({ open, onClose, onAssign }: Props) {
@@ -38,6 +37,8 @@ export function ResourceDrawer({ open, onClose, onAssign }: Props) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // TODO: Replace with backend consultants lookup
+  const MOCK_CONSULTANTS: { name: string; email: string }[] = [];
   const consultant = MOCK_CONSULTANTS.find((c) => c.name === selectedConsultant);
 
   const reset = () => {
@@ -64,15 +65,19 @@ export function ResourceDrawer({ open, onClose, onAssign }: Props) {
   const handleAssign = async () => {
     if (!validate()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 350));
-    onAssign({
+
+    const payload: ProjectResourcePayload = {
       name: selectedConsultant,
       role,
       email: consultant?.email ?? '',
-      startDate,
-      endDate: endDate || undefined,
-    });
-    toast.success('Recurso asignado al proyecto');
+      start_date: startDate,
+      end_date: endDate || undefined,
+    };
+
+    const ok = await onAssign(payload);
+    if (ok) toast.success('Recurso asignado al proyecto');
+    else toast.error('Error al asignar el recurso');
+
     setLoading(false);
     handleClose();
   };

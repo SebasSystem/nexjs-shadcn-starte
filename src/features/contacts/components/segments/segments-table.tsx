@@ -20,8 +20,8 @@ import type { Segment } from '../../types/segments.types';
 interface SegmentsTableProps {
   segments: Segment[];
   onEdit: (segment: Segment) => void;
-  onDelete: (id: string) => void;
-  onRun: (segment: Segment) => void;
+  onDelete: (uid: string) => void;
+  onView: (segment: Segment) => void;
 }
 
 const columnHelper = createColumnHelper<Segment>();
@@ -30,36 +30,36 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
   segments,
   onEdit,
   onDelete,
-  onRun,
+  onView,
 }) => {
   const COLUMNS = useMemo(
     () => [
-      columnHelper.accessor('nombre', {
+      columnHelper.accessor('name', {
         header: 'Segmento',
         cell: (info) => {
           const s = info.row.original;
           return (
             <div>
-              <p className="text-sm font-semibold text-foreground">{s.nombre}</p>
+              <p className="text-sm font-semibold text-foreground">{s.name}</p>
               <p
                 className="text-xs text-muted-foreground truncate max-w-[250px]"
-                title={s.descripcion}
+                title={s.description}
               >
-                {s.descripcion || 'Sin descripción'}
+                {s.description || 'Sin descripción'}
               </p>
             </div>
           );
         },
       }),
-      columnHelper.accessor('reglas', {
+      columnHelper.accessor('rules', {
         header: 'Condiciones',
         cell: (info) => {
           const reglas = info.getValue();
-          const logica = info.row.original.logica;
+          const logica = info.row.original.logic;
           return (
             <div className="flex items-center gap-1.5 flex-wrap max-w-[300px]">
               {reglas.slice(0, 2).map((r, i) => (
-                <React.Fragment key={r.id}>
+                <React.Fragment key={r.uid}>
                   <Badge variant="outline" className="text-[10px] uppercase font-mono bg-muted/20">
                     {r.field}
                   </Badge>
@@ -77,7 +77,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
           );
         },
       }),
-      columnHelper.accessor('totalContactos', {
+      columnHelper.accessor('total_contacts', {
         header: 'Contactos',
         cell: (info) => (
           <div className="flex items-center gap-2 text-sm font-medium">
@@ -86,7 +86,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
           </div>
         ),
       }),
-      columnHelper.accessor('ultimaActualizacion', {
+      columnHelper.accessor('updated_at', {
         header: 'Modificado',
         cell: (info) => (
           <span className="text-sm text-muted-foreground">
@@ -103,10 +103,10 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
               variant="outline"
               size="sm"
               className="h-8 gap-1 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
-              onClick={() => onRun(info.row.original)}
+              onClick={() => onView(info.row.original)}
             >
               <Icon name="Play" className="h-3 w-3" />
-              Ejecutar
+              Ver Contactos
             </Button>
             <Button
               variant="ghost"
@@ -120,7 +120,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 hover:text-red-600 hover:bg-red-50"
-              onClick={() => onDelete(info.row.original.id)}
+              onClick={() => onDelete(info.row.original.uid)}
             >
               <Icon name="Trash2" className="h-4 w-4" />
             </Button>
@@ -128,7 +128,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
         ),
       }),
     ],
-    [onEdit, onDelete, onRun]
+    [onEdit, onDelete, onView]
   );
 
   const { table, dense, onChangeDense } = useTable({

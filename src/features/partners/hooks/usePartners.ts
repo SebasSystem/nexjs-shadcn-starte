@@ -1,26 +1,41 @@
-import { useMemo, useState } from 'react';
-import {
-  MOCK_PARTNER_OPPORTUNITIES,
-  MOCK_PARTNERS,
-  MOCK_PORTAL_MATERIALS,
-} from 'src/_mock/_partners';
+'use client';
 
-import type { Partner, PartnerOpportunity, PortalMaterial } from '../types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { queryKeys } from 'src/lib/query-keys';
+
+import { partnersService } from '../services/partners.service';
+import type { PartnerOpportunityPayload, PartnerPayload, PortalMaterialPayload } from '../types';
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function usePartners() {
-  const [partners, setPartners] = useState<Partner[]>(MOCK_PARTNERS);
-  const [opportunities, setOpportunities] = useState<PartnerOpportunity[]>(
-    MOCK_PARTNER_OPPORTUNITIES
-  );
-  const [materials, setMaterials] = useState<PortalMaterial[]>(MOCK_PORTAL_MATERIALS);
+  const queryClient = useQueryClient();
+
+  // ── Queries ─────────────────────────────────────────────────────────────
+
+  const { data: partners = [], isLoading: loadingPartners } = useQuery({
+    queryKey: queryKeys.partners.partners.list,
+    queryFn: () => partnersService.partners.list(),
+  });
+
+  const { data: opportunities = [], isLoading: loadingOpportunities } = useQuery({
+    queryKey: queryKeys.partners.opportunities.list,
+    queryFn: () => partnersService.opportunities.list(),
+  });
+
+  const { data: materials = [], isLoading: loadingMaterials } = useQuery({
+    queryKey: queryKeys.partners.materials.list,
+    queryFn: () => partnersService.materials.list(),
+  });
+
+  // ── Stats (computed client-side) ────────────────────────────────────────
 
   const partnerStats = useMemo(() => {
     const active = partners.filter((p) => p.status === 'active').length;
     const prospects = partners.filter((p) => p.status === 'prospect').length;
     const pendingOpps = opportunities.filter((o) => o.status === 'pending').length;
-    const convertedDeals = partners.reduce((acc, p) => acc + p.convertedDeals, 0);
+    const convertedDeals = partners.reduce((acc, p) => acc + p.converted_deals, 0);
     return { active, prospects, pendingOpps, convertedDeals };
   }, [partners, opportunities]);
 
@@ -34,94 +49,150 @@ export function usePartners() {
 
   const materialStats = useMemo(() => {
     const total = materials.length;
-    const totalDownloads = materials.reduce((acc, m) => acc + m.downloadCount, 0);
+    const totalDownloads = materials.reduce((acc, m) => acc + m.download_count, 0);
     const lastUpdated =
       materials.length > 0
-        ? materials.reduce((latest, m) => (m.uploadedAt > latest.uploadedAt ? m : latest))
-            .uploadedAt
+        ? materials.reduce((latest, m) => (m.uploaded_at > latest.uploaded_at ? m : latest))
+            .uploaded_at
         : '—';
     return { total, totalDownloads, lastUpdated };
   }, [materials]);
 
-  // ── Partners CRUD ────────────────────────────────────────────────────────────
+  // ── Partners mutations ──────────────────────────────────────────────────
 
-  function createPartner(data: Omit<Partner, 'id' | 'registeredOpportunities' | 'convertedDeals'>) {
-    const newPartner: Partner = {
-      ...data,
-      id: `partner-${Date.now()}`,
-      registeredOpportunities: 0,
-      convertedDeals: 0,
-    };
-    setPartners((prev) => [newPartner, ...prev]);
-  }
-
-  function updatePartner(id: string, changes: Partial<Partner>) {
-    setPartners((prev) => prev.map((p) => (p.id === id ? { ...p, ...changes } : p)));
-  }
-
-  // ── Opportunities CRUD ───────────────────────────────────────────────────────
-
-  function createOpportunity(data: Omit<PartnerOpportunity, 'id'>) {
-    const newOpp: PartnerOpportunity = { ...data, id: `popp-${Date.now()}` };
-    setOpportunities((prev) => [newOpp, ...prev]);
-    setPartners((prev) =>
-      prev.map((p) =>
-        p.id === data.partnerId
-          ? { ...p, registeredOpportunities: p.registeredOpportunities + 1 }
-          : p
-      )
-    );
-  }
-
-  function updateOpportunity(id: string, changes: Partial<PartnerOpportunity>) {
-    setOpportunities((prev) => prev.map((o) => (o.id === id ? { ...o, ...changes } : o)));
-  }
-
-  function approveOpportunity(id: string) {
-    setOpportunities((prev) => prev.map((o) => (o.id === id ? { ...o, status: 'approved' } : o)));
-  }
-
-  function rejectOpportunity(id: string) {
-    setOpportunities((prev) => prev.map((o) => (o.id === id ? { ...o, status: 'rejected' } : o)));
-  }
-
-  function convertOpportunity(id: string) {
-    const opp = opportunities.find((o) => o.id === id);
-    setOpportunities((prev) => prev.map((o) => (o.id === id ? { ...o, status: 'converted' } : o)));
-    if (opp) {
-      setPartners((prev) =>
-        prev.map((p) =>
-          p.id === opp.partnerId ? { ...p, convertedDeals: p.convertedDeals + 1 } : p
-        )
-      );
+  const createPartner = async (data: PartnerPayload): Promise<boolean> => {
+    try {
+      await partnersService.partners.create(data);
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.partners.list });
+      return true;
+    } catch {
+      return false;
     }
-  }
+  };
 
-  // ── Materials ────────────────────────────────────────────────────────────────
+  const updatePartner = async (uid: string, data: Partial<PartnerPayload>): Promise<boolean> => {
+    try {
+      await partnersService.partners.update(uid, data);
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.partners.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
-  function createMaterial(data: Omit<PortalMaterial, 'id' | 'downloadCount'>) {
-    const newMaterial: PortalMaterial = {
-      ...data,
-      id: `mat-${Date.now()}`,
-      downloadCount: 0,
-    };
-    setMaterials((prev) => [newMaterial, ...prev]);
-  }
+  const removePartner = async (uid: string): Promise<boolean> => {
+    try {
+      await partnersService.partners.remove(uid);
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.partners.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // ── Opportunities mutations ─────────────────────────────────────────────
+
+  const createOpportunity = async (data: PartnerOpportunityPayload): Promise<boolean> => {
+    try {
+      await partnersService.opportunities.create(data);
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.opportunities.list });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.partners.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const updateOpportunity = async (
+    uid: string,
+    data: Partial<PartnerOpportunityPayload>
+  ): Promise<boolean> => {
+    try {
+      await partnersService.opportunities.update(uid, data);
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.opportunities.list });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.partners.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const validateOpportunity = async (uids: string[]): Promise<boolean> => {
+    try {
+      await partnersService.opportunities.validate(uids);
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.opportunities.list });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.partners.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const closeOpportunity = async (uid: string): Promise<boolean> => {
+    try {
+      await partnersService.opportunities.close(uid);
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.opportunities.list });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.partners.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const removeOpportunity = async (uid: string): Promise<boolean> => {
+    try {
+      await partnersService.opportunities.remove(uid);
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.opportunities.list });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.partners.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // ── Materials mutations ─────────────────────────────────────────────────
+
+  const createMaterial = async (data: PortalMaterialPayload): Promise<boolean> => {
+    try {
+      await partnersService.materials.create(data);
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.materials.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const removeMaterial = async (uid: string): Promise<boolean> => {
+    try {
+      await partnersService.materials.remove(uid);
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.materials.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // ── Return ──────────────────────────────────────────────────────────────
 
   return {
     partners,
     opportunities,
     materials,
+    loadingPartners,
+    loadingOpportunities,
+    loadingMaterials,
     partnerStats,
     opportunityStats,
     materialStats,
     createPartner,
     updatePartner,
+    removePartner,
     createOpportunity,
     updateOpportunity,
-    approveOpportunity,
-    rejectOpportunity,
-    convertOpportunity,
+    validateOpportunity,
+    closeOpportunity,
+    removeOpportunity,
     createMaterial,
+    removeMaterial,
   };
 }

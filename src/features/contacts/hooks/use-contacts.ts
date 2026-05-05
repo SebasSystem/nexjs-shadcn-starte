@@ -1,67 +1,56 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from 'src/lib/query-keys';
 
 import { contactsService } from '../services/contacts.service';
-import type { Contacto, ContactoForm } from '../types/contacts.types';
+import type { ContactPayload } from '../types/contacts.types';
 
 export function useContacts() {
-  const [contactos, setContactos] = useState<Contacto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchContactos = useCallback(async () => {
-    setIsLoading(true);
+  const { data: contactos = [], isLoading } = useQuery({
+    queryKey: queryKeys.contacts.list,
+    queryFn: () => contactsService.getAll(),
+  });
+
+  const createContacto = async (form: ContactPayload): Promise<boolean> => {
     try {
-      const data = await contactsService.getAll();
-      setContactos(data);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchContactos();
-  }, [fetchContactos]);
-
-  const createContacto = async (form: ContactoForm): Promise<boolean> => {
-    try {
-      const newContacto = await contactsService.create(form);
-      setContactos((prev) => [...prev, newContacto]);
+      await contactsService.create(form);
+      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.list });
       return true;
     } catch {
       return false;
     }
   };
 
-  const updateContacto = async (id: string, form: Partial<ContactoForm>): Promise<boolean> => {
+  const updateContacto = async (uid: string, form: Partial<ContactPayload>): Promise<boolean> => {
     try {
-      const updated = await contactsService.update(id, form);
-      setContactos((prev) => prev.map((c) => (c.id === id ? updated : c)));
+      await contactsService.update(uid, form);
+      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.list });
       return true;
     } catch {
       return false;
     }
   };
 
-  const addRelacion = async (aId: string, bId: string, cargo?: string): Promise<void> => {
-    await contactsService.addRelacion(aId, bId, cargo);
-    const updated = await contactsService.getAll();
-    setContactos(updated);
+  const addRelacion = async (aId: string, bId: string, role?: string): Promise<void> => {
+    await contactsService.addRelacion(aId, bId, role);
+    queryClient.invalidateQueries({ queryKey: queryKeys.contacts.list });
   };
 
   const removeRelacion = async (aId: string, bId: string): Promise<void> => {
     await contactsService.removeRelacion(aId, bId);
-    const updated = await contactsService.getAll();
-    setContactos(updated);
+    queryClient.invalidateQueries({ queryKey: queryKeys.contacts.list });
   };
 
-  const deleteContacto = async (id: string): Promise<void> => {
-    await contactsService.delete(id);
-    setContactos((prev) => prev.filter((c) => c.id !== id));
+  const deleteContacto = async (uid: string): Promise<void> => {
+    await contactsService.delete(uid);
+    queryClient.invalidateQueries({ queryKey: queryKeys.contacts.list });
   };
 
-  const checkDuplicate = (email: string, nit?: string, excludeId?: string) =>
-    contactsService.checkDuplicate(email, nit, excludeId);
+  const checkDuplicate = (email: string, taxId?: string, excludeId?: string) =>
+    contactsService.checkDuplicate(email, taxId, excludeId);
 
   return {
     contactos,
@@ -72,6 +61,6 @@ export function useContacts() {
     removeRelacion,
     deleteContacto,
     checkDuplicate,
-    refetch: fetchContactos,
+    refetch: () => queryClient.invalidateQueries({ queryKey: queryKeys.contacts.list }),
   };
 }

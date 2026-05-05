@@ -8,54 +8,54 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { CustomFieldDrawer } from '../components/custom-fields/custom-field-drawer';
 import { CustomFieldsTable } from '../components/custom-fields/custom-fields-table';
 import { useCustomFields } from '../hooks/use-custom-fields';
-import type { CampoPersonalizado, ModuloCampo } from '../types/settings.types';
+import type { CustomField, CustomFieldModule } from '../types/settings.types';
 
-const MODULO_LABELS: Record<ModuloCampo, string> = {
-  contactos: 'Contactos',
-  empresas: 'Empresas',
-  oportunidades: 'Oportunidades',
-  productos: 'Productos',
+const MODULE_LABELS: Record<CustomFieldModule, string> = {
+  contacts: 'Contactos',
+  companies: 'Empresas',
+  opportunities: 'Oportunidades',
+  products: 'Productos',
 };
 
-const MODULOS = Object.keys(MODULO_LABELS) as ModuloCampo[];
+const MODULES = Object.keys(MODULE_LABELS) as CustomFieldModule[];
 
 export const CustomFieldsView = () => {
-  const { campos, isLoading, createCampo, updateCampo, deleteCampo } = useCustomFields();
+  const { fields, isLoading, createField, updateField, deleteField } = useCustomFields();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [selectedCampo, setSelectedCampo] = useState<CampoPersonalizado | null>(null);
-  const [filterModulo, setFilterModulo] = useState<ModuloCampo | 'ALL'>('ALL');
+  const [selectedField, setSelectedField] = useState<CustomField | null>(null);
+  const [filterModule, setFilterModule] = useState<CustomFieldModule | 'ALL'>('ALL');
 
   const counts = useMemo(() => {
-    const map: Record<ModuloCampo, number> = {
-      contactos: 0,
-      empresas: 0,
-      oportunidades: 0,
-      productos: 0,
+    const map: Record<CustomFieldModule, number> = {
+      contacts: 0,
+      companies: 0,
+      opportunities: 0,
+      products: 0,
     };
-    campos.forEach((c) => {
-      map[c.modulo] = (map[c.modulo] ?? 0) + 1;
+    fields.forEach((f) => {
+      map[f.module] = (map[f.module] ?? 0) + 1;
     });
     return map;
-  }, [campos]);
+  }, [fields]);
 
   const filtered = useMemo(
-    () => (filterModulo === 'ALL' ? campos : campos.filter((c) => c.modulo === filterModulo)),
-    [campos, filterModulo]
+    () => (filterModule === 'ALL' ? fields : fields.filter((f) => f.module === filterModule)),
+    [fields, filterModule]
   );
 
   const handleOpenNew = () => {
-    setSelectedCampo(null);
+    setSelectedField(null);
     setIsDrawerOpen(true);
   };
 
-  const handleEdit = (campo: CampoPersonalizado) => {
-    setSelectedCampo(campo);
+  const handleEdit = (field: CustomField) => {
+    setSelectedField(field);
     setIsDrawerOpen(true);
   };
 
-  const handleSave = async (data: Omit<CampoPersonalizado, 'id' | 'creadoEn'>) => {
-    if (selectedCampo) return updateCampo(selectedCampo.id, data);
-    return createCampo(data);
+  const handleSave = async (data: Omit<CustomField, 'uid' | 'created_at'>) => {
+    if (selectedField) return updateField(selectedField.uid, data);
+    return createField(data);
   };
 
   return (
@@ -74,9 +74,9 @@ export const CustomFieldsView = () => {
       {/* Module filter tabs */}
       <div className="flex gap-1 border-b border-border/40">
         <button
-          onClick={() => setFilterModulo('ALL')}
-          className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
-            filterModulo === 'ALL'
+          onClick={() => setFilterModule('ALL')}
+          className={`px-4 py-2.5 text-sm font-medium transition-colors relative cursor-pointer ${
+            filterModule === 'ALL'
               ? 'text-blue-600 border-b-2 border-blue-600 -mb-px'
               : 'text-muted-foreground hover:text-foreground'
           }`}
@@ -84,33 +84,33 @@ export const CustomFieldsView = () => {
           Todos
           <span
             className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
-              filterModulo === 'ALL'
+              filterModule === 'ALL'
                 ? 'bg-blue-100 text-blue-700'
                 : 'bg-muted text-muted-foreground'
             }`}
           >
-            {campos.length}
+            {fields.length}
           </span>
         </button>
-        {MODULOS.map((modulo) => (
+        {MODULES.map((mod) => (
           <button
-            key={modulo}
-            onClick={() => setFilterModulo(modulo)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors relative ${
-              filterModulo === modulo
+            key={mod}
+            onClick={() => setFilterModule(mod)}
+            className={`px-4 py-2.5 text-sm font-medium transition-colors relative cursor-pointer ${
+              filterModule === mod
                 ? 'text-blue-600 border-b-2 border-blue-600 -mb-px'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            {MODULO_LABELS[modulo]}
+            {MODULE_LABELS[mod]}
             <span
               className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
-                filterModulo === modulo
+                filterModule === mod
                   ? 'bg-blue-100 text-blue-700'
                   : 'bg-muted text-muted-foreground'
               }`}
             >
-              {counts[modulo]}
+              {counts[mod]}
             </span>
           </button>
         ))}
@@ -126,9 +126,9 @@ export const CustomFieldsView = () => {
         ) : (
           <>
             <CustomFieldsTable
-              campos={filtered}
+              fields={filtered}
               onEdit={handleEdit}
-              onDelete={(c) => deleteCampo(c.id)}
+              onDelete={(f) => deleteField(f.uid)}
             />
             <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
               {filtered.length} campo{filtered.length !== 1 ? 's' : ''} personalizado
@@ -139,10 +139,10 @@ export const CustomFieldsView = () => {
       </SectionCard>
 
       <CustomFieldDrawer
-        key={isDrawerOpen ? (selectedCampo?.id ?? 'new') : 'closed'}
+        key={isDrawerOpen ? (selectedField?.uid ?? 'new') : 'closed'}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        campo={selectedCampo}
+        field={selectedField}
         onSave={handleSave}
       />
     </PageContainer>

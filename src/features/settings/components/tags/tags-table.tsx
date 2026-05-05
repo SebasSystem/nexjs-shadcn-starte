@@ -45,7 +45,7 @@ const EntityLabelMap: Record<TagEntity, string> = {
 export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) => {
   const COLUMNS = useMemo(
     () => [
-      columnHelper.accessor('nombre', {
+      columnHelper.accessor('name', {
         header: 'Etiqueta',
         cell: (info) => {
           const tag = info.row.original;
@@ -55,18 +55,18 @@ export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) 
                 BadgeColorMap[tag.color]
               }`}
             >
-              {tag.nombre}
+              {tag.name}
             </span>
           );
         },
       }),
-      columnHelper.accessor('entidades', {
+      columnHelper.accessor('entities', {
         header: 'Aplica en',
         cell: (info) => {
-          const entidades = info.getValue() as TagEntity[];
+          const entities = info.getValue() as TagEntity[];
           return (
             <div className="flex flex-wrap gap-1.5">
-              {entidades.map((e) => (
+              {entities.map((e) => (
                 <span
                   key={e}
                   className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[11px] font-medium"
@@ -78,7 +78,7 @@ export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) 
           );
         },
       }),
-      columnHelper.accessor('creadoEn', {
+      columnHelper.accessor('created_at', {
         header: 'Fecha de Creación',
         cell: (info) => (
           <span className="text-sm text-muted-foreground">

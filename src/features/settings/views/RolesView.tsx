@@ -8,26 +8,26 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { RoleDrawer } from '../components/roles/role-drawer';
 import { RolesTable } from '../components/roles/roles-table';
 import { useRoles } from '../hooks/use-roles';
-import type { Rol } from '../types/settings.types';
+import type { Role } from '../types/settings.types';
 
 export const RolesView = () => {
-  const { roles, isLoading, createRol, updateRol, deleteRol } = useRoles();
+  const { roles, isLoading, createRole, updateRole, deleteRole } = useRoles();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [selectedRol, setSelectedRol] = useState<Rol | null>(null);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
   const handleOpenNew = () => {
-    setSelectedRol(null);
+    setSelectedRole(null);
     setIsDrawerOpen(true);
   };
 
-  const handleEdit = (rol: Rol) => {
-    setSelectedRol(rol);
+  const handleEdit = (role: Role) => {
+    setSelectedRole(role);
     setIsDrawerOpen(true);
   };
 
-  const handleSave = async (data: Omit<Rol, 'id' | 'creadoEn' | 'totalUsuarios'>) => {
-    if (selectedRol) return updateRol(selectedRol.id, data);
-    return createRol(data);
+  const handleSave = async (data: Omit<Role, 'uid' | 'created_at' | 'total_users'>) => {
+    if (selectedRole) return updateRole(selectedRole.uid, data);
+    return createRole(data);
   };
 
   return (
@@ -55,7 +55,7 @@ export const RolesView = () => {
           </div>
         ) : (
           <>
-            <RolesTable roles={roles} onEdit={handleEdit} onDelete={(r) => deleteRol(r.id)} />
+            <RolesTable roles={roles} onEdit={handleEdit} onDelete={(r) => deleteRole(r.uid)} />
             <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
               {roles.length} rol{roles.length !== 1 ? 'es' : ''} configurado
               {roles.length !== 1 ? 's' : ''}
@@ -65,10 +65,10 @@ export const RolesView = () => {
       </SectionCard>
 
       <RoleDrawer
-        key={isDrawerOpen ? (selectedRol?.id ?? 'new') : 'closed'}
+        key={isDrawerOpen ? (selectedRole?.uid ?? 'new') : 'closed'}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        rol={selectedRol}
+        role={selectedRole}
         onSave={handleSave}
       />
     </PageContainer>

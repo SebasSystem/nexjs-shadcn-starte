@@ -16,20 +16,12 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui/sheet';
 
-import type { PlanComision } from '../../types/commissions.types';
-
-const MOCK_VENDEDORES = [
-  { id: 'vend-1', nombre: 'Carlos Martínez', equipo: 'Ventas Norte' },
-  { id: 'vend-2', nombre: 'Ana Gómez', equipo: 'Ventas Sur' },
-  { id: 'vend-3', nombre: 'Luis Pérez', equipo: 'Ventas Norte' },
-  { id: 'vend-4', nombre: 'María Torres', equipo: 'Ventas Sur' },
-  { id: 'vend-5', nombre: 'Jorge Ruiz', equipo: 'Ventas Centro' },
-];
+import type { CommissionPlan } from '../../types/commissions.types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  planesDisponibles: PlanComision[];
+  planesDisponibles: CommissionPlan[];
 }
 
 export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesDisponibles }) => {
@@ -41,12 +33,10 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
   const [fechaFin, setFechaFin] = useState('');
   const [guardando, setGuardando] = useState(false);
 
-  const equipos = Array.from(new Set(MOCK_VENDEDORES.map((v) => v.equipo)));
-  const vendedoresFiltrados = equipoFiltro
-    ? MOCK_VENDEDORES.filter((v) => v.equipo === equipoFiltro)
-    : MOCK_VENDEDORES;
+  const equipos: string[] = [];
+  const vendedoresFiltrados: { id: string; nombre: string; equipo: string }[] = [];
 
-  const planSeleccionado = planesDisponibles.find((p) => p.id === planId);
+  const planSeleccionado = planesDisponibles.find((p) => p.uid === planId);
 
   const toggleVendedor = (id: string) => {
     setSelectedVendedores((prev) =>
@@ -69,7 +59,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
     await new Promise((r) => setTimeout(r, 1200));
     setGuardando(false);
     toast.success(
-      `Plan "${planSeleccionado?.nombre}" asignado a ${selectedVendedores.length} vendedor(es).`
+      `Plan "${planSeleccionado?.name}" asignado a ${selectedVendedores.length} vendedor(es).`
     );
     handleClose();
   };
@@ -86,7 +76,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
 
   const puedeAvanzarPaso1 = selectedVendedores.length > 0;
   const puedeAvanzarPaso2 = !!planId && !!fechaInicio;
-  const nombresSeleccionados = MOCK_VENDEDORES.filter((v) => selectedVendedores.includes(v.id));
+  const nombresSeleccionados: { id: string; nombre: string; equipo: string }[] = [];
 
   const equipoOptions = [
     { value: '', label: 'Todos los equipos' },
@@ -96,8 +86,8 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
   const planOptions = [
     { value: '', label: '-- Seleccionar Plan --' },
     ...planesDisponibles
-      .filter((p) => p.estado === 'ACTIVO')
-      .map((p) => ({ value: p.id, label: `${p.nombre} (${p.tipo})` })),
+      .filter((p) => p.status === 'ACTIVO')
+      .map((p) => ({ value: p.uid, label: `${p.name} (${p.type})` })),
   ];
 
   return (
@@ -210,21 +200,21 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
 
               {planSeleccionado && (
                 <div className="bg-muted/40 border border-border/40 rounded-lg p-4 text-sm space-y-1">
-                  <p className="font-semibold text-foreground">{planSeleccionado.nombre}</p>
+                  <p className="font-semibold text-foreground">{planSeleccionado.name}</p>
                   <p className="text-muted-foreground">
                     Tipo:{' '}
-                    <span className="font-medium text-foreground">{planSeleccionado.tipo}</span>
+                    <span className="font-medium text-foreground">{planSeleccionado.type}</span>
                   </p>
                   <p className="text-muted-foreground">
                     Base:{' '}
                     <span className="font-medium text-foreground">
-                      {planSeleccionado.porcentajeBase}%
+                      {planSeleccionado.base_percentage}%
                     </span>
                   </p>
                   <p className="text-muted-foreground">
                     Tramos:{' '}
                     <span className="font-medium text-foreground">
-                      {planSeleccionado.tramos.length} configurados
+                      {planSeleccionado.tiers.length} configurados
                     </span>
                   </p>
                 </div>
@@ -256,7 +246,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
                 <p className="text-sm text-muted-foreground">
                   Asignarás el plan{' '}
                   <span className="font-semibold text-foreground">
-                    &quot;{planSeleccionado?.nombre}&quot;
+                    &quot;{planSeleccionado?.name}&quot;
                   </span>{' '}
                   a{' '}
                   <span className="font-semibold text-foreground">

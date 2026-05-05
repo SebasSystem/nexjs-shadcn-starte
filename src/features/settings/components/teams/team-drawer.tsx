@@ -15,10 +15,10 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui/sheet';
 
-import type { Equipo, SettingsUser } from '../../types/settings.types';
+import type { SettingsUser, Team } from '../../types/settings.types';
 
-function getInitials(nombre: string) {
-  return nombre
+function getInitials(name: string) {
+  return name
     .split(' ')
     .slice(0, 2)
     .map((w) => w[0])
@@ -29,72 +29,72 @@ function getInitials(nombre: string) {
 interface TeamDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  equipo: Equipo | null;
+  team: Team | null;
   usuarios: SettingsUser[];
   onSave: (
-    data: Omit<Equipo, 'id' | 'creadoEn' | 'totalMiembros' | 'miembros'>
+    data: Omit<Team, 'uid' | 'created_at' | 'members_count' | 'members'>
   ) => Promise<boolean>;
-  onAddMember: (equipoId: string, usuarioId: string) => void;
-  onRemoveMember: (equipoId: string, usuarioId: string) => void;
+  onAddMember: (teamUid: string, userUid: string) => void;
+  onRemoveMember: (teamUid: string, userUid: string) => void;
 }
 
 export const TeamDrawer: React.FC<TeamDrawerProps> = ({
   isOpen,
   onClose,
-  equipo,
+  team,
   usuarios,
   onSave,
   onAddMember,
   onRemoveMember,
 }) => {
-  const [nombre, setNombre] = useState(equipo?.nombre ?? '');
-  const [liderId, setLiderId] = useState(equipo?.liderId ?? '');
+  const [name, setName] = useState(team?.name ?? '');
+  const [liderId, setLiderId] = useState(team?.leader_uid ?? '');
   const [selectedUserId, setSelectedUserId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSave = async () => {
-    if (!nombre.trim() || !liderId) return;
-    const lider = usuarios.find((u) => u.id === liderId);
+    if (!name.trim() || !liderId) return;
+    const lider = usuarios.find((u) => u.uid === liderId);
     setIsSubmitting(true);
     const success = await onSave({
-      nombre,
-      liderId,
-      liderNombre: lider?.nombre ?? '',
+      name,
+      leader_uid: liderId,
+      leader_name: lider?.name ?? '',
     });
     setIsSubmitting(false);
     if (success) onClose();
   };
 
   const handleAddMember = () => {
-    if (!selectedUserId || !equipo) return;
-    const user = usuarios.find((u) => u.id === selectedUserId);
-    if (!user) return;
-    onAddMember(equipo.id, selectedUserId);
+    if (!selectedUserId || !team) return;
+    onAddMember(team.uid, selectedUserId);
     setSelectedUserId('');
   };
 
-  const memberIds = equipo?.miembros.map((m) => m.usuarioId) ?? [];
-  const availableUsers = usuarios.filter((u) => !memberIds.includes(u.id) && u.estado === 'ACTIVO');
+  const memberIds = team?.members.map((m) => m.user_uid) ?? [];
+  const availableUsers = usuarios.filter(
+    (u) => !memberIds.includes(u.uid) && u.status === 'ACTIVO'
+  );
 
   const liderOptions = usuarios
-    .filter((u) => u.estado === 'ACTIVO')
-    .map((u) => ({ value: u.id, label: `${u.nombre} (${u.rolNombre})` }));
+    .filter((u) => u.status === 'ACTIVO')
+    .map((u) => ({ value: u.uid, label: `${u.name} (${u.role_name})` }));
 
-  const miembroOptions = availableUsers.map((u) => ({ value: u.id, label: u.nombre }));
+  const miembroOptions = availableUsers.map((u) => ({ value: u.uid, label: u.name }));
 
   return (
     <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[480px] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
-          <SheetTitle>{equipo ? 'Editar Equipo' : 'Nuevo Equipo'}</SheetTitle>
+          <SheetTitle>{team ? 'Editar Equipo' : 'Nuevo Equipo'}</SheetTitle>
           <SheetDescription>Configura el equipo y sus miembros</SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <div className="py-6 space-y-6">
             <Input
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               label="Nombre del equipo"
               required
               placeholder="Ej. Equipo Norte"
@@ -109,33 +109,33 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
               placeholder="Seleccionar líder..."
             />
 
-            {equipo && (
+            {team && (
               <div className="space-y-3">
                 <h3 className="text-sm font-bold uppercase text-muted-foreground tracking-wider">
                   Miembros
                 </h3>
 
-                {equipo.miembros.length > 0 ? (
+                {team.members.length > 0 ? (
                   <div className="space-y-2">
-                    {equipo.miembros.map((miembro) => (
+                    {team.members.map((member) => (
                       <div
-                        key={miembro.usuarioId}
+                        key={member.user_uid}
                         className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border/40"
                       >
                         <Avatar className="h-8 w-8 shrink-0">
                           <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                            {getInitials(miembro.usuarioNombre)}
+                            {getInitials(member.user_name)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <p className="text-sm font-medium">{miembro.usuarioNombre}</p>
+                          <p className="text-sm font-medium">{member.user_name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {miembro.rolNombre} · {miembro.clientesAsignados} clientes
+                            {member.role_name} · {member.assigned_clients} clientes
                           </p>
                         </div>
                         <button
-                          onClick={() => onRemoveMember(equipo.id, miembro.usuarioId)}
-                          className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                          onClick={() => onRemoveMember(team.uid, member.user_uid)}
+                          className="p-1.5 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                         >
                           <Icon name="Trash2" size={14} />
                         </button>
@@ -161,7 +161,7 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
                     variant="outline"
                     onClick={handleAddMember}
                     disabled={!selectedUserId}
-                    className="gap-1.5 h-10"
+                    className="gap-1.5 h-10 cursor-pointer"
                   >
                     <Icon name="UserPlus" size={14} /> Agregar
                   </Button>
@@ -172,13 +172,20 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
         </div>
 
         <SheetFooter>
-          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="cursor-pointer"
+          >
             Cancelar
           </Button>
           <Button
             type="button"
             onClick={handleSave}
-            disabled={!nombre.trim() || !liderId || isSubmitting}
+            disabled={!name.trim() || !liderId || isSubmitting}
+            className="cursor-pointer"
           >
             {isSubmitting ? 'Guardando...' : 'Guardar Equipo'}
           </Button>

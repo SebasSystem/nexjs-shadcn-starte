@@ -7,12 +7,15 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { useVault } from '../hooks/use-vault';
 
 export const VaultTab = ({ contactoId }: { contactoId: string }) => {
-  const { data, isLoading, isUploading, uploadFile, deleteFile } = useVault(contactoId);
+  const { data, isLoading, uploadFile, deleteFile } = useVault('contacts', contactoId);
+  const [isUploading, setIsUploading] = React.useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
+      setIsUploading(true);
       await uploadFile(file);
+      setIsUploading(false);
     }
   };
 
@@ -28,7 +31,11 @@ export const VaultTab = ({ contactoId }: { contactoId: string }) => {
         <div>
           <label htmlFor={`file-upload-${contactoId}`} className="cursor-pointer">
             <div
-              className={`h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 transition-colors ${isUploading ? 'bg-blue-300 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+              className={`h-8 px-3 rounded-md text-xs font-medium inline-flex items-center justify-center gap-2 transition-colors ${
+                isUploading
+                  ? 'bg-blue-300 text-white cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
               <Icon name="UploadCloud" size={14} />
               {isUploading ? 'Subiendo...' : 'Subir Documento'}
@@ -57,7 +64,7 @@ export const VaultTab = ({ contactoId }: { contactoId: string }) => {
           <div className="divide-y divide-gray-100">
             {data.map((doc) => (
               <div
-                key={doc.id}
+                key={doc.uid}
                 className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors group"
               >
                 <div className="flex items-center gap-3">
@@ -66,19 +73,19 @@ export const VaultTab = ({ contactoId }: { contactoId: string }) => {
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-                      {doc.nombreArchivo}
+                      {doc.file_name}
                     </h4>
                     <div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-500">
-                      <span>{format(new Date(doc.fechaSubida), 'dd MMM yyyy')}</span>
+                      <span>{format(new Date(doc.uploaded_at), 'dd MMM yyyy')}</span>
                       <span>•</span>
-                      <span>{(doc.tamanoBytes / 1024 / 1024).toFixed(2)} MB</span>
+                      <span>{(doc.size_bytes / 1024 / 1024).toFixed(2)} MB</span>
                       <span>•</span>
-                      <span>Por: {doc.subidoPor}</span>
+                      <span>Por: {doc.uploaded_by}</span>
                     </div>
                   </div>
                 </div>
                 <button
-                  onClick={() => deleteFile(doc.id)}
+                  onClick={() => deleteFile(doc.uid)}
                   className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                   title="Eliminar"
                 >

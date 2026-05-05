@@ -1,33 +1,32 @@
 'use client';
 
 import { useState } from 'react';
-import type { Opportunity, PipelineStage, StageId } from 'src/features/sales/types/sales.types';
+import type { Opportunity, PipelineStage } from 'src/features/sales/types/sales.types';
 import { formatMoney } from 'src/lib/currency';
 import { cn } from 'src/lib/utils';
 
-import { STAGE_PROBABILITY } from '../config/pipeline.config';
 import { OpportunityCard } from './OpportunityCard';
 
 interface PipelineColumnProps {
   stage: PipelineStage;
+  stages: PipelineStage[];
   opportunities: Opportunity[];
-  onCardDrop: (oppId: string, targetStage: StageId) => void;
-  onOpenPanel: (id: string) => void;
+  onCardDrop: (oppUid: string, targetStageUid: string) => void;
+  onOpenPanel: (uid: string) => void;
 }
 
 export function PipelineColumn({
   stage,
+  stages,
   opportunities,
   onCardDrop,
   onOpenPanel,
 }: PipelineColumnProps) {
   const [isDragOver, setIsDragOver] = useState(false);
-  const isTerminal = stage.id === 'cerrado';
-  const totalValue = opportunities.reduce((sum, o) => sum + o.estimatedAmount, 0);
-  const weightedValue = opportunities.reduce(
-    (sum, o) => sum + o.estimatedAmount * STAGE_PROBABILITY[o.stage],
-    0
-  );
+  const isTerminal = stage.is_won || stage.is_lost;
+  const probability = stage.probability_percent / 100;
+  const totalValue = opportunities.reduce((sum, o) => sum + o.amount, 0);
+  const weightedValue = opportunities.reduce((sum, o) => sum + o.amount * probability, 0);
 
   return (
     <div className="flex flex-col flex-1 min-w-[260px]">
@@ -35,7 +34,10 @@ export function PipelineColumn({
       <div className="flex items-center justify-between mb-2 px-0.5 h-8">
         <span
           className="text-xs font-bold px-2.5 py-0.5 rounded-full"
-          style={{ backgroundColor: `${stage.color}20`, color: stage.color }}
+          style={{
+            backgroundColor: `${stage.color ?? '#6B7280'}20`,
+            color: stage.color ?? '#6B7280',
+          }}
         >
           {opportunities.length}
         </span>
@@ -53,13 +55,13 @@ export function PipelineColumn({
         )}
       </div>
 
-      {/* Drop zone — sin contenedor visible en estado normal */}
+      {/* Drop zone */}
       <div
         className={cn(
           'flex flex-col gap-2.5 min-h-[200px] rounded-2xl transition-all duration-200',
           isDragOver && 'bg-primary/4'
         )}
-        style={isDragOver ? { outline: `2px solid ${stage.color}60` } : {}}
+        style={isDragOver ? { outline: `2px solid ${stage.color ?? '#6B7280'}60` } : {}}
         onDragOver={(e) => {
           e.preventDefault();
           e.dataTransfer.dropEffect = 'move';
@@ -71,8 +73,8 @@ export function PipelineColumn({
         onDrop={(e) => {
           e.preventDefault();
           setIsDragOver(false);
-          const oppId = e.dataTransfer.getData('text/plain');
-          if (oppId) onCardDrop(oppId, stage.id);
+          const oppUid = e.dataTransfer.getData('text/plain');
+          if (oppUid) onCardDrop(oppUid, stage.uid);
         }}
       >
         {opportunities.length === 0 ? (
@@ -82,9 +84,10 @@ export function PipelineColumn({
         ) : (
           opportunities.map((opp) => (
             <OpportunityCard
-              key={opp.id}
+              key={opp.uid}
               opportunity={opp}
-              stageColor={stage.color}
+              stages={stages}
+              stageColor={stage.color ?? '#6B7280'}
               onOpenPanel={onOpenPanel}
             />
           ))

@@ -1,14 +1,54 @@
 'use client';
 
-import { useSalesContext } from '../context/SalesContext';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from 'src/lib/query-keys';
 
-export function useInvoice(invoiceId: string) {
-  const { getInvoiceById, registerPayment } = useSalesContext();
+import { invoiceService } from '../services/invoice.service';
+import type { Payment } from '../types/sales.types';
 
-  const invoice = getInvoiceById(invoiceId);
+export function useInvoice(invoiceUid: string) {
+  const queryClient = useQueryClient();
+
+  const {
+    data: invoice = null,
+    isLoading: invLoading,
+    error,
+  } = useQuery({
+    queryKey: [...queryKeys.sales.invoices, invoiceUid],
+    queryFn: () => invoiceService.getOne(invoiceUid),
+    enabled: !!invoiceUid,
+  });
+
+  const { data: payments = [], isLoading: pmtLoading } = useQuery({
+    queryKey: [...queryKeys.sales.invoices, invoiceUid, 'payments'],
+    queryFn: () => invoiceService.getPaymentHistory(invoiceUid),
+    enabled: !!invoiceUid,
+  });
+
+  const registerPaymentMutation = useMutation({
+    mutationFn: (data: Partial<Payment>) => {
+      if (!invoice) throw new Error('No invoice loaded');
+      return invoiceService.registerPayment(invoice.uid, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.sales.invoices, invoiceUid] });
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sales.invoices, invoiceUid, 'payments'],
+      });
+    },
+  });
 
   return {
     invoice,
-    registerPayment,
+    payments,
+    isLoading: invLoading || pmtLoading,
+    error: error ?? null,
+    registerPayment: (data: Partial<Payment>) => registerPaymentMutation.mutateAsync(data),
+    refresh: () => {
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.sales.invoices, invoiceUid] });
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sales.invoices, invoiceUid, 'payments'],
+      });
+    },
   };
 }

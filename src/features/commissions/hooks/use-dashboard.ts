@@ -1,111 +1,34 @@
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+'use client';
 
-export interface DashboardKPIs {
-  metaMensual: number;
-  ventasLogradas: number;
-  comisionProyectada: number;
-  comisionLiquidada: number;
-}
+import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from 'src/lib/query-keys';
 
-export interface TramoProgreso {
-  id: string;
-  nombre: string;
-  rangoTxt: string;
-  porcentaje: number;
-  completado: number; // 0 a 100
-  estado: 'COMPLETADO' | 'EN_PROGRESO' | 'PENDIENTE';
-  montoLogrado: number;
-  montoMeta: number;
-}
+import type { DashboardData } from '../services/commission.service';
+import { commissionService } from '../services/commission.service';
 
-export interface VentaReciente {
-  id: string;
-  fecha: string;
-  cliente: string;
-  monto: number;
-  comisionGenerada: number;
-}
+// Re-export for backward compatibility
+export type { DashboardData as DashboardKPIs };
+export type { TierProgress } from '../services/commission.service';
 
-// Simulador del backend
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+export type TramoProgreso = DashboardData['tiers'][0];
+export type VentaReciente = DashboardData['recentSales'][0];
 
-export const useDashboardCommissions = () => {
-  const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
-  const [tramos, setTramos] = useState<TramoProgreso[]>([]);
-  const [ventas, setVentas] = useState<VentaReciente[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+export const useDashboardCommissions = (userUid?: string | null) => {
+  const isAdminView = !!userUid;
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await delay(800);
-      setKpis({
-        metaMensual: 12000,
-        ventasLogradas: 8040,
-        comisionProyectada: 402,
-        comisionLiquidada: 0,
-      });
+  const query = useQuery({
+    queryKey: queryKeys.commissions.dashboard,
+    queryFn: () =>
+      isAdminView ? commissionService.getDashboard(userUid!) : commissionService.getMySummary(),
+  });
 
-      setTramos([
-        {
-          id: '1',
-          nombre: 'Tramo 1',
-          rangoTxt: '$0 - $5,000',
-          porcentaje: 3,
-          completado: 100,
-          estado: 'COMPLETADO',
-          montoLogrado: 5000,
-          montoMeta: 5000,
-        },
-        {
-          id: '2',
-          nombre: 'Tramo 2',
-          rangoTxt: '$5,001 - $10,000',
-          porcentaje: 5,
-          completado: 61,
-          estado: 'EN_PROGRESO',
-          montoLogrado: 3040,
-          montoMeta: 5000,
-        },
-        {
-          id: '3',
-          nombre: 'Tramo 3',
-          rangoTxt: '$10,001+',
-          porcentaje: 8,
-          completado: 0,
-          estado: 'PENDIENTE',
-          montoLogrado: 0,
-          montoMeta: 0,
-        },
-      ]);
+  const data = query.data;
 
-      setVentas([
-        {
-          id: 'v1',
-          fecha: '2025-02-15',
-          cliente: 'Tech Solutions SAS',
-          monto: 3500,
-          comisionGenerada: 105,
-        },
-        {
-          id: 'v2',
-          fecha: '2025-02-18',
-          cliente: 'Inversiones Globales',
-          monto: 4540,
-          comisionGenerada: 297,
-        },
-      ]);
-    } catch {
-      toast.error('Error al cargar datos del dashboard');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  return { kpis, tramos, ventas, isLoading };
+  return {
+    kpis: data?.kpis ?? null,
+    tiersProgress: data?.tiers ?? [],
+    recentSales: data?.recentSales ?? [],
+    isLoading: query.isLoading,
+    isError: query.isError,
+  };
 };

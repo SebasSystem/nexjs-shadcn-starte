@@ -1,49 +1,69 @@
 'use client';
 
-import { differenceInDays } from 'date-fns';
-import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
+import { diffDays } from 'src/lib/date';
+import { queryKeys } from 'src/lib/query-keys';
 
-import { STAGE_AGING_THRESHOLDS, STAGE_PROBABILITY } from '../config/pipeline.config';
-import { useSalesContext } from '../context/SalesContext';
+import { opportunityService } from '../services/opportunity.service';
+import type { PipelineStage } from '../types/sales.types';
 
 export type AgingLevel = 'normal' | 'warning' | 'risk' | 'stalled';
 
 export function useOpportunityPanel() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const { opportunities } = useSalesContext();
 
-  const opportunity = useMemo(
-    () => (selectedId ? opportunities.find((o) => o.id === selectedId) : undefined),
-    [opportunities, selectedId]
-  );
+  const { data: stages = [] } = useQuery<PipelineStage[]>({
+    queryKey: queryKeys.sales.stages,
+    queryFn: () => opportunityService.getStages(),
+  });
+
+  const {
+    data: opportunity = null,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: [...queryKeys.sales.opportunityList, selectedId],
+    queryFn: () => opportunityService.getOne(selectedId!),
+    enabled: !!selectedId,
+  });
+
+  // ─── Derived values ─────────────────────────────────────────────────────────
+
+  const currentStage = stages.find((s) => s.uid === opportunity?.stage_uid);
+  const weightedAmount = opportunity
+    ? (opportunity.amount || 0) * ((currentStage?.probability_percent ?? 0) / 100)
+    : 0;
 
   const daysInStage = useMemo(() => {
-    if (!opportunity?.stageEnteredAt) return 0;
-    return differenceInDays(new Date(), new Date(opportunity.stageEnteredAt));
-  }, [opportunity]);
+    if (!opportunity?.created_at) return 0;
+    return diffDays(opportunity.created_at);
+  }, [opportunity?.created_at]);
 
-  const agingLevel = useMemo((): AgingLevel => {
-    if (!opportunity) return 'normal';
-    const t = STAGE_AGING_THRESHOLDS[opportunity.stage];
-    if (daysInStage >= t.stalled) return 'stalled';
-    if (daysInStage >= t.risk) return 'risk';
-    if (daysInStage >= t.warning) return 'warning';
-    return 'normal';
-  }, [opportunity, daysInStage]);
+  const agingLevel: AgingLevel =
+    daysInStage > 14
+      ? 'stalled'
+      : daysInStage > 7
+        ? 'risk'
+        : daysInStage > 3
+          ? 'warning'
+          : 'normal';
 
-  const weightedAmount = useMemo(() => {
-    if (!opportunity) return 0;
-    return opportunity.estimatedAmount * STAGE_PROBABILITY[opportunity.stage];
-  }, [opportunity]);
+  const openPanel = useCallback((uid: string) => setSelectedId(uid), []);
+  const closePanel = useCallback(() => setSelectedId(null), []);
 
   return {
     selectedId,
     isOpen: !!selectedId,
-    openPanel: (id: string) => setSelectedId(id),
-    closePanel: () => setSelectedId(null),
+    openPanel,
+    closePanel,
     opportunity,
+    currentStage,
+    stages,
+    weightedAmount,
     daysInStage,
     agingLevel,
-    weightedAmount,
+    isLoading,
+    error: error ?? null,
   };
 }

@@ -71,14 +71,14 @@ export const CONDITION_OPERATOR_LABELS: Record<ConditionOperator, string> = {
 };
 
 export interface RuleCondition {
-  id: string;
+  uid: string;
   field: string;
   operator: ConditionOperator;
   value: string | number;
 }
 
 export interface ConditionGroup {
-  id: string;
+  uid: string;
   logic: 'AND' | 'OR';
   conditions: RuleCondition[];
 }
@@ -101,37 +101,37 @@ export const ACTION_TYPE_LABELS: Record<ActionType, string> = {
 };
 
 export interface AutomationAction {
-  id: string;
+  uid: string;
   sequence: number;
   type: ActionType;
   config: {
-    assignmentRuleId?: string;
-    activityType?: string;
-    activityNotes?: string;
-    fieldName?: string;
-    fieldValue?: string | number;
-    notificationMessage?: string;
-    notifyUserId?: string;
+    assignment_rule_id?: string;
+    activity_type?: string;
+    activity_notes?: string;
+    field_name?: string;
+    field_value?: string | number;
+    notification_message?: string;
+    notify_user_id?: string;
     tag?: string;
   };
 }
 
 export interface AutomationRule {
-  id: string;
+  uid: string;
   name: string;
   description?: string;
   enabled: boolean;
-  triggerSource: TriggerSource;
-  triggerEvent: TriggerEvent;
-  triggerConfig?: {
-    daysThreshold?: number;
-    stageId?: string;
+  trigger_source: TriggerSource;
+  trigger_event: TriggerEvent;
+  trigger_config?: {
+    days_threshold?: number;
+    stage_id?: string;
   };
-  conditionGroups: ConditionGroup[];
+  condition_groups: ConditionGroup[];
   actions: AutomationAction[];
-  runCount: number;
-  lastRunAt?: string;
-  createdAt: string;
+  run_count: number;
+  last_run_at?: string;
+  created_at: string;
 }
 
 export type AssignmentRuleType = 'round_robin' | 'geographic' | 'manual';
@@ -143,15 +143,15 @@ export const ASSIGNMENT_RULE_TYPE_LABELS: Record<AssignmentRuleType, string> = {
 };
 
 export interface AssignmentRule {
-  id: string;
+  uid: string;
   name: string;
   type: AssignmentRuleType;
   enabled: boolean;
   description?: string;
-  userIds: string[];
-  geoMapping?: Record<string, string[]>;
-  roundRobinIndex: number;
-  createdAt: string;
+  user_ids: string[];
+  geo_mapping?: Record<string, string[]>;
+  round_robin_index: number;
+  created_at: string;
 }
 
 export type ValidationStatus = 'unvalidated' | 'validated' | 'review_required';
@@ -167,7 +167,7 @@ export interface LinkedInProfile {
   title?: string;
   company?: string;
   location?: string;
-  validationScore: number;
-  validationStatus: ValidationStatus;
-  lastChecked?: string;
+  validation_score: number;
+  validation_status: ValidationStatus;
+  last_checked?: string;
 }

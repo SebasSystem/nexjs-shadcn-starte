@@ -1,64 +1,69 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from 'src/lib/query-keys';
 
 import { teamsService } from '../services/teams.service';
-import type { Equipo, MiembroEquipo } from '../types/settings.types';
+import type { Team } from '../types/settings.types';
 
 export function useTeams() {
-  const [equipos, setEquipos] = useState<Equipo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchEquipos = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await teamsService.getAll();
-      setEquipos(data);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const { data: teams = [], isLoading } = useQuery({
+    queryKey: queryKeys.settings.teams,
+    queryFn: () => teamsService.getAll(),
+  });
 
-  useEffect(() => {
-    fetchEquipos();
-  }, [fetchEquipos]);
+  const createMutation = useMutation({
+    mutationFn: (data: Omit<Team, 'uid' | 'created_at' | 'members_count' | 'members'>) =>
+      teamsService.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.teams }),
+  });
 
-  const createEquipo = async (
-    data: Omit<Equipo, 'id' | 'creadoEn' | 'totalMiembros' | 'miembros'>
-  ): Promise<boolean> => {
-    try {
-      const newEquipo = await teamsService.create(data);
-      setEquipos((prev) => [...prev, newEquipo]);
+  const updateMutation = useMutation({
+    mutationFn: ({ uid, data }: { uid: string; data: Partial<Team> }) =>
+      teamsService.update(uid, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.teams }),
+  });
+
+  const addMemberMutation = useMutation({
+    mutationFn: ({ uid, userUid }: { uid: string; userUid: string }) =>
+      teamsService.addMember(uid, userUid),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.teams }),
+  });
+
+  const removeMemberMutation = useMutation({
+    mutationFn: ({ uid, userUid }: { uid: string; userUid: string }) =>
+      teamsService.removeMember(uid, userUid),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.teams }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (uid: string) => teamsService.delete(uid),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.teams }),
+  });
+
+  return {
+    teams,
+    isLoading,
+    createTeam: async (
+      data: Omit<Team, 'uid' | 'created_at' | 'members_count' | 'members'>
+    ): Promise<boolean> => {
+      await createMutation.mutateAsync(data);
       return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const updateEquipo = async (id: string, data: Partial<Equipo>): Promise<boolean> => {
-    try {
-      const updated = await teamsService.update(id, data);
-      setEquipos((prev) => prev.map((e) => (e.id === id ? updated : e)));
+    },
+    updateTeam: async (uid: string, data: Partial<Team>): Promise<boolean> => {
+      await updateMutation.mutateAsync({ uid, data });
       return true;
-    } catch {
-      return false;
-    }
+    },
+    addMember: async (uid: string, userUid: string): Promise<void> => {
+      await addMemberMutation.mutateAsync({ uid, userUid });
+    },
+    removeMember: async (uid: string, userUid: string): Promise<void> => {
+      await removeMemberMutation.mutateAsync({ uid, userUid });
+    },
+    deleteTeam: async (uid: string): Promise<void> => {
+      await deleteMutation.mutateAsync(uid);
+    },
   };
-
-  const addMember = async (equipoId: string, miembro: MiembroEquipo): Promise<void> => {
-    const updated = await teamsService.addMember(equipoId, miembro);
-    setEquipos((prev) => prev.map((e) => (e.id === equipoId ? updated : e)));
-  };
-
-  const removeMember = async (equipoId: string, usuarioId: string): Promise<void> => {
-    const updated = await teamsService.removeMember(equipoId, usuarioId);
-    setEquipos((prev) => prev.map((e) => (e.id === equipoId ? updated : e)));
-  };
-
-  const deleteEquipo = async (id: string): Promise<void> => {
-    await teamsService.delete(id);
-    setEquipos((prev) => prev.filter((e) => e.id !== id));
-  };
-
-  return { equipos, isLoading, createEquipo, updateEquipo, addMember, removeMember, deleteEquipo };
 }

@@ -16,6 +16,26 @@ function toDate(value: string | number | Date): Date {
 export { toDate };
 
 /**
+ * Returns the number of whole days between a date and now.
+ * Always returns a non-negative integer (0 if the date is in the future).
+ */
+export function diffDays(value: string | number | Date): number {
+  const now = Date.now();
+  const then = toDate(value).getTime();
+  return Math.max(0, Math.floor((now - then) / 86_400_000));
+}
+
+/**
+ * Returns the number of whole days between now and a future date.
+ * Returns 0 if the date is in the past.
+ */
+export function daysUntil(value: string | number | Date): number {
+  const now = Date.now();
+  const then = toDate(value).getTime();
+  return Math.max(0, Math.floor((then - now) / 86_400_000));
+}
+
+/**
  * Formats a date value as relative time: "Hace 2h", "Hace 3d", etc.
  * Returns "—" if value is null or undefined.
  */

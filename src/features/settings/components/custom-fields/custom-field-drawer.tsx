@@ -19,51 +19,51 @@ import {
 } from 'src/shared/components/ui/sheet';
 import { z } from 'zod';
 
-import type { CampoPersonalizado, ModuloCampo, TipoCampo } from '../../types/settings.types';
+import type { CustomField, CustomFieldModule, CustomFieldType } from '../../types/settings.types';
 
 const schema = z.object({
-  etiqueta: z.string().min(2, 'Requerido'),
-  nombre: z
+  label: z.string().min(2, 'Requerido'),
+  name: z
     .string()
     .min(2, 'Requerido')
     .regex(/^[a-z_]+$/, 'Solo minúsculas y guiones bajos'),
-  tipo: z.enum(['texto', 'numero', 'fecha', 'select', 'booleano']),
-  modulo: z.enum(['contactos', 'empresas', 'oportunidades', 'productos']),
-  requerido: z.boolean(),
+  type: z.enum(['text', 'number', 'date', 'select', 'boolean']),
+  module: z.enum(['contacts', 'companies', 'opportunities', 'products']),
+  required: z.boolean(),
 });
 
-type CampoForm = z.infer<typeof schema>;
+type FieldForm = z.infer<typeof schema>;
 
 interface CustomFieldDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  campo: CampoPersonalizado | null;
-  onSave: (data: Omit<CampoPersonalizado, 'id' | 'creadoEn'>) => Promise<boolean>;
+  field: CustomField | null;
+  onSave: (data: Omit<CustomField, 'uid' | 'created_at'>) => Promise<boolean>;
 }
 
-const TIPO_OPTIONS = [
-  { value: 'texto', label: 'Texto' },
-  { value: 'numero', label: 'Número' },
-  { value: 'fecha', label: 'Fecha' },
+const TYPE_OPTIONS = [
+  { value: 'text', label: 'Texto' },
+  { value: 'number', label: 'Número' },
+  { value: 'date', label: 'Fecha' },
   { value: 'select', label: 'Lista de opciones' },
-  { value: 'booleano', label: 'Sí / No' },
+  { value: 'boolean', label: 'Sí / No' },
 ];
 
-const MODULO_OPTIONS = [
-  { value: 'contactos', label: 'Contactos' },
-  { value: 'empresas', label: 'Empresas' },
-  { value: 'oportunidades', label: 'Oportunidades' },
-  { value: 'productos', label: 'Productos' },
+const MODULE_OPTIONS = [
+  { value: 'contacts', label: 'Contactos' },
+  { value: 'companies', label: 'Empresas' },
+  { value: 'opportunities', label: 'Oportunidades' },
+  { value: 'products', label: 'Productos' },
 ];
 
 export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
   isOpen,
   onClose,
-  campo,
+  field,
   onSave,
 }) => {
-  const [opciones, setOpciones] = useState<string[]>(campo?.opciones ?? []);
-  const [nuevaOpcion, setNuevaOpcion] = useState('');
+  const [options, setOptions] = useState<string[]>(() => field?.options ?? []);
+  const [newOption, setNewOption] = useState('');
 
   const {
     control,
@@ -71,65 +71,65 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
     reset,
     setValue,
     formState: { isValid, isSubmitting },
-  } = useForm<CampoForm>({
+  } = useForm<FieldForm>({
     resolver: zodResolver(schema),
     mode: 'onChange',
-    defaultValues: { tipo: 'texto', modulo: 'contactos', requerido: false },
+    defaultValues: { type: 'text', module: 'contacts', required: false },
   });
 
-  const tipoWatched = useWatch({ control, name: 'tipo' });
-  const etiquetaWatched = useWatch({ control, name: 'etiqueta' });
+  const typeWatched = useWatch({ control, name: 'type' });
+  const labelWatched = useWatch({ control, name: 'label' });
 
   useEffect(() => {
-    if (etiquetaWatched && !campo) {
-      const slug = etiquetaWatched
+    if (labelWatched && !field) {
+      const slug = labelWatched
         .toLowerCase()
         .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
+        .replace(/[\u0300-\u036f]/g, '')
         .replace(/\s+/g, '_')
         .replace(/[^a-z_]/g, '');
-      setValue('nombre', slug, { shouldValidate: true });
+      setValue('name', slug, { shouldValidate: true });
     }
-  }, [etiquetaWatched, campo, setValue]);
+  }, [labelWatched, field, setValue]);
 
   useEffect(() => {
     if (isOpen) {
-      if (campo) {
+      if (field) {
         reset({
-          etiqueta: campo.etiqueta,
-          nombre: campo.nombre,
-          tipo: campo.tipo,
-          modulo: campo.modulo,
-          requerido: campo.requerido,
+          label: field.label,
+          name: field.name,
+          type: field.type,
+          module: field.module,
+          required: field.required,
         });
       } else {
-        reset({ etiqueta: '', nombre: '', tipo: 'texto', modulo: 'contactos', requerido: false });
+        reset({ label: '', name: '', type: 'text', module: 'contacts', required: false });
       }
     }
-  }, [isOpen, campo, reset]);
+  }, [isOpen, field, reset]);
 
-  const onSubmit = async (data: CampoForm) => {
+  const onSubmit = async (data: FieldForm) => {
     const success = await onSave({
       ...data,
-      tipo: data.tipo as TipoCampo,
-      modulo: data.modulo as ModuloCampo,
-      opciones: data.tipo === 'select' ? opciones : undefined,
+      type: data.type as CustomFieldType,
+      module: data.module as CustomFieldModule,
+      options: data.type === 'select' ? options : undefined,
     });
     if (success) onClose();
   };
 
-  const addOpcion = () => {
-    if (nuevaOpcion.trim() && !opciones.includes(nuevaOpcion.trim())) {
-      setOpciones((prev) => [...prev, nuevaOpcion.trim()]);
-      setNuevaOpcion('');
+  const addOption = () => {
+    if (newOption.trim() && !options.includes(newOption.trim())) {
+      setOptions((prev) => [...prev, newOption.trim()]);
+      setNewOption('');
     }
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
+    <Sheet key={field?.uid ?? 'new'} open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[440px] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
-          <SheetTitle>{campo ? 'Editar Campo' : 'Nuevo Campo Personalizado'}</SheetTitle>
+          <SheetTitle>{field ? 'Editar Campo' : 'Nuevo Campo Personalizado'}</SheetTitle>
           <SheetDescription>Define el campo que se mostrará en el módulo</SheetDescription>
         </SheetHeader>
 
@@ -137,7 +137,7 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
           <div className="py-6 space-y-5">
             <FormInput
               control={control}
-              name="etiqueta"
+              name="label"
               label="Etiqueta (visible al usuario)"
               required
               placeholder="Ej. Código de Licitación"
@@ -145,7 +145,7 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
 
             <FormInput
               control={control}
-              name="nombre"
+              name="name"
               label="Nombre técnico"
               required
               hint="Solo minúsculas y guiones bajos"
@@ -155,39 +155,39 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <FormSelectField
                 control={control}
-                name="tipo"
+                name="type"
                 label="Tipo de dato"
                 required
-                options={TIPO_OPTIONS}
+                options={TYPE_OPTIONS}
               />
               <FormSelectField
                 control={control}
-                name="modulo"
+                name="module"
                 label="Módulo"
                 required
-                options={MODULO_OPTIONS}
+                options={MODULE_OPTIONS}
               />
             </div>
 
             <Controller
               control={control}
-              name="requerido"
-              render={({ field }) => (
+              name="required"
+              render={({ field: rf }) => (
                 <div className="flex items-center gap-3">
-                  <Checkbox id="requerido" checked={field.value} onCheckedChange={field.onChange} />
-                  <label htmlFor="requerido" className="text-sm font-medium cursor-pointer">
+                  <Checkbox id="required" checked={rf.value} onCheckedChange={rf.onChange} />
+                  <label htmlFor="required" className="text-sm font-medium cursor-pointer">
                     Campo requerido
                   </label>
                 </div>
               )}
             />
 
-            {tipoWatched === 'select' && (
+            {typeWatched === 'select' && (
               <div className="space-y-3 bg-muted/40 p-4 rounded-lg border border-border/40">
                 <h4 className="text-sm font-semibold text-foreground">Opciones de la lista</h4>
-                {opciones.length > 0 ? (
+                {options.length > 0 ? (
                   <div className="space-y-1.5">
-                    {opciones.map((op) => (
+                    {options.map((op) => (
                       <div
                         key={op}
                         className="flex items-center justify-between gap-2 bg-background px-3 py-2 rounded border border-border/40 text-sm"
@@ -195,8 +195,8 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
                         <span>{op}</span>
                         <button
                           type="button"
-                          onClick={() => setOpciones((prev) => prev.filter((o) => o !== op))}
-                          className="text-muted-foreground hover:text-destructive transition-colors"
+                          onClick={() => setOptions((prev) => prev.filter((o) => o !== op))}
+                          className="text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                         >
                           <Icon name="Trash2" size={13} />
                         </button>
@@ -209,9 +209,9 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <Input
-                      value={nuevaOpcion}
-                      onChange={(e) => setNuevaOpcion(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addOpcion())}
+                      value={newOption}
+                      onChange={(e) => setNewOption(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addOption())}
                       placeholder="Ej. VIP"
                       size="sm"
                     />
@@ -220,8 +220,8 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
                     type="button"
                     size="sm"
                     variant="outline"
-                    onClick={addOpcion}
-                    className="h-8 gap-1"
+                    onClick={addOption}
+                    className="h-8 gap-1 cursor-pointer"
                   >
                     <Icon name="Plus" size={13} /> Agregar
                   </Button>
@@ -232,13 +232,20 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
         </div>
 
         <SheetFooter>
-          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="cursor-pointer"
+          >
             Cancelar
           </Button>
           <Button
             type="button"
             onClick={handleSubmit(onSubmit)}
             disabled={!isValid || isSubmitting}
+            className="cursor-pointer"
           >
             {isSubmitting ? 'Guardando...' : 'Guardar Campo'}
           </Button>

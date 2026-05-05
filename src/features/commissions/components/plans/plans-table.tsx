@@ -16,15 +16,15 @@ import {
 import { Icon } from 'src/shared/components/ui/icon';
 import { SectionCard } from 'src/shared/components/ui/section-card';
 
-import { type PlanComision } from '../../types/commissions.types';
+import type { CommissionPlan } from '../../types/commissions.types';
 
 interface PlansTableProps {
-  planes: PlanComision[];
+  planes: CommissionPlan[];
   isLoading: boolean;
-  onEdit: (plan: PlanComision) => void;
+  onEdit: (plan: CommissionPlan) => void;
 }
 
-const columnHelper = createColumnHelper<PlanComision>();
+const columnHelper = createColumnHelper<CommissionPlan>();
 
 export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdit }) => {
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
@@ -42,7 +42,7 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
           const plan = info.row.original;
           return (
             <div className="text-muted-foreground w-4">
-              {expandedId === plan.id ? (
+              {expandedId === plan.uid ? (
                 <Icon name="ChevronDown" size={18} />
               ) : (
                 <Icon name="ChevronRight" size={18} />
@@ -51,27 +51,27 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
           );
         },
       }),
-      columnHelper.accessor('nombre', {
+      columnHelper.accessor('name', {
         header: 'Nombre del Plan',
         cell: (info) => <span className="font-medium text-foreground">{info.getValue()}</span>,
       }),
-      columnHelper.accessor('tipo', {
+      columnHelper.accessor('type', {
         header: 'Tipo',
         cell: (info) => {
-          const tipo = info.getValue();
-          if (tipo === 'VENTA')
+          const planType = info.getValue();
+          if (planType === 'VENTA')
             return (
               <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full">
                 Por Venta
               </span>
             );
-          if (tipo === 'MARGEN')
+          if (planType === 'MARGEN')
             return (
               <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">
                 Por Margen
               </span>
             );
-          if (tipo === 'META')
+          if (planType === 'META')
             return (
               <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-1 rounded-full">
                 Por Meta
@@ -80,16 +80,16 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
           return null;
         },
       }),
-      columnHelper.accessor('porcentajeBase', {
+      columnHelper.accessor('base_percentage', {
         header: 'Base',
         cell: (info) => <span className="font-medium">{info.getValue()}%</span>,
       }),
-      columnHelper.accessor((row) => row.tramos.length, {
-        id: 'tramos',
+      columnHelper.accessor((row) => row.tiers.length, {
+        id: 'tiersCount',
         header: 'Tramos',
         cell: (info) => <span>{info.getValue()} config.</span>,
       }),
-      columnHelper.accessor('rolesAplicables', {
+      columnHelper.accessor('applicable_roles', {
         header: 'Rol Aplicable',
         cell: (info) => (
           <div className="flex gap-1 flex-wrap">
@@ -111,15 +111,15 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
           const plan = info.row.original;
           return (
             <span className="text-muted-foreground text-sm">
-              {format(new Date(plan.fechaInicio), 'dd/MM/yyyy')}
-              {plan.fechaFin
-                ? ` - ${format(new Date(plan.fechaFin), 'dd/MM/yyyy')}`
+              {format(new Date(plan.start_date), 'dd/MM/yyyy')}
+              {plan.end_date
+                ? ` - ${format(new Date(plan.end_date), 'dd/MM/yyyy')}`
                 : ' - Indefinido'}
             </span>
           );
         },
       }),
-      columnHelper.accessor('estado', {
+      columnHelper.accessor('status', {
         header: 'Estado',
         cell: (info) => {
           const val = info.getValue();
@@ -204,10 +204,10 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
           <TableBody dense={dense}>
             {table.getRowModel().rows.map((row) => {
               const plan = row.original;
-              const isExpanded = expandedId === plan.id;
+              const isExpanded = expandedId === plan.uid;
               return (
                 <React.Fragment key={row.id}>
-                  <TableRow onClick={() => toggleExpand(plan.id)}>
+                  <TableRow onClick={() => toggleExpand(plan.uid)}>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} className={!dense ? 'py-4' : undefined}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -227,10 +227,7 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
                             <thead className="bg-muted/20">
                               <tr>
                                 <th className="text-left py-2 px-6 font-medium text-xs text-muted-foreground uppercase">
-                                  Desde
-                                </th>
-                                <th className="text-left py-2 px-6 font-medium text-xs text-muted-foreground uppercase">
-                                  Hasta
+                                  Umbral
                                 </th>
                                 <th className="text-right py-2 px-6 font-medium text-xs text-muted-foreground uppercase">
                                   % Aplicado
@@ -238,18 +235,13 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
                               </tr>
                             </thead>
                             <TableBody>
-                              {plan.tramos.map((tramo, index) => (
-                                <TableRow key={tramo.id || index}>
+                              {plan.tiers.map((tier, index) => (
+                                <TableRow key={tier.uid || index}>
                                   <TableCell className="py-2.5 px-6">
-                                    ${tramo.desde.toLocaleString()}
-                                  </TableCell>
-                                  <TableCell className="py-2.5 px-6">
-                                    {tramo.hasta
-                                      ? `$${tramo.hasta.toLocaleString()}`
-                                      : 'Sin límite'}
+                                    ${tier.threshold.toLocaleString()}+
                                   </TableCell>
                                   <TableCell className="py-2.5 px-6 text-right font-medium text-blue-600">
-                                    {tramo.porcentajeAplicado}%
+                                    {tier.percentage}%
                                   </TableCell>
                                 </TableRow>
                               ))}
