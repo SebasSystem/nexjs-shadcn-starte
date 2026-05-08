@@ -1,9 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { cn } from 'src/lib/utils';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from 'src/shared/components/ui/accordion';
 import { Button } from 'src/shared/components/ui/button';
-import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import {
   Sheet,
@@ -15,50 +20,59 @@ import {
 } from 'src/shared/components/ui/sheet';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
-import type { ModulePermission, PermissionAction, Role } from '../../types/settings.types';
+import { usePermissions } from '../../hooks/use-roles';
+import type { Permission, Role } from '../../types/settings.types';
 
-const MODULES = [
-  { id: 'm1', name: 'Inventario' },
-  { id: 'm2', name: 'Ventas' },
-  { id: 'm3', name: 'Reportes' },
-  { id: 'm4', name: 'RH / Comisiones' },
-  { id: 'm5', name: 'Configuración' },
-];
-
-const ACTIONS: PermissionAction[] = ['ver', 'crear', 'editar', 'eliminar'];
+type RoleSavePayload = {
+  name: string;
+  description: string;
+  permission_uids: string[];
+};
 
 interface RoleDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   role: Role | null;
-  onSave: (data: Omit<Role, 'uid' | 'created_at' | 'total_users'>) => Promise<boolean>;
+  onSave: (data: RoleSavePayload) => Promise<boolean>;
+}
+
+function groupByModule(permissions: Permission[]): Map<string, Permission[]> {
+  const groups = new Map<string, Permission[]>();
+  for (const p of permissions) {
+    const existing = groups.get(p.module);
+    if (existing) {
+      existing.push(p);
+    } else {
+      groups.set(p.module, [p]);
+    }
+  }
+  return groups;
 }
 
 export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, onSave }) => {
+  const { data: permissions = [], isLoading: isLoadingPerms } = usePermissions();
+
   const [name, setName] = useState(role?.name ?? '');
   const [description, setDescription] = useState(role?.description ?? '');
-  const [permissions, setPermissions] = useState<ModulePermission[]>(
-    role?.permissions ??
-      MODULES.map((m) => ({ module_uid: m.id, module_name: m.name, actions: [] }))
-  );
+  const [selectedUids, setSelectedUids] = useState<string[]>(role?.permission_uids ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const toggleAction = (moduleUid: string, action: PermissionAction) => {
-    setPermissions((prev) =>
-      prev.map((p) => {
-        if (p.module_uid !== moduleUid) return p;
-        const has = p.actions.includes(action);
-        let newActions = has ? p.actions.filter((a) => a !== action) : [...p.actions, action];
-        if (newActions.some((a) => a !== 'ver') && !newActions.includes('ver')) {
-          newActions = ['ver', ...newActions];
-        }
-        return { ...p, actions: newActions };
-      })
+  // Re-initialize state when the drawer opens for a different role
+  React.useEffect(() => {
+    if (isOpen) {
+      setName(role?.name ?? '');
+      setDescription(role?.description ?? '');
+      setSelectedUids(role?.permission_uids ?? []);
+    }
+  }, [isOpen, role]);
+
+  const grouped = useMemo(() => groupByModule(permissions), [permissions]);
+
+  const toggleUid = (uid: string) => {
+    setSelectedUids((prev) =>
+      prev.includes(uid) ? prev.filter((u) => u !== uid) : [...prev, uid]
     );
   };
-
-  const hasAction = (moduleUid: string, action: PermissionAction) =>
-    permissions.find((p) => p.module_uid === moduleUid)?.actions.includes(action) ?? false;
 
   const handleSave = async () => {
     if (!name.trim()) return;
@@ -66,8 +80,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
     const success = await onSave({
       name,
       description,
-      permissions: permissions.filter((p) => p.actions.length > 0),
-      is_default: false,
+      permission_uids: selectedUids,
     });
     setIsSubmitting(false);
     if (success) onClose();
@@ -78,7 +91,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
       <SheetContent side="right" className="sm:max-w-[520px] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
           <SheetTitle>{role ? 'Editar Rol' : 'Nuevo Rol'}</SheetTitle>
-          <SheetDescription>Define el nombre y los permisos por módulo</SheetDescription>
+          <SheetDescription>Define el nombre y los permisos del rol</SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
@@ -101,61 +114,87 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
 
             <div className="space-y-3">
               <h3 className="text-sm font-bold uppercase text-muted-foreground tracking-wider">
-                Permisos por módulo
+                Permisos
               </h3>
-              <div className="border border-border rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-muted/40 border-b border-border">
-                      <th className="text-left py-2.5 px-4 font-semibold text-foreground w-[40%]">
-                        Módulo
-                      </th>
-                      {ACTIONS.map((a) => (
-                        <th
-                          key={a}
-                          className="text-center py-2.5 px-2 font-semibold text-foreground capitalize w-[15%]"
-                        >
-                          {a}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {MODULES.map((modulo, idx) => (
-                      <tr
-                        key={modulo.id}
-                        className={cn(
-                          'border-b border-border/40',
-                          idx % 2 === 0 ? 'bg-background' : 'bg-muted/20'
-                        )}
-                      >
-                        <td className="py-2.5 px-4 font-medium text-foreground">{modulo.name}</td>
-                        {ACTIONS.map((action) => (
-                          <td key={action} className="py-2.5 px-2 text-center">
-                            <button
-                              type="button"
-                              onClick={() => toggleAction(modulo.id, action)}
-                              className={cn(
-                                'w-6 h-6 rounded border-2 flex items-center justify-center mx-auto transition-colors cursor-pointer',
-                                hasAction(modulo.id, action)
-                                  ? 'bg-primary border-primary text-primary-foreground'
-                                  : 'border-border bg-background hover:border-primary/50'
-                              )}
-                            >
-                              {hasAction(modulo.id, action) && (
-                                <Icon name="Check" size={12} strokeWidth={3} />
-                              )}
-                            </button>
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                * &quot;Ver&quot; se activa automáticamente cuando se asigna cualquier otra acción.
-              </p>
+
+              {isLoadingPerms ? (
+                <div className="space-y-3 animate-pulse">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="h-12 bg-muted/40 rounded-lg w-full" />
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <Accordion type="multiple" className="border border-border rounded-lg">
+                    {[...grouped.entries()].map(([module, modulePerms]) => {
+                      const selectedCount = modulePerms.filter((p) =>
+                        selectedUids.includes(p.uid)
+                      ).length;
+                      const totalCount = modulePerms.length;
+
+                      return (
+                        <AccordionItem key={module} value={module}>
+                          <AccordionTrigger className="px-4 hover:no-underline hover:bg-muted/30">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium capitalize">{module}</span>
+                              <span
+                                className={cn(
+                                  'text-xs rounded-full px-2 py-0.5',
+                                  selectedCount > 0
+                                    ? 'bg-primary/10 text-primary'
+                                    : 'bg-muted text-muted-foreground'
+                                )}
+                              >
+                                {selectedCount}/{totalCount}
+                              </span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-4">
+                            <div className="space-y-2">
+                              {modulePerms.map((perm) => {
+                                const isChecked = selectedUids.includes(perm.uid);
+
+                                return (
+                                  <label
+                                    key={perm.uid}
+                                    className={cn(
+                                      'flex items-center gap-3 rounded-md px-3 py-2 cursor-pointer transition-colors',
+                                      isChecked ? 'bg-primary/5' : 'hover:bg-muted/30'
+                                    )}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => toggleUid(perm.uid)}
+                                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <span className="text-sm font-medium text-foreground capitalize">
+                                        {perm.action}
+                                      </span>
+                                      {perm.description && (
+                                        <p className="text-xs text-muted-foreground truncate">
+                                          {perm.description}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      );
+                    })}
+                  </Accordion>
+
+                  <p className="text-xs text-muted-foreground">
+                    {selectedUids.length} permiso
+                    {selectedUids.length !== 1 ? 's' : ''} seleccionado
+                    {selectedUids.length !== 1 ? 's' : ''}
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -164,7 +203,11 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="button" onClick={handleSave} disabled={!name.trim() || isSubmitting}>
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={!name.trim() || isSubmitting || isLoadingPerms}
+          >
             {isSubmitting ? 'Guardando...' : 'Guardar Rol'}
           </Button>
         </SheetFooter>

@@ -9,18 +9,31 @@ export interface SettingsUser {
   uid: string;
   name: string;
   email: string;
-  role_uid: string;
-  role_name: string;
+  role_uid?: string;
+  role_name?: string;
   team_uid?: string;
   team_name?: string;
   status: UserStatus;
-  last_access_at: string;
+  is_active?: boolean;
+  last_login_at: string;
   created_at: string;
 }
 
 // ── Roles & Permissions ────────────────────────────────────────────────────
+
+/** New backend-aligned Permission type (replaces ModulePermission) */
+export interface Permission {
+  uid: string;
+  key: string;
+  module: string;
+  action: string;
+  description: string;
+}
+
+/** @deprecated Use Permission instead — backend expects per-permission UIDs */
 export type PermissionAction = 'ver' | 'crear' | 'editar' | 'eliminar';
 
+/** @deprecated Use Permission[] + permission_uids instead */
 export interface ModulePermission {
   module_uid: string;
   module_name: string;
@@ -31,9 +44,11 @@ export interface Role {
   uid: string;
   name: string;
   description: string;
-  total_users: number;
-  permissions: ModulePermission[];
-  is_default: boolean;
+  total_users?: number;
+  /** @deprecated Use permission_uids instead */
+  permissions?: ModulePermission[];
+  permission_uids?: string[];
+  is_system: boolean;
   created_at: string;
 }
 

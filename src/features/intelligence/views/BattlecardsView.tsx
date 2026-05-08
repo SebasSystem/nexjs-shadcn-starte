@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { PageContainer, PageHeader, StatsCard } from 'src/shared/components/layouts/page';
 import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+import { PaginationBar } from 'src/shared/components/ui/PaginationBar';
 
 import { BattlecardCard } from '../components/BattlecardCard';
 import { BattlecardDrawer } from '../components/BattlecardDrawer';
@@ -19,8 +20,15 @@ const TIER_OPTIONS = [
 ];
 
 export function BattlecardsView() {
-  const { battlecards, stats, competitors, createBattlecard, updateBattlecard, deleteBattlecard } =
-    useIntelligence();
+  const {
+    battlecards,
+    stats,
+    competitors,
+    createBattlecard,
+    updateBattlecard,
+    deleteBattlecard,
+    battlecardsPagination,
+  } = useIntelligence();
 
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState('');
@@ -131,16 +139,23 @@ export function BattlecardsView() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((bc) => (
-            <BattlecardCard
-              key={bc.uid}
-              battlecard={bc}
-              onEdit={handleEdit}
-              onDelete={deleteBattlecard}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filtered.map((bc) => (
+              <BattlecardCard
+                key={bc.uid}
+                battlecard={bc}
+                onEdit={handleEdit}
+                onDelete={deleteBattlecard}
+              />
+            ))}
+          </div>
+          <PaginationBar
+            page={battlecardsPagination.page}
+            totalPages={Math.ceil(battlecardsPagination.total / battlecardsPagination.rowsPerPage)}
+            onPageChange={battlecardsPagination.onChangePage}
+          />
+        </>
       )}
 
       <BattlecardDrawer

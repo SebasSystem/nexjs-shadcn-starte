@@ -24,6 +24,12 @@ interface BillingTableProps {
   isLoading?: boolean;
   onViewDetail: (factura: Factura) => void;
   onMarcarPagadas: (ids: string[]) => Promise<void>;
+  /** Server-side pagination (optional — falls back to client-side) */
+  total?: number;
+  pageIndex?: number;
+  pageSize?: number;
+  onPageChange?: (pageIndex: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 export function BillingTable({
@@ -31,6 +37,11 @@ export function BillingTable({
   isLoading,
   onViewDetail,
   onMarcarPagadas,
+  total,
+  pageIndex,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
 }: BillingTableProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -61,6 +72,11 @@ export function BillingTable({
   const { table, dense, onChangeDense } = useTable({
     data: isLoading ? [] : facturas,
     columns: COLUMNS,
+    total,
+    pageIndex,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
     defaultRowsPerPage: 10,
   });
 
@@ -96,7 +112,12 @@ export function BillingTable({
         </Table>
       </TableContainer>
       <div className="border-t border-border/40">
-        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        <TablePaginationCustom
+          table={table}
+          dense={dense}
+          onChangeDense={onChangeDense}
+          total={total}
+        />
       </div>
 
       {selected.length > 0 && (

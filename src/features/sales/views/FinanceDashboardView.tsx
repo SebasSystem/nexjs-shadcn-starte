@@ -57,7 +57,7 @@ export function FinanceDashboardView() {
   const { dashboard, isLoading } = useFinanceDashboard();
   const [activeDateFilter, setActiveDateFilter] = useState('Este mes');
 
-  const { stats, weekly_sales, recent_invoices } = dashboard;
+  const { weekly_sales = [], recent_invoices = [] } = dashboard ?? {};
 
   const chartOptions: ApexCharts.ApexOptions = useMemo(
     () => ({
@@ -165,6 +165,10 @@ export function FinanceDashboardView() {
         statsCount={4}
       />
     );
+
+  if (!dashboard) return null; // guard against undefined before data arrives
+
+  const { stats } = dashboard;
 
   return (
     <PageContainer className="pb-10">

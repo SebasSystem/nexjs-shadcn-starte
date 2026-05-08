@@ -12,7 +12,7 @@ export const roleSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   description: z.string().optional(),
   permissions: z.array(modulePermissionSchema).min(1, 'Al menos un permiso requerido'),
-  is_default: z.boolean().default(false),
+  is_system: z.boolean().default(false),
 });
 
 export type RoleFormData = z.infer<typeof roleSchema>;

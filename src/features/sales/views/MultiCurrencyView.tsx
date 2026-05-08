@@ -36,7 +36,7 @@ const columnHelper = createColumnHelper<CurrencyRate>();
 // ─── View ─────────────────────────────────────────────────────────────────────
 
 export function MultiCurrencyView() {
-  const { rates, setRates, isLoading } = useCurrencyRates();
+  const { rates, setRates, isLoading, pagination } = useCurrencyRates();
   const [baseCurrency, setBaseCurrency] = useState(() => getCurrencyPreferences('tenant').currency);
 
   const updateRate = useCallback(
@@ -130,6 +130,11 @@ export function MultiCurrencyView() {
     data: rates,
     columns,
     defaultRowsPerPage: 10,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
   });
 
   if (isLoading)
@@ -196,7 +201,12 @@ export function MultiCurrencyView() {
         </div>
 
         <div className="border-t border-border/40">
-          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+          <TablePaginationCustom
+            table={table}
+            dense={dense}
+            onChangeDense={onChangeDense}
+            total={pagination.total}
+          />
         </div>
       </SectionCard>
 

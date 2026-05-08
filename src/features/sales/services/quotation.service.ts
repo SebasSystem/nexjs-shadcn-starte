@@ -1,11 +1,12 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
+import { type PaginationParams } from 'src/shared/lib/pagination';
 
 import type { Quotation, QuotationItem } from '../types/sales.types';
 
 export const quotationService = {
-  async getList(): Promise<Quotation[]> {
-    const res = await axiosInstance.get(endpoints.sales.quotations);
-    return res.data.data;
+  async getList(params?: PaginationParams): Promise<Quotation[]> {
+    const res = await axiosInstance.get(endpoints.sales.quotations, { params });
+    return res.data; // full response — callers extract .data for the array
   },
 
   async getOne(uid: string): Promise<Quotation> {

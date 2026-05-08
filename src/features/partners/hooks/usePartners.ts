@@ -3,20 +3,33 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { queryKeys } from 'src/lib/query-keys';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { partnersService } from '../services/partners.service';
-import type { PartnerOpportunityPayload, PartnerPayload, PortalMaterialPayload } from '../types';
+import type {
+  Partner,
+  PartnerOpportunityPayload,
+  PartnerPayload,
+  PortalMaterialPayload,
+} from '../types';
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function usePartners() {
   const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
   // ── Queries ─────────────────────────────────────────────────────────────
 
   const { data: partners = [], isLoading: loadingPartners } = useQuery({
-    queryKey: queryKeys.partners.partners.list,
-    queryFn: () => partnersService.partners.list(),
+    queryKey: [...queryKeys.partners.partners.list, pagination.params],
+    queryFn: async () => {
+      const res = await partnersService.partners.list(pagination.params);
+      const meta = extractPaginationMeta(res as Record<string, unknown>);
+      if (meta) pagination.setTotal(meta.total);
+      return ((res as Record<string, unknown>).data ?? []) as Partner[];
+    },
   });
 
   const { data: opportunities = [], isLoading: loadingOpportunities } = useQuery({
@@ -117,9 +130,9 @@ export function usePartners() {
     }
   };
 
-  const validateOpportunity = async (uids: string[]): Promise<boolean> => {
+  const approveOpportunity = async (uid: string): Promise<boolean> => {
     try {
-      await partnersService.opportunities.validate(uids);
+      await partnersService.opportunities.approve(uid);
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.opportunities.list });
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.partners.list });
       return true;
@@ -128,9 +141,20 @@ export function usePartners() {
     }
   };
 
-  const closeOpportunity = async (uid: string): Promise<boolean> => {
+  const rejectOpportunity = async (uid: string): Promise<boolean> => {
     try {
-      await partnersService.opportunities.close(uid);
+      await partnersService.opportunities.reject(uid);
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.opportunities.list });
+      queryClient.invalidateQueries({ queryKey: queryKeys.partners.partners.list });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const convertOpportunity = async (uid: string): Promise<boolean> => {
+    try {
+      await partnersService.opportunities.convert(uid);
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.opportunities.list });
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.partners.list });
       return true;
@@ -189,10 +213,18 @@ export function usePartners() {
     removePartner,
     createOpportunity,
     updateOpportunity,
-    validateOpportunity,
-    closeOpportunity,
+    approveOpportunity,
+    rejectOpportunity,
+    convertOpportunity,
     removeOpportunity,
     createMaterial,
     removeMaterial,
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
   };
 }

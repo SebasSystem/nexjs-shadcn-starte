@@ -20,7 +20,8 @@ const MODULE_LABELS: Record<CustomFieldModule, string> = {
 const MODULES = Object.keys(MODULE_LABELS) as CustomFieldModule[];
 
 export const CustomFieldsView = () => {
-  const { fields, isLoading, createField, updateField, deleteField } = useCustomFields();
+  const { fields, isLoading, createField, updateField, deleteField, pagination } =
+    useCustomFields();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedField, setSelectedField] = useState<CustomField | null>(null);
   const [filterModule, setFilterModule] = useState<CustomFieldModule | 'ALL'>('ALL');
@@ -129,6 +130,11 @@ export const CustomFieldsView = () => {
               fields={filtered}
               onEdit={handleEdit}
               onDelete={(f) => deleteField(f.uid)}
+              total={pagination.total}
+              pageIndex={pagination.page - 1}
+              pageSize={pagination.rowsPerPage}
+              onPageChange={(pi: number) => pagination.onChangePage(pi + 1)}
+              onPageSizeChange={pagination.onChangeRowsPerPage}
             />
             <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
               {filtered.length} campo{filtered.length !== 1 ? 's' : ''} personalizado

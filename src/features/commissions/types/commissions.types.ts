@@ -4,7 +4,7 @@ export type PlanStatus = 'ACTIVO' | 'INACTIVO';
 export interface CommissionTier {
   uid: string;
   threshold: number;
-  percentage: number;
+  percent: number;
 }
 
 export interface CommissionPlan {

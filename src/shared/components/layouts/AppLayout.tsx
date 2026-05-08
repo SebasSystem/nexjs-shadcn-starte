@@ -19,17 +19,19 @@ type Props = {
 };
 
 export function AppLayout({ children }: Props) {
-  const { user, hasPermission } = useAuthContext();
+  const { user } = useAuthContext();
   const { isMobileNavOpen, toggleMobileNav } = useUiStore();
   const pathname = usePathname();
 
-  // Cerrar menú mobile al cambiar de ruta
+  // Cerrar menú mobile SOLO al cambiar de ruta.
+  // toggleMobileNav/isMobileNavOpen se excluyen intencionalmente de las dependencias:
+  // agregarlos causaría que el menú se cierre en cada render cuando está abierto.
   useEffect(() => {
     if (isMobileNavOpen) toggleMobileNav();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  const navData = useNavData(hasPermission, user?.permissions ?? []);
+  const navData = useNavData();
 
   return (
     <LayoutSection

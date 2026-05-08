@@ -1,10 +1,11 @@
 import type { Factura } from 'src/features/admin/types/admin.types';
 import axiosInstance, { endpoints } from 'src/lib/axios';
+import { type PaginationParams } from 'src/shared/lib/pagination';
 
 export const billingService = {
-  async getAll(): Promise<Factura[]> {
-    const res = await axiosInstance.get(endpoints.admin.billing.list);
-    return res.data.data;
+  async getAll(params?: PaginationParams): Promise<Factura[]> {
+    const res = await axiosInstance.get(endpoints.admin.billing.list, { params });
+    return res.data; // full response — callers extract .data for the array
   },
   async marcarPagada(uid: string): Promise<Factura> {
     const res = await axiosInstance.post(endpoints.admin.billing.markPaid(uid));

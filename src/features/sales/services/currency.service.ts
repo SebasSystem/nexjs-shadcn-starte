@@ -1,4 +1,5 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
+import type { PaginationParams } from 'src/shared/lib/pagination';
 
 export type CurrencyConvertPayload = {
   from: string;
@@ -7,9 +8,9 @@ export type CurrencyConvertPayload = {
 };
 
 export const currencyService = {
-  async getRates() {
-    const res = await axiosInstance.get(endpoints.sales.currencyRates);
-    return res.data.data;
+  async getRates(params?: PaginationParams): Promise<unknown> {
+    const res = await axiosInstance.get(endpoints.sales.currencyRates, { params });
+    return res.data;
   },
 
   async convert(data: CurrencyConvertPayload) {

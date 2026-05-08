@@ -1,4 +1,4 @@
-import type { CompanySize, ContactStatus, ContactType } from '../../types/contacts.types';
+import type { ContactStatus, ContactType } from '../../types/contacts.types';
 
 export interface ContactDrawerFormData {
   type: ContactType;
@@ -11,7 +11,7 @@ export interface ContactDrawerFormData {
   // Company
   tax_id?: string | undefined;
   industry?: string | undefined;
-  company_size?: CompanySize | undefined;
+  company_size?: string | undefined;
   website?: string | undefined;
   // Person
   id_number?: string | undefined;

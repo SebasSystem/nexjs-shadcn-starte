@@ -78,8 +78,7 @@ function ProgressBarInner() {
   // Completar la barra cuando el pathname/searchParams cambian (navegación lista)
   useEffect(() => {
     finishProgress();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, searchParams]);
+  }, [pathname, searchParams, finishProgress]);
 
   return (
     <div

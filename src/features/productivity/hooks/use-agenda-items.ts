@@ -11,15 +11,17 @@ import { useActivities } from './use-activities';
 // ─── Map milestone status → ActivityStatus ──────────────────────────────────
 
 function milestoneStatusToActivityStatus(mStatus: string, dueDate: string): ActivityStatus {
-  if (mStatus === 'completed') return 'COMPLETED';
-  if (mStatus === 'delayed') return 'OVERDUE';
+  if (mStatus === 'completed') return 'completed';
+  if (mStatus === 'delayed') return 'overdue';
   const d = new Date(dueDate);
-  if (isPast(d) && !isToday(d)) return 'OVERDUE';
-  return 'PENDING';
+  if (isPast(d) && !isToday(d)) return 'overdue';
+  return 'pending';
 }
 
 // ─── Source badge config ──────────────────────────────────────────────────────
 
+// NOTE: SOURCE_CONFIG CSS class names are a frontend concern — not a backend gap.
+// Tailwind classes are static and belong here.
 export const SOURCE_CONFIG: Record<
   ActivitySource,
   { label: string; className: string } | undefined
@@ -55,7 +57,7 @@ export function useAgendaItems() {
       project.milestones.forEach((milestone) => {
         items.push({
           uid: `project-${milestone.uid}`,
-          type: 'TASK',
+          type: 'task',
           title: milestone.name,
           description: milestone.description,
           status: milestoneStatusToActivityStatus(milestone.status, milestone.due_date),

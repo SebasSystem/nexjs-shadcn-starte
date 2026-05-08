@@ -3,12 +3,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys } from 'src/lib/query-keys';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { commissionService } from '../services/commission.service';
-import type { CreateRulePayload, UpdateRulePayload } from '../types/commissions.types';
+import type {
+  CommissionRule,
+  CreateRulePayload,
+  UpdateRulePayload,
+} from '../types/commissions.types';
 
 export const useRules = () => {
   const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
   const {
     data: rules = [],
@@ -16,8 +23,13 @@ export const useRules = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: queryKeys.commissions.rules,
-    queryFn: () => commissionService.rules.list(),
+    queryKey: [...queryKeys.commissions.rules, pagination.params],
+    queryFn: async () => {
+      const res = await commissionService.rules.list(pagination.params);
+      const meta = extractPaginationMeta(res as Record<string, unknown>);
+      if (meta) pagination.setTotal(meta.total);
+      return ((res as Record<string, unknown>).data ?? []) as CommissionRule[];
+    },
   });
 
   const createMutation = useMutation({
@@ -62,6 +74,13 @@ export const useRules = () => {
     },
     deleteRule: async (uid: string) => {
       await deleteMutation.mutateAsync(uid);
+    },
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
     },
   };
 };

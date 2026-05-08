@@ -37,15 +37,7 @@ export interface Battlecard {
 
 // ─── Lost Reason ──────────────────────────────────────────────────────────────
 
-export type LostReasonCategory =
-  | 'price'
-  | 'features'
-  | 'relationship'
-  | 'support'
-  | 'timing'
-  | 'competitor'
-  | 'no_decision'
-  | 'other';
+export type LostReasonCategory = string;
 
 export interface LostReason {
   uid: string;
@@ -69,7 +61,7 @@ export interface IntelligenceStats {
   total_lost_deals: number;
   total_lost_amount: number;
   top_competitor: string;
-  top_lost_reason: LostReasonCategory;
+  top_lost_reason: string;
 }
 
 // ─── Heatmap ─────────────────────────────────────────────────────────────────
@@ -89,18 +81,3 @@ export const COMPETITOR_TIER_CONFIG: Record<CompetitorTier, { label: string; col
     indirect: { label: 'Indirecto', color: 'warning' },
     emerging: { label: 'Emergente', color: 'info' },
   };
-
-export const LOST_REASON_LABELS: Record<LostReasonCategory, string> = {
-  price: 'Precio',
-  features: 'Funcionalidades',
-  relationship: 'Relación previa',
-  support: 'Soporte / Implementación',
-  timing: 'Timing / Presupuesto',
-  competitor: 'Ganó la competencia',
-  no_decision: 'Sin decisión',
-  other: 'Otro',
-};
-
-export const LOST_REASON_OPTIONS = (
-  Object.entries(LOST_REASON_LABELS) as [LostReasonCategory, string][]
-).map(([value, label]) => ({ value, label }));

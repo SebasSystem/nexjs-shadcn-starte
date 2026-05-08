@@ -3,11 +3,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys } from 'src/lib/query-keys';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { commissionService } from '../services/commission.service';
+import type { CommissionEntry } from '../types/commissions.types';
 
 export const useEntries = () => {
   const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
   const {
     data: entries = [],
@@ -15,8 +19,13 @@ export const useEntries = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: queryKeys.commissions.entries,
-    queryFn: () => commissionService.entries.list(),
+    queryKey: [...queryKeys.commissions.entries, pagination.params],
+    queryFn: async () => {
+      const res = await commissionService.entries.list(pagination.params);
+      const meta = extractPaginationMeta(res as Record<string, unknown>);
+      if (meta) pagination.setTotal(meta.total);
+      return ((res as Record<string, unknown>).data ?? []) as CommissionEntry[];
+    },
   });
 
   const payMutation = useMutation({
@@ -36,6 +45,13 @@ export const useEntries = () => {
     fetchEntries: refetch,
     payEntry: async (uid: string) => {
       return await payMutation.mutateAsync(uid);
+    },
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
     },
   };
 };

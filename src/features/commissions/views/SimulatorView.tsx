@@ -94,7 +94,7 @@ export const SimulatorView = () => {
               >
                 {info.getValue()}
               </div>
-              <div className="text-xs text-muted-foreground">{row.rangeText}</div>
+              <div className="text-xs text-muted-foreground">{row.range_text}</div>
             </div>
           );
         },
@@ -113,7 +113,7 @@ export const SimulatorView = () => {
           </div>
         ),
       }),
-      columnHelper.accessor('commissionGenerated', {
+      columnHelper.accessor('commission_generated', {
         header: 'Comisión',
         cell: (info) => (
           <div className="text-right font-bold text-blue-600">
@@ -177,7 +177,7 @@ export const SimulatorView = () => {
                   <span className="text-indigo-700 font-medium">
                     Estás en {currentTier.tierInfo} — {currentTier.percent}% de comisión
                   </span>
-                  <span className="text-indigo-500 text-xs ml-auto">{currentTier.rangeText}</span>
+                  <span className="text-indigo-500 text-xs ml-auto">{currentTier.range_text}</span>
                 </div>
               )}
             </div>
@@ -316,7 +316,7 @@ export const SimulatorView = () => {
                     para entrar al <span className="font-bold">Tramo {siguienteTramo.numero}</span>{' '}
                     con{' '}
                     <span className="font-bold text-green-700">
-                      {siguienteTramo.tramo.percentage}%
+                      {siguienteTramo.tramo.percent}%
                     </span>{' '}
                     de comisión.
                   </p>
@@ -346,15 +346,14 @@ export const SimulatorView = () => {
                     </span>{' '}
                     más, tu tasa sube al{' '}
                     <span className="font-semibold text-green-700">
-                      {siguienteTramo.tramo.percentage}%
+                      {siguienteTramo.tramo.percent}%
                     </span>{' '}
                     — eso significa{' '}
                     <span className="font-bold text-blue-700">
                       +$
-                      {(
-                        siguienteTramo.faltaMonto *
-                        (siguienteTramo.tramo.percentage / 100)
-                      ).toFixed(2)}
+                      {(siguienteTramo.faltaMonto * (siguienteTramo.tramo.percent / 100)).toFixed(
+                        2
+                      )}
                     </span>{' '}
                     de comisión adicional por cada peso nuevo en ese tramo.
                   </p>

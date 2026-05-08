@@ -84,7 +84,7 @@ export function TenantDetailDrawer({
       setNewUserEmail('');
       setUsersPage(1);
     }
-  }, [tenant?.uid, isOpen]);
+  }, [tenant, isOpen]);
 
   const cargarUsuarios = async (page = 1) => {
     if (!tenant) return;

@@ -11,7 +11,7 @@ import { useTags } from '../hooks/use-tags';
 import type { Tag, TagForm } from '../types/tags.types';
 
 export const TagsView = () => {
-  const { tags, isLoading, createTag, updateTag, deleteTag } = useTags();
+  const { tags, isLoading, createTag, updateTag, deleteTag, pagination } = useTags();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
@@ -27,7 +27,7 @@ export const TagsView = () => {
   };
 
   const handleSave = async (form: TagForm): Promise<boolean> => {
-    if (selectedTag) return updateTag(selectedTag.id, form);
+    if (selectedTag) return updateTag(selectedTag.uid, form);
     return createTag(form);
   };
 
@@ -70,12 +70,21 @@ export const TagsView = () => {
             </Button>
           </div>
         ) : (
-          <TagsTable tags={tags} onEdit={handleEdit} onDelete={deleteTag} />
+          <TagsTable
+            tags={tags}
+            onEdit={handleEdit}
+            onDelete={deleteTag}
+            total={pagination.total}
+            pageIndex={pagination.page - 1}
+            pageSize={pagination.rowsPerPage}
+            onPageChange={(pi) => pagination.onChangePage(pi + 1)}
+            onPageSizeChange={pagination.onChangeRowsPerPage}
+          />
         )}
       </SectionCard>
 
       <TagDrawer
-        key={isDrawerOpen ? (selectedTag?.id ?? 'new') : 'closed'}
+        key={isDrawerOpen ? (selectedTag?.uid ?? 'new') : 'closed'}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         tag={selectedTag}

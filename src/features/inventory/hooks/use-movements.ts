@@ -6,12 +6,11 @@ import { inventoryStockService } from 'src/features/inventory/services/inventory
 import type {
   AdjustStockPayload,
   InventoryMovement,
-  MovementsSummary,
   TransferStockPayload,
 } from 'src/features/inventory/types/inventory.types';
 import { queryKeys } from 'src/lib/query-keys';
-
-const EMPTY_SUMMARY: MovementsSummary = { total: 0, entries: 0, transfers: 0, adjustments: 0 };
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 export function useMovements(filters?: {
   product_uid?: string;
@@ -19,19 +18,22 @@ export function useMovements(filters?: {
   type?: string;
 }) {
   const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
   const { data: items = [], isLoading } = useQuery({
-    queryKey: [...queryKeys.inventory.movements, filters],
+    queryKey: [...queryKeys.inventory.movements, filters, pagination.params],
     queryFn: async () => {
-      const result = await inventoryStockService.movements(filters);
-      return (Array.isArray(result) ? result : []) as InventoryMovement[];
+      const result = await inventoryStockService.movements({ ...filters, ...pagination.params });
+      const meta = extractPaginationMeta(result);
+      if (meta) pagination.setTotal(meta.total);
+      return ((result as unknown as { data?: InventoryMovement[] }).data ??
+        []) as InventoryMovement[];
     },
   });
 
-  const { data: summary = EMPTY_SUMMARY } = useQuery({
+  const { data: summary } = useQuery({
     queryKey: queryKeys.inventory.movementsSummary,
     queryFn: () => inventoryStockService.movementsSummary(),
-    placeholderData: EMPTY_SUMMARY,
   });
 
   const adjustMutation = useMutation({
@@ -64,5 +66,12 @@ export function useMovements(filters?: {
     },
     adjust: (payload: AdjustStockPayload) => adjustMutation.mutateAsync(payload),
     transfer: (payload: TransferStockPayload) => transferMutation.mutateAsync(payload),
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
   };
 }

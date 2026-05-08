@@ -1,0 +1,28 @@
+import axiosInstance, { endpoints } from 'src/lib/axios';
+
+import type { PurchaseOrder, PurchaseOrderPayload } from '../types/purchase-order.types';
+
+export const purchaseOrderService = {
+  async list(): Promise<{ data: PurchaseOrder[] }> {
+    const res = await axiosInstance.get(endpoints.purchases.list);
+    return res.data;
+  },
+  async get(uid: string): Promise<PurchaseOrder> {
+    const res = await axiosInstance.get(endpoints.purchases.detail(uid));
+    return res.data.data;
+  },
+  async create(payload: PurchaseOrderPayload): Promise<PurchaseOrder> {
+    const res = await axiosInstance.post(endpoints.purchases.create, payload);
+    return res.data.data;
+  },
+  async update(uid: string, payload: Partial<PurchaseOrderPayload>): Promise<PurchaseOrder> {
+    const res = await axiosInstance.put(endpoints.purchases.update(uid), payload);
+    return res.data.data;
+  },
+  async approve(uid: string): Promise<void> {
+    await axiosInstance.post(endpoints.purchases.approve(uid));
+  },
+  async markReceived(uid: string): Promise<void> {
+    await axiosInstance.post(endpoints.purchases.receive(uid));
+  },
+};

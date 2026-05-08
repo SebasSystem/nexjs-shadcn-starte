@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { endpoints } from 'src/lib/axios';
+import { downloadExport } from 'src/lib/export-service';
+import { ExportDropdown } from 'src/shared/components/export/ExportDropdown';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
@@ -29,6 +32,7 @@ export const ContactsView = () => {
     addRelacion,
     removeRelacion,
     deleteContacto,
+    pagination,
   } = useContacts();
 
   const [tab, setTab] = useState<'ALL' | ContactType>('ALL');
@@ -37,6 +41,7 @@ export const ContactsView = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedContacto, setSelectedContacto] = useState<Contact | null>(null);
+  const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
   const empresas = useMemo(() => contactos.filter((c) => c.type === 'company'), [contactos]);
 
@@ -82,6 +87,24 @@ export const ContactsView = () => {
     return createContacto(form);
   };
 
+  const handleExport = async (format: 'excel' | 'pdf') => {
+    setExportLoading(format);
+    try {
+      await downloadExport({
+        endpoint: endpoints.contactsExport,
+        format,
+        filters: {
+          search,
+          type: tab !== 'ALL' ? tab : undefined,
+          status: filterStatus !== 'ALL' ? filterStatus : undefined,
+        },
+        filename: `contactos.${format === 'excel' ? 'xlsx' : 'pdf'}`,
+      });
+    } finally {
+      setExportLoading(null);
+    }
+  };
+
   // Sync selectedContacto with latest data after mutations
   const currentContacto = selectedContacto
     ? (contactos.find((c) => c.uid === selectedContacto.uid) ?? selectedContacto)
@@ -93,10 +116,13 @@ export const ContactsView = () => {
         title="Directorio CRM"
         subtitle="Gestiona empresas, personas e instituciones de tu base comercial"
         action={
-          <Button color="primary" onClick={handleOpenNew} className="gap-2 cursor-pointer">
-            <Icon name="Plus" className="h-4 w-4" />
-            Nuevo contacto
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportDropdown onExport={handleExport} loading={exportLoading} />
+            <Button color="primary" onClick={handleOpenNew} className="gap-2 cursor-pointer">
+              <Icon name="Plus" className="h-4 w-4" />
+              Nuevo contacto
+            </Button>
+          </div>
         }
       />
 
@@ -159,6 +185,11 @@ export const ContactsView = () => {
               onEdit={handleEdit}
               onViewDetail={handleViewDetail}
               onDelete={(c) => deleteContacto(c.uid)}
+              total={pagination.total}
+              pageIndex={pagination.page - 1}
+              pageSize={pagination.rowsPerPage}
+              onPageChange={(pi) => pagination.onChangePage(pi + 1)}
+              onPageSizeChange={pagination.onChangeRowsPerPage}
             />
             <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
               {filtered.length} contacto{filtered.length !== 1 ? 's' : ''}

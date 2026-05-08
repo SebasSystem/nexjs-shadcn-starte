@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { billingService } from 'src/features/admin/services/billing.service';
 import { Factura } from 'src/features/admin/types/admin.types';
 import { cache } from 'src/lib/cache';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 const CACHE_KEY = 'admin:billing';
 
@@ -11,17 +13,21 @@ export function useBilling() {
   const cached = cache.get<Factura[]>(CACHE_KEY);
   const [facturas, setFacturas] = useState<Factura[]>(cached ?? []);
   const [isLoading, setIsLoading] = useState(!cached);
+  const pagination = usePaginationParams();
 
   const fetchFacturas = useCallback(async () => {
     setIsLoading(!cached);
     try {
-      const data = await billingService.getAll();
+      const res = await billingService.getAll(pagination.params);
+      const meta = extractPaginationMeta(res);
+      if (meta) pagination.setTotal(meta.total);
+      const data = ((res as unknown as { data?: Factura[] }).data ?? []) as Factura[];
       cache.set(CACHE_KEY, data);
       setFacturas(data);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [cached, pagination]);
 
   useEffect(() => {
     fetchFacturas();
@@ -46,5 +52,18 @@ export function useBilling() {
     return updated;
   }, []);
 
-  return { facturas, isLoading, refetch: fetchFacturas, marcarPagada, marcarPagadas };
+  return {
+    facturas,
+    isLoading,
+    refetch: fetchFacturas,
+    marcarPagada,
+    marcarPagadas,
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
+  };
 }

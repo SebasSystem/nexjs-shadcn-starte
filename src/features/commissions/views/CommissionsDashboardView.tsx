@@ -40,7 +40,7 @@ export const CommissionsDashboardView = () => {
           </div>
         ),
       }),
-      columnHelper.accessor('commissionGenerated', {
+      columnHelper.accessor('commission_generated', {
         header: 'Comisión Gen.',
         cell: (info) => (
           <div className="text-right font-bold text-blue-600">
@@ -86,7 +86,10 @@ export const CommissionsDashboardView = () => {
     );
   }
 
-  const porcentajeMeta = Math.min(Math.round((kpis.achievedSales / kpis.monthlyTarget) * 100), 100);
+  const porcentajeMeta = Math.min(
+    Math.round((kpis.achieved_sales / kpis.monthly_target) * 100),
+    100
+  );
 
   return (
     <PageContainer fluid className="pb-10 min-w-0 w-full space-y-6">
@@ -104,7 +107,7 @@ export const CommissionsDashboardView = () => {
             </span>
             <Icon name="Target" className="text-blue-500" size={20} />
           </div>
-          <div className="text-3xl font-bold">${kpis.monthlyTarget.toLocaleString()}</div>
+          <div className="text-3xl font-bold">${kpis.monthly_target.toLocaleString()}</div>
           <div className="text-xs text-muted-foreground mt-2">Periodo actual</div>
         </SectionCard>
 
@@ -118,7 +121,7 @@ export const CommissionsDashboardView = () => {
           <div
             className={`text-3xl font-bold ${porcentajeMeta >= 50 ? 'text-green-600' : 'text-foreground'}`}
           >
-            ${kpis.achievedSales.toLocaleString()}
+            ${kpis.achieved_sales.toLocaleString()}
           </div>
           <div className="text-xs text-muted-foreground mt-2 font-medium">
             {porcentajeMeta}% de la meta
@@ -139,7 +142,7 @@ export const CommissionsDashboardView = () => {
             <Icon name="DollarSign" className="text-yellow-600" size={20} />
           </div>
           <div className="text-3xl font-bold text-blue-600 h-[36px]">
-            ${kpis.projectedCommission.toLocaleString()}
+            ${kpis.projected_commission.toLocaleString()}
           </div>
           <div className="text-xs text-muted-foreground mt-2">Basado en ventas actuales</div>
         </SectionCard>
@@ -152,7 +155,7 @@ export const CommissionsDashboardView = () => {
             <Icon name="CheckCircle2" className="text-green-500" size={20} />
           </div>
           <div className="text-3xl font-bold text-green-700 h-[36px]">
-            ${kpis.liquidatedCommission.toLocaleString()}
+            ${kpis.liquidated_commission.toLocaleString()}
           </div>
           <div className="text-xs text-muted-foreground mt-2">Periodos anteriores</div>
         </SectionCard>
@@ -189,7 +192,7 @@ export const CommissionsDashboardView = () => {
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-2 font-medium">
-            ${kpis.achievedSales.toLocaleString()} / ${kpis.monthlyTarget.toLocaleString()}
+            ${kpis.achieved_sales.toLocaleString()} / ${kpis.monthly_target.toLocaleString()}
           </p>
         </SectionCard>
 
@@ -211,7 +214,7 @@ export const CommissionsDashboardView = () => {
                   >
                     {tier.name} • {tier.percent}%
                   </span>
-                  <span className="text-muted-foreground text-xs">{tier.rangeText}</span>
+                  <span className="text-muted-foreground text-xs">{tier.range_text}</span>
                 </div>
 
                 <div className="w-full bg-muted rounded-full h-2">
@@ -230,7 +233,7 @@ export const CommissionsDashboardView = () => {
                 <div className="flex justify-between items-center text-xs text-muted-foreground">
                   <span>
                     {tier.status === 'IN_PROGRESS'
-                      ? `$${tier.amountAchieved.toLocaleString()} de $${tier.amountTarget.toLocaleString()}`
+                      ? `$${tier.amount_achieved.toLocaleString()} de $${tier.amount_target.toLocaleString()}`
                       : tier.status === 'PENDING'
                         ? 'Por desbloquear'
                         : 'Completado'}

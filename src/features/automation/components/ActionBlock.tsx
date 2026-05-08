@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { useFieldArray } from 'react-hook-form';
 import { SectionCard } from 'src/shared/components/layouts/page';
@@ -7,6 +8,7 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
+import { useTenantOptions } from 'src/shared/hooks/useTenantOptions';
 
 import type { RuleFormData } from '../schemas/rule.schema';
 import type { ActionType, AssignmentRule } from '../types';
@@ -20,13 +22,6 @@ const ACTION_OPTIONS = (Object.keys(ACTION_TYPE_LABELS) as ActionType[]).map((ke
 // TODO: Replace with backend users list
 const USER_OPTIONS: { value: string; label: string }[] = [];
 
-const ACTIVITY_TYPE_OPTIONS = [
-  { value: 'llamada', label: 'Llamada' },
-  { value: 'email', label: 'Email' },
-  { value: 'reunion', label: 'Reunión' },
-  { value: 'seguimiento', label: 'Seguimiento' },
-];
-
 interface ActionBlockProps {
   form: UseFormReturn<RuleFormData>;
   assignmentRules: AssignmentRule[];
@@ -37,6 +32,16 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
     control: form.control,
     name: 'actions',
   });
+
+  const { activityTypes } = useTenantOptions();
+
+  const activityTypeOptions = useMemo(() => {
+    const data = activityTypes.data as { uid: string; name: string }[] | undefined;
+    if (!data || data.length === 0) {
+      return [{ value: '', label: 'Cargando...' }];
+    }
+    return data.map((opt) => ({ value: opt.uid, label: opt.name }));
+  }, [activityTypes.data]);
 
   const ASSIGNMENT_RULE_OPTIONS = assignmentRules.map((r) => ({
     value: r.uid,
@@ -106,7 +111,7 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
                 <div className="space-y-3">
                   <SelectField
                     label="Tipo de actividad"
-                    options={ACTIVITY_TYPE_OPTIONS}
+                    options={activityTypeOptions}
                     value={form.watch(`actions.${index}.config.activity_type`) ?? ''}
                     onChange={(v) =>
                       form.setValue(`actions.${index}.config.activity_type`, v as string)

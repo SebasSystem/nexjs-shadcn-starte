@@ -9,19 +9,28 @@ import type {
   WarehouseListSummary,
 } from 'src/features/inventory/types/inventory.types';
 import { queryKeys } from 'src/lib/query-keys';
-
-const EMPTY_SUMMARY: WarehouseListSummary = { total_warehouses: 0, active_warehouses: 0 };
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 export function useWarehouses() {
   const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
   const { data: result } = useQuery({
-    queryKey: queryKeys.inventory.warehouses,
-    queryFn: () => inventoryWarehouseService.list(),
+    queryKey: [...queryKeys.inventory.warehouses, pagination.params],
+    queryFn: async () => {
+      const raw = await inventoryWarehouseService.listRaw(pagination.params);
+      const meta = extractPaginationMeta(raw);
+      if (meta) pagination.setTotal(meta.total);
+      return {
+        data: (raw as Record<string, unknown>).data as Warehouse[],
+        summary: (raw as Record<string, unknown>).summary as WarehouseListSummary,
+      };
+    },
   });
 
   const items: Warehouse[] = result?.data ?? [];
-  const summary: WarehouseListSummary = { ...EMPTY_SUMMARY, ...result?.summary };
+  const summary: WarehouseListSummary | undefined = result?.summary;
   const isLoading = !result;
 
   const createMutation = useMutation({
@@ -61,5 +70,12 @@ export function useWarehouses() {
     updateWarehouse: (uid: string, payload: Partial<CreateWarehousePayload>) =>
       updateMutation.mutateAsync({ uid, payload }),
     removeWarehouse: (uid: string) => removeMutation.mutateAsync(uid),
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
   };
 }

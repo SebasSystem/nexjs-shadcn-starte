@@ -4,15 +4,18 @@ import type {
   InventoryMasterResponse,
 } from 'src/features/inventory/types/inventory.types';
 import axiosInstance, { endpoints } from 'src/lib/axios';
+import { type PaginationParams } from 'src/shared/lib/pagination';
 
 export const inventoryProductService = {
-  async master(params?: {
-    category_uid?: string;
-    warehouse_uid?: string;
-    stock_state?: 'normal' | 'low' | 'out';
-  }): Promise<InventoryMasterResponse> {
+  async master(
+    params?: PaginationParams & {
+      category_uid?: string;
+      warehouse_uid?: string;
+      stock_state?: 'normal' | 'low' | 'out';
+    }
+  ): Promise<InventoryMasterResponse> {
     const res = await axiosInstance.get(endpoints.inventory.master, { params });
-    return res.data.data;
+    return res.data; // full response includes { data, summary, meta }
   },
 
   async list(): Promise<InventoryMasterItem[]> {

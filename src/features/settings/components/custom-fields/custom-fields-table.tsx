@@ -46,9 +46,23 @@ interface CustomFieldsTableProps {
   fields: CustomField[];
   onEdit: (field: CustomField) => void;
   onDelete: (field: CustomField) => void;
+  total?: number;
+  pageIndex?: number;
+  pageSize?: number;
+  onPageChange?: (pageIndex: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
-export function CustomFieldsTable({ fields, onEdit, onDelete }: CustomFieldsTableProps) {
+export function CustomFieldsTable({
+  fields,
+  onEdit,
+  onDelete,
+  total,
+  pageIndex,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}: CustomFieldsTableProps) {
   const COLUMNS = useMemo(
     () => [
       columnHelper.accessor('label', {
@@ -144,6 +158,11 @@ export function CustomFieldsTable({ fields, onEdit, onDelete }: CustomFieldsTabl
     data: fields,
     columns: COLUMNS,
     defaultRowsPerPage: 25,
+    total,
+    pageIndex,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
   });
 
   if (fields.length === 0) {
@@ -174,7 +193,12 @@ export function CustomFieldsTable({ fields, onEdit, onDelete }: CustomFieldsTabl
         </Table>
       </TableContainer>
       <div className="border-t border-border/40">
-        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        <TablePaginationCustom
+          table={table}
+          dense={dense}
+          onChangeDense={onChangeDense}
+          total={total}
+        />
       </div>
     </div>
   );

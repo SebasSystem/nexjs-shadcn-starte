@@ -15,7 +15,7 @@ import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
 export const AssignmentView = () => {
-  const { assignments, isLoading: isAsigLoading, updateAssignment } = useAssignment();
+  const { assignments, isLoading: isAsigLoading, updateAssignment, pagination } = useAssignment();
   const { plans } = usePlans();
 
   const [selectedAsignacion, setSelectedAsignacion] = useState<CommissionAssignment | null>(null);
@@ -101,6 +101,11 @@ export const AssignmentView = () => {
           isLoading={isAsigLoading}
           onEdit={handleEdit}
           onToggleStatus={handleToggleStatus}
+          total={pagination.total}
+          pageIndex={pagination.page - 1}
+          pageSize={pagination.rowsPerPage}
+          onPageChange={(pi: number) => pagination.onChangePage(pi + 1)}
+          onPageSizeChange={pagination.onChangeRowsPerPage}
         />
       </SectionCard>
 

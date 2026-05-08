@@ -16,7 +16,6 @@ import {
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
-import { Icon } from 'src/shared/components/ui/icon';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from 'src/shared/components/ui/dropdown-menu';
+import { Icon } from 'src/shared/components/ui/icon';
 
 import type { SettingsUser } from '../../types/settings.types';
 import { UserStatusBadge } from './user-status-badge';
@@ -44,9 +44,25 @@ interface UsersTableProps {
   onEdit: (user: SettingsUser) => void;
   onToggleStatus: (user: SettingsUser) => void;
   onDelete: (user: SettingsUser) => void;
+  /** Server-side pagination (optional — falls back to client-side) */
+  total?: number;
+  pageIndex?: number;
+  pageSize?: number;
+  onPageChange?: (pageIndex: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
-export function UsersTable({ users, onEdit, onToggleStatus, onDelete }: UsersTableProps) {
+export function UsersTable({
+  users,
+  onEdit,
+  onToggleStatus,
+  onDelete,
+  total,
+  pageIndex,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}: UsersTableProps) {
   const COLUMNS = useMemo(
     () => [
       columnHelper.accessor('name', {
@@ -86,7 +102,7 @@ export function UsersTable({ users, onEdit, onToggleStatus, onDelete }: UsersTab
         header: 'Estado',
         cell: (info) => <UserStatusBadge status={info.getValue()} />,
       }),
-      columnHelper.accessor('last_access_at', {
+      columnHelper.accessor('last_login_at', {
         header: 'Último acceso',
         cell: (info) => (
           <span className="text-body2 text-muted-foreground">
@@ -132,6 +148,11 @@ export function UsersTable({ users, onEdit, onToggleStatus, onDelete }: UsersTab
   const { table, dense, onChangeDense } = useTable({
     data: users,
     columns: COLUMNS,
+    total,
+    pageIndex,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
     defaultRowsPerPage: 10,
   });
 
@@ -163,7 +184,12 @@ export function UsersTable({ users, onEdit, onToggleStatus, onDelete }: UsersTab
         </Table>
       </TableContainer>
       <div className="border-t border-border/40">
-        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        <TablePaginationCustom
+          table={table}
+          dense={dense}
+          onChangeDense={onChangeDense}
+          total={total}
+        />
       </div>
     </div>
   );

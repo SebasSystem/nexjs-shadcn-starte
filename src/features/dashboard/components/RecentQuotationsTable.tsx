@@ -1,10 +1,12 @@
 'use client';
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import Link from 'next/link';
 import type { RecentQuotation } from 'src/features/dashboard/types/dashboard.types';
 import { formatMoney } from 'src/lib/currency';
 import { formatDate } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
+import { paths } from 'src/routes/paths';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import {
   Table,
@@ -118,9 +120,12 @@ export function RecentQuotationsTable({ recent_quotations }: Props) {
           <h2 className="text-lg font-bold text-foreground">Últimas Cotizaciones</h2>
           <p className="text-sm text-muted-foreground">Cotizaciones creadas recientemente</p>
         </div>
-        <button className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1 cursor-pointer">
+        <Link
+          href={paths.sales.finance.quotation}
+          className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+        >
           Ver todas <Icon name="ChevronRight" size={16} />
-        </button>
+        </Link>
       </div>
 
       <TableContainer className="relative">

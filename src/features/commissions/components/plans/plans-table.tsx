@@ -22,11 +22,25 @@ interface PlansTableProps {
   planes: CommissionPlan[];
   isLoading: boolean;
   onEdit: (plan: CommissionPlan) => void;
+  total?: number;
+  pageIndex?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
 }
 
 const columnHelper = createColumnHelper<CommissionPlan>();
 
-export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdit }) => {
+export const PlansTable: React.FC<PlansTableProps> = ({
+  planes,
+  isLoading,
+  onEdit,
+  total,
+  pageIndex,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}) => {
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
 
   const toggleExpand = (id: string) => {
@@ -169,6 +183,11 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
     data: planes,
     columns: COLUMNS,
     defaultRowsPerPage: 10,
+    total,
+    pageIndex,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
   });
 
   if (isLoading) {
@@ -241,7 +260,7 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
                                     ${tier.threshold.toLocaleString()}+
                                   </TableCell>
                                   <TableCell className="py-2.5 px-6 text-right font-medium text-blue-600">
-                                    {tier.percentage}%
+                                    {tier.percent}%
                                   </TableCell>
                                 </TableRow>
                               ))}
@@ -258,7 +277,12 @@ export const PlansTable: React.FC<PlansTableProps> = ({ planes, isLoading, onEdi
         </Table>
       </TableContainer>
       <div className="border-t border-border/40">
-        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        <TablePaginationCustom
+          table={table}
+          total={total}
+          dense={dense}
+          onChangeDense={onChangeDense}
+        />
       </div>
     </div>
   );

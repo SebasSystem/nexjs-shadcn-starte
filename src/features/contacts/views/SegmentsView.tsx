@@ -18,7 +18,8 @@ import type { Segment, SegmentPayload } from '../types/segments.types';
 
 export const SegmentsView = () => {
   const router = useRouter();
-  const { segments, isLoading, createSegment, updateSegment, deleteSegment } = useSegments();
+  const { segments, isLoading, createSegment, updateSegment, deleteSegment, pagination } =
+    useSegments();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedSegment, setSelectedSegment] = useState<Segment | null>(null);
@@ -114,6 +115,11 @@ export const SegmentsView = () => {
             onEdit={handleEdit}
             onDelete={deleteSegment}
             onView={handleView}
+            total={pagination.total}
+            pageIndex={pagination.page - 1}
+            pageSize={pagination.rowsPerPage}
+            onPageChange={(pi: number) => pagination.onChangePage(pi + 1)}
+            onPageSizeChange={pagination.onChangeRowsPerPage}
           />
         )}
       </SectionCard>

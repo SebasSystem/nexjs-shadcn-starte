@@ -11,7 +11,7 @@ export const contactSchema = z.object({
   // Company
   tax_id: z.string().optional(),
   industry: z.string().optional(),
-  company_size: z.enum(['micro', 'small', 'medium', 'large']).optional(),
+  company_size: z.string().optional(),
   website: z.string().optional(),
   // Person
   id_number: z.string().optional(),

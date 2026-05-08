@@ -20,6 +20,12 @@ interface TagsTableProps {
   tags: Tag[];
   onEdit: (tag: Tag) => void;
   onDelete: (id: string) => void;
+  /** Server-side pagination (optional — falls back to client-side) */
+  total?: number;
+  pageIndex?: number;
+  pageSize?: number;
+  onPageChange?: (pageIndex: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 const columnHelper = createColumnHelper<Tag>();
@@ -42,7 +48,16 @@ const EntityLabelMap: Record<TagEntity, string> = {
   COMPANY: 'Empresas',
 };
 
-export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) => {
+export const TagsTable: React.FC<TagsTableProps> = ({
+  tags,
+  onEdit,
+  onDelete,
+  total,
+  pageIndex,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}) => {
   const COLUMNS = useMemo(
     () => [
       columnHelper.accessor('name', {
@@ -60,10 +75,10 @@ export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) 
           );
         },
       }),
-      columnHelper.accessor('entities', {
+      columnHelper.accessor('entity_types', {
         header: 'Aplica en',
         cell: (info) => {
-          const entities = info.getValue() as TagEntity[];
+          const entities = (info.getValue() as TagEntity[]) ?? [];
           return (
             <div className="flex flex-wrap gap-1.5">
               {entities.map((e) => (
@@ -103,7 +118,7 @@ export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) 
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 hover:text-red-600 hover:bg-red-50"
-              onClick={() => onDelete(info.row.original.id)}
+              onClick={() => onDelete(info.row.original.uid)}
             >
               <Icon name="Trash2" size={16} />
             </Button>
@@ -117,6 +132,11 @@ export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) 
   const { table, dense, onChangeDense } = useTable({
     data: tags,
     columns: COLUMNS,
+    total,
+    pageIndex,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
     defaultRowsPerPage: 10,
   });
 
@@ -139,7 +159,12 @@ export const TagsTable: React.FC<TagsTableProps> = ({ tags, onEdit, onDelete }) 
         </Table>
       </TableContainer>
       <div className="border-t border-border/40">
-        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        <TablePaginationCustom
+          table={table}
+          dense={dense}
+          onChangeDense={onChangeDense}
+          total={total}
+        />
       </div>
     </div>
   );

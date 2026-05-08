@@ -18,7 +18,7 @@ import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
 export const BillingView = () => {
-  const { facturas, isLoading, marcarPagadas } = useBilling();
+  const { facturas, isLoading, marcarPagadas, pagination } = useBilling();
 
   const [search, setSearch] = useState('');
   const [filterPeriodo, setFilterPeriodo] = useState('ALL');
@@ -181,6 +181,11 @@ export const BillingView = () => {
           onMarcarPagadas={async (ids) => {
             await marcarPagadas(ids);
           }}
+          total={pagination.total}
+          pageIndex={pagination.page - 1}
+          pageSize={pagination.rowsPerPage}
+          onPageChange={(pi) => pagination.onChangePage(pi + 1)}
+          onPageSizeChange={pagination.onChangeRowsPerPage}
         />
       </SectionCard>
 

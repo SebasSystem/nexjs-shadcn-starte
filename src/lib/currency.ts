@@ -11,8 +11,8 @@ const STORAGE_KEYS: Record<CurrencyScope, string> = {
 };
 
 const DEFAULT_PREFS: CurrencyPreferences = {
-  currency: 'COP',
-  locale: 'es-CO',
+  currency: '',
+  locale: '',
 };
 
 function canUseStorage(): boolean {

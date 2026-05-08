@@ -25,7 +25,11 @@ export const RolesView = () => {
     setIsDrawerOpen(true);
   };
 
-  const handleSave = async (data: Omit<Role, 'uid' | 'created_at' | 'total_users'>) => {
+  const handleSave = async (data: {
+    name: string;
+    description: string;
+    permission_uids: string[];
+  }) => {
     if (selectedRole) return updateRole(selectedRole.uid, data);
     return createRole(data);
   };

@@ -16,11 +16,12 @@ import {
 } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
+import { PaginationBar } from 'src/shared/components/ui/PaginationBar';
 
 const SEVERIDAD_ORDER: Record<string, number> = { CRITICO: 0, ALTO: 1, MEDIO: 2, BAJO: 3 };
 
 export const TelemetryView = () => {
-  const { logs, alertas, stats, isLoading, toggleAlerta, updateAlerta, saveAlerta } =
+  const { logs, alertas, stats, isLoading, toggleAlerta, updateAlerta, saveAlerta, pagination } =
     useTelemetry();
 
   const [isAlertasOpen, setIsAlertasOpen] = useState(false);
@@ -92,14 +93,14 @@ export const TelemetryView = () => {
           <>
             <StatsCard
               title="Uptime Global"
-              value={`${stats.uptime_global_percent}%`}
+              value={`${stats?.uptime_global_percent ?? '—'}%`}
               trend="últimas 24h"
               icon={<Icon name="CheckCircle2" className="h-5 w-5" />}
               iconClassName="bg-emerald-500/10 text-emerald-600"
             />
             <StatsCard
               title="Errores 24h"
-              value={stats.errores_24h > 0 ? stats.errores_24h : errores24hTotal}
+              value={stats ? (stats.errores_24h > 0 ? stats.errores_24h : errores24hTotal) : errores24hTotal}
               trend="nivel ERROR en logs"
               trendUp={false}
               icon={<Icon name="AlertOctagon" className="h-5 w-5" />}
@@ -107,15 +108,15 @@ export const TelemetryView = () => {
             />
             <StatsCard
               title="Tenants con errores"
-              value={stats.tenants_with_errors || tenantsConErrores}
+              value={stats?.tenants_with_errors ?? tenantsConErrores}
               trend="con nivel ERROR"
               icon={<Icon name="Building2" className="h-5 w-5" />}
               iconClassName="bg-amber-500/10 text-amber-600"
             />
             <StatsCard
               title="Latencia P95"
-              value={stats.latencia_p95_ms != null ? `${stats.latencia_p95_ms}ms` : '—'}
-              trend={stats.latencia_p95_ms != null ? 'p95' : 'Pendiente de backend'}
+              value={stats?.latencia_p95_ms != null ? `${stats.latencia_p95_ms}ms` : '—'}
+              trend={stats?.latencia_p95_ms != null ? 'p95' : 'Pendiente de backend'}
               trendUp={false}
               icon={<Icon name="Zap" className="h-5 w-5" />}
               iconClassName="bg-purple-500/10 text-purple-600"
@@ -177,6 +178,12 @@ export const TelemetryView = () => {
         isOpen={isAlertasOpen}
         onClose={() => setIsAlertasOpen(false)}
         onSave={handleSaveAlerta}
+      />
+      <PaginationBar
+        page={pagination.page}
+        totalPages={Math.ceil(pagination.total / pagination.rowsPerPage)}
+        onPageChange={pagination.onChangePage}
+        className="mt-6"
       />
     </PageContainer>
   );

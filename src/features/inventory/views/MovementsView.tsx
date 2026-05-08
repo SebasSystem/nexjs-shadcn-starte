@@ -73,7 +73,7 @@ function MovementExpandedRow({ movement }: { movement: InventoryMovement }) {
 }
 
 export function MovementsView() {
-  const { items, summary, isLoading, refetch } = useMovements();
+  const { items, summary, isLoading, refetch, pagination } = useMovements();
   const { items: products } = useProducts();
   const { items: warehouses } = useWarehouses();
 
@@ -92,40 +92,42 @@ export function MovementsView() {
     });
   };
 
-  const statsCards = [
-    {
-      title: 'Movimientos este mes',
-      value: summary.total,
-      trend: 'este período',
-      trendUp: true,
-      icon: <Icon name="ArrowLeftRight" size={18} />,
-      iconClassName: 'bg-primary/10 text-primary',
-    },
-    {
-      title: 'Entradas',
-      value: summary.entries,
-      trend: 'este período',
-      trendUp: true,
-      icon: <Icon name="PackagePlus" size={18} />,
-      iconClassName: 'bg-success/10 text-success',
-    },
-    {
-      title: 'Traslados',
-      value: summary.transfers,
-      trend: 'este mes',
-      trendUp: true,
-      icon: <Icon name="ArrowLeftRight" size={18} />,
-      iconClassName: 'bg-info/10 text-info',
-    },
-    {
-      title: 'Ajustes manuales',
-      value: summary.adjustments,
-      trend: 'este mes',
-      trendUp: false,
-      icon: <Icon name="SlidersHorizontal" size={18} />,
-      iconClassName: 'bg-warning/10 text-warning',
-    },
-  ];
+  const statsCards = summary
+    ? [
+        {
+          title: 'Movimientos este mes',
+          value: summary.total,
+          trend: 'este período',
+          trendUp: true,
+          icon: <Icon name="ArrowLeftRight" size={18} />,
+          iconClassName: 'bg-primary/10 text-primary',
+        },
+        {
+          title: 'Entradas',
+          value: summary.entries,
+          trend: 'este período',
+          trendUp: true,
+          icon: <Icon name="PackagePlus" size={18} />,
+          iconClassName: 'bg-success/10 text-success',
+        },
+        {
+          title: 'Traslados',
+          value: summary.transfers,
+          trend: 'este mes',
+          trendUp: true,
+          icon: <Icon name="ArrowLeftRight" size={18} />,
+          iconClassName: 'bg-info/10 text-info',
+        },
+        {
+          title: 'Ajustes manuales',
+          value: summary.adjustments,
+          trend: 'este mes',
+          trendUp: false,
+          icon: <Icon name="SlidersHorizontal" size={18} />,
+          iconClassName: 'bg-warning/10 text-warning',
+        },
+      ]
+    : [];
 
   const filtered = useMemo(() => {
     return items.filter((m) => {
@@ -269,6 +271,11 @@ export function MovementsView() {
     data: filtered,
     columns: COLUMNS,
     defaultRowsPerPage: 20,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
   });
 
   if (isLoading)
@@ -345,7 +352,12 @@ export function MovementsView() {
           </Table>
         </TableContainer>
         <div className="border-t border-border/40">
-          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+          <TablePaginationCustom
+            table={table}
+            total={pagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
         </div>
       </SectionCard>
 

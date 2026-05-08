@@ -3,22 +3,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from 'src/lib/query-keys';
 
+import type { CreateCreditExceptionPayload } from '../services/finance.service';
 import { financeService } from '../services/finance.service';
 import type { CreditRuleSettings } from '../types/sales.types';
 
-const DEFAULT_RULES: CreditRuleSettings = {
-  max_days: 30,
-  max_amount: 50000,
-  auto_block: true,
-};
-
+// NOTE: Backend should return system defaults when no rules configured.
+// See required-backend-v2/GAP-07
 export function useCreditRules() {
   const queryClient = useQueryClient();
 
-  const { data: rules = DEFAULT_RULES, isLoading: rulesLoading } = useQuery({
+  const { data: rules, isLoading: rulesLoading } = useQuery({
     queryKey: queryKeys.sales.creditRules,
     queryFn: () => financeService.getCreditRules(),
-    placeholderData: DEFAULT_RULES,
   });
 
   const { data: exceptions = [], isLoading: excLoading } = useQuery({
@@ -38,11 +34,36 @@ export function useCreditRules() {
     await saveRulesMutation(data);
   };
 
+  const createExceptionMutation = useMutation({
+    mutationFn: (data: CreateCreditExceptionPayload) => financeService.createCreditException(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sales.creditExceptions });
+    },
+  });
+
+  const updateExceptionMutation = useMutation({
+    mutationFn: ({ uid, data }: { uid: string; data: Partial<CreateCreditExceptionPayload> }) =>
+      financeService.updateCreditException(uid, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sales.creditExceptions });
+    },
+  });
+
+  const createException = async (data: CreateCreditExceptionPayload) => {
+    await createExceptionMutation.mutateAsync(data);
+  };
+
+  const updateException = async (uid: string, data: Partial<CreateCreditExceptionPayload>) => {
+    await updateExceptionMutation.mutateAsync({ uid, data });
+  };
+
   return {
     rules,
     exceptions,
     isLoading: rulesLoading || excLoading,
     saveRules,
+    createException,
+    updateException,
     refresh: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.sales.creditRules });
       queryClient.invalidateQueries({ queryKey: queryKeys.sales.creditExceptions });

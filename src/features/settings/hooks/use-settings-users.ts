@@ -1,30 +1,36 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { usersService } from '../services/users.service';
 import type { SettingsUser } from '../types/settings.types';
 
+// TODO: migrate to TanStack Query for consistency with other hooks
 export function useSettingsUsers() {
   const [users, setUsers] = useState<SettingsUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const pagination = usePaginationParams();
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await usersService.getAll();
-      setUsers(data);
+      const res = await usersService.getAll(pagination.params);
+      const meta = extractPaginationMeta(res);
+      if (meta) pagination.setTotal(meta.total);
+      setUsers(((res as unknown as { data?: SettingsUser[] }).data ?? []) as SettingsUser[]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [pagination]);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
   const createUser = async (
-    data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_access_at'>
+    data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'>
   ): Promise<boolean> => {
     try {
       const newUser = await usersService.create(data);
@@ -46,7 +52,9 @@ export function useSettingsUsers() {
   };
 
   const toggleStatus = async (id: string): Promise<void> => {
-    const updated = await usersService.toggleStatus(id);
+    const user = users.find((u) => u.uid === id);
+    if (!user) return;
+    const updated = await usersService.toggleStatus(id, user.status);
     setUsers((prev) => prev.map((u) => (u.uid === id ? updated : u)));
   };
 
@@ -63,5 +71,12 @@ export function useSettingsUsers() {
     toggleStatus,
     deleteUser,
     refetch: fetchUsers,
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
   };
 }

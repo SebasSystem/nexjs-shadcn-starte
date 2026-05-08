@@ -3,15 +3,15 @@ export type TagColor = 'blue' | 'red' | 'green' | 'yellow' | 'purple' | 'orange'
 export type TagEntity = 'CONTACT' | 'DEAL' | 'LEAD' | 'COMPANY';
 
 export interface Tag {
-  id: string;
+  uid: string;
   name: string;
   color: TagColor;
-  entities: TagEntity[];
+  entity_types: TagEntity[];
   created_at: string;
 }
 
 export interface TagForm {
   name: string;
   color: TagColor;
-  entities: TagEntity[];
+  entity_types: TagEntity[];
 }

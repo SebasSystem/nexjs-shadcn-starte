@@ -3,45 +3,68 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { queryKeys } from 'src/lib/query-keys';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { useTenantOptions } from 'src/shared/hooks/useTenantOptions';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { intelligenceService } from '../services/intelligence.service';
 import type {
   Battlecard,
+  Competitor,
   HeatmapCell,
   IntelligenceStats,
   LostReason,
   LostReasonCategory,
 } from '../types';
 
-const ALL_REASONS: LostReasonCategory[] = [
-  'price',
-  'features',
-  'relationship',
-  'support',
-  'timing',
-  'competitor',
-  'no_decision',
-  'other',
-];
-
 export function useIntelligence() {
   const queryClient = useQueryClient();
+
+  // ─── Tenant-driven categories (fetched from backend) ──────────────────────
+
+  const { lostReasonCategories: lostReasonQuery } = useTenantOptions();
+
+  const reasonCategories: LostReasonCategory[] = useMemo(
+    () => (lostReasonQuery.data ?? []).map((c: { key: string }) => c.key as LostReasonCategory),
+    [lostReasonQuery.data]
+  );
+
+  // ─── Pagination — separate state per resource ──────────────────────────────
+
+  const battlecardsPagination = usePaginationParams();
+  const lostReasonsPagination = usePaginationParams();
+  const competitorsPagination = usePaginationParams();
 
   // ─── Queries ──────────────────────────────────────────────────────────────
 
   const { data: battlecards = [] } = useQuery({
-    queryKey: queryKeys.intelligence.battlecards,
-    queryFn: () => intelligenceService.battlecards.getAll(),
+    queryKey: [...queryKeys.intelligence.battlecards, battlecardsPagination.params],
+    queryFn: async () => {
+      const res = await intelligenceService.battlecards.getAll(battlecardsPagination.params);
+      const meta = extractPaginationMeta(res);
+      if (meta) battlecardsPagination.setTotal(meta.total);
+      return ((res as unknown as { data?: Battlecard[] }).data ?? []) as Battlecard[];
+    },
   });
 
   const { data: lostReasons = [] } = useQuery({
-    queryKey: queryKeys.intelligence.lostReasons,
-    queryFn: () => intelligenceService.lostReasons.getAll(),
+    queryKey: [...queryKeys.intelligence.lostReasons, lostReasonsPagination.params],
+    queryFn: async () => {
+      const res = await intelligenceService.lostReasons.getAll(lostReasonsPagination.params);
+      const meta = extractPaginationMeta(res);
+      if (meta) lostReasonsPagination.setTotal(meta.total);
+      return ((res as unknown as { data?: LostReason[] }).data ?? []) as LostReason[];
+    },
   });
 
   const { data: competitors = [] } = useQuery({
-    queryKey: queryKeys.intelligence.competitors,
-    queryFn: () => intelligenceService.competitors.getAll(),
+    queryKey: [...queryKeys.intelligence.competitors, competitorsPagination.params],
+    queryFn: async () => {
+      const res = await intelligenceService.competitors.getAll(competitorsPagination.params);
+      const meta = extractPaginationMeta(res);
+      if (meta) competitorsPagination.setTotal(meta.total);
+      return ((res as unknown as { data?: Competitor[] }).data ?? []) as Competitor[];
+    },
   });
 
   // ─── Stats ─────────────────────────────────────────────────────────────────
@@ -68,7 +91,8 @@ export function useIntelligence() {
       return acc;
     }, {});
     const top_lost_reason = (Object.entries(reasonCounts).sort(([, a], [, b]) => b - a)[0]?.[0] ??
-      'price') as LostReasonCategory;
+      reasonCategories[0] ??
+      'other') as LostReasonCategory;
 
     return {
       total_competitors: competitors.length,
@@ -78,7 +102,7 @@ export function useIntelligence() {
       top_competitor,
       top_lost_reason,
     };
-  }, [battlecards, competitors, lostReasons]);
+  }, [battlecards, competitors, lostReasons, reasonCategories]);
 
   // ─── Heatmap ───────────────────────────────────────────────────────────────
 
@@ -89,7 +113,7 @@ export function useIntelligence() {
     ];
 
     return rows.flatMap((row) =>
-      ALL_REASONS.map((reason) => ({
+      reasonCategories.map((reason) => ({
         competitor_uid: row.uid,
         competitor_name: row.name,
         reason,
@@ -98,7 +122,7 @@ export function useIntelligence() {
         ).length,
       }))
     );
-  }, [competitors, lostReasons]);
+  }, [competitors, lostReasons, reasonCategories]);
 
   // ─── CRUD Battlecards ──────────────────────────────────────────────────────
 
@@ -198,5 +222,26 @@ export function useIntelligence() {
     createLostReason,
     updateLostReason,
     deleteLostReason,
+    battlecardsPagination: {
+      page: battlecardsPagination.page,
+      rowsPerPage: battlecardsPagination.rowsPerPage,
+      total: battlecardsPagination.total,
+      onChangePage: battlecardsPagination.onChangePage,
+      onChangeRowsPerPage: battlecardsPagination.onChangeRowsPerPage,
+    },
+    lostReasonsPagination: {
+      page: lostReasonsPagination.page,
+      rowsPerPage: lostReasonsPagination.rowsPerPage,
+      total: lostReasonsPagination.total,
+      onChangePage: lostReasonsPagination.onChangePage,
+      onChangeRowsPerPage: lostReasonsPagination.onChangeRowsPerPage,
+    },
+    competitorsPagination: {
+      page: competitorsPagination.page,
+      rowsPerPage: competitorsPagination.rowsPerPage,
+      total: competitorsPagination.total,
+      onChangePage: competitorsPagination.onChangePage,
+      onChangeRowsPerPage: competitorsPagination.onChangeRowsPerPage,
+    },
   };
 }

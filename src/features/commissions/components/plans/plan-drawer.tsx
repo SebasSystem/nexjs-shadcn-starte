@@ -50,7 +50,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
       start_date: '',
       end_date: '',
       status: 'ACTIVO',
-      tiers: [{ threshold: 0, percentage: 0 }],
+      tiers: [{ threshold: 0, percent: 0 }],
     },
     mode: 'onChange',
   });
@@ -79,7 +79,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
           applicable_roles: ['Vendedor'],
           start_date: new Date().toISOString().split('T')[0],
           status: 'ACTIVO',
-          tiers: [{ threshold: 0, percentage: 1 }],
+          tiers: [{ threshold: 0, percent: 1 }],
         });
       }
     }
@@ -198,7 +198,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                         type="number"
                         step="0.01"
                         size="sm"
-                        {...register(`tiers.${index}.percentage`, {
+                        {...register(`tiers.${index}.percent`, {
                           valueAsNumber: true,
                         })}
                         rightIcon={<span className="text-muted-foreground text-xs">%</span>}
@@ -223,7 +223,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => append({ threshold: 0, percentage: 1 })}
+                onClick={() => append({ threshold: 0, percent: 1 })}
                 className="border-dashed w-full"
               >
                 <Icon name="Plus" size={16} className="mr-2" /> Agregar Tramo

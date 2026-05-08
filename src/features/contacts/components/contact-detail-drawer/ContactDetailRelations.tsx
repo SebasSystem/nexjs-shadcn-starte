@@ -41,7 +41,7 @@ export function ContactDetailRelations({
   const [selectedRelId, setSelectedRelId] = useState('');
   const [linkingCargo, setLinkingCargo] = useState('');
 
-  const relacionIds = contacto.relationships.map((r) => r.related_uid);
+  const relacionIds = contacto.relations.map((r) => r.related_uid);
   const disponibles = todos.filter((c) => c.uid !== contacto.uid && !relacionIds.includes(c.uid));
 
   const handleAddRelacion = async () => {
@@ -53,14 +53,14 @@ export function ContactDetailRelations({
 
   return (
     <div className="space-y-4">
-      {contacto.relationships.length === 0 ? (
+      {contacto.relations.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 text-muted-foreground text-sm text-center">
           <Icon name="Link2" className="h-8 w-8 mb-3 opacity-40" />
           <p>Sin relaciones vinculadas todavía.</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {contacto.relationships.map((rel) => (
+          {contacto.relations.map((rel) => (
             <div
               key={rel.related_uid}
               className="flex items-center justify-between gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100"

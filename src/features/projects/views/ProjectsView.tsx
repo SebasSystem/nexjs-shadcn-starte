@@ -49,7 +49,7 @@ function getProgressColor(progress: number, status: ProjectStatus) {
 
 export function ProjectsView() {
   const router = useRouter();
-  const { projects, stats, createProject, updateProject } = useProjects();
+  const { projects, stats, createProject, updateProject, pagination } = useProjects();
 
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -151,7 +151,11 @@ export function ProjectsView() {
   const { table, dense, onChangeDense } = useTable({
     data: filtered,
     columns: COLUMNS,
-    defaultRowsPerPage: 15,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
   });
 
   const statsCards = [
@@ -283,7 +287,12 @@ export function ProjectsView() {
           </Table>
         </TableContainer>
         <div className="border-t border-border/40">
-          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+          <TablePaginationCustom
+            table={table}
+            total={pagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
         </div>
       </SectionCard>
 

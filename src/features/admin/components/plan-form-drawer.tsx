@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { PlanFormData, planSchema } from 'src/features/admin/schemas/plan.schema';
 import { PlanSaaS } from 'src/features/admin/types/admin.types';
@@ -68,12 +68,13 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
     control,
     handleSubmit,
     reset,
-    watch,
+    getValues,
     setValue,
     formState: { isSubmitting },
   } = useForm<PlanFormData>({ resolver: zodResolver(planSchema), defaultValues: DEFAULTS });
 
-  const modules = watch('modules');
+  const modules = useWatch({ control, name: 'modules' });
+  const status = useWatch({ control, name: 'status' });
 
   useEffect(() => {
     if (isOpen) {
@@ -162,7 +163,7 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">Activo</p>
                   <Switch
-                    checked={watch('status') === 'ACTIVO'}
+                    checked={status === 'ACTIVO'}
                     onCheckedChange={(c) => setValue('status', c ? 'ACTIVO' : 'INACTIVO')}
                   />
                 </div>
@@ -191,13 +192,13 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
                         name={n}
                         label={l}
                         type="number"
-                        disabled={watch(i)}
+                        disabled={getValues(i)}
                       />
                     </div>
                     <div className="flex items-center gap-1.5 mt-5">
                       <Checkbox
                         id={i}
-                        checked={watch(i)}
+                        checked={getValues(i)}
                         onCheckedChange={(c) => setValue(i, c as boolean)}
                       />
                       <label htmlFor={i} className="text-xs text-muted-foreground cursor-pointer">
@@ -245,7 +246,10 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
                           ? 'SSO / SAML'
                           : 'Reportes Avanzados'}
                     </span>
-                    <Switch checked={watch(k) as boolean} onCheckedChange={(c) => setValue(k, c)} />
+                    <Switch
+                      checked={getValues(k) as boolean}
+                      onCheckedChange={(c) => setValue(k, c)}
+                    />
                   </div>
                 ))}
               </div>

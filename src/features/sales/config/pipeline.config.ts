@@ -2,22 +2,6 @@ import { daysUntil, diffDays } from 'src/lib/date';
 
 import type { Opportunity, PipelineStage } from '../types/sales.types';
 
-export const LOST_REASON_LABELS: Record<string, string> = {
-  price: 'Precio',
-  features: 'Funcionalidades',
-  relationship: 'Relación comercial',
-  support: 'Soporte',
-  timing: 'Timing / Momento',
-  competitor: 'Ganó competidor',
-  no_decision: 'Sin decisión',
-  other: 'Otro',
-};
-
-export const LOST_REASON_OPTIONS = Object.entries(LOST_REASON_LABELS).map(([value, label]) => ({
-  value,
-  label,
-}));
-
 // ─── Lead Scoring (client-side computation using API data) ─────────────────────
 
 export function computeLeadScore(

@@ -1,5 +1,6 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
 import { setSession } from 'src/shared/auth/context/jwt/utils';
+import type { Module } from 'src/shared/auth/types';
 
 type AuthError = Error & { code: string };
 type SetupError = AuthError & { setupToken: string };
@@ -111,6 +112,47 @@ export const confirmTwoFactorSetup = async (
   };
 };
 
+export const init = async (): Promise<{
+  user: {
+    uid: string;
+    name: string;
+    email: string;
+    tenant_uid?: string;
+    two_factor_enabled?: boolean;
+    role?: string;
+    avatar_url?: string;
+  };
+  tenant?: { uid: string; name: string; plan: string; logo_url?: string };
+  modules: Module[];
+  localization?: {
+    currency: string;
+    currency_symbol: string;
+    locale: string;
+    timezone: string;
+    date_format: string;
+    language: string;
+    user_timezone?: string;
+  };
+}> => {
+  const res = await axiosInstance.get(endpoints.auth.init);
+  const payload = res.data?.data ?? res.data;
+  return {
+    user: payload.user as {
+      uid: string;
+      name: string;
+      email: string;
+      tenant_uid?: string;
+      two_factor_enabled?: boolean;
+      role?: string;
+      avatar_url?: string;
+    },
+    tenant: payload.tenant,
+    modules: (payload.modules ?? []) as Module[],
+    localization: payload.localization,
+  };
+};
+
+/** @deprecated Use init() instead — single call to /api/auth/init */
 export const getUserAccess = async (uid: string): Promise<string[]> => {
   const res = await axiosInstance.get(endpoints.auth.userAccess(uid));
   const payload = res.data?.data ?? res.data;
@@ -118,6 +160,7 @@ export const getUserAccess = async (uid: string): Promise<string[]> => {
   return (effective_permissions ?? []).map((p: { key: string }) => p.key);
 };
 
+/** @deprecated Use init() instead — single call to /api/auth/init */
 export const getInitData = async () => {
   const meRes = await axiosInstance.get(endpoints.auth.me);
   const user = meRes.data?.data ?? meRes.data;

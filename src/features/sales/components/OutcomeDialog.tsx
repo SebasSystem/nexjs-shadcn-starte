@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Competitor } from 'src/features/intelligence/types';
 import { Button } from 'src/shared/components/ui/button';
 import {
@@ -14,8 +14,8 @@ import {
 import { Icon } from 'src/shared/components/ui/icon';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { Textarea } from 'src/shared/components/ui/textarea';
+import { useTenantOptions } from 'src/shared/hooks/useTenantOptions';
 
-import { LOST_REASON_OPTIONS } from '../config/pipeline.config';
 import type { LostReasonInfo } from '../types/sales.types';
 
 type Step = 'outcome' | 'reason';
@@ -28,7 +28,7 @@ interface OutcomeDialogProps {
   onCancel: () => void;
 }
 
-const DEFAULT_REASON = { category: 'price', competitor_uid: '', detail: '' };
+const DEFAULT_REASON = { category: '', competitor_uid: '', detail: '' };
 
 export function OutcomeDialog({
   open,
@@ -40,6 +40,16 @@ export function OutcomeDialog({
   const [step, setStep] = useState<Step>('outcome');
   const [reason, setReason] = useState(DEFAULT_REASON);
   const [error, setError] = useState('');
+
+  const { lostReasonCategories } = useTenantOptions();
+
+  const reasonOptions = useMemo(() => {
+    const data = lostReasonCategories.data as
+      | { uid: string; name: string; key: string }[]
+      | undefined;
+    if (!data || data.length === 0) return [{ value: '', label: 'Cargando...' }];
+    return data.map((opt) => ({ value: opt.key, label: opt.name }));
+  }, [lostReasonCategories.data]);
 
   const competitorOptions = [
     { value: '', label: 'Sin competidor identificado' },
@@ -124,7 +134,7 @@ export function OutcomeDialog({
             <div className="space-y-4 py-2">
               <SelectField
                 label="Razón principal *"
-                options={LOST_REASON_OPTIONS}
+                options={reasonOptions}
                 value={reason.category}
                 onChange={(v) => setReason((p) => ({ ...p, category: v as string }))}
               />

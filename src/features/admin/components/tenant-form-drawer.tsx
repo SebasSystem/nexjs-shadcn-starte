@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { TenantFormData, tenantSchema } from 'src/features/admin/schemas/tenant.schema';
 import { PlanSaaS, Tenant } from 'src/features/admin/types/admin.types';
@@ -31,7 +31,7 @@ interface TenantFormDrawerProps {
   planes: PlanSaaS[];
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: Partial<Tenant>) => Promise<void>;
+  onSave: (data: Record<string, unknown>) => Promise<void>;
 }
 
 export function TenantFormDrawer({
@@ -46,7 +46,6 @@ export function TenantFormDrawer({
     control,
     handleSubmit,
     reset,
-    watch,
     formState: { isSubmitting },
   } = useForm<TenantFormData>({
     resolver: zodResolver(tenantSchema),
@@ -62,8 +61,7 @@ export function TenantFormDrawer({
       admin_email: '',
     },
   });
-
-  const planUid = watch('plan_uid');
+  const planUid = useWatch({ control, name: 'plan_uid' });
   const selectedPlan = planes.find((p) => p.uid === planUid);
 
   const planOptions = [
@@ -105,22 +103,25 @@ export function TenantFormDrawer({
   }, [tenant, isOpen, reset]);
 
   const onSubmit = async (data: TenantFormData) => {
-    const plan = planes.find((p) => p.uid === data.plan_uid);
     try {
-      await onSave({
+      const payload: Partial<Tenant & Record<string, unknown>> = {
         nombre: data.nombre,
         dominio: data.dominio,
         pais: data.pais,
         email_contacto: data.email_contacto,
         plan_uid: data.plan_uid,
-        plan_nombre: plan?.name ?? '',
-        mrr: plan?.price ?? 0,
-        estado: 'ACTIVO',
-        total_usuarios: 1,
-        limite_usuarios: plan?.max_users ?? 5,
-        almacenamiento_usado_gb: 0,
-        limite_almacenamiento_gb: plan?.features.storage_gb ?? 10,
-      });
+        estado: isEditing ? undefined : 'ACTIVO',
+      };
+
+      if (!isEditing) {
+        payload.dias_trial = data.dias_trial;
+        payload.fecha_inicio = data.fecha_inicio;
+        payload.admin_nombre = data.admin_nombre;
+        payload.admin_email = data.admin_email;
+        payload.send_credentials = true;
+      }
+
+      await onSave(payload);
       toast.success(isEditing ? 'Tenant actualizado.' : 'Tenant creado.');
       onClose();
     } catch {

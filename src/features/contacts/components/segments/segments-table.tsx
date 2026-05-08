@@ -22,6 +22,11 @@ interface SegmentsTableProps {
   onEdit: (segment: Segment) => void;
   onDelete: (uid: string) => void;
   onView: (segment: Segment) => void;
+  total?: number;
+  pageIndex?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
 }
 
 const columnHelper = createColumnHelper<Segment>();
@@ -31,6 +36,11 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
   onEdit,
   onDelete,
   onView,
+  total,
+  pageIndex,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
 }) => {
   const COLUMNS = useMemo(
     () => [
@@ -135,6 +145,11 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
     data: segments,
     columns: COLUMNS,
     defaultRowsPerPage: 10,
+    total,
+    pageIndex,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
   });
 
   return (
@@ -156,7 +171,12 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
         </Table>
       </TableContainer>
       <div className="border-t border-border/40">
-        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        <TablePaginationCustom
+          table={table}
+          total={total}
+          dense={dense}
+          onChangeDense={onChangeDense}
+        />
       </div>
     </div>
   );

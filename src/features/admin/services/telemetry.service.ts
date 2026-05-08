@@ -5,11 +5,12 @@ import type {
   TelemetryStats,
 } from 'src/features/admin/types/admin.types';
 import axiosInstance, { endpoints } from 'src/lib/axios';
+import { type PaginationParams } from 'src/shared/lib/pagination';
 
 export const telemetryService = {
-  async getLogs(): Promise<LogEntry[]> {
-    const res = await axiosInstance.get(endpoints.admin.telemetry.logs);
-    return res.data.data;
+  async getLogs(params?: PaginationParams): Promise<LogEntry[]> {
+    const res = await axiosInstance.get(endpoints.admin.telemetry.logs, { params });
+    return res.data; // full response — callers extract .data for the array
   },
   async getStats(): Promise<TelemetryStats> {
     const res = await axiosInstance.get(endpoints.admin.telemetry.stats);

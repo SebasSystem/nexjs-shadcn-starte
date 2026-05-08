@@ -21,6 +21,7 @@ export function DashboardView() {
   const { activities } = useDashboardActivities();
 
   if (isLoading) return <DashboardSkeleton />;
+  if (!data) return null;
 
   return (
     <PageContainer>

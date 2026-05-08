@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { AlertaFormData, alertaSchema } from 'src/features/admin/schemas/alerta.schema';
 import { Alerta } from 'src/features/admin/types/admin.types';
@@ -53,7 +53,6 @@ export function AlertsDrawer({ alerta, isOpen, onClose, onSave }: AlertsDrawerPr
     control,
     handleSubmit,
     reset,
-    watch,
     setValue,
     formState: { isSubmitting },
   } = useForm<AlertaFormData>({
@@ -68,7 +67,7 @@ export function AlertsDrawer({ alerta, isOpen, onClose, onSave }: AlertsDrawerPr
       estado: 'ACTIVO',
     },
   });
-  const canal = watch('canal');
+  const canal = useWatch({ control, name: 'canal' });
 
   useEffect(() => {
     if (isOpen)
@@ -173,7 +172,7 @@ export function AlertsDrawer({ alerta, isOpen, onClose, onSave }: AlertsDrawerPr
                 <p className="text-caption text-muted-foreground">Activar o desactivar</p>
               </div>
               <Switch
-                checked={watch('estado') === 'ACTIVO'}
+                checked={useWatch({ control, name: 'estado' }) === 'ACTIVO'}
                 onCheckedChange={(c) => setValue('estado', c ? 'ACTIVO' : 'INACTIVO')}
               />
             </div>

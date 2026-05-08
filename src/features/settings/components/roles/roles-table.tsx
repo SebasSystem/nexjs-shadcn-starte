@@ -43,7 +43,7 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
           return (
             <div className="flex items-center gap-2">
               <p className="font-medium text-foreground text-sm">{role.name}</p>
-              {role.is_default && (
+              {role.is_system && (
                 <Badge variant="soft" color="default" className="text-xs">
                   Por defecto
                 </Badge>
@@ -61,7 +61,7 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
       columnHelper.accessor('permissions', {
         header: 'Módulos con acceso',
         cell: (info) => {
-          const perms = info.getValue();
+          const perms = info.getValue() ?? [];
           return (
             <div className="flex flex-wrap gap-1">
               {perms.slice(0, 3).map((p) => (
@@ -104,7 +104,7 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
                   <DropdownMenuItem
                     className="text-red-600"
                     onClick={() => onDelete(role)}
-                    disabled={role.is_default || role.total_users > 0}
+                    disabled={role.is_system || (role.total_users ?? 0) > 0}
                   >
                     Eliminar rol
                   </DropdownMenuItem>

@@ -4,7 +4,8 @@
 
 export type ContactType = 'company' | 'person' | 'government';
 export type ContactStatus = 'active' | 'inactive' | 'prospect';
-export type CompanySize = 'micro' | 'small' | 'medium' | 'large';
+/** @deprecated Company sizes are now dynamic via /api/tenant/company-sizes. Use string instead. */
+export type CompanySize = string;
 
 /** Relationship between two entities (contact ↔ company) */
 export interface ContactRelation {
@@ -24,14 +25,14 @@ interface ContactBase {
   country: string;
   city?: string;
   status: ContactStatus;
-  relationships: ContactRelation[];
+  relations: ContactRelation[];
   created_at: string;
 }
 
 /** Company — B2B (maps to /accounts) */
 export interface Company extends ContactBase {
   type: 'company';
-  tax_id: string;
+  tax_id?: string;
   industry?: string;
   company_size?: CompanySize;
   website?: string;

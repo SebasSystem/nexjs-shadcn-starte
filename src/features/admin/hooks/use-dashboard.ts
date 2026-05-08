@@ -7,21 +7,9 @@ import { cache } from 'src/lib/cache';
 
 const CACHE_KEY = 'admin:dashboard';
 
-const EMPTY: DashboardData = {
-  mrr_total: 0,
-  mrr_growth_percent: 0,
-  mrr_history: [],
-  tenants_activos: 0,
-  tenants_trial: 0,
-  facturas_vencidas: 0,
-  errores_criticos_24h: 0,
-  tenants_en_riesgo: [],
-  tenants_recientes: [],
-};
-
 export function useDashboard() {
   const cached = cache.get<DashboardData>(CACHE_KEY);
-  const [data, setData] = useState<DashboardData>(cached ?? EMPTY);
+  const [data, setData] = useState<DashboardData | null>(cached ?? null);
   const [isLoading, setIsLoading] = useState(!cached);
 
   const fetch = useCallback(async () => {
@@ -31,11 +19,11 @@ export function useDashboard() {
       cache.set(CACHE_KEY, result);
       setData(result);
     } catch {
-      if (!cached) setData(EMPTY);
+      if (!cached) setData(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [cached]);
 
   useEffect(() => {
     fetch();

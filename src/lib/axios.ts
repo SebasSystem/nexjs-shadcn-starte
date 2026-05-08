@@ -57,10 +57,12 @@ export const endpoints = {
   auth: {
     login: '/login',
     me: '/me',
+    init: '/auth/init',
     logout: '/logout',
     register: '/auth/register',
     forgotPassword: '/forgot-password',
     resetPassword: '/reset-password',
+    /** @deprecated Use init() instead — single call to /auth/init */
     userAccess: (uid: string) => `/users/${uid}/access`,
     twoFactor: {
       setup: '/2fa/setup', // GET → { secret, otpauth_url }
@@ -163,6 +165,7 @@ export const endpoints = {
     },
   },
   contacts: {
+    checkDuplicate: '/contacts/check-duplicate',
     accounts: {
       list: '/accounts',
       detail: (uid: string) => `/accounts/${uid}`,
@@ -232,6 +235,36 @@ export const endpoints = {
         `/projects/${projectUid}/resources/${resourceUid}`,
     },
   },
+  documentTypes: '/document-types',
+  contactsExport: '/contacts/export',
+  inventoryExport: '/inventory/export',
+  productsExport: '/inventory/products/export',
+  stockExport: '/inventory/stock/export',
+  invoicesExport: '/sales/finance/invoices/export',
+  expenses: {
+    list: '/expenses',
+    categories: '/expenses/categories',
+    suppliers: '/expenses/suppliers',
+    costCenters: '/expenses/cost-centers',
+    report: '/expenses/report',
+    profitability: '/expenses/profitability',
+  },
+  tasks: {
+    list: '/tasks',
+    detail: (uid: string) => `/tasks/${uid}`,
+    create: '/tasks',
+    update: (uid: string) => `/tasks/${uid}`,
+    delete: (uid: string) => `/tasks/${uid}`,
+  },
+  purchases: {
+    list: '/purchases/orders',
+    detail: (uid: string) => `/purchases/orders/${uid}`,
+    create: '/purchases/orders',
+    update: (uid: string) => `/purchases/orders/${uid}`,
+    approve: (uid: string) => `/purchases/orders/${uid}/approve`,
+    receive: (uid: string) => `/purchases/orders/${uid}/receive`,
+    payables: '/purchases/payables',
+  },
   productivity: {
     activities: {
       list: '/activities',
@@ -269,7 +302,12 @@ export const endpoints = {
       create: '/partners/opportunities',
       update: (uid: string) => `/partners/opportunities/${uid}`,
       delete: (uid: string) => `/partners/opportunities/${uid}`,
+      approve: (uid: string) => `/partners/opportunities/${uid}/approve`,
+      reject: (uid: string) => `/partners/opportunities/${uid}/reject`,
+      convert: (uid: string) => `/partners/opportunities/${uid}/convert`,
+      /** @deprecated Use approve/reject/convert instead */
       validate: '/partners/opportunities/validate',
+      /** @deprecated Use convert(uid) instead */
       close: (uid: string) => `/partners/opportunities/${uid}/close`,
     },
     materials: {
@@ -280,6 +318,7 @@ export const endpoints = {
     },
   },
   intelligence: {
+    lostReasonsReport: '/competitive-intelligence/lost-reasons/report',
     battlecards: {
       list: '/competitive-intelligence/battlecards',
       detail: (uid: string) => `/competitive-intelligence/battlecards/${uid}`,
@@ -304,6 +343,7 @@ export const endpoints = {
       create: '/automation/rules',
       update: (uid: string) => `/automation/rules/${uid}`,
       delete: (uid: string) => `/automation/rules/${uid}`,
+      toggle: (uid: string) => `/automation/rules/${uid}/toggle`,
     },
     assignmentRules: {
       list: '/automation/assignment-rules',
@@ -326,6 +366,7 @@ export const endpoints = {
     targets: {
       list: '/commissions/targets',
       create: '/commissions/targets',
+      targetDetail: (uid: string) => `/commissions/targets/${uid}`,
     },
     rules: {
       list: '/commissions/rules',
@@ -354,5 +395,18 @@ export const endpoints = {
     sales: '/reports/sales',
     inventory: '/reports/inventory',
     filters: '/reports/filters',
+    salesExport: '/reports/sales/export',
+    inventoryExport: '/reports/inventory/export',
+  },
+  tenant: {
+    industries: '/tenant/industries',
+    companySizes: '/tenant/company-sizes',
+    institutionTypes: '/tenant/institution-types',
+    paymentMethods: '/tenant/payment-methods',
+    leadOrigins: '/tenant/lead-origins',
+    activityTypes: '/tenant/activity-types',
+    lostReasonCategories: '/tenant/lost-reason-categories',
+    commissionPlanTypes: '/tenant/commission-plan-types',
+    opportunityProducts: '/tenant/opportunity-products',
   },
 };

@@ -1,12 +1,12 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
+import type { PaginationParams } from 'src/shared/lib/pagination';
 
 import type { AutomationRule } from '../types';
 
 export const automationService = {
-  async getAll(): Promise<AutomationRule[]> {
-    const res = await axiosInstance.get(endpoints.automation.rules.list);
-    const payload = res.data?.data ?? res.data;
-    return Array.isArray(payload) ? payload : [];
+  async getAll(params?: PaginationParams): Promise<unknown> {
+    const res = await axiosInstance.get(endpoints.automation.rules.list, { params });
+    return res.data;
   },
 
   async getById(uid: string): Promise<AutomationRule> {
@@ -28,5 +28,10 @@ export const automationService = {
 
   async delete(uid: string): Promise<void> {
     await axiosInstance.delete(endpoints.automation.rules.delete(uid));
+  },
+
+  async toggleRule(uid: string): Promise<AutomationRule> {
+    const res = await axiosInstance.post(endpoints.automation.rules.toggle(uid));
+    return res.data?.data ?? res.data;
   },
 };

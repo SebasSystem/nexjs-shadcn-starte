@@ -53,11 +53,27 @@ interface ContactsTableProps {
   onEdit: (c: Contact) => void;
   onViewDetail: (c: Contact) => void;
   onDelete: (c: Contact) => void;
+  /** Server-side pagination (optional — falls back to client-side) */
+  total?: number;
+  pageIndex?: number;
+  pageSize?: number;
+  onPageChange?: (pageIndex: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 const columnHelper = createColumnHelper<Contact>();
 
-export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: ContactsTableProps) {
+export function ContactsTable({
+  contactos,
+  onEdit,
+  onViewDetail,
+  onDelete,
+  total,
+  pageIndex,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}: ContactsTableProps) {
   const COLUMNS = useMemo(
     () => [
       columnHelper.accessor('name', {
@@ -99,7 +115,7 @@ export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: Con
         header: 'Estado',
         cell: (info) => <ContactStatusBadge status={info.getValue()} />,
       }),
-      columnHelper.accessor('relationships', {
+      columnHelper.accessor('relations', {
         header: 'Relaciones',
         cell: (info) => (
           <span className="text-body2 font-medium text-foreground">{info.getValue().length}</span>
@@ -161,6 +177,11 @@ export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: Con
   const { table, dense, onChangeDense } = useTable({
     data: contactos,
     columns: COLUMNS,
+    total,
+    pageIndex,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
     defaultRowsPerPage: 10,
   });
 
@@ -192,7 +213,12 @@ export function ContactsTable({ contactos, onEdit, onViewDetail, onDelete }: Con
         </Table>
       </TableContainer>
       <div className="border-t border-border/40">
-        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        <TablePaginationCustom
+          table={table}
+          dense={dense}
+          onChangeDense={onChangeDense}
+          total={total}
+        />
       </div>
     </div>
   );

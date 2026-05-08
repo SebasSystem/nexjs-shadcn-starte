@@ -3,6 +3,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, type ReactNode, useCallback, useContext } from 'react';
 import { queryKeys } from 'src/lib/query-keys';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { invoiceService } from '../services/invoice.service';
 import { opportunityService } from '../services/opportunity.service';
@@ -29,6 +31,21 @@ interface SalesContextValue {
   refreshOpportunities: () => Promise<void>;
   refreshQuotations: () => Promise<void>;
   refreshInvoices: () => Promise<void>;
+
+  quotationsPagination: {
+    page: number;
+    rowsPerPage: number;
+    total: number;
+    onChangePage: (page: number) => void;
+    onChangeRowsPerPage: (size: number) => void;
+  };
+  invoicesPagination: {
+    page: number;
+    rowsPerPage: number;
+    total: number;
+    onChangePage: (page: number) => void;
+    onChangeRowsPerPage: (size: number) => void;
+  };
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -39,6 +56,8 @@ const SalesContext = createContext<SalesContextValue | null>(null);
 
 export function SalesProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
+  const quotationsPagination = usePaginationParams();
+  const invoicesPagination = usePaginationParams();
 
   const {
     data: opportunities = [],
@@ -46,17 +65,30 @@ export function SalesProvider({ children }: { children: ReactNode }) {
     error: oppsError,
   } = useQuery({
     queryKey: queryKeys.sales.opportunityList,
-    queryFn: () => opportunityService.getList(),
+    queryFn: async () => {
+      const res = await opportunityService.getList();
+      return (res as unknown as { data?: Opportunity[] }).data ?? [];
+    },
   });
 
   const { data: quotations = [], isLoading: quotesLoading } = useQuery({
-    queryKey: queryKeys.sales.quotations,
-    queryFn: () => quotationService.getList(),
+    queryKey: [...queryKeys.sales.quotations, quotationsPagination.params],
+    queryFn: async () => {
+      const res = await quotationService.getList(quotationsPagination.params);
+      const meta = extractPaginationMeta(res as unknown as Record<string, unknown>);
+      if (meta) quotationsPagination.setTotal(meta.total);
+      return ((res as unknown as { data?: Quotation[] }).data ?? []) as Quotation[];
+    },
   });
 
   const { data: invoices = [], isLoading: invsLoading } = useQuery({
-    queryKey: queryKeys.sales.invoices,
-    queryFn: () => invoiceService.getList(),
+    queryKey: [...queryKeys.sales.invoices, invoicesPagination.params],
+    queryFn: async () => {
+      const res = await invoiceService.getList(invoicesPagination.params);
+      const meta = extractPaginationMeta(res as unknown as Record<string, unknown>);
+      if (meta) invoicesPagination.setTotal(meta.total);
+      return ((res as unknown as { data?: Invoice[] }).data ?? []) as Invoice[];
+    },
   });
 
   const isLoading = oppsLoading || quotesLoading || invsLoading;
@@ -147,6 +179,20 @@ export function SalesProvider({ children }: { children: ReactNode }) {
         refreshOpportunities,
         refreshQuotations,
         refreshInvoices,
+        quotationsPagination: {
+          page: quotationsPagination.page,
+          rowsPerPage: quotationsPagination.rowsPerPage,
+          total: quotationsPagination.total,
+          onChangePage: quotationsPagination.onChangePage,
+          onChangeRowsPerPage: quotationsPagination.onChangeRowsPerPage,
+        },
+        invoicesPagination: {
+          page: invoicesPagination.page,
+          rowsPerPage: invoicesPagination.rowsPerPage,
+          total: invoicesPagination.total,
+          onChangePage: invoicesPagination.onChangePage,
+          onChangeRowsPerPage: invoicesPagination.onChangeRowsPerPage,
+        },
       }}
     >
       {children}

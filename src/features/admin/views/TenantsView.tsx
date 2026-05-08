@@ -22,6 +22,7 @@ export const TenantsView = () => {
     suspendTenant,
     activateTenant,
     createTenantUser,
+    pagination,
   } = useTenants();
   const { planes } = usePlansAdmin();
 
@@ -64,9 +65,9 @@ export const TenantsView = () => {
     setIsDetailOpen(true);
   };
 
-  const handleFormSave = async (data: Partial<Tenant>) => {
+  const handleFormSave = async (data: Record<string, unknown>) => {
     if (selectedTenant) {
-      await updateTenant(selectedTenant.uid, data);
+      await updateTenant(selectedTenant.uid, data as Partial<Tenant>);
     } else {
       await createTenant(data as unknown as Tenant);
     }
@@ -158,6 +159,11 @@ export const TenantsView = () => {
           onViewDetail={handleOpenDetail}
           onSuspend={handleSuspend}
           onActivate={handleActivate}
+          total={pagination.total}
+          pageIndex={pagination.page - 1}
+          pageSize={pagination.rowsPerPage}
+          onPageChange={(pi) => pagination.onChangePage(pi + 1)}
+          onPageSizeChange={pagination.onChangeRowsPerPage}
         />
       </SectionCard>
 

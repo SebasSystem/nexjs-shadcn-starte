@@ -1,17 +1,26 @@
 'use client';
 
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
-import { getInitData } from 'src/features/auth/services/auth.service';
+import { init } from 'src/features/auth/services/auth.service';
 import { localizationService } from 'src/features/settings/services/localization.service';
-import { AuthState } from 'src/shared/auth/types';
+import type { AuthState, Module } from 'src/shared/auth/types';
 
 import { AuthContext } from '../auth-context';
 import { isValidToken, setSession } from './utils';
 
 type Props = { children: ReactNode };
 
+function derivePermissions(modules: Module[]): string[] {
+  return modules.flatMap((m) => m.permissions.map((p) => `${m.key}.${p}`));
+}
+
 export function AuthProvider({ children }: Props) {
-  const [state, setState] = useState<AuthState>({ user: null, loading: true, permissions: [] });
+  const [state, setState] = useState<AuthState>({
+    user: null,
+    loading: true,
+    permissions: [],
+    modules: [],
+  });
 
   const checkUserSession = useCallback(async () => {
     try {
@@ -21,35 +30,43 @@ export function AuthProvider({ children }: Props) {
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken);
 
-        const { user, permissions } = await getInitData();
+        const data = await init();
+        const { user, modules, localization: loc } = data;
 
         if (user?.uid) {
-          await localizationService.get().catch(() => {});
+          // Cache localization silently — best effort
+          if (loc) {
+            localizationService.get().catch(() => {});
+          }
+
+          const permissions = derivePermissions(modules);
 
           setState({
             user: {
               uid: user.uid,
-              name: user.name ?? user.names ?? '',
+              name: user.name ?? '',
               email: user.email ?? '',
+              role: user.role,
               tenant_uid: user.tenant_uid,
               two_factor_enabled: user.two_factor_enabled,
               permissions,
             },
             permissions,
+            modules,
             loading: false,
           });
           return permissions;
         } else {
-          setState({ user: null, loading: false, permissions: [] });
+          setState({ user: null, loading: false, permissions: [], modules: [] });
         }
       } else {
-        setState({ user: null, loading: false, permissions: [] });
+        setState({ user: null, loading: false, permissions: [], modules: [] });
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[Auth] Session check failed:', (error as Error)?.message ?? 'Unknown error');
       }
-      setState({ user: null, loading: false, permissions: [] });
+      setState({ user: null, loading: false, permissions: [], modules: [] });
     }
     return [];
   }, []);
@@ -71,12 +88,13 @@ export function AuthProvider({ children }: Props) {
       user: state.user,
       loading: state.loading,
       permissions: state.permissions,
+      modules: state.modules,
       hasPermission,
       authenticated: state.user !== null,
       unauthenticated: state.user === null,
       checkUserSession,
     }),
-    [state.user, state.loading, state.permissions, hasPermission, checkUserSession]
+    [state.user, state.loading, state.permissions, state.modules, hasPermission, checkUserSession]
   );
 
   return <AuthContext.Provider value={memoizedValue}>{children}</AuthContext.Provider>;

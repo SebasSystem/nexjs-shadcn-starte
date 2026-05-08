@@ -32,7 +32,8 @@ const columnHelper = createColumnHelper<Partner>();
 // ─── Main View ────────────────────────────────────────────────────────────────
 
 export function PartnersView() {
-  const { partners, partnerStats, opportunities, createPartner, updatePartner } = usePartners();
+  const { partners, partnerStats, opportunities, createPartner, updatePartner, pagination } =
+    usePartners();
 
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -132,6 +133,11 @@ export function PartnersView() {
     data: filtered,
     columns: COLUMNS,
     defaultRowsPerPage: 15,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
   });
 
   const statsCards = [
@@ -262,7 +268,12 @@ export function PartnersView() {
           </Table>
         </TableContainer>
         <div className="border-t border-border/40">
-          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+          <TablePaginationCustom
+            table={table}
+            total={pagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
         </div>
       </SectionCard>
 

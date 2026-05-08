@@ -1,12 +1,12 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
+import type { PaginationParams } from 'src/shared/lib/pagination';
 
 import type { CustomField } from '../types/settings.types';
 
 export const customFieldsService = {
-  async getAll(): Promise<CustomField[]> {
-    const res = await axiosInstance.get(endpoints.settings.customFields.list);
-    const payload = res.data?.data ?? res.data;
-    return Array.isArray(payload) ? payload : [];
+  async getAll(params?: PaginationParams): Promise<unknown> {
+    const res = await axiosInstance.get(endpoints.settings.customFields.list, { params });
+    return res.data;
   },
 
   async create(data: Omit<CustomField, 'uid' | 'created_at'>): Promise<CustomField> {

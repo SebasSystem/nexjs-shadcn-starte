@@ -89,4 +89,18 @@ export const queryKeys = {
       ['reports', 'inventory', tab, ...(filters ? [JSON.stringify(filters)] : [])] as const,
     filters: ['reports', 'filters'] as const,
   },
+  rbac: {
+    permissions: ['rbac', 'permissions'] as const,
+  },
+  tenant: {
+    industries: ['tenant', 'industries'] as const,
+    companySizes: ['tenant', 'company-sizes'] as const,
+    institutionTypes: ['tenant', 'institution-types'] as const,
+    paymentMethods: ['tenant', 'payment-methods'] as const,
+    leadOrigins: ['tenant', 'lead-origins'] as const,
+    activityTypes: ['tenant', 'activity-types'] as const,
+    lostReasonCategories: ['tenant', 'lost-reason-categories'] as const,
+    commissionPlanTypes: ['tenant', 'commission-plan-types'] as const,
+    opportunityProducts: ['tenant', 'opportunity-products'] as const,
+  },
 } as const;

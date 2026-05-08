@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { commissionService, type SimulateBreakdownItem } from '../services/commission.service';
 
 export const useSimulator = () => {
+  // NOTE: 'plan-1' is a placeholder. Ideally the first plan from the
+  // active commission plans list should be used. See required-backend-v2/
   const [planUid, setPlanUid] = useState<string>('plan-1');
   const [accumulatedSales, setAccumulatedSales] = useState<number>(0);
   const [hypotheticalSale, setHypotheticalSale] = useState<number>(0);

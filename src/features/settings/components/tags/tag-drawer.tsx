@@ -43,7 +43,7 @@ interface TagDrawerProps {
 export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSave }) => {
   const [name, setName] = useState(tag?.name ?? '');
   const [color, setColor] = useState<TagColor>(tag?.color ?? 'blue');
-  const [entities, setEntities] = useState<TagEntity[]>(tag?.entities ?? []);
+  const [entities, setEntities] = useState<TagEntity[]>(tag?.entity_types ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleEntity = (entity: TagEntity) => {
@@ -55,7 +55,7 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
   const handleSave = async () => {
     if (!name.trim() || entities.length === 0) return;
     setIsSubmitting(true);
-    const success = await onSave({ name, color, entities });
+    const success = await onSave({ name, color, entity_types: entities });
     setIsSubmitting(false);
     if (success) onClose();
   };

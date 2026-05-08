@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { queryKeys } from 'src/lib/query-keys';
 
@@ -9,6 +9,7 @@ import { opportunityService } from '../services/opportunity.service';
 import type { Opportunity, PipelineStage } from '../types/sales.types';
 
 export function usePipeline() {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
 
   const {
@@ -34,6 +35,10 @@ export function usePipeline() {
 
   const isLoading = stagesLoading || oppsLoading;
   const error = stagesError || oppsError;
+
+  // NOTE: computeLeadScore, pipelineMetrics computed client-side.
+  // Backend does not yet expose search/scoring endpoints.
+  // See required-backend-v2/GAP-08
 
   // ─── Lead scoring (client-side using API data) ──────────────────────────────
 
@@ -106,6 +111,9 @@ export function usePipeline() {
     setSearch,
     isLoading,
     error: (error ?? null) as Error | null,
-    refresh: () => {},
+    refresh: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sales.stages });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sales.opportunities });
+    },
   };
 }

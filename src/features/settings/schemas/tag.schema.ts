@@ -16,7 +16,7 @@ const tagEntityEnum = z.enum(['CONTACT', 'DEAL', 'LEAD', 'COMPANY']);
 export const tagSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido'),
   color: tagColorEnum,
-  entities: z.array(tagEntityEnum).min(1, 'Al menos una entidad requerida'),
+  entity_types: z.array(tagEntityEnum).min(1, 'Al menos una entidad requerida'),
 });
 
 export type TagFormData = z.infer<typeof tagSchema>;

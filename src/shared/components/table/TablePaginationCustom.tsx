@@ -9,22 +9,24 @@ import {
   SelectValue,
 } from 'src/shared/components/ui/select';
 import { Switch } from 'src/shared/components/ui/switch';
+import { PER_PAGE_OPTIONS } from 'src/shared/lib/pagination';
 
 interface Props<TData> {
   table: Table<TData>;
   dense?: boolean;
   onChangeDense?: (checked: boolean) => void;
+  /** Server-side: total items from backend. Falls back to filtered row count if not provided. */
+  total?: number;
 }
 
-export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Props<TData>) {
+export function TablePaginationCustom<TData>({ table, dense, onChangeDense, total }: Props<TData>) {
   const { pageIndex, pageSize } = table.getState().pagination;
-  const total = table.getFilteredRowModel().rows.length;
-  const from = total === 0 ? 0 : pageIndex * pageSize + 1;
-  const to = Math.min((pageIndex + 1) * pageSize, total);
+  const totalItems = total ?? table.getFilteredRowModel().rows.length;
+  const from = totalItems === 0 ? 0 : pageIndex * pageSize + 1;
+  const to = Math.min((pageIndex + 1) * pageSize, totalItems);
 
   return (
     <div className="flex flex-wrap-reverse items-center justify-between px-4 pt-3 pb-4 gap-2">
-      {/* Switch compacto — primero en DOM, queda abajo al wrappear (wrap-reverse) */}
       {onChangeDense && (
         <div className="flex items-center space-x-2">
           <Switch id="dense-mode" checked={dense} onCheckedChange={onChangeDense} />
@@ -34,10 +36,8 @@ export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Pr
         </div>
       )}
 
-      {/* Controles de paginación — segundo en DOM, queda arriba al wrappear */}
       <div className="overflow-x-auto pr-0">
         <div className="flex items-center space-x-3 sm:space-x-6 lg:space-x-8 min-w-0">
-          {/* Rows per page selector */}
           <div className="flex items-center space-x-1">
             <p className="text-sm font-normal">Filas por página:</p>
             <Select
@@ -48,7 +48,7 @@ export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Pr
                 <SelectValue />
               </SelectTrigger>
               <SelectContent side="top">
-                {[5, 10, 20, 25, 50].map((ps) => (
+                {PER_PAGE_OPTIONS.map((ps) => (
                   <SelectItem key={ps} value={`${ps}`}>
                     {ps}
                   </SelectItem>
@@ -57,12 +57,10 @@ export function TablePaginationCustom<TData>({ table, dense, onChangeDense }: Pr
             </Select>
           </div>
 
-          {/* Row range info */}
           <div className="text-sm font-normal whitespace-nowrap">
-            {from}–{to} de {total}
+            {from}–{to} de {totalItems}
           </div>
 
-          {/* Navigation Buttons */}
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"

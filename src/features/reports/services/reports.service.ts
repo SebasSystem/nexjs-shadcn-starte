@@ -11,29 +11,6 @@ import type {
   WarehouseOption,
 } from '../types';
 
-// ─── Mappers ───────────────────────────────────────────────────────────────────
-
-function mapSalesReport(raw: Record<string, unknown>): SalesReport {
-  const data = (raw.data ?? raw) as Record<string, unknown>;
-  return {
-    kpis: (data.kpis as Record<string, string | number>) ?? {},
-    chart_data: {
-      series: ((data.chart_data as Record<string, unknown>)?.series as number[]) ?? [],
-      labels: (data.chart_data as Record<string, unknown>)?.labels as string[],
-      categories: (data.chart_data as Record<string, unknown>)?.categories as string[],
-    },
-    table_data: (data.table_data as Record<string, unknown>[]) ?? [],
-  };
-}
-
-function mapInventoryReport(raw: Record<string, unknown>): InventoryReport {
-  const data = (raw.data ?? raw) as Record<string, unknown>;
-  return {
-    ...mapSalesReport(raw),
-    most_critical: (data.most_critical as InventoryReport['most_critical']) ?? null,
-  };
-}
-
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 function buildQuery(filters: ReportFilterParams): Record<string, string> {
@@ -53,7 +30,7 @@ export const reportsService = {
     const res = await axiosInstance.get(endpoints.reports.sales, {
       params: { tab, ...buildQuery(filters) },
     });
-    return mapSalesReport(res.data);
+    return (res.data?.data ?? res.data) as SalesReport;
   },
 
   async getInventoryReport(
@@ -63,7 +40,7 @@ export const reportsService = {
     const res = await axiosInstance.get(endpoints.reports.inventory, {
       params: { tab, ...buildQuery(filters) },
     });
-    return mapInventoryReport(res.data);
+    return (res.data?.data ?? res.data) as InventoryReport;
   },
 
   async getFilterOptions(): Promise<ReportFilterOptions> {

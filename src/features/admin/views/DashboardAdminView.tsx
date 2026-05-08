@@ -150,6 +150,60 @@ export const DashboardAdminView = () => {
     []
   );
 
+  const { table, dense, onChangeDense } = useTable({
+    data: data?.tenants_recientes ?? [],
+    columns: COLUMNS,
+    defaultRowsPerPage: 10,
+  });
+
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <PageHeader
+          title="Dashboard Global"
+          subtitle="Vista general del sistema y estado de todos los tenants"
+        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 bg-muted/40 rounded-xl animate-pulse" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+          <div className="lg:col-span-7 h-80 bg-muted/40 rounded-xl animate-pulse" />
+          <div className="lg:col-span-5 h-80 bg-muted/40 rounded-xl animate-pulse" />
+        </div>
+        <SectionCard noPadding className="mt-6">
+          <div className="p-5">
+            <h2 className="text-h6 text-foreground">Tenants Recientes</h2>
+          </div>
+          <TableContainer>
+            <Table>
+              <thead>
+                <tr className="border-b border-border/50">
+                  {['Tenant', 'Plan', 'Usuarios', 'MRR', 'Estado', 'Último acceso', ''].map(
+                    (h, i) => (
+                      <th
+                        key={i}
+                        className="px-3 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider text-left"
+                      >
+                        {h}
+                      </th>
+                    )
+                  )}
+                </tr>
+              </thead>
+              <TableBody>
+                <TableSkeleton rows={10} columns={7} />
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </SectionCard>
+      </PageContainer>
+    );
+  }
+
+  if (!data) return null; // guard against undefined before data arrives
+
   const chartOptions: ApexCharts.ApexOptions = {
     chart: { type: 'area', toolbar: { show: false }, parentHeightOffset: 0 },
     colors: ['#3B82F6'],
@@ -180,45 +234,6 @@ export const DashboardAdminView = () => {
   };
 
   const chartSeries = [{ name: 'MRR', data: data.mrr_history.map((h) => h.valor) }];
-
-  const { table, dense, onChangeDense } = useTable({
-    data: data.tenants_recientes,
-    columns: COLUMNS,
-    defaultRowsPerPage: 10,
-  });
-
-  if (isLoading) {
-    return (
-      <PageContainer>
-        <PageHeader
-          title="Dashboard Global"
-          subtitle="Vista general del sistema y estado de todos los tenants"
-        />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 bg-muted/40 rounded-xl animate-pulse" />
-          ))}
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
-          <div className="lg:col-span-7 h-80 bg-muted/40 rounded-xl animate-pulse" />
-          <div className="lg:col-span-5 h-80 bg-muted/40 rounded-xl animate-pulse" />
-        </div>
-        <SectionCard noPadding className="mt-6">
-          <div className="p-5">
-            <h2 className="text-h6 text-foreground">Tenants Recientes</h2>
-          </div>
-          <TableContainer>
-            <Table>
-              <TableHeadCustom table={table} />
-              <TableBody>
-                <TableSkeleton rows={10} columns={7} />
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </SectionCard>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer>

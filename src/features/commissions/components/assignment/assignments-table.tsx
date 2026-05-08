@@ -23,6 +23,11 @@ interface AssignmentsTableProps {
   isLoading: boolean;
   onEdit: (asignacion: CommissionAssignment) => void;
   onToggleStatus: (id: string, nuevoEstado: string) => void;
+  total?: number;
+  pageIndex?: number;
+  pageSize?: number;
+  onPageChange?: (pageIndex: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 const columnHelper = createColumnHelper<CommissionAssignment>();
@@ -32,6 +37,11 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
   isLoading,
   onEdit,
   onToggleStatus,
+  total,
+  pageIndex,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
 }) => {
   const COLUMNS = useMemo(
     () => [
@@ -175,6 +185,11 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
     data: asignaciones,
     columns: COLUMNS,
     defaultRowsPerPage: 10,
+    total,
+    pageIndex,
+    pageSize,
+    onPageChange,
+    onPageSizeChange,
   });
 
   if (isLoading) {
@@ -214,7 +229,12 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
         </Table>
       </TableContainer>
       <div className="border-t border-border/40">
-        <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+        <TablePaginationCustom
+          table={table}
+          dense={dense}
+          onChangeDense={onChangeDense}
+          total={total}
+        />
       </div>
     </div>
   );

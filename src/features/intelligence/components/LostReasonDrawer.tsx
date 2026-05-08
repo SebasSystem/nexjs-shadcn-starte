@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import {
@@ -16,10 +16,10 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
+import { useTenantOptions } from 'src/shared/hooks/useTenantOptions';
 
 import { type LostReasonFormData, lostReasonSchema } from '../schemas/lost-reason.schema';
 import type { Competitor, LostReason } from '../types';
-import { LOST_REASON_OPTIONS } from '../types';
 
 interface Props {
   open: boolean;
@@ -47,7 +47,7 @@ const DEFAULT_VALUES: LostReasonFormData = {
   amount: 0,
   currency: 'USD',
   competitorId: '',
-  lostReasonCategory: 'price',
+  lostReasonCategory: '',
   lostReasonDetail: '',
   lostDate: '',
   salesRepName: '',
@@ -55,6 +55,16 @@ const DEFAULT_VALUES: LostReasonFormData = {
 
 export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, onUpdate }: Props) {
   const isEdit = !!item;
+
+  const { lostReasonCategories } = useTenantOptions();
+
+  const reasonOptions = useMemo(() => {
+    const data = lostReasonCategories.data as
+      | { uid: string; name: string; key: string }[]
+      | undefined;
+    if (!data || data.length === 0) return [{ value: '', label: 'Cargando...' }];
+    return data.map((opt) => ({ value: opt.key, label: opt.name }));
+  }, [lostReasonCategories.data]);
 
   const {
     register,
@@ -188,7 +198,7 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
                 <SelectField
                   label="Razón principal *"
                   required
-                  options={LOST_REASON_OPTIONS}
+                  options={reasonOptions}
                   value={field.value}
                   onChange={(v) => field.onChange(v as string)}
                   error={errors.lostReasonCategory?.message}

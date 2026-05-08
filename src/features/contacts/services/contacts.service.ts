@@ -1,67 +1,7 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
+import { type PaginationParams } from 'src/shared/lib/pagination';
 
-import type { Contact, ContactPayload, ContactRelation } from '../types/contacts.types';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-function mapAccountToCompany(raw: Record<string, unknown>): Contact {
-  return {
-    uid: raw.uid as string,
-    type: 'company',
-    name: raw.name as string,
-    email: (raw.email as string) ?? '',
-    phone: raw.phone as string | undefined,
-    country: raw.country as string,
-    city: raw.city as string | undefined,
-    status: (raw.status as string) ?? 'active',
-    relationships: (raw.relations as ContactRelation[]) ?? [],
-    created_at: raw.created_at as string,
-    tax_id: (raw.tax_id as string) ?? '',
-    industry: raw.industry as string | undefined,
-    company_size: raw.company_size as string | undefined,
-    website: raw.website as string | undefined,
-  } as Contact;
-}
-
-function mapContactToEntity(raw: Record<string, unknown>): Contact {
-  const contactType = raw.type as string;
-  if (contactType === 'government') {
-    return {
-      uid: raw.uid as string,
-      type: 'government',
-      name: raw.name as string,
-      email: (raw.email as string) ?? '',
-      phone: raw.phone as string | undefined,
-      country: raw.country as string,
-      city: raw.city as string | undefined,
-      status: (raw.status as string) ?? 'active',
-      relationships: (raw.relations as ContactRelation[]) ?? [],
-      created_at: raw.created_at as string,
-      institution_type: raw.institution_type as string | undefined,
-      is_public_entity: (raw.is_public_entity as boolean) ?? true,
-      bid_code: raw.bid_code as string | undefined,
-    } as Contact;
-  }
-
-  return {
-    uid: raw.uid as string,
-    type: 'person',
-    name: raw.name as string,
-    email: (raw.email as string) ?? '',
-    phone: raw.phone as string | undefined,
-    country: raw.country as string,
-    city: raw.city as string | undefined,
-    status: (raw.status as string) ?? 'active',
-    relationships: (raw.relations as ContactRelation[]) ?? [],
-    created_at: raw.created_at as string,
-    id_number: raw.id_number as string | undefined,
-    job_title: raw.job_title as string | undefined,
-    company_uid: raw.company_uid as string | undefined,
-    company_name: raw.company_name as string | undefined,
-  } as Contact;
-}
+import type { Contact, ContactPayload } from '../types/contacts.types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Service
@@ -69,53 +9,53 @@ function mapContactToEntity(raw: Record<string, unknown>): Contact {
 
 export const contactsService = {
   /** Fetches all contacts from /accounts (companies) and /contacts (persons + government) */
-  getAll: async (): Promise<Contact[]> => {
+  getAll: async (params?: PaginationParams): Promise<Contact[]> => {
     const [accountsRes, contactsRes] = await Promise.all([
-      axiosInstance.get(endpoints.contacts.accounts.list),
-      axiosInstance.get(endpoints.contacts.contacts.list),
+      axiosInstance.get(endpoints.contacts.accounts.list, { params }),
+      axiosInstance.get(endpoints.contacts.contacts.list, { params }),
     ]);
 
-    const companies: Contact[] = (accountsRes.data?.data ?? accountsRes.data ?? []).map(
-      mapAccountToCompany
-    );
-    const entities: Contact[] = (contactsRes.data?.data ?? contactsRes.data ?? []).map(
-      mapContactToEntity
-    );
+    const companies = (accountsRes.data?.data ?? accountsRes.data ?? []) as Contact[];
+    const entities = (contactsRes.data?.data ?? contactsRes.data ?? []) as Contact[];
 
-    return [...companies, ...entities];
+    // Return merged array with meta from accounts response attached
+    const merged = [...companies, ...entities] as Contact[] & { meta?: Record<string, unknown> };
+    merged.meta = accountsRes.data?.meta;
+    return merged;
   },
 
   /** Tries /accounts/{uid} first, falls back to /contacts/{uid} */
   getById: async (uid: string): Promise<Contact | undefined> => {
     try {
       const res = await axiosInstance.get(endpoints.contacts.accounts.detail(uid));
-      const data = res.data?.data ?? res.data;
-      return mapAccountToCompany(data);
+      return (res.data?.data ?? res.data) as Contact;
     } catch {
       try {
         const res = await axiosInstance.get(endpoints.contacts.contacts.detail(uid));
-        const data = res.data?.data ?? res.data;
-        return mapContactToEntity(data);
+        return (res.data?.data ?? res.data) as Contact;
       } catch {
         return undefined;
       }
     }
   },
 
-  /** Checks for duplicate email or tax_id (client-side check against existing data) */
+  /** Checks for duplicate email or tax_id via backend POST /contacts/check-duplicate */
   checkDuplicate: async (
     email: string,
     taxId?: string,
-    excludeId?: string
+    excludeUid?: string
   ): Promise<{ emailDuplicate: boolean; taxIdDuplicate: boolean }> => {
     try {
-      const all = await contactsService.getAll();
-      const others = all.filter((c) => c.uid !== excludeId);
-      const emailDuplicate = others.some((c) => c.email.toLowerCase() === email.toLowerCase());
-      const taxIdDuplicate = taxId
-        ? others.some((c) => c.type === 'company' && (c as { tax_id: string }).tax_id === taxId)
-        : false;
-      return { emailDuplicate, taxIdDuplicate };
+      const res = await axiosInstance.post(endpoints.contacts.checkDuplicate, {
+        email,
+        tax_id: taxId ?? null,
+        exclude_uid: excludeUid ?? null,
+      });
+      const data = res.data?.data ?? res.data;
+      return {
+        emailDuplicate: data.email_duplicate ?? false,
+        taxIdDuplicate: data.tax_id_duplicate ?? false,
+      };
     } catch {
       return { emailDuplicate: false, taxIdDuplicate: false };
     }
@@ -137,8 +77,7 @@ export const contactsService = {
         website: payload.website,
       };
       const res = await axiosInstance.post(endpoints.contacts.accounts.create, body);
-      const data = res.data?.data ?? res.data;
-      return mapAccountToCompany(data);
+      return (res.data?.data ?? res.data) as Contact;
     }
 
     const body = {
@@ -157,8 +96,7 @@ export const contactsService = {
       bid_code: payload.bid_code,
     };
     const res = await axiosInstance.post(endpoints.contacts.contacts.create, body);
-    const data = res.data?.data ?? res.data;
-    return mapContactToEntity(data);
+    return (res.data?.data ?? res.data) as Contact;
   },
 
   /** Updates a contact: routes to /accounts or /contacts based on type */
@@ -177,8 +115,7 @@ export const contactsService = {
         website: payload.website,
       };
       const res = await axiosInstance.put(endpoints.contacts.accounts.update(uid), body);
-      const data = res.data?.data ?? res.data;
-      return mapAccountToCompany(data);
+      return (res.data?.data ?? res.data) as Contact;
     }
 
     try {
@@ -198,8 +135,7 @@ export const contactsService = {
         bid_code: payload.bid_code,
       };
       const res = await axiosInstance.put(endpoints.contacts.contacts.update(uid), body);
-      const data = res.data?.data ?? res.data;
-      return mapContactToEntity(data);
+      return (res.data?.data ?? res.data) as Contact;
     } catch {
       // Fallback: maybe it's an account
       const body = {
@@ -211,8 +147,7 @@ export const contactsService = {
         status: payload.status,
       };
       const res = await axiosInstance.put(endpoints.contacts.accounts.update(uid), body);
-      const data = res.data?.data ?? res.data;
-      return mapAccountToCompany(data);
+      return (res.data?.data ?? res.data) as Contact;
     }
   },
 

@@ -124,18 +124,10 @@ export interface Note {
   created_at: string;
 }
 
-export type LostReasonCategory =
-  | 'price'
-  | 'features'
-  | 'relationship'
-  | 'support'
-  | 'timing'
-  | 'competitor'
-  | 'no_decision'
-  | 'other';
+export type LostReasonCategory = string;
 
 export interface LostReasonInfo {
-  category: LostReasonCategory;
+  category: string;
   competitor_uid?: string;
   competitor_name?: string;
   detail: string;

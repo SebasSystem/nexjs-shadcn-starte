@@ -20,7 +20,7 @@ export const ActivitiesTab = ({
   contactoNombre: string;
 }) => {
   const { data, isLoading, addActivity, updateStatus } = useActivities(contactoId);
-  const [type, setType] = useState<ActivityType>('TASK');
+  const [type, setType] = useState<ActivityType>('task');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -42,23 +42,37 @@ export const ActivitiesTab = ({
       setTitle('');
       setDescription('');
       setDueDate('');
-      setType('TASK');
+      setType('task');
     }
   };
 
   const getStatusIcon = (status: ActivityStatus) => {
     switch (status) {
-      case 'PENDING':
+      case 'pending':
         return <Icon name="Circle" size={16} className="text-blue-500" />;
-      case 'COMPLETED':
+      case 'in_progress':
+        return <Icon name="Loader2" size={16} className="text-blue-500 animate-spin" />;
+      case 'completed':
         return <Icon name="CheckCircle2" size={16} className="text-emerald-500" />;
-      case 'OVERDUE':
+      case 'cancelled':
+        return <Icon name="XCircle" size={16} className="text-gray-400" />;
+      case 'overdue':
         return <Icon name="AlertCircle" size={16} className="text-red-500" />;
     }
   };
 
   const activityTypeLabel =
-    type === 'TASK' ? 'tarea' : type === 'REMINDER' ? 'recordatorio' : 'reunión';
+    type === 'task'
+      ? 'tarea'
+      : type === 'reminder'
+        ? 'recordatorio'
+        : type === 'meeting'
+          ? 'reunión'
+          : type === 'call'
+            ? 'llamada'
+            : type === 'email'
+              ? 'correo'
+              : 'nota';
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
@@ -73,9 +87,12 @@ export const ActivitiesTab = ({
             <SelectField
               label="Tipo"
               options={[
-                { value: 'TASK', label: 'Tarea' },
-                { value: 'REMINDER', label: 'Recordatorio' },
-                { value: 'MEETING', label: 'Reunión' },
+                { value: 'task', label: 'Tarea' },
+                { value: 'call', label: 'Llamada' },
+                { value: 'meeting', label: 'Reunión' },
+                { value: 'email', label: 'Correo' },
+                { value: 'note', label: 'Nota' },
+                { value: 'reminder', label: 'Recordatorio' },
               ]}
               value={type}
               onChange={(v) => setType(v as ActivityType)}
@@ -123,9 +140,9 @@ export const ActivitiesTab = ({
               <div
                 key={activity.uid}
                 className={`bg-white p-4 rounded-lg border flex items-start gap-3 transition-colors ${
-                  activity.status === 'COMPLETED'
+                  activity.status === 'completed'
                     ? 'opacity-60 border-gray-100'
-                    : activity.status === 'OVERDUE'
+                    : activity.status === 'overdue'
                       ? 'border-red-200'
                       : 'border-blue-100'
                 }`}
@@ -134,7 +151,7 @@ export const ActivitiesTab = ({
                   onClick={() =>
                     updateStatus(
                       activity.uid,
-                      activity.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED'
+                      activity.status === 'completed' ? 'pending' : 'completed'
                     )
                   }
                   className="mt-0.5 hover:scale-110 transition-transform focus:outline-none"
@@ -145,7 +162,7 @@ export const ActivitiesTab = ({
                   <div className="flex items-start justify-between">
                     <h5
                       className={`text-sm font-medium tracking-tight ${
-                        activity.status === 'COMPLETED'
+                        activity.status === 'completed'
                           ? 'line-through text-gray-500'
                           : 'text-gray-900'
                       }`}
@@ -153,11 +170,17 @@ export const ActivitiesTab = ({
                       {activity.title}
                     </h5>
                     <span className="text-[10px] font-semibold tracking-wider text-gray-400 bg-gray-100 px-2 py-0.5 rounded uppercase">
-                      {activity.type === 'TASK'
+                      {activity.type === 'task'
                         ? 'Tarea'
-                        : activity.type === 'REMINDER'
+                        : activity.type === 'reminder'
                           ? 'Recordatorio'
-                          : 'Reunión'}
+                          : activity.type === 'meeting'
+                            ? 'Reunión'
+                            : activity.type === 'call'
+                              ? 'Llamada'
+                              : activity.type === 'email'
+                                ? 'Correo'
+                                : 'Nota'}
                     </span>
                   </div>
                   {activity.description && (
@@ -170,9 +193,9 @@ export const ActivitiesTab = ({
                       <Icon
                         name="Clock"
                         size={12}
-                        className={activity.status === 'OVERDUE' ? 'text-red-500' : ''}
+                        className={activity.status === 'overdue' ? 'text-red-500' : ''}
                       />
-                      <span className={activity.status === 'OVERDUE' ? 'text-red-500' : ''}>
+                      <span className={activity.status === 'overdue' ? 'text-red-500' : ''}>
                         {format(new Date(activity.due_date), 'dd MMM yyyy', {
                           locale: es,
                         })}

@@ -2,16 +2,28 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from 'src/lib/query-keys';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { contactsService } from '../services/contacts.service';
 import type { ContactPayload } from '../types/contacts.types';
 
 export function useContacts() {
   const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
   const { data: contactos = [], isLoading } = useQuery({
-    queryKey: queryKeys.contacts.list,
-    queryFn: () => contactsService.getAll(),
+    queryKey: [...queryKeys.contacts.list, pagination.params],
+    queryFn: async () => {
+      const res = await contactsService.getAll(pagination.params);
+      // Extract meta attached to the merged array by contactsService
+      const metaObj = (res as unknown as { meta?: Record<string, unknown> }).meta;
+      if (metaObj) {
+        const meta = extractPaginationMeta(metaObj);
+        if (meta) pagination.setTotal(meta.total);
+      }
+      return res;
+    },
   });
 
   const createContacto = async (form: ContactPayload): Promise<boolean> => {
@@ -62,5 +74,12 @@ export function useContacts() {
     deleteContacto,
     checkDuplicate,
     refetch: () => queryClient.invalidateQueries({ queryKey: queryKeys.contacts.list }),
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
   };
 }

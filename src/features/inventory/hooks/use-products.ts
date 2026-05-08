@@ -7,35 +7,36 @@ import { inventoryStockService } from 'src/features/inventory/services/inventory
 import type {
   CreateProductPayload,
   InventoryCategory,
+  InventoryMasterItem,
+  InventoryMasterResponse,
   InventoryMasterSummary,
 } from 'src/features/inventory/types/inventory.types';
 import { queryKeys } from 'src/lib/query-keys';
-
-const EMPTY_SUMMARY: InventoryMasterSummary = {
-  products: 0,
-  active_products: 0,
-  out_of_stock_count: 0,
-  total_physical_stock: 0,
-  total_reserved_stock: 0,
-  total_available_stock: 0,
-};
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 export function useProducts() {
   const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
-  const { data: items = [], isLoading } = useQuery({
-    queryKey: queryKeys.inventory.products,
+  const { data: items = [] as InventoryMasterItem[], isLoading } = useQuery({
+    queryKey: [...queryKeys.inventory.products, pagination.params],
     queryFn: async () => {
-      const masterRes = await inventoryProductService.master();
-      return masterRes.data.map((p) => ({ ...p, stocks: p.stocks ?? [] }));
+      const masterRes = await inventoryProductService.master(pagination.params);
+      const meta = extractPaginationMeta(masterRes);
+      if (meta) pagination.setTotal(meta.total);
+      const inner = (masterRes as unknown as { data?: InventoryMasterResponse }).data;
+      return (inner?.data ?? []) as InventoryMasterItem[];
     },
   });
 
-  const { data: masterRes } = useQuery({
+  const { data: summaryRes } = useQuery({
     queryKey: ['inventory', 'products', 'summary'],
     queryFn: () => inventoryProductService.master(),
   });
-  const summary: InventoryMasterSummary = { ...EMPTY_SUMMARY, ...masterRes?.summary };
+  const summary: InventoryMasterSummary | undefined = (
+    summaryRes as unknown as { data?: InventoryMasterResponse }
+  )?.data?.summary;
 
   const { data: categories = [] } = useQuery({
     queryKey: queryKeys.inventory.categories,
@@ -80,5 +81,12 @@ export function useProducts() {
     updateProduct: (uid: string, payload: Partial<CreateProductPayload>) =>
       updateProduct.mutateAsync({ uid, payload }),
     removeProduct: (uid: string) => removeProduct.mutateAsync(uid),
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
   };
 }

@@ -9,7 +9,13 @@ import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/la
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { PaginationControl } from 'src/shared/components/ui/pagination-control';
-import { usePagination } from 'src/shared/hooks/use-pagination';
+
+function usePagination<T>(items: T[], pageSize: number) {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(items.length / pageSize);
+  const paginated = items.slice((page - 1) * pageSize, page * pageSize);
+  return { page, totalPages, total: items.length, paginated, goTo: setPage };
+}
 
 const PAGE_SIZE = 9;
 

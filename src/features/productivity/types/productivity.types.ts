@@ -2,8 +2,8 @@
 // Productivity — Domain types (snake_case, backend-aligned)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type ActivityStatus = 'PENDING' | 'COMPLETED' | 'OVERDUE';
-export type ActivityType = 'TASK' | 'REMINDER' | 'MEETING';
+export type ActivityStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'overdue';
+export type ActivityType = 'task' | 'call' | 'meeting' | 'email' | 'note' | 'reminder';
 export type InteractionType = 'NOTE' | 'CALL' | 'EMAIL' | 'SYSTEM';
 export type ActivitySource = 'agenda' | 'pipeline' | 'project';
 
@@ -13,18 +13,23 @@ export const ACTIVITY_STATUS_CONFIG: Record<
   ActivityStatus,
   { label: string; color: 'default' | 'secondary' | 'info' | 'warning' | 'success' | 'error' }
 > = {
-  PENDING: { label: 'Pendiente', color: 'secondary' },
-  COMPLETED: { label: 'Completado', color: 'success' },
-  OVERDUE: { label: 'Vencido', color: 'error' },
+  pending: { label: 'Pendiente', color: 'secondary' },
+  in_progress: { label: 'En Progreso', color: 'info' },
+  completed: { label: 'Completado', color: 'success' },
+  cancelled: { label: 'Cancelado', color: 'default' },
+  overdue: { label: 'Vencido', color: 'error' },
 };
 
 export const ACTIVITY_TYPE_CONFIG: Record<
   ActivityType,
   { label: string; color: 'default' | 'secondary' | 'info' | 'warning' | 'success' | 'error' }
 > = {
-  TASK: { label: 'Tarea', color: 'info' },
-  REMINDER: { label: 'Recordatorio', color: 'warning' },
-  MEETING: { label: 'Reunión', color: 'secondary' },
+  task: { label: 'Tarea', color: 'info' },
+  call: { label: 'Llamada', color: 'success' },
+  meeting: { label: 'Reunión', color: 'secondary' },
+  email: { label: 'Correo', color: 'default' },
+  note: { label: 'Nota', color: 'warning' },
+  reminder: { label: 'Recordatorio', color: 'warning' },
 };
 
 export const INTERACTION_TYPE_CONFIG: Record<InteractionType, { label: string; icon: string }> = {

@@ -1,7 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import type { RecentActivity } from 'src/features/dashboard/types/dashboard.types';
 import { formatDate } from 'src/lib/date';
+import { paths } from 'src/routes/paths';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import { Icon } from 'src/shared/components/ui';
 
@@ -30,9 +32,12 @@ export function RecentActivitiesList({ activities }: Props) {
             <p className="text-caption text-muted-foreground">Últimas actividades del equipo</p>
           </div>
         </div>
-        <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1 cursor-pointer">
+        <Link
+          href={paths.schedule.root}
+          className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+        >
           Ver todas <Icon name="ChevronRight" size={14} />
-        </button>
+        </Link>
       </div>
 
       <div className="divide-y divide-border/40">

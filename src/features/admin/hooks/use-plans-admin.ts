@@ -21,7 +21,7 @@ export function usePlansAdmin() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [cached]);
 
   useEffect(() => {
     fetchPlanes();

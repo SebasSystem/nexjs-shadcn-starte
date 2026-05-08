@@ -2,300 +2,256 @@
 
 import { useMemo } from 'react';
 import { paths } from 'src/routes/paths';
+import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
+import type { Module } from 'src/shared/auth/types';
 import { Icon, type IconName } from 'src/shared/components/ui';
 
 import type { NavItemProps } from '../components/layouts/dashboard/nav-item';
 import type { NavSectionData } from '../components/layouts/dashboard/nav-section';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Static nav config — each item optionally requires a permission key.
-// Items without requiredPermission are always visible.
+// Static nav config — each section has a moduleKey matching backend modules.
+// Visibility is determined by whether the user's modules[] includes that key
+// with enabled: true.
 // ─────────────────────────────────────────────────────────────────────────────
 type StaticNavItem = {
   title: string;
   path: string;
   icon: IconName;
-  requiredPermission?: string;
+  moduleKey?: string;
   children?: StaticNavItem[];
 };
 
 type StaticSection = {
+  moduleKey?: string;
   subheader: string;
-  requiredPermission?: string;
+  order?: number;
   items: StaticNavItem[];
 };
 
+// ── Tenant NAV — matches GET /api/auth/init modules[] keys ─────────────────
 const NAV_CONFIG: StaticSection[] = [
   {
+    moduleKey: 'dashboard',
     subheader: 'General',
-    items: [
-      {
-        title: 'Dashboard',
-        path: paths.dashboard.root,
-        icon: 'LayoutDashboard',
-        requiredPermission: 'dashboard.read',
-      },
-    ],
+    order: 1,
+    items: [{ title: 'Dashboard', path: paths.dashboard.root, icon: 'LayoutDashboard' }],
   },
   {
-    subheader: 'Comercial',
-    items: [
-      {
-        title: 'Pipeline',
-        path: paths.sales.pipeline,
-        icon: 'TrendingUp',
-        requiredPermission: 'opportunities.read',
-      },
-      {
-        title: 'Contactos',
-        path: paths.contacts.root,
-        icon: 'Users',
-        requiredPermission: 'contacts.read',
-      },
-      {
-        title: 'Proyectos',
-        path: paths.projects.root,
-        icon: 'FolderKanban',
-        requiredPermission: 'crm-entities.read',
-      },
-      {
-        title: 'Partners',
-        path: paths.partners.root,
-        icon: 'Handshake',
-        requiredPermission: 'crm-entities.read',
-      },
-      {
-        title: 'Finanzas',
-        path: paths.sales.finance.root,
-        icon: 'DollarSign',
-        requiredPermission: 'finance.read',
-        children: [
-          { title: 'Cotizaciones', path: paths.sales.finance.quotation, icon: 'FileText' },
-          { title: 'Facturas', path: paths.sales.finance.invoice, icon: 'FileText' },
-          {
-            title: 'Reglas de crédito',
-            path: paths.sales.finance.creditRules,
-            icon: 'ShieldCheck',
-          },
-          { title: 'Multi-moneda', path: paths.sales.finance.multiCurrency, icon: 'Globe' },
-        ],
-      },
-    ],
-  },
-  {
+    moduleKey: 'inventory',
     subheader: 'Inventario',
+    order: 2,
     items: [
-      {
-        title: 'Productos',
-        path: paths.inventory.products,
-        icon: 'Package',
-        requiredPermission: 'inventory.read',
-      },
-      {
-        title: 'Stock',
-        path: paths.inventory.stock,
-        icon: 'Layers',
-        requiredPermission: 'inventory.read',
-      },
+      { title: 'Productos', path: paths.inventory.products, icon: 'Package' },
       {
         title: 'Bodegas',
         path: paths.inventory.warehouses.root,
         icon: 'Warehouse',
-        requiredPermission: 'inventory.read',
-      },
-      {
-        title: 'Movimientos',
-        path: paths.inventory.warehouses.movements,
-        icon: 'ArrowLeftRight',
-        requiredPermission: 'inventory.read',
-      },
-    ],
-  },
-  {
-    subheader: 'Reportes',
-    items: [
-      {
-        title: 'Inventario',
-        path: paths.reports.inventory,
-        icon: 'PieChart',
-        requiredPermission: 'inventory.report',
-      },
-      {
-        title: 'Ventas',
-        path: paths.reports.sales,
-        icon: 'BarChart2',
-        requiredPermission: 'opportunities.read',
-      },
-    ],
-  },
-  {
-    subheader: 'Inteligencia',
-    items: [
-      {
-        title: 'Battlecards',
-        path: paths.intelligence.battlecards,
-        icon: 'Swords',
-        requiredPermission: 'crm-entities.read',
-      },
-      {
-        title: 'Razones de pérdida',
-        path: paths.intelligence.lostReasons,
-        icon: 'TrendingDown',
-        requiredPermission: 'opportunities.read',
-      },
-    ],
-  },
-  {
-    subheader: 'Automatización',
-    items: [
-      {
-        title: 'Reglas',
-        path: paths.automation.rules,
-        icon: 'Zap',
-        requiredPermission: 'crm-entities.manage',
-      },
-      {
-        title: 'Asignación',
-        path: paths.automation.assignment,
-        icon: 'UserCheck',
-        requiredPermission: 'crm-entities.manage',
-      },
-    ],
-  },
-  {
-    subheader: 'Agenda',
-    items: [
-      {
-        title: 'Calendario',
-        path: paths.schedule.root,
-        icon: 'CalendarDays',
-        requiredPermission: 'activities.read',
-      },
-    ],
-  },
-  {
-    subheader: 'RR.HH.',
-    items: [
-      {
-        title: 'Comisiones',
-        path: paths.hr.commissions.root,
-        icon: 'CreditCard',
-        requiredPermission: 'commissions.read',
         children: [
-          { title: 'Planes', path: paths.hr.commissions.plans, icon: 'ClipboardList' },
-          { title: 'Asignación', path: paths.hr.commissions.assignment, icon: 'UserCheck' },
-          { title: 'Dashboard', path: paths.hr.commissions.dashboard, icon: 'LayoutDashboard' },
-          { title: 'Historial', path: paths.hr.commissions.history, icon: 'List' },
+          {
+            title: 'Vista General',
+            path: paths.inventory.warehouses.root,
+            icon: 'LayoutDashboard',
+          },
+          {
+            title: 'Movimientos',
+            path: paths.inventory.warehouses.movements,
+            icon: 'ArrowLeftRight',
+          },
         ],
       },
+      { title: 'Stock & Disponibilidad', path: paths.inventory.stock, icon: 'BarChart2' },
+      { title: 'Categorías', path: paths.inventory.categories, icon: 'Tag' },
     ],
   },
   {
-    subheader: 'Configuración',
+    moduleKey: 'sales',
+    subheader: 'Ventas',
+    order: 3,
     items: [
-      {
-        title: 'Usuarios',
-        path: paths.settings.users,
-        icon: 'Users',
-        requiredPermission: 'users.manage',
-      },
-      {
-        title: 'Roles',
-        path: paths.settings.roles,
-        icon: 'ShieldCheck',
-        requiredPermission: 'users.manage',
-      },
-      {
-        title: 'Equipos',
-        path: paths.settings.teams,
-        icon: 'Users',
-        requiredPermission: 'users.manage',
-      },
-      {
-        title: 'Etiquetas',
-        path: paths.settings.tags,
-        icon: 'Tag',
-        requiredPermission: 'tags.manage',
-      },
+      { title: 'Pipeline', path: paths.sales.pipeline, icon: 'KanbanSquare' },
+      { title: 'Dashboard Financiero', path: paths.sales.finance.root, icon: 'PieChart' },
+      { title: 'Cotizaciones', path: paths.sales.finance.quotation, icon: 'FileText' },
+      { title: 'Facturas', path: paths.sales.finance.invoice, icon: 'Receipt' },
+      { title: 'Reglas de Crédito', path: paths.sales.finance.creditRules, icon: 'ShieldCheck' },
+      { title: 'Multimoneda', path: paths.sales.finance.multiCurrency, icon: 'DollarSign' },
     ],
   },
+  {
+    moduleKey: 'reports',
+    subheader: 'Reportes',
+    order: 4,
+    items: [
+      { title: 'Inventario', path: paths.reports.inventory, icon: 'LayoutDashboard' },
+      { title: 'Ventas', path: paths.reports.sales, icon: 'PieChart' },
+    ],
+  },
+  {
+    moduleKey: 'incentives',
+    subheader: 'Incentivos y Comisiones',
+    order: 5,
+    items: [
+      { title: 'Planes de Comisión', path: paths.hr.commissions.plans, icon: 'ClipboardList' },
+      {
+        title: 'Asignación a Vendedores',
+        path: paths.hr.commissions.assignment,
+        icon: 'UserCheck',
+      },
+      { title: 'Mi Dashboard', path: paths.hr.commissions.dashboard, icon: 'LayoutDashboard' },
+      { title: 'Simulador', path: paths.hr.commissions.simulator, icon: 'Calculator' },
+      { title: 'Historial y Liquidación', path: paths.hr.commissions.history, icon: 'History' },
+    ],
+  },
+  {
+    moduleKey: 'projects',
+    subheader: 'Proyectos',
+    order: 6,
+    items: [{ title: 'Todos los Proyectos', path: paths.projects.root, icon: 'FolderKanban' }],
+  },
+  {
+    moduleKey: 'settings',
+    subheader: 'Configuración',
+    order: 7,
+    items: [
+      { title: 'Usuarios', path: paths.settings.users, icon: 'Users' },
+      { title: 'Roles y Permisos', path: paths.settings.roles, icon: 'ShieldCheck' },
+      { title: 'Equipos y Cartera', path: paths.settings.teams, icon: 'UsersRound' },
+      { title: 'Campos Personalizados', path: paths.settings.customFields, icon: 'Sliders' },
+      { title: 'Localización', path: paths.settings.localization, icon: 'Globe' },
+      { title: 'Etiquetas (Tags)', path: paths.settings.tags, icon: 'Tag' },
+      { title: 'Tipos de Documento', path: paths.settings.documentTypes, icon: 'FileText' },
+    ],
+  },
+  {
+    moduleKey: 'crm',
+    subheader: 'CRM',
+    order: 8,
+    items: [
+      { title: 'Directorio', path: paths.contacts.root, icon: 'Users' },
+      { title: 'Segmentación Dinámica', path: paths.contacts.segments, icon: 'Filter' },
+      { title: 'Agenda & Productividad', path: paths.schedule.root, icon: 'Calendar' },
+      { title: 'Tareas', path: paths.schedule.tasks, icon: 'CheckSquare' },
+    ],
+  },
+  {
+    moduleKey: 'expenses',
+    subheader: 'Gastos',
+    order: 10,
+    items: [
+      { title: 'Gastos', path: paths.expenses.root, icon: 'Receipt' },
+      { title: 'Categorías', path: paths.expenses.categories, icon: 'Tag' },
+      { title: 'Proveedores', path: paths.expenses.suppliers, icon: 'Package' },
+      { title: 'Centros de Costo', path: paths.expenses.costCenters, icon: 'Building2' },
+    ],
+  },
+  {
+    moduleKey: 'partners',
+    subheader: 'Canales & Partners',
+    order: 9,
+    items: [
+      { title: 'Partners', path: paths.partners.root, icon: 'Handshake' },
+      { title: 'Oportunidades', path: paths.partners.opportunities, icon: 'ClipboardList' },
+      { title: 'Portal de Materiales', path: paths.partners.portal, icon: 'FolderOpen' },
+    ],
+  },
+  {
+    moduleKey: 'purchases',
+    subheader: 'Compras',
+    order: 11,
+    items: [{ title: 'Órdenes de Compra', path: paths.purchases.root, icon: 'ShoppingCart' }],
+  },
+  {
+    moduleKey: 'intelligence',
+    subheader: 'Inteligencia Competitiva',
+    order: 11,
+    items: [
+      { title: 'Battlecards', path: paths.intelligence.battlecards, icon: 'Swords' },
+      { title: 'Razones de Pérdida', path: paths.intelligence.lostReasons, icon: 'TrendingDown' },
+    ],
+  },
+  {
+    moduleKey: 'automation',
+    subheader: 'Automatización',
+    order: 12,
+    items: [
+      { title: 'Reglas', path: paths.automation.rules, icon: 'Zap' },
+      { title: 'Asignación', path: paths.automation.assignment, icon: 'UserCheck' },
+    ],
+  },
+];
+
+// ── Admin SaaS NAV — shown for platform_admin users ────────────────────────
+const ADMIN_NAV: StaticSection[] = [
   {
     subheader: 'Admin SaaS',
     items: [
-      {
-        title: 'Dashboard',
-        path: paths.admin.dashboard,
-        icon: 'LayoutDashboard',
-        requiredPermission: 'admin.dashboard.read',
-      },
-      {
-        title: 'Tenants',
-        path: paths.admin.tenants,
-        icon: 'Building2',
-        requiredPermission: 'admin.tenants.manage',
-      },
-      {
-        title: 'Planes',
-        path: paths.admin.plans,
-        icon: 'CreditCard',
-        requiredPermission: 'plans.manage',
-      },
-      {
-        title: 'Facturación',
-        path: paths.admin.billing,
-        icon: 'Activity',
-        requiredPermission: 'admin.billing.manage',
-      },
-      {
-        title: 'Telemetría',
-        path: paths.admin.telemetry,
-        icon: 'BarChart3',
-        requiredPermission: 'admin.telemetry.read',
-      },
+      { title: 'Dashboard', path: paths.admin.dashboard, icon: 'LayoutDashboard' },
+      { title: 'Tenants', path: paths.admin.tenants, icon: 'Building2' },
+      { title: 'Planes', path: paths.admin.plans, icon: 'CreditCard' },
+      { title: 'Facturación', path: paths.admin.billing, icon: 'Receipt' },
+      { title: 'Telemetría', path: paths.admin.telemetry, icon: 'Activity' },
     ],
   },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Build NavItemProps from static config, filtering by permissions
+// Helpers
 // ─────────────────────────────────────────────────────────────────────────────
-function buildNavItems(
-  items: StaticNavItem[],
-  hasPermission: (key: string) => boolean
-): NavItemProps[] {
-  return items
-    .filter((item) => !item.requiredPermission || hasPermission(item.requiredPermission))
-    .map((item) => ({
-      title: item.title,
-      path: item.path,
-      icon: <Icon name={item.icon} size={18} />,
-      ...(item.children?.length ? { children: buildNavItems(item.children, hasPermission) } : {}),
-    }));
+function isModuleEnabled(modules: Module[], moduleKey: string | undefined): boolean {
+  if (!moduleKey) return false;
+  const mod = modules.find((m) => m.key === moduleKey);
+  return mod?.enabled === true;
+}
+
+function isPlatformAdmin(userRole: string | undefined): boolean {
+  return userRole === 'platform-admin';
+}
+
+function buildNavItems(items: StaticNavItem[]): NavItemProps[] {
+  return items.map((item) => ({
+    title: item.title,
+    path: item.path,
+    icon: <Icon name={item.icon} size={18} />,
+    ...(item.children?.length ? { children: buildNavItems(item.children) } : {}),
+  }));
+}
+
+function buildSections(config: StaticSection[], modules: Module[]): NavSectionData[] {
+  return config
+    .filter((section) => {
+      // Sections without moduleKey are always shown (e.g., ADMIN_NAV)
+      if (!section.moduleKey) return true;
+      return isModuleEnabled(modules, section.moduleKey);
+    })
+    .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
+    .map((section) => ({
+      subheader: section.subheader,
+      items: buildNavItems(section.items),
+    }))
+    .filter((section) => section.items.length > 0);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hook principal
+// Hook
 // ─────────────────────────────────────────────────────────────────────────────
-export function useNavData(
-  hasPermission: (key: string) => boolean = () => true,
-  permissions: string[] = []
-): NavSectionData[] {
-  const isSuperAdmin = permissions.some((p) => p.startsWith('admin.'));
+export function useNavData(): NavSectionData[] {
+  const { user, modules } = useAuthContext();
 
   return useMemo(() => {
-    const sections = isSuperAdmin
-      ? NAV_CONFIG.filter((section) => section.subheader === 'Admin SaaS')
-      : NAV_CONFIG;
+    const sections: NavSectionData[] = [];
 
-    return sections
-      .map((section) => ({
-        subheader: section.subheader,
-        items: buildNavItems(section.items, hasPermission),
-      }))
-      .filter((section) => section.items.length > 0);
-  }, [hasPermission, isSuperAdmin]);
+    if (isPlatformAdmin(user?.role)) {
+      sections.push(...buildSections(ADMIN_NAV, modules));
+    }
+
+    sections.push(...buildSections(NAV_CONFIG, modules));
+
+    return sections;
+  }, [user?.role, modules]);
 }
 
-// Keep BackendModule export for any lingering imports (no-op compatibility shim)
+// ─────────────────────────────────────────────────────────────────────────────
+// Compat shim — keep BackendModule export for any lingering imports
+// ─────────────────────────────────────────────────────────────────────────────
 export type BackendModule = Record<string, unknown>;
 export type BackendNavItem = Record<string, unknown>;

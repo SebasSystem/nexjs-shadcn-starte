@@ -3,9 +3,12 @@
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
+import { endpoints } from 'src/lib/axios';
 import { formatMoney } from 'src/lib/currency';
 import { formatDate } from 'src/lib/date';
+import { downloadExport } from 'src/lib/export-service';
 import { paths } from 'src/routes/paths';
+import { ExportDropdown } from 'src/shared/components/export/ExportDropdown';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
   Table,
@@ -75,10 +78,11 @@ const col = createColumnHelper<Invoice>();
 
 export function InvoicesListView() {
   const router = useRouter();
-  const { invoices, isLoading } = useSalesContext();
+  const { invoices, isLoading, invoicesPagination } = useSalesContext();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -202,7 +206,29 @@ export function InvoicesListView() {
     [router]
   );
 
-  const { table, dense, onChangeDense } = useTable({ data: filtered, columns });
+  const { table, dense, onChangeDense } = useTable({
+    data: filtered,
+    columns,
+    total: invoicesPagination.total,
+    pageIndex: invoicesPagination.page - 1,
+    pageSize: invoicesPagination.rowsPerPage,
+    onPageChange: (pi: number) => invoicesPagination.onChangePage(pi + 1),
+    onPageSizeChange: invoicesPagination.onChangeRowsPerPage,
+  });
+
+  const handleExport = async (format: 'excel' | 'pdf') => {
+    setExportLoading(format);
+    try {
+      await downloadExport({
+        endpoint: endpoints.invoicesExport,
+        format,
+        filters: { status: statusFilter || undefined, search },
+        filename: `facturas.${format === 'excel' ? 'xlsx' : 'pdf'}`,
+      });
+    } finally {
+      setExportLoading(null);
+    }
+  };
 
   if (isLoading)
     return <SalesPageSkeleton title="Facturas" subtitle="Cargando historial de facturas..." />;
@@ -213,10 +239,13 @@ export function InvoicesListView() {
         title="Facturas"
         subtitle={`${filtered.length} factura${filtered.length !== 1 ? 's' : ''}`}
         action={
-          <Button color="primary" onClick={() => router.push(paths.sales.pipeline)}>
-            <Icon name="Plus" size={16} />
-            Nueva Factura
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportDropdown onExport={handleExport} loading={exportLoading} />
+            <Button color="primary" onClick={() => router.push(paths.sales.pipeline)}>
+              <Icon name="Plus" size={16} />
+              Nueva Factura
+            </Button>
+          </div>
         }
       />
 
@@ -291,7 +320,12 @@ export function InvoicesListView() {
           </Table>
         </TableContainer>
         <div className="border-t border-border/40">
-          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+          <TablePaginationCustom
+            table={table}
+            total={invoicesPagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
         </div>
       </SectionCard>
     </PageContainer>

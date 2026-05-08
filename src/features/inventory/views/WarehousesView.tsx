@@ -44,6 +44,7 @@ export function WarehousesView() {
     isLoading,
     createWarehouse,
     updateWarehouse,
+    pagination,
   } = useWarehouses();
   const { items: products } = useProducts();
 
@@ -60,36 +61,38 @@ export function WarehousesView() {
   const totalAvailable = warehouses.reduce((sum, w) => sum + (w.summary?.total_available ?? 0), 0);
   const totalValue = warehouses.reduce((sum, w) => sum + (w.summary?.total_value ?? 0), 0);
 
-  const statsCards = [
-    {
-      title: 'Bodegas activas',
-      value: warehousesSummary.active_warehouses,
-      badge: 'habilitadas',
-      icon: <Icon name="Warehouse" size={18} />,
-      iconClassName: 'bg-primary/10 text-primary',
-    },
-    {
-      title: 'Stock físico total',
-      value: totalPhysical.toLocaleString(),
-      badge: 'unidades en sistema',
-      icon: <Icon name="Package" size={18} />,
-      iconClassName: 'bg-info/10 text-info',
-    },
-    {
-      title: 'Disponible total',
-      value: totalAvailable.toLocaleString(),
-      badge: 'para despacho',
-      icon: <Icon name="CheckCircle" size={18} />,
-      iconClassName: 'bg-success/10 text-success',
-    },
-    {
-      title: 'Valor en stock',
-      value: totalValue > 0 ? `$${totalValue.toLocaleString('es-AR')}` : '—',
-      badge: 'costo de inventario',
-      icon: <Icon name="DollarSign" size={18} />,
-      iconClassName: 'bg-warning/10 text-warning',
-    },
-  ];
+  const statsCards = warehousesSummary
+    ? [
+        {
+          title: 'Bodegas activas',
+          value: warehousesSummary.active_warehouses,
+          badge: 'habilitadas',
+          icon: <Icon name="Warehouse" size={18} />,
+          iconClassName: 'bg-primary/10 text-primary',
+        },
+        {
+          title: 'Stock físico total',
+          value: totalPhysical.toLocaleString(),
+          badge: 'unidades en sistema',
+          icon: <Icon name="Package" size={18} />,
+          iconClassName: 'bg-info/10 text-info',
+        },
+        {
+          title: 'Disponible total',
+          value: totalAvailable.toLocaleString(),
+          badge: 'para despacho',
+          icon: <Icon name="CheckCircle" size={18} />,
+          iconClassName: 'bg-success/10 text-success',
+        },
+        {
+          title: 'Valor en stock',
+          value: totalValue > 0 ? `$${totalValue.toLocaleString('es-AR')}` : '—',
+          badge: 'costo de inventario',
+          icon: <Icon name="DollarSign" size={18} />,
+          iconClassName: 'bg-warning/10 text-warning',
+        },
+      ]
+    : [];
 
   const warehouseRows: WarehouseRow[] = useMemo(
     () => warehouses.map((w) => ({ warehouse: w })),
@@ -231,7 +234,11 @@ export function WarehousesView() {
   const { table, dense, onChangeDense } = useTable({
     data: filtered,
     columns: COLUMNS,
-    defaultRowsPerPage: 20,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
   });
 
   const handleWarehouseSave = async (payload: CreateWarehousePayload) => {
@@ -320,7 +327,12 @@ export function WarehousesView() {
           </Table>
         </TableContainer>
         <div className="border-t border-border/40">
-          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+          <TablePaginationCustom
+            table={table}
+            total={pagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
         </div>
       </SectionCard>
 

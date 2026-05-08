@@ -2,7 +2,10 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { Fragment, useMemo, useState } from 'react';
+import { endpoints } from 'src/lib/axios';
+import { downloadExport } from 'src/lib/export-service';
 import { cn } from 'src/lib/utils';
+import { ExportDropdown } from 'src/shared/components/export/ExportDropdown';
 import {
   PageContainer,
   PageHeader,
@@ -69,7 +72,7 @@ function WarehouseBreakdownRow({ stocks }: { stocks: WarehouseStockEntry[] }) {
 }
 
 export function StockView() {
-  const { items, summary, categories, isLoading, refetch } = useProducts();
+  const { items, summary, categories, isLoading, refetch, pagination } = useProducts();
   const { items: warehouses } = useWarehouses();
 
   const [search, setSearch] = useState('');
@@ -79,6 +82,7 @@ export function StockView() {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [adjustDrawerOpen, setAdjustDrawerOpen] = useState(false);
   const [adjustProduct, setAdjustProduct] = useState<InventoryMasterItem | null>(null);
+  const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
   const toggleRow = (uid: string) => {
     setExpandedRows((prev) => {
@@ -89,36 +93,57 @@ export function StockView() {
     });
   };
 
-  const statsCards = [
-    {
-      title: 'Disponible para venta',
-      value: summary.total_available_stock.toLocaleString(),
-      badge: `${summary.total_physical_stock > 0 ? Math.round((summary.total_available_stock / summary.total_physical_stock) * 100) : 0}% del físico`,
-      icon: <Icon name="CheckCircle" size={18} />,
-      iconClassName: 'bg-success/10 text-success',
-    },
-    {
-      title: 'Reservado',
-      value: summary.total_reserved_stock.toLocaleString(),
-      badge: `${summary.total_physical_stock > 0 ? Math.round((summary.total_reserved_stock / summary.total_physical_stock) * 100) : 0}% del físico`,
-      icon: <Icon name="CalendarDays" size={18} />,
-      iconClassName: 'bg-info/10 text-info',
-    },
-    {
-      title: 'Stock físico total',
-      value: summary.total_physical_stock.toLocaleString(),
-      badge: 'unidades en sistema',
-      icon: <Icon name="Package" size={18} />,
-      iconClassName: 'bg-primary/10 text-primary',
-    },
-    {
-      title: 'Productos críticos',
-      value: summary.out_of_stock_count,
-      badge: 'sin stock',
-      icon: <Icon name="AlertTriangle" size={18} />,
-      iconClassName: 'bg-error/10 text-error',
-    },
-  ];
+  const handleExport = async (format: 'excel' | 'pdf') => {
+    setExportLoading(format);
+    try {
+      await downloadExport({
+        endpoint: endpoints.stockExport,
+        format,
+        filters: {
+          search,
+          category_uid: filterCategory !== 'all' ? filterCategory : undefined,
+          warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
+          stock_status: filterStatus !== 'all' ? filterStatus : undefined,
+        },
+        filename: `stock.${format === 'excel' ? 'xlsx' : 'pdf'}`,
+      });
+    } finally {
+      setExportLoading(null);
+    }
+  };
+
+  const statsCards = summary
+    ? [
+        {
+          title: 'Disponible para venta',
+          value: summary.total_available_stock.toLocaleString(),
+          badge: `${summary.total_physical_stock > 0 ? Math.round((summary.total_available_stock / summary.total_physical_stock) * 100) : 0}% del físico`,
+          icon: <Icon name="CheckCircle" size={18} />,
+          iconClassName: 'bg-success/10 text-success',
+        },
+        {
+          title: 'Reservado',
+          value: summary.total_reserved_stock.toLocaleString(),
+          badge: `${summary.total_physical_stock > 0 ? Math.round((summary.total_reserved_stock / summary.total_physical_stock) * 100) : 0}% del físico`,
+          icon: <Icon name="CalendarDays" size={18} />,
+          iconClassName: 'bg-info/10 text-info',
+        },
+        {
+          title: 'Stock físico total',
+          value: summary.total_physical_stock.toLocaleString(),
+          badge: 'unidades en sistema',
+          icon: <Icon name="Package" size={18} />,
+          iconClassName: 'bg-primary/10 text-primary',
+        },
+        {
+          title: 'Productos críticos',
+          value: summary.out_of_stock_count,
+          badge: 'sin stock',
+          icon: <Icon name="AlertTriangle" size={18} />,
+          iconClassName: 'bg-error/10 text-error',
+        },
+      ]
+    : [];
 
   const filtered = useMemo(() => {
     return items.filter((p) => {
@@ -222,7 +247,11 @@ export function StockView() {
   const { table, dense, onChangeDense } = useTable({
     data: filtered,
     columns: COLUMNS,
-    defaultRowsPerPage: 20,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
   });
 
   if (isLoading)
@@ -239,17 +268,20 @@ export function StockView() {
         title="Stock Disponible"
         subtitle="Disponibilidad de inventario por bodega"
         action={
-          <Button
-            color="primary"
-            size="sm"
-            onClick={() => {
-              setAdjustProduct(null);
-              setAdjustDrawerOpen(true);
-            }}
-          >
-            <Icon name="SlidersHorizontal" size={15} />
-            Ajustar stock
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportDropdown onExport={handleExport} loading={exportLoading} />
+            <Button
+              color="primary"
+              size="sm"
+              onClick={() => {
+                setAdjustProduct(null);
+                setAdjustDrawerOpen(true);
+              }}
+            >
+              <Icon name="SlidersHorizontal" size={15} />
+              Ajustar stock
+            </Button>
+          </div>
         }
       />
 
@@ -306,7 +338,12 @@ export function StockView() {
           </Table>
         </TableContainer>
         <div className="border-t border-border/40">
-          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+          <TablePaginationCustom
+            table={table}
+            total={pagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
         </div>
       </SectionCard>
 

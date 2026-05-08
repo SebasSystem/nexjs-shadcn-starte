@@ -54,7 +54,8 @@ const col = createColumnHelper<Quotation>();
 
 export function QuotationsListView() {
   const router = useRouter();
-  const { quotations, convertQuotationToInvoice, saveQuotation, isLoading } = useSalesContext();
+  const { quotations, convertQuotationToInvoice, saveQuotation, isLoading, quotationsPagination } =
+    useSalesContext();
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -173,7 +174,15 @@ export function QuotationsListView() {
     [router, convertQuotationToInvoice, saveQuotation]
   );
 
-  const { table, dense, onChangeDense } = useTable({ data: filtered, columns });
+  const { table, dense, onChangeDense } = useTable({
+    data: filtered,
+    columns,
+    total: quotationsPagination.total,
+    pageIndex: quotationsPagination.page - 1,
+    pageSize: quotationsPagination.rowsPerPage,
+    onPageChange: (pi: number) => quotationsPagination.onChangePage(pi + 1),
+    onPageSizeChange: quotationsPagination.onChangeRowsPerPage,
+  });
 
   if (isLoading)
     return (
@@ -250,7 +259,12 @@ export function QuotationsListView() {
           </Table>
         </TableContainer>
         <div className="border-t border-border/40">
-          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+          <TablePaginationCustom
+            table={table}
+            total={quotationsPagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
         </div>
       </SectionCard>
     </PageContainer>

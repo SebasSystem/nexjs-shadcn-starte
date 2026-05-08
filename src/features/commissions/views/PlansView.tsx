@@ -11,7 +11,7 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 
 export const PlansView = () => {
-  const { plans, isLoading, createPlan, updatePlan } = usePlans();
+  const { plans, isLoading, createPlan, updatePlan, pagination } = usePlans();
   const [selectedPlan, setSelectedPlan] = useState<CommissionPlan | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -31,7 +31,7 @@ export const PlansView = () => {
         name: form.name,
         type: form.type,
         base_percentage: form.base_percentage,
-        tiers: form.tiers.map((t) => ({ threshold: t.threshold, percent: t.percentage })),
+        tiers: form.tiers.map((t) => ({ threshold: t.threshold, percent: t.percent })),
         applicable_roles: form.applicable_roles,
         start_date: form.start_date,
         end_date: form.end_date || undefined,
@@ -42,7 +42,7 @@ export const PlansView = () => {
       name: form.name,
       type: form.type,
       base_percentage: form.base_percentage,
-      tiers: form.tiers.map((t) => ({ threshold: t.threshold, percent: t.percentage })),
+      tiers: form.tiers.map((t) => ({ threshold: t.threshold, percent: t.percent })),
       applicable_roles: form.applicable_roles,
       start_date: form.start_date,
       end_date: form.end_date || undefined,
@@ -67,7 +67,16 @@ export const PlansView = () => {
         <div className="flex items-center justify-between px-5 py-4">
           <p className="text-h6 text-foreground">Lista de planes</p>
         </div>
-        <PlansTable planes={plans} isLoading={isLoading} onEdit={handleEdit} />
+        <PlansTable
+          planes={plans}
+          isLoading={isLoading}
+          onEdit={handleEdit}
+          total={pagination.total}
+          pageIndex={pagination.page - 1}
+          pageSize={pagination.rowsPerPage}
+          onPageChange={(pi: number) => pagination.onChangePage(pi + 1)}
+          onPageSizeChange={pagination.onChangeRowsPerPage}
+        />
       </SectionCard>
 
       <PlanDrawer

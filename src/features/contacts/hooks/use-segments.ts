@@ -2,16 +2,24 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from 'src/lib/query-keys';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { segmentsService } from '../services/segments.service';
-import type { SegmentPayload } from '../types/segments.types';
+import type { Segment, SegmentPayload } from '../types/segments.types';
 
 export function useSegments() {
   const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
   const { data: segments = [], isLoading } = useQuery({
-    queryKey: queryKeys.contacts.segments.list,
-    queryFn: () => segmentsService.list(),
+    queryKey: [...queryKeys.contacts.segments.list, pagination.params],
+    queryFn: async () => {
+      const res = await segmentsService.list(pagination.params);
+      const meta = extractPaginationMeta(res);
+      if (meta) pagination.setTotal(meta.total);
+      return (res as unknown as { data?: Segment[] }).data ?? ([] as Segment[]);
+    },
   });
 
   const createSegment = async (payload: SegmentPayload): Promise<boolean> => {
@@ -51,5 +59,12 @@ export function useSegments() {
     updateSegment,
     deleteSegment,
     refetch: () => queryClient.invalidateQueries({ queryKey: queryKeys.contacts.segments.list }),
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
   };
 }

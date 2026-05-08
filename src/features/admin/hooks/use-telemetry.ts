@@ -4,18 +4,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { telemetryService } from 'src/features/admin/services/telemetry.service';
 import { Alerta, LogEntry, TelemetryStats } from 'src/features/admin/types/admin.types';
 import { cache } from 'src/lib/cache';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 const C_LOGS = 'telemetry:logs',
   C_ALERTS = 'telemetry:alerts',
   C_STATS = 'telemetry:stats';
-const EMPTY_STATS: TelemetryStats = {
-  uptime_global_percent: 100,
-  latencia_p95_ms: null,
-  errores_24h: 0,
-  warnings_24h: 0,
-  tenants_with_errors: 0,
-  active_alerts: 0,
-};
 
 export function useTelemetry() {
   const cachedLogs = cache.get<LogEntry[]>(C_LOGS);
@@ -25,17 +19,21 @@ export function useTelemetry() {
 
   const [logs, setLogs] = useState<LogEntry[]>(cachedLogs ?? []);
   const [alertas, setAlertas] = useState<Alerta[]>(cachedAlertas ?? []);
-  const [stats, setStats] = useState<TelemetryStats>(cachedStats ?? EMPTY_STATS);
+  const [stats, setStats] = useState<TelemetryStats | null>(cachedStats ?? null);
   const [isLoading, setIsLoading] = useState(!hasAnyCache);
+  const pagination = usePaginationParams();
 
   const fetchData = useCallback(async () => {
     setIsLoading(!hasAnyCache);
     try {
-      const [logData, alertaData, statsData] = await Promise.all([
-        telemetryService.getLogs(),
+      const [logRes, alertaData, statsData] = await Promise.all([
+        telemetryService.getLogs(pagination.params),
         telemetryService.getAlertas(),
         telemetryService.getStats(),
       ]);
+      const meta = extractPaginationMeta(logRes);
+      if (meta) pagination.setTotal(meta.total);
+      const logData = ((logRes as unknown as { data?: LogEntry[] }).data ?? []) as LogEntry[];
       cache.set(C_LOGS, logData);
       cache.set(C_ALERTS, alertaData);
       cache.set(C_STATS, statsData);
@@ -43,11 +41,11 @@ export function useTelemetry() {
       setAlertas(alertaData);
       setStats(statsData);
     } catch {
-      setStats(EMPTY_STATS);
+      /* mantener data previa en caso de error */
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [hasAnyCache, pagination]);
 
   useEffect(() => {
     fetchData();
@@ -83,5 +81,12 @@ export function useTelemetry() {
     toggleAlerta,
     saveAlerta,
     updateAlerta,
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
   };
 }

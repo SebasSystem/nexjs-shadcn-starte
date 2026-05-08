@@ -44,7 +44,7 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
   defaultContactNombre,
 }) => {
   const { contactos } = useContacts();
-  const [type, setType] = useState<ActivityType>('TASK');
+  const [type, setType] = useState<ActivityType>('task');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -77,7 +77,17 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
   };
 
   const activityLabel =
-    type === 'TASK' ? 'tarea' : type === 'REMINDER' ? 'recordatorio' : 'reunión';
+    type === 'task'
+      ? 'tarea'
+      : type === 'reminder'
+        ? 'recordatorio'
+        : type === 'meeting'
+          ? 'reunión'
+          : type === 'call'
+            ? 'llamada'
+            : type === 'email'
+              ? 'correo'
+              : 'nota';
 
   return (
     <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
@@ -95,9 +105,12 @@ export const ActivityDrawer: React.FC<ActivityDrawerProps> = ({
                 value={type}
                 onChange={(val) => setType(val as ActivityType)}
                 options={[
-                  { value: 'TASK', label: 'Tarea' },
-                  { value: 'REMINDER', label: 'Recordatorio' },
-                  { value: 'MEETING', label: 'Reunión' },
+                  { value: 'task', label: 'Tarea' },
+                  { value: 'call', label: 'Llamada' },
+                  { value: 'meeting', label: 'Reunión' },
+                  { value: 'email', label: 'Correo' },
+                  { value: 'note', label: 'Nota' },
+                  { value: 'reminder', label: 'Recordatorio' },
                 ]}
               />
 

@@ -13,6 +13,8 @@ const ROOTS = {
   PARTNERS: '/partners',
   INTELLIGENCE: '/intelligence',
   AUTOMATION: '/automation',
+  EXPENSES: '/expenses',
+  PURCHASES: '/purchases',
 };
 
 export const paths = {
@@ -45,6 +47,7 @@ export const paths = {
   inventory: {
     root: ROOTS.INVENTORY,
     products: `${ROOTS.INVENTORY}/products`,
+    categories: `${ROOTS.INVENTORY}/categories`,
     warehouses: {
       root: `${ROOTS.INVENTORY}/warehouses`,
       movements: `${ROOTS.INVENTORY}/warehouses/movements`,
@@ -94,6 +97,8 @@ export const paths = {
   // SCHEDULE
   schedule: {
     root: ROOTS.SCHEDULE,
+    overdue: `${ROOTS.SCHEDULE}/overdue`,
+    tasks: `${ROOTS.SCHEDULE}/tasks`,
   },
 
   // HR / COMMISSIONS
@@ -147,5 +152,21 @@ export const paths = {
     customFields: `${ROOTS.SETTINGS}/custom-fields`,
     localization: `${ROOTS.SETTINGS}/localization`,
     tags: `${ROOTS.SETTINGS}/tags`,
+    documentTypes: `${ROOTS.SETTINGS}/document-types`,
+  },
+
+  // EXPENSES
+  expenses: {
+    root: ROOTS.EXPENSES,
+    categories: `${ROOTS.EXPENSES}/categories`,
+    suppliers: `${ROOTS.EXPENSES}/suppliers`,
+    costCenters: `${ROOTS.EXPENSES}/cost-centers`,
+    report: `${ROOTS.EXPENSES}/report`,
+  },
+
+  // PURCHASES
+  purchases: {
+    root: ROOTS.PURCHASES,
+    payables: `${ROOTS.PURCHASES}/payables`,
   },
 };

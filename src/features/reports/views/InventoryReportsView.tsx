@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { endpoints } from 'src/lib/axios';
+import { downloadExport } from 'src/lib/export-service';
 import { cn } from 'src/lib/utils';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button, Icon } from 'src/shared/components/ui';
@@ -60,10 +62,20 @@ export function InventoryReportsView() {
 
   const { data: reportData, isLoading } = useInventoryReport(activeTab, filters);
 
-  const doExport = async (type: 'excel' | 'pdf', _fields: string[]) => {
+  const doExport = async (type: 'excel' | 'pdf', fields: string[]) => {
     setExportLoading(type);
-    await new Promise((r) => setTimeout(r, 800));
-    setExportLoading(null);
+    try {
+      await downloadExport({
+        endpoint: endpoints.reports.inventoryExport,
+        format: type,
+        fields,
+        tab: activeTab,
+        filters,
+        filename: `reporte-inventario-${activeTab}.${type === 'excel' ? 'xlsx' : 'pdf'}`,
+      });
+    } finally {
+      setExportLoading(null);
+    }
   };
 
   const renderTabContent = () => {

@@ -38,7 +38,7 @@ export function useOpportunityPanel() {
   const daysInStage = useMemo(() => {
     if (!opportunity?.created_at) return 0;
     return diffDays(opportunity.created_at);
-  }, [opportunity?.created_at]);
+  }, [opportunity]);
 
   const agingLevel: AgingLevel =
     daysInStage > 14

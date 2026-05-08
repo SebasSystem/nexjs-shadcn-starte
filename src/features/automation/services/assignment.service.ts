@@ -1,12 +1,12 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
+import type { PaginationParams } from 'src/shared/lib/pagination';
 
 import type { AssignmentRule } from '../types';
 
 export const assignmentService = {
-  async getAll(): Promise<AssignmentRule[]> {
-    const res = await axiosInstance.get(endpoints.automation.assignmentRules.list);
-    const payload = res.data?.data ?? res.data;
-    return Array.isArray(payload) ? payload : [];
+  async getAll(params?: PaginationParams): Promise<unknown> {
+    const res = await axiosInstance.get(endpoints.automation.assignmentRules.list, { params });
+    return res.data;
   },
 
   async create(

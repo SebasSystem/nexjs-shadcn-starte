@@ -2,6 +2,13 @@ import axiosInstance, { endpoints } from 'src/lib/axios';
 
 import type { CreditException, CreditRuleSettings } from '../types/sales.types';
 
+export interface CreateCreditExceptionPayload {
+  entity_type: string;
+  entity_uid: string;
+  credit_limit: number;
+  notes?: string;
+}
+
 export const financeService = {
   async getDashboard() {
     const res = await axiosInstance.get(endpoints.sales.financeDashboard);
@@ -35,6 +42,19 @@ export const financeService = {
   async listCreditExceptions(): Promise<CreditException[]> {
     const res = await axiosInstance.get(endpoints.sales.creditExceptions);
     return res.data.data ?? [];
+  },
+
+  async createCreditException(payload: CreateCreditExceptionPayload): Promise<CreditException> {
+    const res = await axiosInstance.post(endpoints.sales.creditExceptions, payload);
+    return res.data?.data ?? res.data;
+  },
+
+  async updateCreditException(
+    uid: string,
+    payload: Partial<CreateCreditExceptionPayload>
+  ): Promise<CreditException> {
+    const res = await axiosInstance.put(endpoints.sales.creditException(uid), payload);
+    return res.data?.data ?? res.data;
   },
 
   async syncOverdue() {

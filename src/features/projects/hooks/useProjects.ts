@@ -3,9 +3,11 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { queryKeys } from 'src/lib/query-keys';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { projectsService } from '../services/projects.service';
-import type { MilestonePayload, ProjectPayload, ProjectResourcePayload } from '../types';
+import type { MilestonePayload, Project, ProjectPayload, ProjectResourcePayload } from '../types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook
@@ -13,10 +15,16 @@ import type { MilestonePayload, ProjectPayload, ProjectResourcePayload } from '.
 
 export function useProjects() {
   const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: queryKeys.projects.list,
-    queryFn: () => projectsService.list(),
+    queryKey: [...queryKeys.projects.list, pagination.params],
+    queryFn: async () => {
+      const res = await projectsService.list(pagination.params);
+      const meta = extractPaginationMeta(res);
+      if (meta) pagination.setTotal(meta.total);
+      return ((res as unknown as { data?: Project[] }).data ?? []) as Project[];
+    },
   });
 
   // ─── Stats (derived) ────────────────────────────────────────────────────
@@ -125,5 +133,12 @@ export function useProjects() {
     addResource,
     removeResource,
     refetch: () => queryClient.invalidateQueries({ queryKey: queryKeys.projects.list }),
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
   };
 }

@@ -5,7 +5,9 @@ import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { Payment } from 'src/features/sales/types/sales.types';
+import { endpoints } from 'src/lib/axios';
 import { formatMoney } from 'src/lib/currency';
+import { downloadExport } from 'src/lib/export-service';
 import { paths } from 'src/routes/paths';
 import { PageContainer, SectionCard } from 'src/shared/components/layouts/page';
 import { Badge } from 'src/shared/components/ui/badge';
@@ -462,17 +464,37 @@ export function InvoiceView({ invoiceId }: InvoiceViewProps) {
                 Acciones
               </h3>
               <div className="space-y-1">
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium text-foreground">
+                <button
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium text-foreground"
+                  onClick={() =>
+                    downloadExport({
+                      endpoint: endpoints.invoicesExport,
+                      format: 'pdf',
+                      filters: { invoice_uid: 'current' },
+                      filename: `factura.pdf`,
+                    })
+                  }
+                >
                   <div className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
                     <Icon name="Download" size={15} />
                   </div>
                   Descargar PDF
                 </button>
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium text-foreground">
+                <button
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium text-foreground"
+                  onClick={() =>
+                    downloadExport({
+                      endpoint: endpoints.invoicesExport,
+                      format: 'excel',
+                      filters: { invoice_uid: 'current' },
+                      filename: `factura.xlsx`,
+                    })
+                  }
+                >
                   <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
                     <Icon name="FileText" size={15} />
                   </div>
-                  Exportar CSV
+                  Exportar Excel
                 </button>
                 <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-sm font-medium text-foreground">
                   <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">

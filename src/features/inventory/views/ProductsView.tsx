@@ -3,7 +3,10 @@
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { endpoints } from 'src/lib/axios';
+import { downloadExport } from 'src/lib/export-service';
 import { cn } from 'src/lib/utils';
+import { ExportDropdown } from 'src/shared/components/export/ExportDropdown';
 import {
   PageContainer,
   PageHeader,
@@ -32,7 +35,8 @@ import type { CreateProductPayload, InventoryMasterItem } from '../types/invento
 const columnHelper = createColumnHelper<InventoryMasterItem>();
 
 export function ProductsView() {
-  const { items, summary, categories, isLoading, createProduct, updateProduct } = useProducts();
+  const { items, summary, categories, isLoading, createProduct, updateProduct, pagination } =
+    useProducts();
 
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
@@ -41,37 +45,33 @@ export function ProductsView() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<ProductDrawerMode>('create');
   const [selectedProduct, setSelectedProduct] = useState<InventoryMasterItem | null>(null);
+  const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
-  const statsCards = [
-    {
-      title: 'Total productos',
-      value: summary.products,
-      badge: 'en catálogo',
-      icon: <Icon name="Package" size={18} />,
-      iconClassName: 'bg-primary/10 text-primary',
-    },
-    {
-      title: 'Productos activos',
-      value: summary.active_products,
-      badge: `${summary.products > 0 ? Math.round((summary.active_products / summary.products) * 100) : 0}% del total`,
-      icon: <Icon name="CheckCircle" size={18} />,
-      iconClassName: 'bg-success/10 text-success',
-    },
-    {
-      title: 'Productos sin stock',
-      value: summary.out_of_stock_count,
-      badge: `${summary.products > 0 ? Math.round((summary.out_of_stock_count / summary.products) * 100) : 0}% del total`,
-      icon: <Icon name="XCircle" size={18} />,
-      iconClassName: 'bg-error/10 text-error',
-    },
-    {
-      title: 'Categorías',
-      value: categories.length,
-      badge: 'disponibles',
-      icon: <Icon name="Tag" size={18} />,
-      iconClassName: 'bg-info/10 text-info',
-    },
-  ];
+  const statsCards = summary
+    ? [
+        {
+          title: 'Total productos',
+          value: summary.products,
+          badge: 'en catálogo',
+          icon: <Icon name="Package" size={18} />,
+          iconClassName: 'bg-primary/10 text-primary',
+        },
+        {
+          title: 'Productos activos',
+          value: summary.active_products,
+          badge: `${summary.products > 0 ? Math.round((summary.active_products / summary.products) * 100) : 0}% del total`,
+          icon: <Icon name="CheckCircle" size={18} />,
+          iconClassName: 'bg-success/10 text-success',
+        },
+        {
+          title: 'Productos sin stock',
+          value: summary.out_of_stock_count,
+          badge: `${summary.products > 0 ? Math.round((summary.out_of_stock_count / summary.products) * 100) : 0}% del total`,
+          icon: <Icon name="XCircle" size={18} />,
+          iconClassName: 'bg-error/10 text-error',
+        },
+      ]
+    : [];
 
   const allWarehouses = useMemo(() => {
     const map = new Map<string, { uid: string; name: string }>();
@@ -167,7 +167,11 @@ export function ProductsView() {
   const { table, dense, onChangeDense } = useTable({
     data: filtered,
     columns: COLUMNS,
-    defaultRowsPerPage: 20,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
   });
 
   const handleSave = async (payload: CreateProductPayload) => {
@@ -177,6 +181,25 @@ export function ProductsView() {
     } else if (selectedProduct) {
       await updateProduct(selectedProduct.uid, payload);
       toast.success('Producto actualizado');
+    }
+  };
+
+  const handleExport = async (format: 'excel' | 'pdf') => {
+    setExportLoading(format);
+    try {
+      await downloadExport({
+        endpoint: endpoints.productsExport,
+        format,
+        filters: {
+          search,
+          category_uid: filterCategory !== 'all' ? filterCategory : undefined,
+          warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
+          is_active: filterStatus !== 'all' ? filterStatus === 'active' : undefined,
+        },
+        filename: `productos.${format === 'excel' ? 'xlsx' : 'pdf'}`,
+      });
+    } finally {
+      setExportLoading(null);
     }
   };
 
@@ -191,18 +214,21 @@ export function ProductsView() {
         title="Productos"
         subtitle="Gestión del catálogo de inventario"
         action={
-          <Button
-            color="primary"
-            size="sm"
-            onClick={() => {
-              setSelectedProduct(null);
-              setDrawerMode('create');
-              setDrawerOpen(true);
-            }}
-          >
-            <Icon name="Plus" size={16} />
-            Nuevo producto
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportDropdown onExport={handleExport} loading={exportLoading} />
+            <Button
+              color="primary"
+              size="sm"
+              onClick={() => {
+                setSelectedProduct(null);
+                setDrawerMode('create');
+                setDrawerOpen(true);
+              }}
+            >
+              <Icon name="Plus" size={16} />
+              Nuevo producto
+            </Button>
+          </div>
         }
       />
 
@@ -250,7 +276,12 @@ export function ProductsView() {
           </Table>
         </TableContainer>
         <div className="border-t border-border/40">
-          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+          <TablePaginationCustom
+            table={table}
+            total={pagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
         </div>
       </SectionCard>
 

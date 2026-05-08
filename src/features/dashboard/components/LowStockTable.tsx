@@ -1,8 +1,10 @@
 'use client';
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import Link from 'next/link';
 import type { LowStockProduct } from 'src/features/dashboard/types/dashboard.types';
 import { cn } from 'src/lib/utils';
+import { paths } from 'src/routes/paths';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import {
   Table,
@@ -85,9 +87,12 @@ export function LowStockTable({ low_stock_products }: Props) {
             <p className="text-body2 text-muted-foreground">Requieren atención inmediata</p>
           </div>
         </div>
-        <button className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border/60 text-muted-foreground hover:border-primary hover:text-primary transition-colors cursor-pointer">
-          Exportar CSV
-        </button>
+        <Link
+          href={paths.inventory.stock}
+          className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+        >
+          Ver todos <Icon name="ChevronRight" size={14} />
+        </Link>
       </div>
 
       <TableContainer className="relative">

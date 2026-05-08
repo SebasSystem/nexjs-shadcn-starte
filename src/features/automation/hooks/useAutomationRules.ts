@@ -3,16 +3,24 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { queryKeys } from 'src/lib/query-keys';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { automationService } from '../services/automation.service';
 import type { AutomationRule } from '../types';
 
 export function useAutomationRules() {
   const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
   const { data: rules = [], isLoading } = useQuery({
-    queryKey: queryKeys.automation.rules,
-    queryFn: () => automationService.getAll(),
+    queryKey: [...queryKeys.automation.rules, pagination.params],
+    queryFn: async () => {
+      const res = await automationService.getAll(pagination.params);
+      const meta = extractPaginationMeta(res as Record<string, unknown>);
+      if (meta) pagination.setTotal(meta.total);
+      return ((res as Record<string, unknown>).data ?? []) as AutomationRule[];
+    },
   });
 
   const stats = useMemo(
@@ -45,6 +53,11 @@ export function useAutomationRules() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.automation.rules }),
   });
 
+  const toggleMutation = useMutation({
+    mutationFn: (uid: string) => automationService.toggleRule(uid),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.automation.rules }),
+  });
+
   return {
     rules,
     isLoading,
@@ -62,10 +75,16 @@ export function useAutomationRules() {
     deleteRule: async (uid: string): Promise<void> => {
       await deleteMutation.mutateAsync(uid);
     },
-    toggleRule: async (uid: string): Promise<void> => {
-      const current = rules.find((r) => r.uid === uid);
-      if (!current) return;
-      await updateMutation.mutateAsync({ uid, data: { enabled: !current.enabled } });
+    toggleRule: async (uid: string): Promise<boolean> => {
+      await toggleMutation.mutateAsync(uid);
+      return true;
+    },
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
     },
   };
 }

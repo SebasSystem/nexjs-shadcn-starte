@@ -4,7 +4,7 @@ export const tierSchema = z
   .object({
     uid: z.string().optional(),
     threshold: z.number().min(0, 'El monto inicial debe ser mayor o igual a 0'),
-    percentage: z
+    percent: z
       .number()
       .min(0.01, 'El porcentaje debe ser mayor a 0')
       .max(100, 'El porcentaje máximo es 100%'),

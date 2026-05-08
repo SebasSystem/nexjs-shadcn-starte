@@ -21,12 +21,12 @@ import {
   useTable,
 } from 'src/shared/components/table';
 import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+import { useTenantOptions } from 'src/shared/hooks/useTenantOptions';
 
 import { LostReasonDrawer } from '../components/LostReasonDrawer';
 import { LostReasonHeatmap } from '../components/LostReasonHeatmap';
 import { useIntelligence } from '../hooks/useIntelligence';
-import type { LostReason, LostReasonCategory } from '../types';
-import { LOST_REASON_LABELS, LOST_REASON_OPTIONS } from '../types';
+import type { LostReason } from '../types';
 const col = createColumnHelper<LostReason>();
 
 export function LostReasonsView() {
@@ -38,6 +38,7 @@ export function LostReasonsView() {
     createLostReason,
     updateLostReason,
     deleteLostReason,
+    lostReasonsPagination: pagination,
   } = useIntelligence();
 
   const [search, setSearch] = useState('');
@@ -45,6 +46,28 @@ export function LostReasonsView() {
   const [competitorFilter, setCompetitorFilter] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<LostReason | null>(null);
+
+  const { lostReasonCategories } = useTenantOptions();
+
+  const reasonOptions = useMemo(() => {
+    const data = lostReasonCategories.data as
+      | { uid: string; name: string; key: string }[]
+      | undefined;
+    if (!data || data.length === 0) return [{ value: '', label: 'Todas las razones' }];
+    return [
+      { value: '', label: 'Todas las razones' },
+      ...data.map((opt) => ({ value: opt.key, label: opt.name })),
+    ];
+  }, [lostReasonCategories.data]);
+
+  const reasonLabels = useMemo(() => {
+    const data = lostReasonCategories.data as
+      | { uid: string; name: string; key: string }[]
+      | undefined;
+    const map: Record<string, string> = {};
+    if (data) for (const opt of data) map[opt.key] = opt.name;
+    return map;
+  }, [lostReasonCategories.data]);
 
   const COMPETITOR_FILTER_OPTIONS = useMemo(
     () => [
@@ -54,8 +77,6 @@ export function LostReasonsView() {
     ],
     [competitors]
   );
-
-  const REASON_FILTER_OPTIONS = [{ value: '', label: 'Todas las razones' }, ...LOST_REASON_OPTIONS];
 
   const columns = useMemo(
     () => [
@@ -94,7 +115,7 @@ export function LostReasonsView() {
         header: 'Razón',
         cell: (info) => (
           <Badge variant="soft" color="warning">
-            {LOST_REASON_LABELS[info.getValue() as LostReasonCategory]}
+            {reasonLabels[info.getValue()] || info.getValue()}
           </Badge>
         ),
       }),
@@ -139,7 +160,7 @@ export function LostReasonsView() {
         ),
       }),
     ],
-    [deleteLostReason]
+    [deleteLostReason, reasonLabels]
   );
 
   const filtered = useMemo(() => {
@@ -160,7 +181,15 @@ export function LostReasonsView() {
     });
   }, [lostReasons, search, reasonFilter, competitorFilter]);
 
-  const { table, dense, onChangeDense } = useTable({ data: filtered, columns });
+  const { table, dense, onChangeDense } = useTable({
+    data: filtered,
+    columns,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
+  });
 
   const handleClose = () => {
     setDrawerOpen(false);
@@ -198,7 +227,7 @@ export function LostReasonsView() {
         />
         <StatsCard
           title="Razón principal"
-          value={LOST_REASON_LABELS[stats.top_lost_reason]}
+          value={reasonLabels[stats.top_lost_reason] || stats.top_lost_reason}
           icon={<Icon name="AlertCircle" size={18} />}
           iconClassName="bg-warning/10 text-warning"
         />
@@ -227,7 +256,7 @@ export function LostReasonsView() {
         <div className="min-w-[200px]">
           <SelectField
             label="Razón"
-            options={REASON_FILTER_OPTIONS}
+            options={reasonOptions}
             value={reasonFilter}
             onChange={(v) => setReasonFilter(v as string)}
             placeholder="Todas las razones"
@@ -276,7 +305,12 @@ export function LostReasonsView() {
           </Table>
         </TableContainer>
         <div className="border-t border-border/40">
-          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+          <TablePaginationCustom
+            table={table}
+            total={pagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
         </div>
       </SectionCard>
 

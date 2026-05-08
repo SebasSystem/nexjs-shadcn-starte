@@ -20,7 +20,8 @@ import { useTeams } from '../hooks/use-teams';
 import type { SettingsUser } from '../types/settings.types';
 
 export const UsersView = () => {
-  const { users, isLoading, createUser, updateUser, toggleStatus, deleteUser } = useSettingsUsers();
+  const { users, isLoading, createUser, updateUser, toggleStatus, deleteUser, pagination } =
+    useSettingsUsers();
   const { roles } = useRoles();
   const { teams } = useTeams();
 
@@ -61,7 +62,7 @@ export const UsersView = () => {
     setIsDrawerOpen(true);
   };
 
-  const handleSave = async (data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_access_at'>) => {
+  const handleSave = async (data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'>) => {
     if (selectedUser) return updateUser(selectedUser.uid, data);
     return createUser(data);
   };
@@ -160,6 +161,11 @@ export const UsersView = () => {
               onEdit={handleEdit}
               onToggleStatus={(u: SettingsUser) => toggleStatus(u.uid)}
               onDelete={(u: SettingsUser) => deleteUser(u.uid)}
+              total={pagination.total}
+              pageIndex={pagination.page - 1}
+              pageSize={pagination.rowsPerPage}
+              onPageChange={(pi) => pagination.onChangePage(pi + 1)}
+              onPageSizeChange={pagination.onChangeRowsPerPage}
             />
             <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
               {filteredUsers.length} usuario{filteredUsers.length !== 1 ? 's' : ''}

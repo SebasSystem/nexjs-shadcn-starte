@@ -17,7 +17,7 @@ import type { Activity, ActivitySource, ActivityStatus } from '../types/producti
 
 const getStatusIcon = (status: ActivityStatus) => {
   switch (status) {
-    case 'PENDING':
+    case 'pending':
       return (
         <Icon
           name="Circle"
@@ -25,9 +25,13 @@ const getStatusIcon = (status: ActivityStatus) => {
           className="text-gray-300 hover:text-blue-500 transition-colors"
         />
       );
-    case 'COMPLETED':
+    case 'in_progress':
+      return <Icon name="Loader2" size={20} className="text-blue-500 animate-spin" />;
+    case 'completed':
       return <Icon name="CheckCircle2" size={20} className="text-emerald-500" />;
-    case 'OVERDUE':
+    case 'cancelled':
+      return <Icon name="XCircle" size={20} className="text-gray-400" />;
+    case 'overdue':
       return (
         <Icon
           name="AlertCircle"
@@ -39,7 +43,7 @@ const getStatusIcon = (status: ActivityStatus) => {
 };
 
 const getRelativeDateGroup = (dateStr: string, status: ActivityStatus) => {
-  if (status === 'COMPLETED') return 'Completadas';
+  if (status === 'completed') return 'Completadas';
   const d = new Date(dateStr);
   if (isPast(d) && !isToday(d)) return 'Vencidas';
   if (isToday(d)) return 'Para Hoy';
@@ -78,9 +82,9 @@ export const ScheduleView = () => {
     return data.filter((a) => {
       const matchTab =
         filterTab === 'Pendientes'
-          ? a.status !== 'COMPLETED'
+          ? a.status !== 'completed'
           : filterTab === 'Completadas'
-            ? a.status === 'COMPLETED'
+            ? a.status === 'completed'
             : true;
       const matchSource = filterSource === 'all' || a.source === filterSource;
       return matchTab && matchSource;
@@ -105,13 +109,13 @@ export const ScheduleView = () => {
     () => ({
       vencidas: data.filter(
         (a) =>
-          a.status === 'OVERDUE' ||
+          a.status === 'overdue' ||
           (isPast(new Date(a.due_date)) &&
             !isToday(new Date(a.due_date)) &&
-            a.status !== 'COMPLETED')
+            a.status !== 'completed')
       ).length,
-      hoy: data.filter((a) => isToday(new Date(a.due_date)) && a.status !== 'COMPLETED').length,
-      completadas: data.filter((a) => a.status === 'COMPLETED').length,
+      hoy: data.filter((a) => isToday(new Date(a.due_date)) && a.status !== 'completed').length,
+      completadas: data.filter((a) => a.status === 'completed').length,
     }),
     [data]
   );
@@ -248,9 +252,9 @@ export const ScheduleView = () => {
                     <SectionCard
                       key={activity.uid}
                       className={`group flex items-start gap-4 transition-all duration-200 cursor-default ${
-                        activity.status === 'COMPLETED'
+                        activity.status === 'completed'
                           ? 'opacity-60 hover:opacity-100'
-                          : activity.status === 'OVERDUE' || groupName === 'Vencidas'
+                          : activity.status === 'overdue' || groupName === 'Vencidas'
                             ? 'border-red-200 bg-red-50/20 dark:bg-red-500/5'
                             : 'hover:border-primary/40 hover:shadow-md'
                       }`}
@@ -261,7 +265,7 @@ export const ScheduleView = () => {
                           !isReadOnly &&
                           updateStatus(
                             activity.uid,
-                            activity.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED'
+                            activity.status === 'completed' ? 'pending' : 'completed'
                           )
                         }
                         disabled={isReadOnly}
@@ -273,7 +277,7 @@ export const ScheduleView = () => {
                         title={
                           isReadOnly
                             ? 'Actualizá el estado en la fuente original'
-                            : activity.status === 'COMPLETED'
+                            : activity.status === 'completed'
                               ? 'Marcar como pendiente'
                               : 'Completar'
                         }
@@ -286,7 +290,7 @@ export const ScheduleView = () => {
                           <div>
                             <h5
                               className={`text-[15px] leading-tight font-semibold tracking-tight ${
-                                activity.status === 'COMPLETED'
+                                activity.status === 'completed'
                                   ? 'line-through text-muted-foreground'
                                   : 'text-foreground'
                               }`}
@@ -317,18 +321,30 @@ export const ScheduleView = () => {
                             <Badge
                               variant="outline"
                               className={`text-[10px] uppercase font-bold px-2 py-0.5 ${
-                                activity.type === 'MEETING'
+                                activity.type === 'meeting'
                                   ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
-                                  : activity.type === 'REMINDER'
+                                  : activity.type === 'reminder'
                                     ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                                    : activity.type === 'call'
+                                      ? 'bg-green-50 text-green-700 border-green-200'
+                                      : activity.type === 'email'
+                                        ? 'bg-gray-50 text-gray-700 border-gray-200'
+                                        : activity.type === 'note'
+                                          ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                          : 'bg-blue-50 text-blue-700 border-blue-200'
                               }`}
                             >
-                              {activity.type === 'TASK'
+                              {activity.type === 'task'
                                 ? 'Tarea'
-                                : activity.type === 'REMINDER'
+                                : activity.type === 'reminder'
                                   ? 'Recordatorio'
-                                  : 'Reunión'}
+                                  : activity.type === 'meeting'
+                                    ? 'Reunión'
+                                    : activity.type === 'call'
+                                      ? 'Llamada'
+                                      : activity.type === 'email'
+                                        ? 'Correo'
+                                        : 'Nota'}
                             </Badge>
 
                             {/* Actions: redirect or more options */}

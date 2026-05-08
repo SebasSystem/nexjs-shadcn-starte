@@ -1,8 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import type { DashboardSummary, OverdueTask } from 'src/features/dashboard/types/dashboard.types';
 import { formatTime } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
+import { paths } from 'src/routes/paths';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import { Badge, Icon } from 'src/shared/components/ui';
 
@@ -33,9 +35,12 @@ export function OverdueTasksCard({ summary, overdue_tasks }: Props) {
             <p className="text-caption text-muted-foreground">Requieren atención inmediata</p>
           </div>
         </div>
-        <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1 cursor-pointer">
+        <Link
+          href={paths.schedule.overdue}
+          className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+        >
           Ver todas <Icon name="ChevronRight" size={14} />
-        </button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-3 gap-3 px-5 pb-4">

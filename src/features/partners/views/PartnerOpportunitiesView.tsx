@@ -40,8 +40,9 @@ export function PartnerOpportunitiesView() {
     opportunityStats,
     createOpportunity,
     updateOpportunity,
-    validateOpportunity,
-    closeOpportunity,
+    approveOpportunity,
+    rejectOpportunity,
+    convertOpportunity,
   } = usePartners();
 
   const [search, setSearch] = useState('');
@@ -130,17 +131,17 @@ export function PartnerOpportunitiesView() {
                     variant="soft"
                     className="h-6 text-[11px] px-2"
                     onClick={async () => {
-                      const ok = await validateOpportunity([info.row.original.uid]);
+                      const ok = await approveOpportunity(info.row.original.uid);
                       if (ok) {
                         toast.success(
-                          `Oportunidad validada. ${partner_name} tiene exclusividad sobre este cliente.`
+                          `Oportunidad aprobada. ${partner_name} tiene exclusividad sobre este cliente.`
                         );
                       } else {
-                        toast.error('Error al validar la oportunidad');
+                        toast.error('Error al aprobar la oportunidad');
                       }
                     }}
                   >
-                    Validar
+                    Aprobar
                   </Button>
                   <Button
                     size="sm"
@@ -148,15 +149,31 @@ export function PartnerOpportunitiesView() {
                     variant="soft"
                     className="h-6 text-[11px] px-2"
                     onClick={async () => {
-                      const ok = await closeOpportunity(info.row.original.uid);
+                      const ok = await rejectOpportunity(info.row.original.uid);
                       if (ok) {
-                        toast.success('Oportunidad cerrada.');
+                        toast.success('Oportunidad rechazada.');
                       } else {
-                        toast.error('Error al cerrar la oportunidad');
+                        toast.error('Error al rechazar la oportunidad');
                       }
                     }}
                   >
-                    Cerrar
+                    Rechazar
+                  </Button>
+                  <Button
+                    size="sm"
+                    color="info"
+                    variant="soft"
+                    className="h-6 text-[11px] px-2"
+                    onClick={async () => {
+                      const ok = await convertOpportunity(info.row.original.uid);
+                      if (ok) {
+                        toast.success('Oportunidad convertida a deal.');
+                      } else {
+                        toast.error('Error al convertir la oportunidad');
+                      }
+                    }}
+                  >
+                    Convertir a Deal
                   </Button>
                 </>
               )}
@@ -175,7 +192,7 @@ export function PartnerOpportunitiesView() {
         },
       }),
     ],
-    [validateOpportunity, closeOpportunity]
+    [approveOpportunity, rejectOpportunity, convertOpportunity]
   );
 
   const { table, dense, onChangeDense } = useTable({

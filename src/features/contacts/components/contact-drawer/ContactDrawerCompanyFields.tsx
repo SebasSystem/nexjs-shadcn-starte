@@ -1,24 +1,31 @@
 'use client';
 
+import { useMemo } from 'react';
 import type { Control } from 'react-hook-form';
 import { FormInput } from 'src/shared/components/ui/form-input';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
+import { useTenantOptions } from 'src/shared/hooks/useTenantOptions';
 
 import type { ContactDrawerFormData } from './contact-drawer.types';
-
-const SIZE_OPTIONS = [
-  { value: '', label: 'Sin especificar' },
-  { value: 'micro', label: 'Micro (<10)' },
-  { value: 'small', label: 'Pequeña (10-50)' },
-  { value: 'medium', label: 'Mediana (50-200)' },
-  { value: 'large', label: 'Grande (200+)' },
-];
 
 interface ContactDrawerCompanyFieldsProps {
   control: Control<ContactDrawerFormData>;
 }
 
 export function ContactDrawerCompanyFields({ control }: ContactDrawerCompanyFieldsProps) {
+  const { companySizes } = useTenantOptions();
+
+  const sizeOptions = useMemo(() => {
+    const data = companySizes.data as { uid: string; name: string }[] | undefined;
+    if (!data || data.length === 0) {
+      return [{ value: '', label: 'Cargando...' }];
+    }
+    return [
+      { value: '', label: 'Sin especificar' },
+      ...data.map((opt) => ({ value: opt.uid, label: opt.name })),
+    ];
+  }, [companySizes.data]);
+
   return (
     <div className="space-y-4 pt-2 border-t border-border/40">
       <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-wider">
@@ -33,7 +40,7 @@ export function ContactDrawerCompanyFields({ control }: ContactDrawerCompanyFiel
           control={control}
           name="company_size"
           label="Tamaño"
-          options={SIZE_OPTIONS}
+          options={sizeOptions}
         />
         <FormInput
           control={control}

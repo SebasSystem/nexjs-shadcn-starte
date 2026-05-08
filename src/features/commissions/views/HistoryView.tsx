@@ -35,7 +35,7 @@ type RunRow = CommissionRun;
 const columnHelper = createColumnHelper<RunRow>();
 
 export const HistoryView = () => {
-  const { runs, isLoading, bulkApprove, bulkPay } = useHistory();
+  const { runs, isLoading, bulkApprove, bulkPay, pagination } = useHistory();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -202,6 +202,11 @@ export const HistoryView = () => {
     data: filteredRuns,
     columns: COLUMNS,
     defaultRowsPerPage: 10,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
   });
 
   const pendientes = runs.filter((r) => r.status === 'PENDING');
@@ -368,7 +373,12 @@ export const HistoryView = () => {
               </Table>
             </TableContainer>
             <div className="border-t border-border/40">
-              <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+              <TablePaginationCustom
+                table={table}
+                total={pagination.total}
+                dense={dense}
+                onChangeDense={onChangeDense}
+              />
             </div>
           </div>
         )}
