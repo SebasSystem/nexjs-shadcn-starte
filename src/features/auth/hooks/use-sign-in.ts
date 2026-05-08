@@ -29,9 +29,7 @@ export function useSignIn() {
         twoFactorCode: values.twoFactorCode || undefined,
       });
       const session = await checkUserSession?.();
-      const target = session
-        ? getFirstAccessibleRoute(session.modules, session.role)
-        : '/';
+      const target = session ? getFirstAccessibleRoute(session.modules, session.role) : '/';
       window.location.assign(target);
     } catch (error) {
       const err = error as AuthError;
