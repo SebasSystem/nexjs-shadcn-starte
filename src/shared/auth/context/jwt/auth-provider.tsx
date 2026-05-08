@@ -55,7 +55,7 @@ export function AuthProvider({ children }: Props) {
             modules,
             loading: false,
           });
-          return { permissions, modules };
+          return { permissions, modules, role: user.role };
         } else {
           setState({ user: null, loading: false, permissions: [], modules: [] });
         }
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: Props) {
       }
       setState({ user: null, loading: false, permissions: [], modules: [] });
     }
-    return { permissions: [], modules: [] };
+    return { permissions: [], modules: [], role: undefined };
   }, []);
 
   useEffect(() => {

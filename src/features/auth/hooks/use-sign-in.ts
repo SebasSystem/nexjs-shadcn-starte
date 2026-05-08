@@ -30,10 +30,7 @@ export function useSignIn() {
       });
       const session = await checkUserSession?.();
       const target = session
-        ? getFirstAccessibleRoute(
-            session.modules,
-            session.permissions.some((p) => p.startsWith('admin.')) ? 'platform-admin' : undefined
-          )
+        ? getFirstAccessibleRoute(session.modules, session.role)
         : '/';
       window.location.assign(target);
     } catch (error) {

@@ -33,5 +33,5 @@ export type AuthContextValue = {
   permissions: string[];
   modules: Module[];
   hasPermission: (key: string) => boolean;
-  checkUserSession: () => Promise<{ permissions: string[]; modules: Module[] }>;
+  checkUserSession: () => Promise<{ permissions: string[]; modules: Module[]; role?: string }>;
 };
