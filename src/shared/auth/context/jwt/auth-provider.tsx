@@ -33,7 +33,7 @@ export function AuthProvider({ children }: Props) {
         const data = await init();
         const { user, modules, localization: loc } = data;
 
-        if (user?.uid) {
+        if (user) {
           // Cache localization silently — best effort
           if (loc) {
             localizationService.get().catch(() => {});
