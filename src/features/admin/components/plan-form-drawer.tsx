@@ -68,7 +68,7 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
     control,
     handleSubmit,
     reset,
-    getValues,
+    watch,
     setValue,
     formState: { isSubmitting },
   } = useForm<PlanFormData>({ resolver: zodResolver(planSchema), defaultValues: DEFAULTS });
@@ -192,13 +192,13 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
                         name={n}
                         label={l}
                         type="number"
-                        disabled={getValues(i)}
+                        disabled={watch(i)}
                       />
                     </div>
                     <div className="flex items-center gap-1.5 mt-5">
                       <Checkbox
                         id={i}
-                        checked={getValues(i)}
+                        checked={watch(i)}
                         onCheckedChange={(c) => setValue(i, c as boolean)}
                       />
                       <label htmlFor={i} className="text-xs text-muted-foreground cursor-pointer">
@@ -246,10 +246,7 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
                           ? 'SSO / SAML'
                           : 'Reportes Avanzados'}
                     </span>
-                    <Switch
-                      checked={getValues(k) as boolean}
-                      onCheckedChange={(c) => setValue(k, c)}
-                    />
+                    <Switch checked={watch(k) as boolean} onCheckedChange={(c) => setValue(k, c)} />
                   </div>
                 ))}
               </div>

@@ -16,14 +16,28 @@ interface FormInputProps<
 function FormInput<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->({ control, name, ...inputProps }: FormInputProps<TFieldValues, TName>) {
+>({ control, name, type, ...inputProps }: FormInputProps<TFieldValues, TName>) {
   return (
     <FormField
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
-        <Input {...inputProps} {...field} error={fieldState.error?.message} />
-      )}
+      render={({ field, fieldState }) => {
+        const isNumber = type === 'number';
+        return (
+          <Input
+            {...inputProps}
+            type={type}
+            {...field}
+            onChange={(e) =>
+              field.onChange(
+                isNumber ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value
+              )
+            }
+            value={isNumber ? (field.value == null ? '' : field.value) : (field.value ?? '')}
+            error={fieldState.error?.message}
+          />
+        );
+      }}
     />
   );
 }
