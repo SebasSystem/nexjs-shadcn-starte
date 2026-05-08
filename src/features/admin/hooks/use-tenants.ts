@@ -27,7 +27,7 @@ export function useTenants() {
     } finally {
       setIsLoading(false);
     }
-  }, [cached, pagination]);
+  }, [cached, pagination.params]);
 
   useEffect(() => {
     fetchTenants();

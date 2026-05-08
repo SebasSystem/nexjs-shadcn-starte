@@ -27,7 +27,7 @@ export function useBilling() {
     } finally {
       setIsLoading(false);
     }
-  }, [cached, pagination]);
+  }, [cached, pagination.params]);
 
   useEffect(() => {
     fetchFacturas();

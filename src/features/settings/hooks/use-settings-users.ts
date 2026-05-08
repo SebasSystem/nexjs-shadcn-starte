@@ -23,7 +23,7 @@ export function useSettingsUsers() {
     } finally {
       setIsLoading(false);
     }
-  }, [pagination]);
+  }, [pagination.params]);
 
   useEffect(() => {
     fetchUsers();

@@ -45,7 +45,7 @@ export function useTelemetry() {
     } finally {
       setIsLoading(false);
     }
-  }, [hasAnyCache, pagination]);
+  }, [hasAnyCache, pagination.params]);
 
   useEffect(() => {
     fetchData();
