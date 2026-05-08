@@ -14,20 +14,21 @@ export function useBilling() {
   const [facturas, setFacturas] = useState<Factura[]>(cached ?? []);
   const [isLoading, setIsLoading] = useState(!cached);
   const pagination = usePaginationParams();
+  const { params, setTotal } = pagination;
 
   const fetchFacturas = useCallback(async () => {
     setIsLoading(!cached);
     try {
-      const res = await billingService.getAll(pagination.params);
+      const res = await billingService.getAll(params);
       const meta = extractPaginationMeta(res);
-      if (meta) pagination.setTotal(meta.total);
+      if (meta) setTotal(meta.total);
       const data = ((res as unknown as { data?: Factura[] }).data ?? []) as Factura[];
       cache.set(CACHE_KEY, data);
       setFacturas(data);
     } finally {
       setIsLoading(false);
     }
-  }, [cached, pagination.params]);
+  }, [cached, params, setTotal]);
 
   useEffect(() => {
     fetchFacturas();

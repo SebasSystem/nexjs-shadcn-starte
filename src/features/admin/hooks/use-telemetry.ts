@@ -22,17 +22,18 @@ export function useTelemetry() {
   const [stats, setStats] = useState<TelemetryStats | null>(cachedStats ?? null);
   const [isLoading, setIsLoading] = useState(!hasAnyCache);
   const pagination = usePaginationParams();
+  const { params, setTotal } = pagination;
 
   const fetchData = useCallback(async () => {
     setIsLoading(!hasAnyCache);
     try {
       const [logRes, alertaData, statsData] = await Promise.all([
-        telemetryService.getLogs(pagination.params),
+        telemetryService.getLogs(params),
         telemetryService.getAlertas(),
         telemetryService.getStats(),
       ]);
       const meta = extractPaginationMeta(logRes);
-      if (meta) pagination.setTotal(meta.total);
+      if (meta) setTotal(meta.total);
       const logData = ((logRes as unknown as { data?: LogEntry[] }).data ?? []) as LogEntry[];
       cache.set(C_LOGS, logData);
       cache.set(C_ALERTS, alertaData);
@@ -45,7 +46,7 @@ export function useTelemetry() {
     } finally {
       setIsLoading(false);
     }
-  }, [hasAnyCache, pagination.params]);
+  }, [hasAnyCache, params, setTotal]);
 
   useEffect(() => {
     fetchData();

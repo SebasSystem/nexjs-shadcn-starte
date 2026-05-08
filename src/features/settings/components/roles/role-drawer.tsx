@@ -25,6 +25,7 @@ import type { Permission, Role } from '../../types/settings.types';
 
 type RoleSavePayload = {
   name: string;
+  key: string;
   description: string;
   permission_uids: string[];
 };
@@ -53,6 +54,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
   const { data: permissions = [], isLoading: isLoadingPerms } = usePermissions();
 
   const [name, setName] = useState(role?.name ?? '');
+  const [key, setKey] = useState(role?.key ?? '');
   const [description, setDescription] = useState(role?.description ?? '');
   const [selectedUids, setSelectedUids] = useState<string[]>(role?.permission_uids ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,6 +63,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
   React.useEffect(() => {
     if (isOpen) {
       setName(role?.name ?? '');
+      setKey(role?.key ?? '');
       setDescription(role?.description ?? '');
       setSelectedUids(role?.permission_uids ?? []);
     }
@@ -79,6 +82,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
     setIsSubmitting(true);
     const success = await onSave({
       name,
+      key,
       description,
       permission_uids: selectedUids,
     });
@@ -102,6 +106,14 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
               label="Nombre del rol"
               required
               placeholder="Ej. Gerente de Zona"
+            />
+
+            <Input
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              label="Clave (key)"
+              required
+              placeholder="Ej. gerente_zona"
             />
 
             <Textarea
@@ -148,6 +160,23 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
                                 {selectedCount}/{totalCount}
                               </span>
                             </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const uids = modulePerms.map((p) => p.uid);
+                                setSelectedUids((prev) =>
+                                  selectedCount === totalCount
+                                    ? prev.filter((u) => !uids.includes(u))
+                                    : [...new Set([...prev, ...uids])]
+                                );
+                              }}
+                              className="text-xs text-primary hover:underline mr-2"
+                            >
+                              {selectedCount === totalCount
+                                ? 'Deseleccionar todos'
+                                : 'Seleccionar todos'}
+                            </button>
                           </AccordionTrigger>
                           <AccordionContent className="px-4">
                             <div className="space-y-2">
@@ -206,7 +235,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
           <Button
             type="button"
             onClick={handleSave}
-            disabled={!name.trim() || isSubmitting || isLoadingPerms}
+            disabled={!name.trim() || !key.trim() || isSubmitting || isLoadingPerms}
           >
             {isSubmitting ? 'Guardando...' : 'Guardar Rol'}
           </Button>

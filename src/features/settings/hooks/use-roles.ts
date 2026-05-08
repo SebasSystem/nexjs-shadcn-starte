@@ -28,6 +28,7 @@ export function useRoles() {
 
   const createRole = async (data: {
     name: string;
+    key: string;
     description: string;
     permission_uids: string[];
   }): Promise<boolean> => {
@@ -42,7 +43,7 @@ export function useRoles() {
 
   const updateRole = async (
     id: string,
-    data: { name: string; description: string; permission_uids: string[] }
+    data: { name: string; key: string; description: string; permission_uids: string[] }
   ): Promise<boolean> => {
     try {
       const updated = await rolesService.update(id, data);

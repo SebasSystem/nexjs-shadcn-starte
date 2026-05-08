@@ -43,6 +43,7 @@ export interface ModulePermission {
 export interface Role {
   uid: string;
   name: string;
+  key: string;
   description: string;
   total_users?: number;
   /** @deprecated Use permission_uids instead */

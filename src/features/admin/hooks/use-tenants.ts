@@ -14,20 +14,21 @@ export function useTenants() {
   const [tenants, setTenants] = useState<Tenant[]>(cached ?? []);
   const [isLoading, setIsLoading] = useState(!cached);
   const pagination = usePaginationParams();
+  const { params, setTotal } = pagination;
 
   const fetchTenants = useCallback(async () => {
     setIsLoading(!cached);
     try {
-      const res = await tenantsService.getAll(pagination.params);
+      const res = await tenantsService.getAll(params);
       const meta = extractPaginationMeta(res);
-      if (meta) pagination.setTotal(meta.total);
+      if (meta) setTotal(meta.total);
       const data = ((res as unknown as { data?: Tenant[] }).data ?? []) as Tenant[];
       cache.set(CACHE_KEY, data);
       setTenants(data);
     } finally {
       setIsLoading(false);
     }
-  }, [cached, pagination.params]);
+  }, [cached, params, setTotal]);
 
   useEffect(() => {
     fetchTenants();

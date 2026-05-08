@@ -12,18 +12,19 @@ export function useSettingsUsers() {
   const [users, setUsers] = useState<SettingsUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const pagination = usePaginationParams();
+  const { params, setTotal } = pagination;
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await usersService.getAll(pagination.params);
+      const res = await usersService.getAll(params);
       const meta = extractPaginationMeta(res);
-      if (meta) pagination.setTotal(meta.total);
+      if (meta) setTotal(meta.total);
       setUsers(((res as unknown as { data?: SettingsUser[] }).data ?? []) as SettingsUser[]);
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.params]);
+  }, [params, setTotal]);
 
   useEffect(() => {
     fetchUsers();
