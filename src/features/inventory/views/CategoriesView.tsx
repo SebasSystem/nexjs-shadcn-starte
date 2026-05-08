@@ -85,6 +85,7 @@ const COLUMNS = (
 export function CategoriesView() {
   const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useCategories();
 
+  const [search, setSearch] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<InventoryCategory | null>(null);
   const [name, setName] = useState('');
@@ -92,8 +93,16 @@ export function CategoriesView() {
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const filtered = search
+    ? categories.filter(
+        (c) =>
+          c.name.toLowerCase().includes(search.toLowerCase()) ||
+          c.key.toLowerCase().includes(search.toLowerCase())
+      )
+    : categories;
+
   const { table, dense, onChangeDense } = useTable({
-    data: categories,
+    data: filtered,
     columns: COLUMNS(handleEdit, handleDelete),
     defaultRowsPerPage: 10,
   });
@@ -167,6 +176,16 @@ export function CategoriesView() {
         }
       />
 
+      {/* Search */}
+      <div className="mb-4">
+        <Input
+          placeholder="Buscar por nombre o key..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-sm"
+        />
+      </div>
+
       <SectionCard noPadding>
         <TableContainer className="relative">
           <Table>
@@ -178,8 +197,9 @@ export function CategoriesView() {
                     colSpan={COLUMNS(handleEdit, handleDelete).length}
                     className="py-10 text-center text-muted-foreground text-sm"
                   >
-                    No hay categorías creadas. Usá el botón &quot;Nueva Categoría&quot; para crear
-                    la primera.
+                    {search
+                      ? 'No se encontraron categorías con ese criterio.'
+                      : 'No hay categorías creadas. Usá el botón "Nueva Categoría" para crear la primera.'}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -203,12 +223,12 @@ export function CategoriesView() {
 
       {/* Drawer: Create / Edit */}
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader>
+        <SheetContent className="w-full sm:max-w-md flex flex-col">
+          <SheetHeader className="border-b border-border/60 pb-4">
             <SheetTitle>{editing ? 'Editar Categoría' : 'Nueva Categoría'}</SheetTitle>
           </SheetHeader>
 
-          <div className="space-y-4 py-6">
+          <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
             <Input
               label="Nombre"
               value={name}
@@ -230,7 +250,7 @@ export function CategoriesView() {
             />
           </div>
 
-          <SheetFooter>
+          <SheetFooter className="border-t border-border/60 pt-4 px-4 pb-4">
             <Button variant="outline" onClick={() => setDrawerOpen(false)} disabled={saving}>
               Cancelar
             </Button>
