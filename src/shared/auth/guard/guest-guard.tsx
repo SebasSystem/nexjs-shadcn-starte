@@ -2,7 +2,6 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'src/routes/hooks';
-import { paths } from 'src/routes/paths';
 
 import { Spinner } from '../../components/feedback/Spinner';
 import { useAuthContext } from '../hooks/use-auth-context';
@@ -17,7 +16,10 @@ export function GuestGuard({ children }: Props) {
   useEffect(() => {
     if (!loading && authenticated) {
       const returnTo = searchParams.get('returnTo');
-      router.replace(returnTo || paths.dashboard.root);
+      if (returnTo) {
+        router.replace(returnTo);
+      }
+      // If no returnTo, let RouteGuard determine the first accessible module
     }
   }, [authenticated, loading, router, searchParams]);
 

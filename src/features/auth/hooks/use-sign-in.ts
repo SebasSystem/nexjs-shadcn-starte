@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { paths } from 'src/routes/paths';
 import { setSession } from 'src/shared/auth/context/jwt/utils';
 import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
+import { getFirstAccessibleRoute } from 'src/shared/auth/route-access';
 
 import { type SignInFormValues, signInSchema } from '../schemas/sign-in.schema';
 import { signInWithPassword } from '../services/auth.service';
@@ -28,9 +28,14 @@ export function useSignIn() {
         password: values.password,
         twoFactorCode: values.twoFactorCode || undefined,
       });
-      const permissions = (await checkUserSession?.()) ?? [];
-      const isAdmin = permissions.some((p) => p.startsWith('admin.'));
-      window.location.assign(isAdmin ? paths.admin.dashboard : paths.dashboard.root);
+      const session = await checkUserSession?.();
+      const target = session
+        ? getFirstAccessibleRoute(
+            session.modules,
+            session.permissions.some((p) => p.startsWith('admin.')) ? 'platform-admin' : undefined
+          )
+        : '/';
+      window.location.assign(target);
     } catch (error) {
       const err = error as AuthError;
       // error can be a typed AuthError (our own) or a plain backend response body
