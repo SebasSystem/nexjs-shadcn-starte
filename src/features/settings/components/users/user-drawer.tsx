@@ -23,11 +23,12 @@ import type { Team } from '../../types/settings.types';
 const schema = z.object({
   name: z.string().min(2, 'Requerido'),
   email: z.string().email('Email inválido'),
-  role_uid: z.string().min(1, 'Selecciona un rol'),
+  role_uid: z.string().optional(),
   role_name: z.string().optional(),
   team_uid: z.string().optional(),
   team_name: z.string().optional(),
-  status: z.enum(['ACTIVO', 'INACTIVO', 'PENDIENTE']),
+  password: z.string().optional(),
+  status: z.enum(['ACTIVO', 'INACTIVO']),
 });
 
 type UserForm = z.infer<typeof schema>;
@@ -38,12 +39,11 @@ interface UserDrawerProps {
   user: SettingsUser | null;
   roles: Role[];
   equipos: Team[];
-  onSave: (data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'>) => Promise<boolean>;
+  onSave: (data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'> & { password?: string; role_uid?: string }) => Promise<boolean>;
 }
 
 const STATUS_OPTIONS = [
   { value: 'ACTIVO', label: 'Activo' },
-  { value: 'PENDIENTE', label: 'Pendiente' },
   { value: 'INACTIVO', label: 'Inactivo' },
 ];
 
@@ -77,7 +77,7 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
           status: user.status,
         });
       } else {
-        reset({ name: '', email: '', role_uid: '', team_uid: '', status: 'ACTIVO' });
+        reset({ name: '', email: '', role_uid: '', team_uid: '', password: '', status: 'ACTIVO' });
       }
     }
   }, [isOpen, user, reset]);
@@ -92,6 +92,7 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
       role_name: role?.name ?? '',
       team_uid: data.team_uid || undefined,
       team_name: equipo?.name || undefined,
+      password: data.password || undefined,
       status: data.status as UserStatus,
     });
     if (success) onClose();
@@ -135,11 +136,20 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
               disabled={!!user}
             />
 
+            {!user && (
+              <FormInput
+                control={control}
+                name="password"
+                type="password"
+                label="Contraseña"
+                placeholder="Mínimo 6 caracteres"
+              />
+            )}
+
             <FormSelectField
               control={control}
               name="role_uid"
               label="Rol"
-              required
               options={roleOptions}
               placeholder="Seleccionar rol..."
             />

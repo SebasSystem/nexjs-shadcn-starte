@@ -12,14 +12,15 @@ export const usersService = {
     return res.data; // full response — callers extract .data for the array
   },
 
-  // POST /users — pending backend routing. Optimistic stub for now.
+  // POST /users
   async create(
     data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'>
   ): Promise<SettingsUser> {
     const res = await axiosInstance.post(endpoints.users.create, {
       name: data.name,
       email: data.email,
-      password: (data as Record<string, unknown>).password ?? '',
+      password: (data as Record<string, unknown>).password || undefined,
+      status: data.status,
     });
     const payload = res.data?.data ?? res.data;
     return {
@@ -28,11 +29,12 @@ export const usersService = {
     } as SettingsUser;
   },
 
-  // PUT /users/{uid} — pending backend routing.
+  // PUT /users/{uid}
   async update(id: string, data: Partial<SettingsUser>): Promise<SettingsUser> {
     const res = await axiosInstance.put(endpoints.users.update(id), {
       name: data.name,
       email: data.email,
+      status: data.status,
     });
     const payload = res.data?.data ?? res.data;
     return {

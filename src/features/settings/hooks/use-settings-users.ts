@@ -7,6 +7,8 @@ import { extractPaginationMeta } from 'src/shared/lib/pagination';
 import { usersService } from '../services/users.service';
 import type { SettingsUser } from '../types/settings.types';
 
+const generatePassword = () => Math.random().toString(36).slice(-10) + 'A1!';
+
 // TODO: migrate to TanStack Query for consistency with other hooks
 export function useSettingsUsers() {
   const [users, setUsers] = useState<SettingsUser[]>([]);
@@ -31,10 +33,21 @@ export function useSettingsUsers() {
   }, [fetchUsers]);
 
   const createUser = async (
-    data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'>
+    data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'> & {
+      password?: string;
+      role_uid?: string;
+    }
   ): Promise<boolean> => {
     try {
-      const newUser = await usersService.create(data);
+      const payload = {
+        ...data,
+        password: data.password || generatePassword(),
+      };
+      const newUser = await usersService.create(payload as unknown as SettingsUser);
+      // Assign role after creation
+      if (data.role_uid) {
+        await usersService.assignRole(newUser.uid, data.role_uid as string).catch(() => {});
+      }
       setUsers((prev) => [...prev, newUser]);
       return true;
     } catch {
@@ -42,9 +55,22 @@ export function useSettingsUsers() {
     }
   };
 
-  const updateUser = async (id: string, data: Partial<SettingsUser>): Promise<boolean> => {
+  const updateUser = async (
+    id: string,
+    data: Partial<SettingsUser> & { role_uid?: string }
+  ): Promise<boolean> => {
     try {
       const updated = await usersService.update(id, data);
+      // Handle role change
+      if (data.role_uid !== undefined) {
+        const oldUser = users.find((u) => u.uid === id);
+        if (oldUser?.role_uid && oldUser.role_uid !== data.role_uid) {
+          await usersService.removeRole(id, oldUser.role_uid).catch(() => {});
+        }
+        if (data.role_uid) {
+          await usersService.assignRole(id, data.role_uid).catch(() => {});
+        }
+      }
       setUsers((prev) => prev.map((u) => (u.uid === id ? updated : u)));
       return true;
     } catch {

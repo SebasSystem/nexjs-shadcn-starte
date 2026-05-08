@@ -35,7 +35,6 @@ export const UsersView = () => {
     () => ({
       total: users.length,
       activos: users.filter((u) => u.status === 'ACTIVO').length,
-      pendientes: users.filter((u) => u.status === 'PENDIENTE').length,
       inactivos: users.filter((u) => u.status === 'INACTIVO').length,
     }),
     [users]
@@ -80,7 +79,7 @@ export const UsersView = () => {
         }
       />
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <StatsCard
           title="Total"
           value={stats.total}
@@ -96,14 +95,6 @@ export const UsersView = () => {
           trendUp
           icon={<Icon name="UserCheck" size={20} />}
           iconClassName="bg-emerald-500/10 text-emerald-600"
-        />
-        <StatsCard
-          title="Pendientes"
-          value={stats.pendientes}
-          trend={stats.pendientes === 0 ? 'sin pendientes' : `${stats.pendientes} sin activar`}
-          trendUp={stats.pendientes === 0}
-          icon={<Icon name="Clock" size={20} />}
-          iconClassName="bg-amber-500/10 text-amber-600"
         />
         <StatsCard
           title="Inactivos"

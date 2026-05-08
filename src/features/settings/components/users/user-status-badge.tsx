@@ -4,7 +4,6 @@ import type { UserStatus } from '../../types/settings.types';
 
 const CONFIG: Record<UserStatus, { label: string; color: 'success' | 'warning' | 'default' }> = {
   ACTIVO: { label: 'Activo', color: 'success' },
-  PENDIENTE: { label: 'Pendiente', color: 'warning' },
   INACTIVO: { label: 'Inactivo', color: 'default' },
 };
 

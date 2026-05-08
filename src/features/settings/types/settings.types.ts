@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ── Users ──────────────────────────────────────────────────────────────────
-export type UserStatus = 'ACTIVO' | 'INACTIVO' | 'PENDIENTE';
+export type UserStatus = 'ACTIVO' | 'INACTIVO';
 
 export interface SettingsUser {
   uid: string;
