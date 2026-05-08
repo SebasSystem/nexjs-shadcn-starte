@@ -140,7 +140,7 @@ export function TenantFormDrawer({
               : 'Completa la información para crear un nuevo tenant'}
           </SheetDescription>
         </SheetHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
             <div>
               <h3 className="text-sm font-semibold mb-4">Información general</h3>
