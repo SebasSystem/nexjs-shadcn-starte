@@ -8,7 +8,10 @@ export const localizationService = {
     const res = await axiosInstance.get(endpoints.settings.localization.get);
     const payload = res.data?.data ?? res.data;
     if (payload) {
-      setCurrencyPreferences({ currency: payload.currency, locale: payload.locale }, 'tenant');
+      const prefs = { currency: payload.currency, locale: payload.locale };
+      // Set both scopes so platform views (plans, billing) also have currency info
+      setCurrencyPreferences(prefs, 'tenant');
+      setCurrencyPreferences(prefs, 'platform');
     }
     return payload;
   },
@@ -17,7 +20,9 @@ export const localizationService = {
     const res = await axiosInstance.put(endpoints.settings.localization.update, data);
     const payload = res.data?.data ?? res.data;
     if (payload) {
-      setCurrencyPreferences({ currency: payload.currency, locale: payload.locale }, 'tenant');
+      const prefs = { currency: payload.currency, locale: payload.locale };
+      setCurrencyPreferences(prefs, 'tenant');
+      setCurrencyPreferences(prefs, 'platform');
     }
     return payload;
   },

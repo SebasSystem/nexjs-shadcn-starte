@@ -2,7 +2,7 @@
 
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { init } from 'src/features/auth/services/auth.service';
-import { localizationService } from 'src/features/settings/services/localization.service';
+import { setCurrencyPreferences } from 'src/lib/currency';
 import type { AuthState, Module } from 'src/shared/auth/types';
 
 import { AuthContext } from '../auth-context';
@@ -34,9 +34,11 @@ export function AuthProvider({ children }: Props) {
         const { user, modules, localization: loc } = data;
 
         if (user) {
-          // Cache localization silently — best effort
-          if (loc) {
-            localizationService.get().catch(() => {});
+          // Set currency preferences from auth/init localization
+          if (loc?.currency && loc?.locale) {
+            const prefs = { currency: loc.currency, locale: loc.locale };
+            setCurrencyPreferences(prefs, 'tenant');
+            setCurrencyPreferences(prefs, 'platform');
           }
 
           const permissions = derivePermissions(modules);
