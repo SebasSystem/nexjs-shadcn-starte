@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { billingService } from 'src/features/admin/services/billing.service';
 import { Factura } from 'src/features/admin/types/admin.types';
 import { cache } from 'src/lib/cache';
@@ -11,13 +11,14 @@ const CACHE_KEY = 'admin:billing';
 
 export function useBilling() {
   const cached = cache.get<Factura[]>(CACHE_KEY);
+  const hasCache = useRef(!!cached);
   const [facturas, setFacturas] = useState<Factura[]>(cached ?? []);
-  const [isLoading, setIsLoading] = useState(!cached);
+  const [isLoading, setIsLoading] = useState(!hasCache.current);
   const pagination = usePaginationParams();
   const { params, setTotal } = pagination;
 
   const fetchFacturas = useCallback(async () => {
-    setIsLoading(!cached);
+    setIsLoading(!hasCache.current);
     try {
       const res = await billingService.getAll(params);
       const meta = extractPaginationMeta(res);
@@ -25,10 +26,11 @@ export function useBilling() {
       const data = ((res as unknown as { data?: Factura[] }).data ?? []) as Factura[];
       cache.set(CACHE_KEY, data);
       setFacturas(data);
+      hasCache.current = true;
     } finally {
       setIsLoading(false);
     }
-  }, [cached, params, setTotal]);
+  }, [params, setTotal]);
 
   useEffect(() => {
     fetchFacturas();

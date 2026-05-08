@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { telemetryService } from 'src/features/admin/services/telemetry.service';
 import { Alerta, LogEntry, TelemetryStats } from 'src/features/admin/types/admin.types';
 import { cache } from 'src/lib/cache';
@@ -15,17 +15,17 @@ export function useTelemetry() {
   const cachedLogs = cache.get<LogEntry[]>(C_LOGS);
   const cachedAlertas = cache.get<Alerta[]>(C_ALERTS);
   const cachedStats = cache.get<TelemetryStats>(C_STATS);
-  const hasAnyCache = !!(cachedLogs || cachedAlertas || cachedStats);
+  const hasCacheRef = useRef(!!(cachedLogs || cachedAlertas || cachedStats));
 
   const [logs, setLogs] = useState<LogEntry[]>(cachedLogs ?? []);
   const [alertas, setAlertas] = useState<Alerta[]>(cachedAlertas ?? []);
   const [stats, setStats] = useState<TelemetryStats | null>(cachedStats ?? null);
-  const [isLoading, setIsLoading] = useState(!hasAnyCache);
+  const [isLoading, setIsLoading] = useState(!hasCacheRef.current);
   const pagination = usePaginationParams();
   const { params, setTotal } = pagination;
 
   const fetchData = useCallback(async () => {
-    setIsLoading(!hasAnyCache);
+    setIsLoading(!hasCacheRef.current);
     try {
       const [logRes, alertaData, statsData] = await Promise.all([
         telemetryService.getLogs(params),
@@ -41,12 +41,13 @@ export function useTelemetry() {
       setLogs(logData);
       setAlertas(alertaData);
       setStats(statsData);
+      hasCacheRef.current = true;
     } catch {
       /* mantener data previa en caso de error */
     } finally {
       setIsLoading(false);
     }
-  }, [hasAnyCache, params, setTotal]);
+  }, [params, setTotal]);
 
   useEffect(() => {
     fetchData();

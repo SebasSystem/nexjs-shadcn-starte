@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { tenantsService } from 'src/features/admin/services/tenants.service';
 import { Tenant } from 'src/features/admin/types/admin.types';
 import { cache } from 'src/lib/cache';
@@ -11,13 +11,14 @@ const CACHE_KEY = 'admin:tenants';
 
 export function useTenants() {
   const cached = cache.get<Tenant[]>(CACHE_KEY);
+  const hasCache = useRef(!!cached);
   const [tenants, setTenants] = useState<Tenant[]>(cached ?? []);
-  const [isLoading, setIsLoading] = useState(!cached);
+  const [isLoading, setIsLoading] = useState(!hasCache.current);
   const pagination = usePaginationParams();
   const { params, setTotal } = pagination;
 
   const fetchTenants = useCallback(async () => {
-    setIsLoading(!cached);
+    setIsLoading(!hasCache.current);
     try {
       const res = await tenantsService.getAll(params);
       const meta = extractPaginationMeta(res);
@@ -25,10 +26,11 @@ export function useTenants() {
       const data = ((res as unknown as { data?: Tenant[] }).data ?? []) as Tenant[];
       cache.set(CACHE_KEY, data);
       setTenants(data);
+      hasCache.current = true;
     } finally {
       setIsLoading(false);
     }
-  }, [cached, params, setTotal]);
+  }, [params, setTotal]);
 
   useEffect(() => {
     fetchTenants();
