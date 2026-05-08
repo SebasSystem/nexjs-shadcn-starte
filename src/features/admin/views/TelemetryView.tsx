@@ -100,7 +100,13 @@ export const TelemetryView = () => {
             />
             <StatsCard
               title="Errores 24h"
-              value={stats ? (stats.errores_24h > 0 ? stats.errores_24h : errores24hTotal) : errores24hTotal}
+              value={
+                stats
+                  ? stats.errores_24h > 0
+                    ? stats.errores_24h
+                    : errores24hTotal
+                  : errores24hTotal
+              }
               trend="nivel ERROR en logs"
               trendUp={false}
               icon={<Icon name="AlertOctagon" className="h-5 w-5" />}
