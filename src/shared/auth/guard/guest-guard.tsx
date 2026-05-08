@@ -5,23 +5,22 @@ import { useRouter, useSearchParams } from 'src/routes/hooks';
 
 import { Spinner } from '../../components/feedback/Spinner';
 import { useAuthContext } from '../hooks/use-auth-context';
+import { getFirstAccessibleRoute } from '../route-access';
 
 type Props = { children: ReactNode };
 
 export function GuestGuard({ children }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { authenticated, loading } = useAuthContext();
+  const { authenticated, loading, modules, user } = useAuthContext();
 
   useEffect(() => {
     if (!loading && authenticated) {
       const returnTo = searchParams.get('returnTo');
-      if (returnTo) {
-        router.replace(returnTo);
-      }
-      // If no returnTo, let RouteGuard determine the first accessible module
+      const target = returnTo || getFirstAccessibleRoute(modules, user?.role);
+      router.replace(target);
     }
-  }, [authenticated, loading, router, searchParams]);
+  }, [authenticated, loading, modules, user?.role, router, searchParams]);
 
   if (loading || authenticated) {
     return (
