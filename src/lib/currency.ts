@@ -55,6 +55,7 @@ export function formatCompact(
     scope?: CurrencyScope;
     currency?: string;
     locale?: string;
+    currencyDisplay?: 'symbol' | 'code' | 'narrowSymbol' | 'name' | 'codeAndSymbol';
   }
 ): string {
   const scope = options?.scope ?? 'tenant';
@@ -62,13 +63,22 @@ export function formatCompact(
   const currency = options?.currency ?? prefs.currency;
   const locale = options?.locale ?? prefs.locale;
 
+  const display = options?.currencyDisplay;
+
   try {
-    return new Intl.NumberFormat(locale, {
+    const formatted = new Intl.NumberFormat(locale, {
       style: 'currency',
       currency,
       notation: 'compact',
       maximumFractionDigits: 1,
+      currencyDisplay: display === 'codeAndSymbol' ? 'narrowSymbol' : display,
     }).format(value ?? 0);
+
+    if (display === 'codeAndSymbol') {
+      return `${currency} ${formatted}`;
+    }
+
+    return formatted;
   } catch {
     return `${value ?? 0}`;
   }
