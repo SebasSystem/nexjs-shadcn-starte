@@ -53,26 +53,38 @@ export function useTelemetry() {
     fetchData();
   }, [fetchData]);
 
-  const toggleAlerta = useCallback(async (uid: string) => {
-    const updated = await telemetryService.toggleAlerta(uid);
-    cache.invalidate(C_ALERTS);
-    setAlertas((prev) => prev.map((a) => (a.uid === uid ? updated : a)));
-    return updated;
+  const fetchAlertas = useCallback(async () => {
+    const alertaData = await telemetryService.getAlertas();
+    cache.set(C_ALERTS, alertaData);
+    setAlertas(alertaData);
   }, []);
 
-  const saveAlerta = useCallback(async (data: Omit<Alerta, 'uid'>) => {
-    const created = await telemetryService.saveAlerta(data);
-    cache.invalidate(C_ALERTS);
-    setAlertas((prev) => [...prev, created]);
-    return created;
-  }, []);
+  const toggleAlerta = useCallback(
+    async (uid: string) => {
+      const updated = await telemetryService.toggleAlerta(uid);
+      await fetchAlertas();
+      return updated;
+    },
+    [fetchAlertas]
+  );
 
-  const updateAlerta = useCallback(async (uid: string, data: Partial<Alerta>) => {
-    const updated = await telemetryService.updateAlerta(uid, data as Record<string, unknown>);
-    cache.invalidate(C_ALERTS);
-    setAlertas((prev) => prev.map((a) => (a.uid === uid ? updated : a)));
-    return updated;
-  }, []);
+  const saveAlerta = useCallback(
+    async (data: Omit<Alerta, 'uid'>) => {
+      const created = await telemetryService.saveAlerta(data);
+      await fetchAlertas();
+      return created;
+    },
+    [fetchAlertas]
+  );
+
+  const updateAlerta = useCallback(
+    async (uid: string, data: Partial<Alerta>) => {
+      const updated = await telemetryService.updateAlerta(uid, data as Record<string, unknown>);
+      await fetchAlertas();
+      return updated;
+    },
+    [fetchAlertas]
+  );
 
   return {
     logs,

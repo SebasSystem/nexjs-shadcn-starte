@@ -210,7 +210,8 @@ export const DashboardAdminView = () => {
     },
     yaxis: {
       labels: {
-        formatter: (value: number) => formatCompact(value, { scope: 'platform', currencyDisplay: 'codeAndSymbol' }),
+        formatter: (value: number) =>
+          formatCompact(value, { scope: 'platform', currencyDisplay: 'codeAndSymbol' }),
       },
     },
     tooltip: {
@@ -258,7 +259,10 @@ export const DashboardAdminView = () => {
         />
         <StatsCard
           title="MRR Total"
-          value={formatCompact(data.mrr_total, { scope: 'platform', currencyDisplay: 'codeAndSymbol' })}
+          value={formatCompact(data.mrr_total, {
+            scope: 'platform',
+            currencyDisplay: 'codeAndSymbol',
+          })}
           trend={
             data.mrr_growth_percent !== 0
               ? `${data.mrr_growth_percent > 0 ? '+' : ''}${data.mrr_growth_percent}% vs mes anterior`
