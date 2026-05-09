@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const planSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido').max(255),
   tier: z.enum(['STARTER', 'PRO', 'BUSINESS', 'ENTERPRISE']),
+  billing_interval: z.enum(['MENSUAL', 'ANUAL']),
   price: z.number().min(0, 'El precio debe ser mayor a 0'),
   status: z.enum(['ACTIVO', 'INACTIVO', 'LEGADO']),
   max_users: z.number().min(0).nullable(),

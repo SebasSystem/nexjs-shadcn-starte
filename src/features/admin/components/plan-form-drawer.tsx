@@ -22,6 +22,10 @@ import {
 import { Switch } from 'src/shared/components/ui/switch';
 
 const TIERS = ['STARTER', 'PRO', 'BUSINESS', 'ENTERPRISE'].map((t) => ({ value: t, label: t }));
+const BILLING_INTERVALS = [
+  { value: 'MENSUAL', label: 'Mensual' },
+  { value: 'ANUAL', label: 'Anual' },
+];
 const SOPORTE = [
   { value: 'EMAIL', label: 'Solo Email' },
   { value: 'EMAIL_CHAT', label: 'Email + Chat' },
@@ -39,6 +43,7 @@ const MODULOS = [
 const DEFAULTS: PlanFormData = {
   name: '',
   tier: 'STARTER',
+  billing_interval: 'MENSUAL',
   price: 49,
   status: 'ACTIVO',
   max_users: 5,
@@ -99,6 +104,7 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
           ? {
               name: plan.name,
               tier: plan.tier,
+              billing_interval: plan.billing_interval ?? 'MENSUAL',
               price: plan.price,
               status: plan.status,
               max_users: plan.max_users ?? 5,
@@ -125,7 +131,7 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
         name: data.name,
         tier: data.tier,
         price: data.price,
-        billing_interval: 'MENSUAL',
+        billing_interval: data.billing_interval,
         status: data.status,
         max_users: data.ilimitado_usuarios ? null : data.max_users,
         features: {
@@ -169,13 +175,19 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
                 />
                 <div className="grid grid-cols-2 gap-3">
                   <FormSelectField control={control} name="tier" label="Tier" options={TIERS} />
-                  <FormInput
+                  <FormSelectField
                     control={control}
-                    name="price"
-                    label={`Precio (${getCurrencyPreferences('platform').currency})`}
-                    type="number"
+                    name="billing_interval"
+                    label="Facturación"
+                    options={BILLING_INTERVALS}
                   />
                 </div>
+                <FormInput
+                  control={control}
+                  name="price"
+                  label={`Precio (${getCurrencyPreferences('platform').currency})`}
+                  type="number"
+                />
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">Activo</p>
                   <Switch
@@ -269,12 +281,21 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
             </div>
             <div>
               <h3 className="text-sm font-semibold mb-4">Soporte</h3>
-              <FormSelectField
-                control={control}
-                name="support_type"
-                label="Tipo de soporte"
-                options={SOPORTE}
-              />
+              <div className="space-y-3">
+                <FormSelectField
+                  control={control}
+                  name="support_type"
+                  label="Tipo de soporte"
+                  options={SOPORTE}
+                />
+                <FormInput
+                  control={control}
+                  name="sla_uptime"
+                  label="SLA Uptime (%)"
+                  type="number"
+                  placeholder="ej. 99.9"
+                />
+              </div>
             </div>
           </div>
           <SheetFooter className="border-t border-border/40 px-6 py-4">

@@ -20,7 +20,7 @@ function usePagination<T>(items: T[], pageSize: number) {
 const PAGE_SIZE = 9;
 
 export const PlansAdminView = () => {
-  const { planes, isLoading, createPlan, updatePlan } = usePlansAdmin();
+  const { planes, isLoading, createPlan, updatePlan, deletePlan } = usePlansAdmin();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<PlanSaaS | null>(null);
 
@@ -81,7 +81,12 @@ export const PlansAdminView = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-4">
             {paginated.map((plan) => (
-              <PlanCard key={plan.uid} plan={plan} onEdit={() => handleOpenEdit(plan)} />
+              <PlanCard
+                key={plan.uid}
+                plan={plan}
+                onEdit={() => handleOpenEdit(plan)}
+                onDelete={() => deletePlan(plan.uid)}
+              />
             ))}
           </div>
           {totalPages > 1 && (

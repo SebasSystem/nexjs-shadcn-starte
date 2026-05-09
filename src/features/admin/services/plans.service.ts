@@ -14,4 +14,7 @@ export const plansService = {
     const res = await axiosInstance.put(endpoints.plans.update(uid), data);
     return res.data.data;
   },
+  async delete(uid: string): Promise<void> {
+    await axiosInstance.delete(endpoints.plans.delete(uid));
+  },
 };

@@ -47,5 +47,13 @@ export function usePlansAdmin() {
     [fetchPlanes]
   );
 
-  return { planes, isLoading, refetch: fetchPlanes, createPlan, updatePlan };
+  const deletePlan = useCallback(
+    async (uid: string) => {
+      await plansService.delete(uid);
+      await fetchPlanes();
+    },
+    [fetchPlanes]
+  );
+
+  return { planes, isLoading, refetch: fetchPlanes, createPlan, updatePlan, deletePlan };
 }

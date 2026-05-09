@@ -95,6 +95,7 @@ export const endpoints = {
     list: '/plans',
     create: '/plans',
     update: (uid: string) => `/plans/${uid}`,
+    delete: (uid: string) => `/plans/${uid}`,
   },
   dashboard: {
     core: '/dashboard/core',

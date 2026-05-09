@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { PlanSaaS, TierPlan } from 'src/features/admin/types/admin.types';
 import { formatMoney } from 'src/lib/currency';
 import {
@@ -22,6 +23,7 @@ import { Icon } from 'src/shared/components/ui/icon';
 interface PlanCardProps {
   plan: PlanSaaS;
   onEdit: (plan: PlanSaaS) => void;
+  onDelete: (plan: PlanSaaS) => Promise<void>;
 }
 
 const tierConfig: Record<TierPlan, { border: string; badgeClass: string; label: string }> = {
@@ -61,10 +63,11 @@ const moduloLabel: Record<string, string> = {
   'api-publica': 'API Pública',
 };
 
-export function PlanCard({ plan, onEdit }: PlanCardProps) {
+export function PlanCard({ plan, onEdit, onDelete }: PlanCardProps) {
   const router = useRouter();
   const config = tierConfig[plan.tier] ?? tierConfig.STARTER;
   const f = plan.features;
+  const [deleting, setDeleting] = useState(false);
 
   return (
     <div className={`bg-card rounded-2xl shadow-card overflow-hidden ${config.border}`}>
@@ -95,7 +98,20 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onEdit(plan)}>Editar</DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">Desactivar</DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-red-600"
+                  disabled={deleting}
+                  onClick={async () => {
+                    setDeleting(true);
+                    try {
+                      await onDelete(plan);
+                    } finally {
+                      setDeleting(false);
+                    }
+                  }}
+                >
+                  {deleting ? 'Procesando...' : plan.total_tenants > 0 ? 'Desactivar' : 'Eliminar'}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
