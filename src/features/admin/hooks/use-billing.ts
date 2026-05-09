@@ -1,61 +1,78 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { billingService } from 'src/features/admin/services/billing.service';
-import { Factura } from 'src/features/admin/types/admin.types';
-import { cache } from 'src/lib/cache';
+import { BillingFilters, billingService } from 'src/features/admin/services/billing.service';
+import { BillingSummary, Factura } from 'src/features/admin/types/admin.types';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
-const CACHE_KEY = 'admin:billing';
-
-export function useBilling() {
-  const cached = cache.get<Factura[]>(CACHE_KEY);
-  const hasCache = useRef(!!cached);
-  const [facturas, setFacturas] = useState<Factura[]>(cached ?? []);
-  const [isLoading, setIsLoading] = useState(!hasCache.current);
+export function useBilling(filters: Omit<BillingFilters, 'page' | 'per_page'> = {}) {
+  const [facturas, setFacturas] = useState<Factura[]>([]);
+  const [summary, setSummary] = useState<BillingSummary | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const pagination = usePaginationParams();
   const { params, setTotal } = pagination;
+  const summaryFetched = useRef(false);
+
+  const fetchSummary = useCallback(async () => {
+    try {
+      const data = await billingService.getSummary();
+      setSummary(data);
+      summaryFetched.current = true;
+    } catch {
+      // summary is non-critical
+    }
+  }, []);
 
   const fetchFacturas = useCallback(async () => {
-    setIsLoading(!hasCache.current);
+    setIsLoading(true);
     try {
-      const res = await billingService.getAll(params);
+      const queryParams: BillingFilters = {
+        page: params.page,
+        per_page: params.per_page,
+        ...(filters.estado && { estado: filters.estado }),
+        ...(filters.from && { from: filters.from }),
+        ...(filters.to && { to: filters.to }),
+      };
+      const res = await billingService.getAll(queryParams);
       const meta = extractPaginationMeta(res);
       if (meta) setTotal(meta.total);
-      const data = ((res as unknown as { data?: Factura[] }).data ?? []) as Factura[];
-      cache.set(CACHE_KEY, data);
+      const data = ((res as { data?: Factura[] }).data ?? []) as Factura[];
       setFacturas(data);
-      hasCache.current = true;
     } finally {
       setIsLoading(false);
     }
-  }, [params, setTotal]);
+  }, [params.page, params.per_page, filters.estado, filters.from, filters.to, setTotal]);
 
   useEffect(() => {
     fetchFacturas();
   }, [fetchFacturas]);
 
+  useEffect(() => {
+    if (!summaryFetched.current) fetchSummary();
+  }, [fetchSummary]);
+
   const marcarPagada = useCallback(
     async (uid: string) => {
       await billingService.marcarPagada(uid);
       await fetchFacturas();
-      return;
+      await fetchSummary();
     },
-    [fetchFacturas]
+    [fetchFacturas, fetchSummary]
   );
 
   const marcarPagadas = useCallback(
     async (uids: string[]) => {
       await billingService.marcarPagadas(uids);
       await fetchFacturas();
-      return;
+      await fetchSummary();
     },
-    [fetchFacturas]
+    [fetchFacturas, fetchSummary]
   );
 
   return {
     facturas,
+    summary,
     isLoading,
     refetch: fetchFacturas,
     marcarPagada,

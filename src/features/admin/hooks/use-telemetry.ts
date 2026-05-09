@@ -1,63 +1,76 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { telemetryService } from 'src/features/admin/services/telemetry.service';
-import { Alerta, LogEntry, TelemetryStats } from 'src/features/admin/types/admin.types';
+import { LogFilters, telemetryService } from 'src/features/admin/services/telemetry.service';
+import {
+  Alerta,
+  LogEntry,
+  TelemetryStats,
+  TenantErrorByTenant,
+} from 'src/features/admin/types/admin.types';
 import { cache } from 'src/lib/cache';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
-const C_LOGS = 'telemetry:logs',
-  C_ALERTS = 'telemetry:alerts',
-  C_STATS = 'telemetry:stats';
+const C_LOGS = 'telemetry:logs';
+const C_ALERTS = 'telemetry:alerts';
 
-export function useTelemetry() {
-  const cachedLogs = cache.get<LogEntry[]>(C_LOGS);
-  const cachedAlertas = cache.get<Alerta[]>(C_ALERTS);
-  const cachedStats = cache.get<TelemetryStats>(C_STATS);
-  const hasCacheRef = useRef(!!(cachedLogs || cachedAlertas || cachedStats));
-
-  const [logs, setLogs] = useState<LogEntry[]>(cachedLogs ?? []);
-  const [alertas, setAlertas] = useState<Alerta[]>(cachedAlertas ?? []);
-  const [stats, setStats] = useState<TelemetryStats | null>(cachedStats ?? null);
-  const [isLoading, setIsLoading] = useState(!hasCacheRef.current);
+export function useTelemetry(logFilters: Omit<LogFilters, 'page' | 'per_page'> = {}) {
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [alertas, setAlertas] = useState<Alerta[]>(cache.get<Alerta[]>(C_ALERTS) ?? []);
+  const [stats, setStats] = useState<TelemetryStats | null>(null);
+  const [errorsByTenant, setErrorsByTenant] = useState<TenantErrorByTenant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const pagination = usePaginationParams();
   const { params, setTotal } = pagination;
+  const hasFetchedAlerts = useRef(false);
 
   const fetchData = useCallback(async () => {
-    setIsLoading(!hasCacheRef.current);
+    setIsLoading(true);
     try {
-      const [logRes, alertaData, statsData] = await Promise.all([
-        telemetryService.getLogs(params),
-        telemetryService.getAlertas(),
-        telemetryService.getStats(),
+      const queryParams: LogFilters = {
+        page: params.page,
+        per_page: params.per_page,
+        ...(logFilters.nivel && { nivel: logFilters.nivel }),
+        ...(logFilters.from && { from: logFilters.from }),
+        ...(logFilters.to && { to: logFilters.to }),
+      };
+
+      const [logRes, summaryData] = await Promise.all([
+        telemetryService.getLogs(queryParams),
+        !hasFetchedAlerts.current ? telemetryService.getSummary() : telemetryService.getSummary(),
       ]);
+
       const meta = extractPaginationMeta(logRes);
       if (meta) setTotal(meta.total);
-      const logData = ((logRes as unknown as { data?: LogEntry[] }).data ?? []) as LogEntry[];
+      const logData = ((logRes as { data?: LogEntry[] }).data ?? []) as LogEntry[];
       cache.set(C_LOGS, logData);
-      cache.set(C_ALERTS, alertaData);
-      cache.set(C_STATS, statsData);
       setLogs(logData);
-      setAlertas(alertaData);
+
+      const { errors_by_tenant, ...statsData } = summaryData;
       setStats(statsData);
-      hasCacheRef.current = true;
+      setErrorsByTenant(errors_by_tenant);
     } catch {
-      /* mantener data previa en caso de error */
+      // keep existing data
     } finally {
       setIsLoading(false);
     }
-  }, [params, setTotal]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  }, [params.page, params.per_page, logFilters.nivel, logFilters.from, logFilters.to, setTotal]);
 
   const fetchAlertas = useCallback(async () => {
     const alertaData = await telemetryService.getAlertas();
     cache.set(C_ALERTS, alertaData);
     setAlertas(alertaData);
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    fetchAlertas();
+    hasFetchedAlerts.current = true;
+  }, [fetchAlertas]);
 
   const toggleAlerta = useCallback(
     async (uid: string) => {
@@ -90,6 +103,7 @@ export function useTelemetry() {
     logs,
     alertas,
     stats,
+    errorsByTenant,
     isLoading,
     refetch: fetchData,
     toggleAlerta,

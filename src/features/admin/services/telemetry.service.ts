@@ -1,20 +1,40 @@
 import type {
   Alerta,
   AlertaPayload,
-  LogEntry,
   TelemetryStats,
+  TenantErrorByTenant,
 } from 'src/features/admin/types/admin.types';
 import axiosInstance, { endpoints } from 'src/lib/axios';
-import { type PaginationParams } from 'src/shared/lib/pagination';
+
+export interface LogFilters {
+  nivel?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  per_page?: number;
+}
+
+export interface TelemetrySummary extends TelemetryStats {
+  errors_by_tenant: TenantErrorByTenant[];
+}
 
 export const telemetryService = {
-  async getLogs(params?: PaginationParams): Promise<LogEntry[]> {
+  async getLogs(params?: LogFilters): Promise<unknown> {
     const res = await axiosInstance.get(endpoints.admin.telemetry.logs, { params });
-    return res.data; // full response — callers extract .data for the array
+    return res.data;
   },
-  async getStats(): Promise<TelemetryStats> {
-    const res = await axiosInstance.get(endpoints.admin.telemetry.stats);
-    return res.data.data;
+  async getSummary(): Promise<TelemetrySummary> {
+    const res = await axiosInstance.get(endpoints.admin.telemetry.summary);
+    const d = res.data.data;
+    return {
+      uptime_global_percent: d.uptime_global ?? d.uptime_global_percent ?? 100,
+      latencia_p95_ms: d.latency_p95_ms ?? d.latencia_p95_ms ?? null,
+      errores_24h: d.errors_24h ?? d.errores_24h ?? 0,
+      warnings_24h: d.warnings_24h ?? 0,
+      tenants_with_errors: d.tenants_with_errors ?? 0,
+      active_alerts: d.active_alerts ?? 0,
+      errors_by_tenant: d.errors_by_tenant ?? [],
+    };
   },
   async getAlertas(): Promise<Alerta[]> {
     const res = await axiosInstance.get(endpoints.admin.telemetry.alerts);

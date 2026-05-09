@@ -1,11 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { AlertasTable } from 'src/features/admin/components/alertas-table';
 import { AlertsDrawer } from 'src/features/admin/components/alerts-drawer';
 import { LogsFeed } from 'src/features/admin/components/logs-feed';
-import type { TenantErrorRow } from 'src/features/admin/components/tenant-errors-table';
-import { TenantErrorsTable } from 'src/features/admin/components/tenant-errors-table';
+import {
+  TenantErrorRow,
+  TenantErrorsTable,
+} from 'src/features/admin/components/tenant-errors-table';
 import { useTelemetry } from 'src/features/admin/hooks/use-telemetry';
 import type { Alerta } from 'src/features/admin/types/admin.types';
 import {
@@ -17,16 +19,32 @@ import {
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { PaginationBar } from 'src/shared/components/ui/PaginationBar';
+import { SelectField } from 'src/shared/components/ui/select-field';
 
-const SEVERIDAD_ORDER: Record<string, number> = { CRITICO: 0, ALTO: 1, MEDIO: 2, BAJO: 3 };
+const NIVEL_OPTIONS = [
+  { value: '', label: 'Todos los niveles' },
+  { value: 'ERROR', label: 'ERROR' },
+  { value: 'WARN', label: 'WARN' },
+  { value: 'INFO', label: 'INFO' },
+];
 
 export const TelemetryView = () => {
-  const { logs, alertas, stats, isLoading, toggleAlerta, updateAlerta, saveAlerta, pagination } =
-    useTelemetry();
-
-  const [isAlertasOpen, setIsAlertasOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'errores' | 'logs' | 'alertas'>('errores');
+  const [filterNivel, setFilterNivel] = useState('');
+  const [isAlertasOpen, setIsAlertasOpen] = useState(false);
   const [selectedAlerta, setSelectedAlerta] = useState<Alerta | null>(null);
+
+  const {
+    logs,
+    alertas,
+    stats,
+    errorsByTenant,
+    isLoading,
+    toggleAlerta,
+    updateAlerta,
+    saveAlerta,
+    pagination,
+  } = useTelemetry({ nivel: filterNivel || undefined });
 
   const handleOpenAlertas = (alerta: Alerta | null = null) => {
     setSelectedAlerta(alerta);
@@ -41,35 +59,14 @@ export const TelemetryView = () => {
     }
   };
 
-  const tenantErrors = useMemo<TenantErrorRow[]>(() => {
-    const byTenant = new Map<string, TenantErrorRow>();
-    for (const log of logs) {
-      const existing = byTenant.get(log.tenant_uid);
-      const currentSev = log.severity ?? 'BAJO';
-      const existingSev = existing?.severity ?? 'BAJO';
-      const isMoreSevere = (SEVERIDAD_ORDER[currentSev] ?? 3) < (SEVERIDAD_ORDER[existingSev] ?? 3);
-      if (!existing || isMoreSevere) {
-        byTenant.set(log.tenant_uid, {
-          tenantId: log.tenant_uid,
-          nombre: log.tenant_nombre,
-          errores: log.errors_last_24h ?? 0,
-          tipo: log.message,
-          timestamp: log.timestamp,
-          severity: log.severity ?? 'BAJO',
-        });
-      }
-    }
-    return Array.from(byTenant.values()).sort(
-      (a, b) =>
-        (SEVERIDAD_ORDER[a.severity ?? 'BAJO'] ?? 3) - (SEVERIDAD_ORDER[b.severity ?? 'BAJO'] ?? 3)
-    );
-  }, [logs]);
-
-  const errores24hTotal = useMemo(() => logs.filter((l) => l.level === 'ERROR').length, [logs]);
-  const tenantsConErrores = useMemo(
-    () => new Set(logs.filter((l) => l.level === 'ERROR').map((l) => l.tenant_uid)).size,
-    [logs]
-  );
+  const tenantErrors: TenantErrorRow[] = errorsByTenant.map((e) => ({
+    tenantId: e.tenant_uid,
+    nombre: e.tenant_nombre,
+    errores: e.errors_24h,
+    tipo: e.tipo_mas_frecuente,
+    timestamp: e.ultimo_error_at,
+    severity: e.severity,
+  }));
 
   return (
     <PageContainer>
@@ -85,7 +82,7 @@ export const TelemetryView = () => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {isLoading ? (
+        {isLoading && !stats ? (
           [1, 2, 3, 4].map((i) => (
             <div key={i} className="h-32 bg-muted/40 rounded-2xl animate-pulse" />
           ))
@@ -100,13 +97,7 @@ export const TelemetryView = () => {
             />
             <StatsCard
               title="Errores 24h"
-              value={
-                stats
-                  ? stats.errores_24h > 0
-                    ? stats.errores_24h
-                    : errores24hTotal
-                  : errores24hTotal
-              }
+              value={stats?.errores_24h ?? 0}
               trend="nivel ERROR en logs"
               trendUp={false}
               icon={<Icon name="AlertOctagon" className="h-5 w-5" />}
@@ -114,7 +105,7 @@ export const TelemetryView = () => {
             />
             <StatsCard
               title="Tenants con errores"
-              value={stats?.tenants_with_errors ?? tenantsConErrores}
+              value={stats?.tenants_with_errors ?? 0}
               trend="con nivel ERROR"
               icon={<Icon name="Building2" className="h-5 w-5" />}
               iconClassName="bg-amber-500/10 text-amber-600"
@@ -122,7 +113,7 @@ export const TelemetryView = () => {
             <StatsCard
               title="Latencia P95"
               value={stats?.latencia_p95_ms != null ? `${stats.latencia_p95_ms}ms` : '—'}
-              trend={stats?.latencia_p95_ms != null ? 'p95' : 'Pendiente de backend'}
+              trend={stats?.latencia_p95_ms != null ? 'p95' : 'Sin datos'}
               trendUp={false}
               icon={<Icon name="Zap" className="h-5 w-5" />}
               iconClassName="bg-purple-500/10 text-purple-600"
@@ -156,6 +147,14 @@ export const TelemetryView = () => {
 
         {activeTab === 'logs' && (
           <div className="p-6">
+            <div className="flex items-end justify-between mb-4">
+              <SelectField
+                label="Nivel"
+                options={NIVEL_OPTIONS}
+                value={filterNivel}
+                onChange={(v) => setFilterNivel(v as string)}
+              />
+            </div>
             {isLoading ? (
               <div className="space-y-4 animate-pulse">
                 {[...Array(6)].map((_, i) => (
@@ -165,6 +164,13 @@ export const TelemetryView = () => {
             ) : (
               <LogsFeed logs={logs} />
             )}
+            <div className="mt-4">
+              <PaginationBar
+                page={pagination.page}
+                totalPages={Math.ceil(pagination.total / pagination.rowsPerPage)}
+                onPageChange={pagination.onChangePage}
+              />
+            </div>
           </div>
         )}
 
@@ -184,12 +190,6 @@ export const TelemetryView = () => {
         isOpen={isAlertasOpen}
         onClose={() => setIsAlertasOpen(false)}
         onSave={handleSaveAlerta}
-      />
-      <PaginationBar
-        page={pagination.page}
-        totalPages={Math.ceil(pagination.total / pagination.rowsPerPage)}
-        onPageChange={pagination.onChangePage}
-        className="mt-6"
       />
     </PageContainer>
   );

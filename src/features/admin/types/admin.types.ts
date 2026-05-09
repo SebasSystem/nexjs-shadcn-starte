@@ -131,6 +131,26 @@ export interface DashboardData {
   tenants_recientes: Tenant[];
 }
 
+export interface BillingSummary {
+  cobrado_este_mes: number;
+  pendiente_cobro: number;
+  facturas_vencidas: number;
+  total_facturas: number;
+  pagadas: number;
+  pendientes: number;
+  vencidas: number;
+}
+
+export interface TenantErrorByTenant {
+  tenant_uid: string;
+  tenant_nombre: string;
+  errors_24h: number;
+  tipo_mas_frecuente: string;
+  ultimo_error_at: string;
+  severity: 'CRITICO' | 'ALTO' | 'MEDIO' | 'BAJO';
+  estado: string;
+}
+
 // --- Payload types ---
 
 export type PlanPayload = Omit<PlanSaaS, 'uid' | 'created_at' | 'total_tenants'>;

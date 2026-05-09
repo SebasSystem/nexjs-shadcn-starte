@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { BillingDetailDrawer } from 'src/features/admin/components/billing-detail-drawer';
 import { BillingTable } from 'src/features/admin/components/billing-table';
 import { useBilling } from 'src/features/admin/hooks/use-billing';
@@ -17,13 +17,41 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
-export const BillingView = () => {
-  const { facturas, isLoading, marcarPagadas, pagination } = useBilling();
+function getPeriodDates(period: string): { from?: string; to?: string } {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
+  if (period === 'este_mes') {
+    return { from: fmt(new Date(now.getFullYear(), now.getMonth(), 1)), to: fmt(now) };
+  }
+  if (period === 'mes_anterior') {
+    const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const last = new Date(now.getFullYear(), now.getMonth(), 0);
+    return { from: fmt(first), to: fmt(last) };
+  }
+  if (period === 'ultimos_3m') {
+    const from = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+    return { from: fmt(from), to: fmt(now) };
+  }
+  if (period === 'este_año') {
+    return { from: `${now.getFullYear()}-01-01`, to: fmt(now) };
+  }
+  return {};
+}
+
+export const BillingView = () => {
   const [search, setSearch] = useState('');
-  const [filterPeriodo, setFilterPeriodo] = useState('ALL');
-  const [filterEstado, setFilterEstado] = useState('ALL');
-  const [filterPlan, setFilterPlan] = useState('ALL');
+  const [filterEstado, setFilterEstado] = useState('');
+  const [filterPeriodo, setFilterPeriodo] = useState('');
+
+  const { from, to } = getPeriodDates(filterPeriodo);
+
+  const { facturas, summary, isLoading, marcarPagadas, pagination } = useBilling({
+    estado: filterEstado || undefined,
+    from,
+    to,
+  });
 
   const [selectedFactura, setSelectedFactura] = useState<Factura | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -33,27 +61,16 @@ export const BillingView = () => {
     setIsDetailOpen(true);
   };
 
-  const filteredFacturas = useMemo(() => {
-    return facturas.filter((f) => {
-      const matchSearch = f.tenant_nombre.toLowerCase().includes(search.toLowerCase());
-      const matchPeriodo = filterPeriodo === 'ALL' || f.periodo === filterPeriodo;
-      const matchEstado = filterEstado === 'ALL' || f.status === filterEstado;
-      const matchPlan = filterPlan === 'ALL' || f.plan_nombre.includes(filterPlan);
-      return matchSearch && matchPeriodo && matchEstado && matchPlan;
-    });
-  }, [facturas, search, filterPeriodo, filterEstado, filterPlan]);
+  const filteredFacturas = search
+    ? facturas.filter((f) => f.tenant_nombre.toLowerCase().includes(search.toLowerCase()))
+    : facturas;
 
-  const activeFiltersCount =
-    (filterPeriodo !== 'ALL' ? 1 : 0) +
-    (filterEstado !== 'ALL' ? 1 : 0) +
-    (filterPlan !== 'ALL' ? 1 : 0) +
-    (search ? 1 : 0);
+  const activeFiltersCount = (filterEstado ? 1 : 0) + (filterPeriodo ? 1 : 0) + (search ? 1 : 0);
 
   const clearFilters = () => {
     setSearch('');
-    setFilterPeriodo('ALL');
-    setFilterEstado('ALL');
-    setFilterPlan('ALL');
+    setFilterEstado('');
+    setFilterPeriodo('');
   };
 
   return (
@@ -70,7 +87,7 @@ export const BillingView = () => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {isLoading ? (
+        {isLoading && !summary ? (
           [1, 2, 3].map((i) => (
             <div key={i} className="h-32 bg-muted/40 rounded-2xl animate-pulse" />
           ))
@@ -78,32 +95,35 @@ export const BillingView = () => {
           <>
             <StatsCard
               title="Cobrado este mes"
-              value={formatMoney(
-                facturas.filter((f) => f.status === 'PAGADA').reduce((s, f) => s + f.total, 0),
-                { scope: 'platform', minimumFractionDigits: 2, maximumFractionDigits: 2 }
-              )}
-              trend={`${facturas.filter((f) => f.status === 'PAGADA').length} facturas pagadas`}
+              value={formatMoney(summary?.cobrado_este_mes ?? 0, {
+                scope: 'platform',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+              trend={`${summary?.pagadas ?? 0} facturas pagadas`}
               icon={<Icon name="DollarSign" className="h-5 w-5" />}
               iconClassName="bg-emerald-500/10 text-emerald-600"
             />
             <StatsCard
               title="Pendiente de cobro"
-              value={formatMoney(
-                facturas.filter((f) => f.status === 'PENDIENTE').reduce((s, f) => s + f.total, 0),
-                { scope: 'platform', minimumFractionDigits: 2, maximumFractionDigits: 2 }
-              )}
-              trend={`${facturas.filter((f) => f.status === 'PENDIENTE').length} facturas`}
+              value={formatMoney(summary?.pendiente_cobro ?? 0, {
+                scope: 'platform',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+              trend={`${summary?.pendientes ?? 0} facturas`}
               trendUp={false}
               icon={<Icon name="Clock" className="h-5 w-5" />}
               iconClassName="bg-amber-500/10 text-amber-600"
             />
             <StatsCard
               title="Facturas vencidas"
-              value={formatMoney(
-                facturas.filter((f) => f.status === 'VENCIDA').reduce((s, f) => s + f.total, 0),
-                { scope: 'platform', minimumFractionDigits: 2, maximumFractionDigits: 2 }
-              )}
-              trend={`${facturas.filter((f) => f.status === 'VENCIDA').length} vencidas`}
+              value={formatMoney(summary?.facturas_vencidas ?? 0, {
+                scope: 'platform',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+              trend={`${summary?.vencidas ?? 0} vencidas`}
               trendUp={false}
               icon={<Icon name="AlertTriangle" className="h-5 w-5" />}
               iconClassName="bg-red-500/10 text-red-600"
@@ -115,8 +135,8 @@ export const BillingView = () => {
       <SectionCard noPadding className="flex flex-col shadow-sm border border-border/40">
         <div className="flex flex-col sm:flex-row gap-4 items-end px-5 py-4">
           <Input
-            label="Buscar"
-            placeholder="Buscar tenant..."
+            label="Buscar tenant"
+            placeholder="Filtrar en esta página..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             leftIcon={<Icon name="Search" className="h-4 w-4" />}
@@ -125,13 +145,13 @@ export const BillingView = () => {
 
           <div className="flex flex-wrap items-end gap-3 w-full sm:w-auto">
             <SelectField
-              label="Periodo"
+              label="Período"
               options={[
-                { value: 'ALL', label: 'Todos los periodos' },
-                ...Array.from(new Set(facturas.map((f) => f.periodo))).map((p) => ({
-                  value: p,
-                  label: p,
-                })),
+                { value: '', label: 'Todos los períodos' },
+                { value: 'este_mes', label: 'Este mes' },
+                { value: 'mes_anterior', label: 'Mes anterior' },
+                { value: 'ultimos_3m', label: 'Últimos 3 meses' },
+                { value: 'este_año', label: 'Este año' },
               ]}
               value={filterPeriodo}
               onChange={(v) => setFilterPeriodo(v as string)}
@@ -139,7 +159,7 @@ export const BillingView = () => {
             <SelectField
               label="Estado"
               options={[
-                { value: 'ALL', label: 'Todos los estados' },
+                { value: '', label: 'Todos los estados' },
                 { value: 'PAGADA', label: 'Pagada' },
                 { value: 'PENDIENTE', label: 'Pendiente' },
                 { value: 'VENCIDA', label: 'Vencida' },
@@ -147,18 +167,6 @@ export const BillingView = () => {
               ]}
               value={filterEstado}
               onChange={(v) => setFilterEstado(v as string)}
-            />
-            <SelectField
-              label="Plan"
-              options={[
-                { value: 'ALL', label: 'Todos los planes' },
-                ...Array.from(new Set(facturas.map((f) => f.plan_nombre))).map((p) => ({
-                  value: p,
-                  label: p,
-                })),
-              ]}
-              value={filterPlan}
-              onChange={(v) => setFilterPlan(v as string)}
             />
 
             {activeFiltersCount > 0 && (

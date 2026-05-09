@@ -134,12 +134,14 @@ export const endpoints = {
     },
     billing: {
       list: '/admin/billing',
+      summary: '/admin/billing/summary',
       markPaid: (uid: string) => `/admin/billing/${uid}/mark-paid`,
       markPaidBulk: '/admin/billing/mark-paid-bulk',
     },
     telemetry: {
       logs: '/admin/telemetry/logs',
       stats: '/admin/telemetry/stats',
+      summary: '/admin/telemetry/summary',
       alerts: '/admin/telemetry/alerts',
       alert: (uid: string) => `/admin/telemetry/alerts/${uid}`,
       toggleAlert: (uid: string) => `/admin/telemetry/alerts/${uid}/toggle`,
