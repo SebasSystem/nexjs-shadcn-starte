@@ -32,8 +32,12 @@ export const tenantsService = {
     const res = await axiosInstance.post(endpoints.admin.tenants.activate(uid));
     return res.data.data;
   },
-  async createUser(tenantUid: string, data: CreateTenantUserPayload): Promise<void> {
-    await axiosInstance.post(endpoints.admin.tenants.createUser(tenantUid), data);
+  async createUser(
+    tenantUid: string,
+    data: CreateTenantUserPayload
+  ): Promise<{ reset_email_sent: boolean }> {
+    const res = await axiosInstance.post(endpoints.admin.tenants.createUser(tenantUid), data);
+    return { reset_email_sent: res.data.data?.reset_email_sent ?? false };
   },
   async getUsers(tenantUid: string, page = 1, perPage = 10) {
     const res = await axiosInstance.get(endpoints.admin.tenants.users(tenantUid), {

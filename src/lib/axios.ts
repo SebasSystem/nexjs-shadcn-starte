@@ -35,7 +35,11 @@ axiosInstance.interceptors.response.use(
       window.location.href = paths.auth.jwt.signIn;
     }
 
-    return Promise.reject((error.response && error.response.data) || 'Algo salió mal');
+    const message = error?.response?.data?.message || error?.message || 'Algo salió mal';
+    const err = new Error(message);
+    (err as Error & { status?: number; data?: unknown }).status = error?.response?.status;
+    (err as Error & { status?: number; data?: unknown }).data = error?.response?.data;
+    return Promise.reject(err);
   }
 );
 

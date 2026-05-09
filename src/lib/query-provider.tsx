@@ -12,7 +12,11 @@ export function QueryProvider({ children }: { children: ReactNode }) {
             staleTime: 5 * 60 * 1000,
             gcTime: 10 * 60 * 1000,
             refetchOnWindowFocus: false,
-            retry: 1,
+            retry: (failureCount, error) => {
+              const status = (error as Error & { status?: number })?.status;
+              if (status !== undefined && status >= 400 && status < 500) return false;
+              return failureCount < 1;
+            },
           },
         },
       })

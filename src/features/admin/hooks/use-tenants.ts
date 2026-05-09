@@ -1,75 +1,96 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { tenantsService } from 'src/features/admin/services/tenants.service';
 import { Tenant } from 'src/features/admin/types/admin.types';
-import { cache } from 'src/lib/cache';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
-const CACHE_KEY = 'admin:tenants';
+interface TenantFilters {
+  search?: string;
+  plan_uid?: string;
+  estado?: string;
+}
 
-export function useTenants() {
-  const cached = cache.get<Tenant[]>(CACHE_KEY);
-  const hasCache = useRef(!!cached);
-  const [tenants, setTenants] = useState<Tenant[]>(cached ?? []);
-  const [isLoading, setIsLoading] = useState(!hasCache.current);
+export function useTenants(filters: TenantFilters = {}) {
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const pagination = usePaginationParams();
   const { params, setTotal } = pagination;
 
   const fetchTenants = useCallback(async () => {
-    setIsLoading(!hasCache.current);
+    setIsLoading(true);
     try {
-      const res = await tenantsService.getAll(params);
+      const queryParams = {
+        ...params,
+        ...(filters.search && { search: filters.search }),
+        ...(filters.plan_uid && { plan_uid: filters.plan_uid }),
+        ...(filters.estado && { estado: filters.estado }),
+      };
+      const res = await tenantsService.getAll(queryParams);
       const meta = extractPaginationMeta(res);
       if (meta) setTotal(meta.total);
       const data = ((res as unknown as { data?: Tenant[] }).data ?? []) as Tenant[];
-      cache.set(CACHE_KEY, data);
       setTenants(data);
-      hasCache.current = true;
     } finally {
       setIsLoading(false);
     }
-  }, [params, setTotal]);
+  }, [params, filters.search, filters.plan_uid, filters.estado, setTotal]);
 
   useEffect(() => {
     fetchTenants();
   }, [fetchTenants]);
 
   const createTenant = useCallback(
-    async (data: Omit<Tenant, 'uid' | 'created_at' | 'last_access_at'>) => {
+    async (
+      data: Omit<Tenant, 'uid' | 'created_at' | 'last_access_at'>,
+      adminUser?: { name: string; email: string; role?: string }
+    ): Promise<{ reset_email_sent?: boolean }> => {
       const created = await tenantsService.create(data);
-      cache.invalidate(CACHE_KEY);
-      setTenants((prev) => [...prev, created]);
-      return created;
+      let reset_email_sent: boolean | undefined;
+      if (adminUser?.name && adminUser?.email) {
+        const result = await tenantsService
+          .createUser(created.uid, {
+            name: adminUser.name,
+            email: adminUser.email,
+            role: adminUser.role || 'owner',
+          })
+          .catch(() => ({ reset_email_sent: false }));
+        reset_email_sent = result.reset_email_sent;
+      }
+      await fetchTenants();
+      return { reset_email_sent };
     },
-    []
+    [fetchTenants]
   );
 
-  const updateTenant = useCallback(async (uid: string, data: Partial<Tenant>) => {
-    const updated = await tenantsService.update(uid, data);
-    cache.invalidate(CACHE_KEY);
-    setTenants((prev) => prev.map((t) => (t.uid === uid ? updated : t)));
-    return updated;
-  }, []);
+  const updateTenant = useCallback(
+    async (uid: string, data: Partial<Tenant>) => {
+      await tenantsService.update(uid, data);
+      await fetchTenants();
+    },
+    [fetchTenants]
+  );
 
-  const suspendTenant = useCallback(async (uid: string) => {
-    const updated = await tenantsService.suspend(uid);
-    cache.invalidate(CACHE_KEY);
-    setTenants((prev) => prev.map((t) => (t.uid === uid ? updated : t)));
-    return updated;
-  }, []);
+  const suspendTenant = useCallback(
+    async (uid: string) => {
+      await tenantsService.suspend(uid);
+      await fetchTenants();
+    },
+    [fetchTenants]
+  );
 
-  const activateTenant = useCallback(async (uid: string) => {
-    const updated = await tenantsService.activate(uid);
-    cache.invalidate(CACHE_KEY);
-    setTenants((prev) => prev.map((t) => (t.uid === uid ? updated : t)));
-    return updated;
-  }, []);
+  const activateTenant = useCallback(
+    async (uid: string) => {
+      await tenantsService.activate(uid);
+      await fetchTenants();
+    },
+    [fetchTenants]
+  );
 
   const createTenantUser = useCallback(
     async (tenantUid: string, data: { name: string; email: string; role: string }) => {
-      await tenantsService.createUser(tenantUid, data);
+      return tenantsService.createUser(tenantUid, data);
     },
     []
   );

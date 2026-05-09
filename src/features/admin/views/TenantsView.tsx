@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { TenantDetailDrawer } from 'src/features/admin/components/tenant-detail-drawer';
 import { TenantFormDrawer } from 'src/features/admin/components/tenant-form-drawer';
 import { TenantsTable } from 'src/features/admin/components/tenants-table';
@@ -12,8 +12,14 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
+import { useDebounce } from 'use-debounce';
 
 export const TenantsView = () => {
+  const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 400);
+  const [filterPlan, setFilterPlan] = useState('');
+  const [filterEstado, setFilterEstado] = useState('');
+
   const {
     tenants,
     isLoading,
@@ -23,32 +29,16 @@ export const TenantsView = () => {
     activateTenant,
     createTenantUser,
     pagination,
-  } = useTenants();
-  const { planes } = usePlansAdmin();
+  } = useTenants({ search: debouncedSearch, plan_uid: filterPlan, estado: filterEstado });
 
-  const [search, setSearch] = useState('');
-  const [filterPlan, setFilterPlan] = useState('ALL');
-  const [filterEstado, setFilterEstado] = useState('ALL');
+  const { planes } = usePlansAdmin();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
-  const [confirmSuspend, setConfirmSuspend] = useState<Tenant | null>(null);
-  const [confirmText, setConfirmText] = useState('');
-
-  const filteredTenants = useMemo(() => {
-    return tenants.filter((t) => {
-      const matchSearch =
-        t.nombre.toLowerCase().includes(search.toLowerCase()) ||
-        t.dominio.toLowerCase().includes(search.toLowerCase());
-      const matchPlan = filterPlan === 'ALL' || t.plan_nombre.includes(filterPlan);
-      const matchEstado = filterEstado === 'ALL' || t.estado === filterEstado;
-      return matchSearch && matchPlan && matchEstado;
-    });
-  }, [tenants, search, filterPlan, filterEstado]);
 
   const activeFiltersCount =
-    (filterPlan !== 'ALL' ? 1 : 0) + (filterEstado !== 'ALL' ? 1 : 0) + (search ? 1 : 0);
+    (filterPlan ? 1 : 0) + (filterEstado ? 1 : 0) + (debouncedSearch ? 1 : 0);
 
   const handleOpenNew = () => {
     setSelectedTenant(null);
@@ -65,27 +55,21 @@ export const TenantsView = () => {
     setIsDetailOpen(true);
   };
 
-  const handleFormSave = async (data: Record<string, unknown>) => {
+  const handleFormSave = async (
+    data: Record<string, unknown>,
+    adminUser?: { name: string; email: string }
+  ): Promise<{ reset_email_sent?: boolean }> => {
     if (selectedTenant) {
       await updateTenant(selectedTenant.uid, data as Partial<Tenant>);
-    } else {
-      await createTenant(data as unknown as Tenant);
+      return {};
     }
+    return createTenant(data as unknown as Tenant, adminUser);
   };
 
-  const handleSuspend = async (tenant: Tenant) => {
-    setConfirmSuspend(tenant);
-    setConfirmText('');
-  };
-
-  const handleConfirmSuspend = async () => {
-    if (!confirmSuspend || confirmText !== 'SUSPENDER') return;
-    await suspendTenant(confirmSuspend.uid);
-    setConfirmSuspend(null);
-  };
-
-  const handleActivate = async (tenant: Tenant) => {
-    await activateTenant(tenant.uid);
+  const handleClearFilters = () => {
+    setSearch('');
+    setFilterPlan('');
+    setFilterEstado('');
   };
 
   return (
@@ -116,8 +100,8 @@ export const TenantsView = () => {
             <SelectField
               label="Plan"
               options={[
-                { value: 'ALL', label: 'Todos los planes' },
-                ...planes.map((p) => ({ value: p.name, label: p.name })),
+                { value: '', label: 'Todos los planes' },
+                ...planes.map((p) => ({ value: p.uid, label: p.name })),
               ]}
               value={filterPlan}
               onChange={(v) => setFilterPlan(v as string)}
@@ -125,7 +109,7 @@ export const TenantsView = () => {
             <SelectField
               label="Estado"
               options={[
-                { value: 'ALL', label: 'Todos los estados' },
+                { value: '', label: 'Todos los estados' },
                 { value: 'ACTIVO', label: 'Activo' },
                 { value: 'TRIAL', label: 'Trial' },
                 { value: 'VENCIDO', label: 'Vencido' },
@@ -139,11 +123,7 @@ export const TenantsView = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  setSearch('');
-                  setFilterPlan('ALL');
-                  setFilterEstado('ALL');
-                }}
+                onClick={handleClearFilters}
                 className="text-muted-foreground h-10 px-3"
               >
                 <Icon name="Filter" className="h-4 w-4 mr-2" />
@@ -153,12 +133,10 @@ export const TenantsView = () => {
           </div>
         </div>
         <TenantsTable
-          tenants={filteredTenants}
+          tenants={tenants}
           isLoading={isLoading}
           onEdit={handleOpenEdit}
           onViewDetail={handleOpenDetail}
-          onSuspend={handleSuspend}
-          onActivate={handleActivate}
           total={pagination.total}
           pageIndex={pagination.page - 1}
           pageSize={pagination.rowsPerPage}
@@ -179,44 +157,10 @@ export const TenantsView = () => {
         tenant={selectedTenant}
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
-        onSuspend={handleSuspend}
-        onActivate={handleActivate}
+        onSuspend={(t) => suspendTenant(t.uid)}
+        onActivate={(t) => activateTenant(t.uid)}
         onCreateUser={createTenantUser}
       />
-
-      {confirmSuspend && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-background rounded-2xl shadow-xl p-6 w-full max-w-md mx-4">
-            <div className="flex items-center gap-3 mb-4">
-              <Icon name="AlertTriangle" className="h-6 w-6 text-red-600 shrink-0" />
-              <h3 className="font-semibold text-red-700 text-body2">
-                ¿Suspender a &quot;{confirmSuspend.nombre}&quot;?
-              </h3>
-            </div>
-            <p className="text-body2 text-muted-foreground mb-5">
-              Esta acción bloqueará el acceso de todos sus usuarios al sistema de forma inmediata.
-            </p>
-            <Input
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              label='Escribe "SUSPENDER" para confirmar:'
-              placeholder="SUSPENDER"
-            />
-            <div className="flex justify-between mt-6">
-              <Button variant="outline" onClick={() => setConfirmSuspend(null)}>
-                Cancelar
-              </Button>
-              <Button
-                className="bg-red-600 hover:bg-red-700 text-white"
-                disabled={confirmText !== 'SUSPENDER'}
-                onClick={handleConfirmSuspend}
-              >
-                Confirmar Suspensión
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </PageContainer>
   );
 };

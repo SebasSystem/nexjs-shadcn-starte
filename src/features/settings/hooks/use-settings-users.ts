@@ -9,7 +9,6 @@ import type { SettingsUser } from '../types/settings.types';
 
 const generatePassword = () => Math.random().toString(36).slice(-10) + 'A1!';
 
-// TODO: migrate to TanStack Query for consistency with other hooks
 export function useSettingsUsers() {
   const [users, setUsers] = useState<SettingsUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,16 +38,12 @@ export function useSettingsUsers() {
     }
   ): Promise<boolean> => {
     try {
-      const payload = {
-        ...data,
-        password: data.password || generatePassword(),
-      };
+      const payload = { ...data, password: data.password || generatePassword() };
       const newUser = await usersService.create(payload as unknown as SettingsUser);
-      // Assign role after creation
       if (data.role_uid) {
         await usersService.assignRole(newUser.uid, data.role_uid as string).catch(() => {});
       }
-      setUsers((prev) => [...prev, newUser]);
+      await fetchUsers();
       return true;
     } catch {
       return false;
@@ -60,8 +55,7 @@ export function useSettingsUsers() {
     data: Partial<SettingsUser> & { role_uid?: string }
   ): Promise<boolean> => {
     try {
-      const updated = await usersService.update(id, data);
-      // Handle role change
+      await usersService.update(id, data);
       if (data.role_uid !== undefined) {
         const oldUser = users.find((u) => u.uid === id);
         if (oldUser?.role_uid && oldUser.role_uid !== data.role_uid) {
@@ -71,7 +65,7 @@ export function useSettingsUsers() {
           await usersService.assignRole(id, data.role_uid).catch(() => {});
         }
       }
-      setUsers((prev) => prev.map((u) => (u.uid === id ? updated : u)));
+      await fetchUsers();
       return true;
     } catch {
       return false;
@@ -81,13 +75,13 @@ export function useSettingsUsers() {
   const toggleStatus = async (id: string): Promise<void> => {
     const user = users.find((u) => u.uid === id);
     if (!user) return;
-    const updated = await usersService.toggleStatus(id, user.status);
-    setUsers((prev) => prev.map((u) => (u.uid === id ? updated : u)));
+    await usersService.toggleStatus(id, user.status);
+    await fetchUsers();
   };
 
   const deleteUser = async (id: string): Promise<void> => {
     await usersService.delete(id);
-    setUsers((prev) => prev.filter((u) => u.uid !== id));
+    await fetchUsers();
   };
 
   return {

@@ -9,12 +9,6 @@ import { formatDate as formatDateLib } from 'src/lib/date';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from 'src/shared/components/ui/dropdown-menu';
 import { Icon } from 'src/shared/components/ui/icon';
 
 function getInitials(nombre: string) {
@@ -41,16 +35,9 @@ const columnHelper = createColumnHelper<Tenant>();
 export interface TenantColumnHandlers {
   onEdit: (tenant: Tenant) => void;
   onViewDetail: (tenant: Tenant) => void;
-  onSuspend: (tenant: Tenant) => void;
-  onActivate: (tenant: Tenant) => void;
 }
 
-export function buildTenantColumns({
-  onEdit,
-  onViewDetail,
-  onSuspend,
-  onActivate,
-}: TenantColumnHandlers) {
+export function buildTenantColumns({ onEdit, onViewDetail }: TenantColumnHandlers) {
   return [
     columnHelper.accessor('nombre', {
       header: 'Tenant',
@@ -143,25 +130,6 @@ export function buildTenantColumns({
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(tenant)}>
               <Icon name="Pencil" className="h-3.5 w-3.5" />
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Icon name="MoreHorizontal" className="h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEdit(tenant)}>Cambiar Plan</DropdownMenuItem>
-                {tenant.estado === 'SUSPENDIDO' ? (
-                  <DropdownMenuItem className="text-emerald-600" onClick={() => onActivate(tenant)}>
-                    Activar Tenant
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem className="text-red-600" onClick={() => onSuspend(tenant)}>
-                    Suspender Tenant
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         );
       },

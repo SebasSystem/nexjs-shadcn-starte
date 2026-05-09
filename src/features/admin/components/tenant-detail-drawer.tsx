@@ -16,7 +16,9 @@ import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
+import { PaginationControl } from 'src/shared/components/ui/pagination-control';
 import { Progress } from 'src/shared/components/ui/progress';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import {
   Sheet,
   SheetContent,
@@ -31,12 +33,12 @@ interface TenantDetailDrawerProps {
   tenant: Tenant | null;
   isOpen: boolean;
   onClose: () => void;
-  onSuspend: (tenant: Tenant) => void;
-  onActivate: (tenant: Tenant) => void;
+  onSuspend?: (tenant: Tenant) => void;
+  onActivate?: (tenant: Tenant) => void;
   onCreateUser: (
     tenantId: string,
     data: { name: string; email: string; role: string }
-  ) => Promise<void>;
+  ) => Promise<{ reset_email_sent: boolean }>;
 }
 
 function getInitials(nombre: string) {
@@ -63,8 +65,9 @@ export function TenantDetailDrawer({
   const [textoConfirmacion, setTextoConfirmacion] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserRole, setNewUserRole] = useState('owner');
   const [creatingUser, setCreatingUser] = useState(false);
-  const [userCreated, setUserCreated] = useState(false);
+  const [userCreatedMsg, setUserCreatedMsg] = useState<string | null>(null);
 
   const [usuarios, setUsuarios] = useState<TenantUser[]>([]);
   const [facturas, setFacturas] = useState<TenantFacturaItem[]>([]);
@@ -79,9 +82,10 @@ export function TenantDetailDrawer({
       setUsuarios([]);
       setFacturas([]);
       setActividad([]);
-      setUserCreated(false);
+      setUserCreatedMsg(null);
       setNewUserName('');
       setNewUserEmail('');
+      setNewUserRole('owner');
       setUsersPage(1);
     }
   }, [tenant, isOpen]);
@@ -131,11 +135,12 @@ export function TenantDetailDrawer({
     setTextoConfirmacion('');
     setNewUserName('');
     setNewUserEmail('');
-    setUserCreated(false);
+    setNewUserRole('owner');
+    setUserCreatedMsg(null);
     onClose();
   };
   const handleSuspend = () => {
-    onSuspend(tenant);
+    onSuspend?.(tenant);
     setConfirmandoSuspension(false);
     setTextoConfirmacion('');
     onClose();
@@ -144,10 +149,19 @@ export function TenantDetailDrawer({
     if (!newUserName.trim() || !newUserEmail.trim()) return;
     setCreatingUser(true);
     try {
-      await onCreateUser(tenant.uid, { name: newUserName, email: newUserEmail, role: 'owner' });
-      setUserCreated(true);
+      const result = await onCreateUser(tenant.uid, {
+        name: newUserName,
+        email: newUserEmail,
+        role: newUserRole,
+      });
+      setUserCreatedMsg(
+        result.reset_email_sent
+          ? 'Usuario creado. Se envió el link de acceso al email.'
+          : 'Usuario creado, pero no se pudo enviar el email. Enviá el acceso manualmente.'
+      );
       setNewUserName('');
       setNewUserEmail('');
+      setNewUserRole('owner');
       setUsuarios([]);
     } catch {
     } finally {
@@ -298,42 +312,42 @@ export function TenantDetailDrawer({
                     <Progress value={storagePct} className="h-2" />
                   </div>
                 </div>
-                <div className="pt-4 border-t border-border/40 flex flex-col gap-2">
-                  {tenant.estado === 'SUSPENDIDO' ? (
-                    <Button
-                      variant="outline"
-                      className="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
-                      onClick={() => onActivate(tenant)}
-                    >
-                      <Icon name="CheckCircle" className="h-4 w-4 mr-2" />
-                      Activar Tenant
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                      onClick={() => setConfirmandoSuspension(true)}
-                    >
-                      <Icon name="AlertTriangle" className="h-4 w-4 mr-2" />
-                      Suspender Tenant
-                    </Button>
-                  )}
-                </div>
+                {(onSuspend || onActivate) && (
+                  <div className="pt-4 border-t border-border/40 flex flex-col gap-2">
+                    {tenant.estado === 'SUSPENDIDO'
+                      ? onActivate && (
+                          <Button
+                            variant="outline"
+                            className="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
+                            onClick={() => onActivate(tenant)}
+                          >
+                            <Icon name="CheckCircle" className="h-4 w-4 mr-2" />
+                            Activar Tenant
+                          </Button>
+                        )
+                      : onSuspend && (
+                          <Button
+                            variant="outline"
+                            className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                            onClick={() => setConfirmandoSuspension(true)}
+                          >
+                            <Icon name="AlertTriangle" className="h-4 w-4 mr-2" />
+                            Suspender Tenant
+                          </Button>
+                        )}
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="usuarios" className="px-6 pb-6 space-y-4">
-                {userCreated && (
+                {userCreatedMsg && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200 mt-2">
                     <Icon name="CheckCircle2" className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <p className="text-body2 text-emerald-700">
-                      Usuario creado. Se envió el email de bienvenida.
-                    </p>
+                    <p className="text-body2 text-emerald-700">{userCreatedMsg}</p>
                   </div>
                 )}
                 <div className="mt-2">
-                  <h3 className="text-body2 font-semibold text-foreground mb-1">
-                    Crear usuario owner
-                  </h3>
+                  <h3 className="text-body2 font-semibold text-foreground mb-1">Crear usuario</h3>
                   <p className="text-caption text-muted-foreground mb-4">
                     El usuario recibirá un email para establecer su contraseña.
                   </p>
@@ -351,6 +365,16 @@ export function TenantDetailDrawer({
                       value={newUserEmail}
                       onChange={(e) => setNewUserEmail(e.target.value)}
                     />
+                    <SelectField
+                      label="Rol"
+                      value={newUserRole}
+                      onChange={(v) => setNewUserRole(v as string)}
+                      options={[
+                        { value: 'owner', label: 'Owner' },
+                        { value: 'manager', label: 'Manager' },
+                        { value: 'seller', label: 'Seller' },
+                      ]}
+                    />
                     <Button
                       className="w-full"
                       disabled={!newUserName.trim() || !newUserEmail.trim() || creatingUser}
@@ -364,7 +388,7 @@ export function TenantDetailDrawer({
                       ) : (
                         <>
                           <Icon name="UserPlus" className="h-4 w-4 mr-2" />
-                          Crear usuario owner
+                          Crear usuario
                         </>
                       )}
                     </Button>
@@ -434,29 +458,13 @@ export function TenantDetailDrawer({
                         </table>
                       </div>
                       {usersTotal > PER_PAGE && (
-                        <div className="flex items-center justify-between pt-3">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={usersPage <= 1}
-                            onClick={() => cargarUsuarios(usersPage - 1)}
-                          >
-                            <Icon name="ChevronLeft" className="h-4 w-4 mr-1" />
-                            Anterior
-                          </Button>
-                          <span className="text-xs text-muted-foreground">
-                            Pág {usersPage} de {Math.ceil(usersTotal / PER_PAGE)}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={usersPage >= Math.ceil(usersTotal / PER_PAGE)}
-                            onClick={() => cargarUsuarios(usersPage + 1)}
-                          >
-                            Siguiente
-                            <Icon name="ChevronRight" className="h-4 w-4 ml-1" />
-                          </Button>
-                        </div>
+                        <PaginationControl
+                          page={usersPage}
+                          totalPages={Math.ceil(usersTotal / PER_PAGE)}
+                          total={usersTotal}
+                          pageSize={PER_PAGE}
+                          onPageChange={cargarUsuarios}
+                        />
                       )}
                     </>
                   )}

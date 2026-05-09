@@ -36,24 +36,23 @@ export function useBilling() {
     fetchFacturas();
   }, [fetchFacturas]);
 
-  const marcarPagada = useCallback(async (uid: string) => {
-    const updated = await billingService.marcarPagada(uid);
-    cache.invalidate(CACHE_KEY);
-    setFacturas((prev) => prev.map((f) => (f.uid === uid ? updated : f)));
-    return updated;
-  }, []);
+  const marcarPagada = useCallback(
+    async (uid: string) => {
+      await billingService.marcarPagada(uid);
+      await fetchFacturas();
+      return;
+    },
+    [fetchFacturas]
+  );
 
-  const marcarPagadas = useCallback(async (uids: string[]) => {
-    const updated = await billingService.marcarPagadas(uids);
-    cache.invalidate(CACHE_KEY);
-    setFacturas((prev) =>
-      prev.map((f) => {
-        const found = updated.find((u: Factura) => u.uid === f.uid);
-        return found || f;
-      })
-    );
-    return updated;
-  }, []);
+  const marcarPagadas = useCallback(
+    async (uids: string[]) => {
+      await billingService.marcarPagadas(uids);
+      await fetchFacturas();
+      return;
+    },
+    [fetchFacturas]
+  );
 
   return {
     facturas,

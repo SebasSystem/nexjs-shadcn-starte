@@ -23,8 +23,6 @@ interface TenantsTableProps {
   isLoading?: boolean;
   onEdit: (tenant: Tenant) => void;
   onViewDetail: (tenant: Tenant) => void;
-  onSuspend: (tenant: Tenant) => void;
-  onActivate: (tenant: Tenant) => void;
   /** Server-side pagination (optional — falls back to client-side) */
   total?: number;
   pageIndex?: number;
@@ -38,8 +36,6 @@ export function TenantsTable({
   isLoading,
   onEdit,
   onViewDetail,
-  onSuspend,
-  onActivate,
   total,
   pageIndex,
   pageSize,
@@ -47,8 +43,8 @@ export function TenantsTable({
   onPageSizeChange,
 }: TenantsTableProps) {
   const COLUMNS = useMemo(
-    () => buildTenantColumns({ onEdit, onViewDetail, onSuspend, onActivate }),
-    [onEdit, onViewDetail, onSuspend, onActivate]
+    () => buildTenantColumns({ onEdit, onViewDetail }),
+    [onEdit, onViewDetail]
   );
 
   const { table, dense, onChangeDense } = useTable({

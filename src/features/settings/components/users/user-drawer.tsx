@@ -39,7 +39,12 @@ interface UserDrawerProps {
   user: SettingsUser | null;
   roles: Role[];
   equipos: Team[];
-  onSave: (data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'> & { password?: string; role_uid?: string }) => Promise<boolean>;
+  onSave: (
+    data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'> & {
+      password?: string;
+      role_uid?: string;
+    }
+  ) => Promise<boolean>;
 }
 
 const STATUS_OPTIONS = [

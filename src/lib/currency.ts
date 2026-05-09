@@ -49,6 +49,31 @@ export function setCurrencyPreferences(
   return next;
 }
 
+export function formatCompact(
+  value: number,
+  options?: {
+    scope?: CurrencyScope;
+    currency?: string;
+    locale?: string;
+  }
+): string {
+  const scope = options?.scope ?? 'tenant';
+  const prefs = getCurrencyPreferences(scope);
+  const currency = options?.currency ?? prefs.currency;
+  const locale = options?.locale ?? prefs.locale;
+
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency,
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    }).format(value ?? 0);
+  } catch {
+    return `${value ?? 0}`;
+  }
+}
+
 export function formatMoney(
   value: number,
   options?: {

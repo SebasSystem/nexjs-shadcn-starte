@@ -8,7 +8,6 @@ import { TenantFormData, tenantSchema } from 'src/features/admin/schemas/tenant.
 import { PlanSaaS, Tenant } from 'src/features/admin/types/admin.types';
 import { formatMoney } from 'src/lib/currency';
 import { Button } from 'src/shared/components/ui/button';
-import { Checkbox } from 'src/shared/components/ui/checkbox';
 import { FormInput } from 'src/shared/components/ui/form-input';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
 import { Icon } from 'src/shared/components/ui/icon';
@@ -31,7 +30,10 @@ interface TenantFormDrawerProps {
   planes: PlanSaaS[];
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: Record<string, unknown>) => Promise<void>;
+  onSave: (
+    data: Record<string, unknown>,
+    adminUser?: { name: string; email: string }
+  ) => Promise<{ reset_email_sent?: boolean }>;
 }
 
 export function TenantFormDrawer({
@@ -109,20 +111,31 @@ export function TenantFormDrawer({
         dominio: data.dominio,
         pais: data.pais,
         email_contacto: data.email_contacto,
-        plan_uid: data.plan_uid,
+        plan_uid: data.plan_uid || undefined,
         estado: isEditing ? undefined : 'ACTIVO',
       };
 
       if (!isEditing) {
         payload.dias_trial = data.dias_trial;
         payload.fecha_inicio = data.fecha_inicio;
-        payload.admin_nombre = data.admin_nombre;
-        payload.admin_email = data.admin_email;
-        payload.send_credentials = true;
       }
 
-      await onSave(payload);
-      toast.success(isEditing ? 'Tenant actualizado.' : 'Tenant creado.');
+      const hasAdmin = !isEditing && data.admin_nombre && data.admin_email;
+      const result = await onSave(
+        payload,
+        hasAdmin ? { name: data.admin_nombre, email: data.admin_email } : undefined
+      );
+      if (isEditing) {
+        toast.success('Tenant actualizado.');
+      } else if (!hasAdmin) {
+        toast.success('Tenant creado.');
+      } else if (result.reset_email_sent) {
+        toast.success('Tenant creado. Se envió el link de acceso al email del admin.');
+      } else {
+        toast.warning(
+          'Tenant creado, pero no se pudo enviar el email. Enviá el acceso manualmente.'
+        );
+      }
       onClose();
     } catch {
       toast.error('Error al procesar.');
@@ -241,15 +254,9 @@ export function TenantFormDrawer({
                     type="email"
                     placeholder="admin@empresa.com"
                   />
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="sendCredentials" defaultChecked />
-                    <label
-                      htmlFor="sendCredentials"
-                      className="text-sm text-muted-foreground cursor-pointer"
-                    >
-                      Enviar credenciales por email
-                    </label>
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    El admin recibirá un email para establecer su contraseña.
+                  </p>
                 </div>
               </div>
             )}

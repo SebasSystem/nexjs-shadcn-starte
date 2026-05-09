@@ -9,7 +9,7 @@ import { TenantStatusBadge } from 'src/features/admin/components/tenant-status-b
 import { useDashboard } from 'src/features/admin/hooks/use-dashboard';
 import { useTenants } from 'src/features/admin/hooks/use-tenants';
 import { Tenant } from 'src/features/admin/types/admin.types';
-import { formatMoney } from 'src/lib/currency';
+import { formatCompact, formatMoney } from 'src/lib/currency';
 import { formatRelative } from 'src/lib/date';
 import { Chart } from 'src/shared/components/chart';
 import {
@@ -48,7 +48,7 @@ const columnHelper = createColumnHelper<Tenant>();
 
 export const DashboardAdminView = () => {
   const { data, isLoading, refetch } = useDashboard();
-  const { suspendTenant, activateTenant, createTenantUser } = useTenants();
+  const { createTenantUser } = useTenants();
   const [isRefetching, setIsRefetching] = useState(false);
 
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
@@ -57,16 +57,6 @@ export const DashboardAdminView = () => {
   const handleVerDetalle = (tenant: Tenant) => {
     setSelectedTenant(tenant);
     setIsDetailOpen(true);
-  };
-
-  const handleSuspend = async (tenant: Tenant) => {
-    await suspendTenant(tenant.uid);
-    refetch();
-  };
-
-  const handleActivate = async (tenant: Tenant) => {
-    await activateTenant(tenant.uid);
-    refetch();
   };
 
   const COLUMNS = useMemo(
@@ -220,8 +210,7 @@ export const DashboardAdminView = () => {
     },
     yaxis: {
       labels: {
-        formatter: (value: number) =>
-          formatMoney(value, { scope: 'platform', maximumFractionDigits: 0 }),
+        formatter: (value: number) => formatCompact(value, { scope: 'platform' }),
       },
     },
     tooltip: {
@@ -269,7 +258,7 @@ export const DashboardAdminView = () => {
         />
         <StatsCard
           title="MRR Total"
-          value={formatMoney(data.mrr_total, { scope: 'platform', maximumFractionDigits: 0 })}
+          value={formatCompact(data.mrr_total, { scope: 'platform' })}
           trend={
             data.mrr_growth_percent !== 0
               ? `${data.mrr_growth_percent > 0 ? '+' : ''}${data.mrr_growth_percent}% vs mes anterior`
@@ -402,8 +391,6 @@ export const DashboardAdminView = () => {
         tenant={selectedTenant}
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
-        onSuspend={handleSuspend}
-        onActivate={handleActivate}
         onCreateUser={createTenantUser}
       />
     </PageContainer>

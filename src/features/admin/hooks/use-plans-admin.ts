@@ -31,20 +31,21 @@ export function usePlansAdmin() {
 
   const createPlan = useCallback(
     async (data: Omit<PlanSaaS, 'uid' | 'created_at' | 'total_tenants'>) => {
-      const created = await plansService.create(data);
-      cache.invalidate(CACHE_KEY);
-      setPlanes((prev) => [...prev, created]);
-      return created;
+      await plansService.create(data);
+      await fetchPlanes();
+      return;
     },
-    []
+    [fetchPlanes]
   );
 
-  const updatePlan = useCallback(async (uid: string, data: Partial<PlanSaaS>) => {
-    const updated = await plansService.update(uid, data);
-    cache.invalidate(CACHE_KEY);
-    setPlanes((prev) => prev.map((p) => (p.uid === uid ? updated : p)));
-    return updated;
-  }, []);
+  const updatePlan = useCallback(
+    async (uid: string, data: Partial<PlanSaaS>) => {
+      await plansService.update(uid, data);
+      await fetchPlanes();
+      return;
+    },
+    [fetchPlanes]
+  );
 
   return { planes, isLoading, refetch: fetchPlanes, createPlan, updatePlan };
 }

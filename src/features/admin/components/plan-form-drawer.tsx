@@ -68,13 +68,29 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
     control,
     handleSubmit,
     reset,
-    watch,
     setValue,
     formState: { isSubmitting },
   } = useForm<PlanFormData>({ resolver: zodResolver(planSchema), defaultValues: DEFAULTS });
 
   const modules = useWatch({ control, name: 'modules' });
   const status = useWatch({ control, name: 'status' });
+  const ilimitadoUsuarios = useWatch({ control, name: 'ilimitado_usuarios' });
+  const ilimitadoAlmacenamiento = useWatch({ control, name: 'ilimitado_almacenamiento' });
+  const ilimitadoApi = useWatch({ control, name: 'ilimitado_api' });
+  const customDomain = useWatch({ control, name: 'custom_domain' });
+  const ssoValue = useWatch({ control, name: 'sso' });
+  const advancedReports = useWatch({ control, name: 'advanced_reports' });
+
+  const ilimitadoMap: Record<string, boolean> = {
+    ilimitado_usuarios: ilimitadoUsuarios,
+    ilimitado_almacenamiento: ilimitadoAlmacenamiento,
+    ilimitado_api: ilimitadoApi,
+  };
+  const switchMap: Record<string, boolean> = {
+    custom_domain: customDomain,
+    sso: ssoValue,
+    advanced_reports: advancedReports,
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -192,13 +208,13 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
                         name={n}
                         label={l}
                         type="number"
-                        disabled={watch(i)}
+                        disabled={ilimitadoMap[i]}
                       />
                     </div>
                     <div className="flex items-center gap-1.5 mt-5">
                       <Checkbox
                         id={i}
-                        checked={watch(i)}
+                        checked={ilimitadoMap[i]}
                         onCheckedChange={(c) => setValue(i, c as boolean)}
                       />
                       <label htmlFor={i} className="text-xs text-muted-foreground cursor-pointer">
@@ -246,7 +262,7 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
                           ? 'SSO / SAML'
                           : 'Reportes Avanzados'}
                     </span>
-                    <Switch checked={watch(k) as boolean} onCheckedChange={(c) => setValue(k, c)} />
+                    <Switch checked={switchMap[k]} onCheckedChange={(c) => setValue(k, c)} />
                   </div>
                 ))}
               </div>
