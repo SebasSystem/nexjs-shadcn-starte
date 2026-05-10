@@ -4,7 +4,7 @@ import { type PaginationParams } from 'src/shared/lib/pagination';
 import type { Tag, TagForm } from '../types/tags.types';
 
 export const tagsService = {
-  async getAll(params?: PaginationParams): Promise<Tag[]> {
+  async getAll(params?: PaginationParams & { search?: string }): Promise<Tag[]> {
     const res = await axiosInstance.get(endpoints.settings.tags, { params });
     return res.data; // full response — callers extract .data for the array
   },

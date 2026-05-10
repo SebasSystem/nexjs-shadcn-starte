@@ -12,42 +12,12 @@ type RoleSavePayload = {
 export const rolesService = {
   async getAll(params?: {
     only_active_modules?: boolean;
+    search?: string;
     page?: number;
     per_page?: number;
-  }): Promise<Role[]> {
+  }): Promise<unknown> {
     const res = await axiosInstance.get(endpoints.rbac.roles, { params });
-    const payload = res.data?.data ?? res.data;
-    const roles = (Array.isArray(payload) ? payload : []) as Array<{
-      uid: string;
-      name: string;
-      key: string;
-      description: string;
-      permission_uids?: string[];
-      permissions?: {
-        uid: string;
-        key: string;
-        action: string;
-        module: string;
-        description?: string;
-      }[];
-      total_users?: number;
-      is_system: boolean;
-      created_at: string;
-    }>;
-    return roles.map((role) => ({
-      uid: role.uid,
-      name: role.name,
-      key: role.key,
-      description: role.description,
-      total_users: role.total_users,
-      permission_uids: role.permission_uids ?? role.permissions?.map((p) => p.uid) ?? [],
-      permission_entries: (role.permissions ?? []).map((p) => ({
-        key: p.key,
-        action: p.action,
-      })),
-      is_system: role.is_system,
-      created_at: role.created_at,
-    }));
+    return res.data;
   },
 
   async create(data: RoleSavePayload): Promise<Role> {

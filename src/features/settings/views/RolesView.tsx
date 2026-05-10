@@ -5,6 +5,8 @@ import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/la
 import { Button } from 'src/shared/components/ui/button';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { useDebounce } from 'use-debounce';
 
 import { RoleDrawer } from '../components/roles/role-drawer';
 import { RolesTable } from '../components/roles/roles-table';
@@ -12,7 +14,12 @@ import { useRoles } from '../hooks/use-roles';
 import type { Role } from '../types/settings.types';
 
 export const RolesView = () => {
-  const { roles, isLoading, createRole, updateRole, deleteRole } = useRoles();
+  const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 400);
+
+  const { roles, isLoading, createRole, updateRole, deleteRole } = useRoles({
+    search: debouncedSearch || undefined,
+  });
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Role | null>(null);
@@ -51,8 +58,15 @@ export const RolesView = () => {
       />
 
       <SectionCard noPadding>
-        <div className="flex items-center justify-between px-5 py-4">
-          <p className="text-h6 text-foreground">Roles configurados</p>
+        <div className="flex flex-col sm:flex-row gap-3 items-end px-5 py-4">
+          <Input
+            label="Buscar"
+            placeholder="Buscar por nombre..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            leftIcon={<Icon name="Search" size={16} />}
+            className="flex-1 max-w-sm"
+          />
         </div>
         {isLoading && roles.length === 0 ? (
           <div className="flex flex-col gap-4 p-5 animate-pulse">

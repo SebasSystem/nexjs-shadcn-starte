@@ -5,6 +5,8 @@ import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/la
 import { Button } from 'src/shared/components/ui/button';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { useDebounce } from 'use-debounce';
 
 import { TagDrawer } from '../components/tags/tag-drawer';
 import { TagsTable } from '../components/tags/tags-table';
@@ -12,7 +14,12 @@ import { useTags } from '../hooks/use-tags';
 import type { Tag, TagForm } from '../types/tags.types';
 
 export const TagsView = () => {
-  const { tags, isLoading, createTag, updateTag, deleteTag, pagination } = useTags();
+  const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 400);
+
+  const { tags, isLoading, createTag, updateTag, deleteTag, pagination } = useTags({
+    search: debouncedSearch || undefined,
+  });
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
@@ -47,8 +54,15 @@ export const TagsView = () => {
       />
 
       <SectionCard noPadding>
-        <div className="flex items-center justify-between px-5 py-4">
-          <p className="text-h6 text-foreground">Etiquetas disponibles</p>
+        <div className="flex flex-col sm:flex-row gap-3 items-end px-5 py-4">
+          <Input
+            label="Buscar"
+            placeholder="Buscar por nombre..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            leftIcon={<Icon name="Search" size={16} />}
+            className="flex-1 max-w-sm"
+          />
         </div>
 
         {isLoading && tags.length === 0 ? (

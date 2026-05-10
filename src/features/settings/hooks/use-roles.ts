@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
@@ -11,21 +11,57 @@ import type { Role } from '../types/settings.types';
 
 const EMPTY_ROLES: Role[] = [];
 
-export function useRoles() {
+type BackendPermission = {
+  uid: string;
+  key: string;
+  action: string;
+  module: string;
+  description?: string;
+};
+
+function mapRoles(raw: unknown): Role[] {
+  const payload = (raw as { data?: Record<string, unknown>[] }).data;
+  const roles = (Array.isArray(payload) ? payload : []) as Record<string, unknown>[];
+  return roles.map((role) => ({
+    uid: role.uid as string,
+    name: role.name as string,
+    key: role.key as string,
+    description: (role.description as string) ?? '',
+    total_users: role.total_users as number | undefined,
+    permission_uids:
+      (role.permission_uids as string[] | undefined) ??
+      (role.permissions as BackendPermission[] | undefined)?.map((p) => p.uid) ??
+      [],
+    permission_entries: ((role.permissions as BackendPermission[] | undefined) ?? []).map((p) => ({
+      key: p.key,
+      action: p.action,
+    })),
+    is_system: (role.is_system as boolean) ?? false,
+    created_at: role.created_at as string,
+  }));
+}
+
+export function useRoles(filters?: { search?: string }) {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
 
+  const queryParams = {
+    ...pagination.params,
+    ...(filters?.search && { search: filters.search }),
+  };
+
   const { data: roles = EMPTY_ROLES, isLoading } = useQuery({
-    queryKey: [...queryKeys.settings.roles, pagination.params],
+    queryKey: [...queryKeys.settings.roles, queryParams],
     staleTime: 0,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
-      const data = await rolesService.getAll({
+      const raw = await rolesService.getAll({
         only_active_modules: true,
-        ...pagination.params,
+        ...queryParams,
       });
-      // Backend doesn't paginate yet — track total client-side
-      pagination.setTotal(data.length);
-      return data;
+      const mapped = mapRoles(raw);
+      pagination.setTotal(mapped.length);
+      return mapped;
     },
   });
 
@@ -36,7 +72,10 @@ export function useRoles() {
       description: string;
       permission_uids: string[];
     }) => rolesService.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles });
+      toast.success('Rol creado');
+    },
     onError: (error) => toast.error(extractApiError(error)),
   });
 
@@ -48,46 +87,42 @@ export function useRoles() {
       id: string;
       data: { name: string; key: string; description: string; permission_uids: string[] };
     }) => rolesService.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles });
+      toast.success('Rol actualizado');
+    },
     onError: (error) => toast.error(extractApiError(error)),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => rolesService.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles });
+      toast.success('Rol eliminado');
+    },
     onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {
     roles,
     isLoading,
-    createRole: async (data: {
+    createRole: (data: {
       name: string;
       key: string;
       description: string;
       permission_uids: string[];
-    }): Promise<boolean> => {
-      try {
-        await createMutation.mutateAsync(data);
-        return true;
-      } catch {
-        return false;
-      }
+    }) => {
+      createMutation.mutate(data);
+      return Promise.resolve(true);
     },
-    updateRole: async (
+    updateRole: (
       id: string,
       data: { name: string; key: string; description: string; permission_uids: string[] }
-    ): Promise<boolean> => {
-      try {
-        await updateMutation.mutateAsync({ id, data });
-        return true;
-      } catch {
-        return false;
-      }
+    ) => {
+      updateMutation.mutate({ id, data });
+      return Promise.resolve(true);
     },
-    deleteRole: async (id: string): Promise<void> => {
-      await deleteMutation.mutateAsync(id);
-    },
+    deleteRole: (id: string) => deleteMutation.mutateAsync(id),
     pagination: {
       page: pagination.page,
       rowsPerPage: pagination.rowsPerPage,

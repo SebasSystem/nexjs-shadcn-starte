@@ -12,6 +12,7 @@ import type { CustomField, CustomFieldModule } from '../types/settings.types';
 
 interface CustomFieldFilters {
   module?: CustomFieldModule | 'ALL';
+  search?: string;
 }
 
 export function useCustomFields(filters: CustomFieldFilters = {}) {
@@ -20,15 +21,18 @@ export function useCustomFields(filters: CustomFieldFilters = {}) {
 
   const entity_type = filters.module && filters.module !== 'ALL' ? filters.module : undefined;
 
+  const queryParams = {
+    ...pagination.params,
+    ...(filters.search && { search: filters.search }),
+    ...(entity_type ? { entity_type } : {}),
+  };
+
   const { data: fields = [], isLoading } = useQuery({
-    queryKey: [...queryKeys.settings.customFields, pagination.params, entity_type],
+    queryKey: [...queryKeys.settings.customFields, queryParams],
     staleTime: 0,
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      const res = await customFieldsService.getAll({
-        ...pagination.params,
-        ...(entity_type ? { entity_type } : {}),
-      });
+      const res = await customFieldsService.getAll(queryParams);
       const meta = extractPaginationMeta(res as Record<string, unknown>);
       if (meta) pagination.setTotal(meta.total);
       return ((res as Record<string, unknown>).data ?? []) as CustomField[];

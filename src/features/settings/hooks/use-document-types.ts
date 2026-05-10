@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { documentTypeService } from 'src/features/settings/services/document-type.service';
 import type {
@@ -9,31 +9,31 @@ import type {
 } from 'src/features/settings/types/document-type.types';
 import { extractApiError } from 'src/lib/api-errors';
 
-const QUERY_KEY = ['settings', 'document-types'] as const;
+const BASE_KEY = ['settings', 'document-types'] as const;
 
-// Stable empty reference — prevents TanStack Table from seeing a "new" array
-// on every render when the query is in error/loading state (data = undefined).
-// Without this, `= []` creates a new reference each render → autoResetPageIndex
-// fires → setPagination called with new object → re-render → infinite loop.
 const EMPTY: DocumentType[] = [];
 
-export function useDocumentTypes() {
+export function useDocumentTypes(filters?: { search?: string }) {
   const queryClient = useQueryClient();
+
+  const queryKey = [...BASE_KEY, filters?.search ?? ''] as const;
 
   const {
     data: documentTypes = EMPTY,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: QUERY_KEY,
+    queryKey,
     staleTime: 0,
-    queryFn: () => documentTypeService.list(),
+    placeholderData: keepPreviousData,
+    queryFn: () =>
+      documentTypeService.list(filters?.search ? { search: filters.search } : undefined),
   });
 
   const createDocumentType = useMutation({
     mutationFn: (payload: DocumentTypePayload) => documentTypeService.create(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: BASE_KEY });
       toast.success('Tipo de documento creado');
     },
     onError: (error) => toast.error(extractApiError(error)),
@@ -43,7 +43,7 @@ export function useDocumentTypes() {
     mutationFn: ({ uid, payload }: { uid: string; payload: Partial<DocumentTypePayload> }) =>
       documentTypeService.update(uid, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: BASE_KEY });
       toast.success('Tipo de documento actualizado');
     },
     onError: (error) => toast.error(extractApiError(error)),
@@ -52,7 +52,7 @@ export function useDocumentTypes() {
   const deleteDocumentType = useMutation({
     mutationFn: (uid: string) => documentTypeService.delete(uid),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: BASE_KEY });
       toast.success('Tipo de documento eliminado');
     },
     onError: (error) => toast.error(extractApiError(error)),

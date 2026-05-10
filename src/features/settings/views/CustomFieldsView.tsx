@@ -5,6 +5,8 @@ import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/la
 import { Button } from 'src/shared/components/ui/button';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
+import { useDebounce } from 'use-debounce';
 
 import { CustomFieldDrawer } from '../components/custom-fields/custom-field-drawer';
 import { CustomFieldsTable } from '../components/custom-fields/custom-fields-table';
@@ -25,9 +27,12 @@ export const CustomFieldsView = () => {
   const [selectedField, setSelectedField] = useState<CustomField | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CustomField | null>(null);
   const [filterModule, setFilterModule] = useState<CustomFieldModule | 'ALL'>('ALL');
+  const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 400);
 
   const { fields, isLoading, createField, updateField, deleteField, pagination } = useCustomFields({
     module: filterModule,
+    search: debouncedSearch || undefined,
   });
 
   const counts = useMemo(() => {
@@ -70,6 +75,18 @@ export const CustomFieldsView = () => {
           </Button>
         }
       />
+
+      {/* Search */}
+      <div className="px-5 pt-4">
+        <Input
+          label="Buscar"
+          placeholder="Buscar por nombre..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          leftIcon={<Icon name="Search" size={16} />}
+          className="max-w-sm"
+        />
+      </div>
 
       {/* Module filter tabs */}
       <div className="flex gap-1 border-b border-border/40">

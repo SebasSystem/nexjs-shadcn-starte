@@ -29,6 +29,7 @@ import {
 import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
 import { Badge } from 'src/shared/components/ui/badge';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
+import { useDebounce } from 'use-debounce';
 
 import { useDocumentTypes } from '../hooks/use-document-types';
 import type { DocumentType } from '../types/document-type.types';
@@ -97,6 +98,9 @@ const COLUMNS = (onEdit: (dt: DocumentType) => void, onDelete: (dt: DocumentType
 ];
 
 export function DocumentTypesView() {
+  const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 400);
+
   const {
     documentTypes,
     isLoading,
@@ -104,7 +108,7 @@ export function DocumentTypesView() {
     createDocumentType,
     updateDocumentType,
     deleteDocumentType,
-  } = useDocumentTypes();
+  } = useDocumentTypes({ search: debouncedSearch || undefined });
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<DocumentType | null>(null);
@@ -184,6 +188,16 @@ export function DocumentTypesView() {
       />
 
       <SectionCard noPadding>
+        <div className="flex flex-col sm:flex-row gap-3 items-end px-5 py-4">
+          <Input
+            label="Buscar"
+            placeholder="Buscar por nombre..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            leftIcon={<Icon name="Search" size={16} />}
+            className="flex-1 max-w-sm"
+          />
+        </div>
         <TableContainer className="relative">
           <Table>
             <TableHeadCustom table={table} />

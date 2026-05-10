@@ -5,8 +5,8 @@ import type {
 import axiosInstance, { endpoints } from 'src/lib/axios';
 
 export const documentTypeService = {
-  async list(): Promise<DocumentType[]> {
-    const res = await axiosInstance.get(endpoints.documentTypes);
+  async list(params?: { search?: string }): Promise<DocumentType[]> {
+    const res = await axiosInstance.get(endpoints.documentTypes, { params });
     return res.data.data;
   },
 

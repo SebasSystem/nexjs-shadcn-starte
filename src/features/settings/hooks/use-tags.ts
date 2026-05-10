@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
@@ -10,15 +10,21 @@ import { extractPaginationMeta } from 'src/shared/lib/pagination';
 import { tagsService } from '../services/tags.service';
 import type { Tag, TagForm } from '../types/tags.types';
 
-export const useTags = () => {
+export const useTags = (filters?: { search?: string }) => {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
 
+  const queryParams = {
+    ...pagination.params,
+    ...(filters?.search && { search: filters.search }),
+  };
+
   const { data: tags = [], isLoading } = useQuery({
-    queryKey: [...queryKeys.settings.tags, pagination.params],
+    queryKey: [...queryKeys.settings.tags, queryParams],
     staleTime: 0,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
-      const res = await tagsService.getAll(pagination.params);
+      const res = await tagsService.getAll(queryParams);
       const meta = extractPaginationMeta(res);
       if (meta) pagination.setTotal(meta.total);
       return (res as unknown as { data?: Tag[] }).data ?? ([] as Tag[]);
