@@ -146,11 +146,11 @@ export function TenantFormDrawer({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-full sm:max-w-[520px] p-0 flex flex-col">
         <SheetHeader className="px-6 py-5 border-b border-border/40">
-          <SheetTitle>{isEditing ? `Editar Tenant: ${tenant?.nombre}` : 'Nuevo Tenant'}</SheetTitle>
+          <SheetTitle>{isEditing ? `Editar Tenant: ${tenant?.nombre}` : 'Nuevo Cliente'}</SheetTitle>
           <SheetDescription>
             {isEditing
-              ? 'Modifica los datos del tenant'
-              : 'Completa la información para crear un nuevo tenant'}
+              ? 'Modifica los datos del cliente'
+              : 'Completa la información para crear un nuevo cliente'}
           </SheetDescription>
         </SheetHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col min-h-0">

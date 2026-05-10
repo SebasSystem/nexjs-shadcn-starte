@@ -44,6 +44,7 @@ export function WarehousesView() {
     isLoading,
     createWarehouse,
     updateWarehouse,
+    refetch,
     pagination,
   } = useWarehouses();
   const { items: products } = useProducts();
@@ -347,12 +348,14 @@ export function WarehousesView() {
         onClose={() => setTransferOpen(false)}
         warehouses={warehouses}
         products={products}
+        onSuccess={refetch}
       />
       <GoodsReceiptDrawer
         open={receiptOpen}
         onClose={() => setReceiptOpen(false)}
         warehouses={warehouses}
         products={products}
+        onSuccess={refetch}
       />
     </PageContainer>
   );

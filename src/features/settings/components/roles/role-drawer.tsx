@@ -1,13 +1,14 @@
 'use client';
 
+import { Accordion as AccordionPrimitive } from 'radix-ui';
 import React, { useMemo, useState } from 'react';
 import { cn } from 'src/lib/utils';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
 } from 'src/shared/components/ui/accordion';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Button } from 'src/shared/components/ui/button';
 import { Checkbox } from 'src/shared/components/ui/checkbox';
 import { Input } from 'src/shared/components/ui/input';
@@ -205,32 +206,31 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
 
                     return (
                       <AccordionItem key={module} value={module} className="border-0">
-                        <div className="flex items-center px-4 hover:bg-muted/30 transition-colors">
-                          <AccordionTrigger className="flex-1 hover:no-underline py-3 gap-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium">{moduleLabel}</span>
-                              <span
-                                className={cn(
-                                  'text-xs rounded-full px-2 py-0.5 font-medium',
-                                  selectedCount > 0
-                                    ? 'bg-primary/10 text-primary'
-                                    : 'bg-muted text-muted-foreground'
-                                )}
-                              >
-                                {selectedCount}/{totalCount}
-                              </span>
-                            </div>
-                          </AccordionTrigger>
-                          <div
-                            className="shrink-0 ml-2"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                        <AccordionPrimitive.Header className="flex items-center px-4 hover:bg-muted/30 transition-colors">
+                          <AccordionPrimitive.Trigger className="flex flex-1 items-center gap-2 py-3 text-left outline-none [&[data-state=open]>svg]:rotate-180">
+                            <Icon
+                              name="ChevronDown"
+                              className="size-4 shrink-0 text-muted-foreground transition-transform duration-200"
+                            />
+                            <span className="text-sm font-medium">{moduleLabel}</span>
+                            <span
+                              className={cn(
+                                'text-xs rounded-full px-2 py-0.5 font-medium',
+                                selectedCount > 0
+                                  ? 'bg-primary/10 text-primary'
+                                  : 'bg-muted text-muted-foreground'
+                              )}
+                            >
+                              {selectedCount}/{totalCount}
+                            </span>
+                          </AccordionPrimitive.Trigger>
+                          <div onClick={(e) => e.stopPropagation()}>
                             <Checkbox
                               checked={allSelected ? true : selectedCount > 0 ? 'indeterminate' : false}
                               onCheckedChange={() => toggleModule(modulePerms, selectedCount, totalCount)}
                             />
                           </div>
-                        </div>
+                        </AccordionPrimitive.Header>
 
                         <AccordionContent className="pb-0">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 px-4 pb-3">
