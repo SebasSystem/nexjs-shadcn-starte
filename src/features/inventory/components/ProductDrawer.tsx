@@ -45,7 +45,9 @@ export function ProductDrawer({
   const [categoryUid, setCategoryUid] = useState(product?.category_uid ?? '');
   const [reorderPoint, setReorderPoint] = useState(String(product?.reorder_point ?? 0));
   const [active, setActive] = useState(product ? product.is_active : true);
-  const [warehouseStocks, setWarehouseStocks] = useState<{ warehouse_uid: string; quantity: string }[]>([]);
+  const [warehouseStocks, setWarehouseStocks] = useState<
+    { warehouse_uid: string; quantity: string }[]
+  >([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -151,8 +153,12 @@ export function ProductDrawer({
 
           {mode === 'create' && (
             <div className="rounded-xl border border-border/60 p-4 space-y-3 bg-muted/20">
-              <p className="text-subtitle2 text-foreground font-semibold">Stock inicial por bodega</p>
-              <p className="text-caption text-muted-foreground">Opcional — agregá solo las bodegas con stock inicial.</p>
+              <p className="text-subtitle2 text-foreground font-semibold">
+                Stock inicial por bodega
+              </p>
+              <p className="text-caption text-muted-foreground">
+                Opcional — agregá solo las bodegas con stock inicial.
+              </p>
 
               {warehouseStocks.map((entry, index) => {
                 const usedUids = new Set(warehouseStocks.map((s) => s.warehouse_uid));
@@ -167,7 +173,9 @@ export function ProductDrawer({
                         value={entry.warehouse_uid}
                         onChange={(v) =>
                           setWarehouseStocks((prev) =>
-                            prev.map((s, i) => (i === index ? { ...s, warehouse_uid: v as string } : s))
+                            prev.map((s, i) =>
+                              i === index ? { ...s, warehouse_uid: v as string } : s
+                            )
                           )
                         }
                         placeholder="Bodega..."
@@ -180,14 +188,18 @@ export function ProductDrawer({
                         value={entry.quantity}
                         onChange={(e) =>
                           setWarehouseStocks((prev) =>
-                            prev.map((s, i) => (i === index ? { ...s, quantity: e.target.value } : s))
+                            prev.map((s, i) =>
+                              i === index ? { ...s, quantity: e.target.value } : s
+                            )
                           )
                         }
                         placeholder="Cant."
                       />
                     </div>
                     <button
-                      onClick={() => setWarehouseStocks((prev) => prev.filter((_, i) => i !== index))}
+                      onClick={() =>
+                        setWarehouseStocks((prev) => prev.filter((_, i) => i !== index))
+                      }
                       className="mb-0.5 text-muted-foreground hover:text-error transition-colors p-1"
                     >
                       <Icon name="Trash2" size={15} />
@@ -211,18 +223,34 @@ export function ProductDrawer({
           )}
 
           {mode === 'edit' && (
-            <div className="rounded-xl border border-error/20 p-4 bg-error/5">
-              <p className="text-subtitle2 text-error font-medium mb-1">Zona de peligro</p>
+            <div
+              className={
+                active
+                  ? 'rounded-xl border border-error/20 p-4 bg-error/5'
+                  : 'rounded-xl border border-success/20 p-4 bg-success/5'
+              }
+            >
+              <p
+                className={
+                  active
+                    ? 'text-subtitle2 text-error font-medium mb-1'
+                    : 'text-subtitle2 text-success font-medium mb-1'
+                }
+              >
+                {active ? 'Inactivar producto' : 'Activar producto'}
+              </p>
               <p className="text-caption text-muted-foreground mb-3">
-                Inactivar el producto lo ocultará de los flujos de venta.
+                {active
+                  ? 'El producto se ocultará de los flujos de venta.'
+                  : 'El producto volverá a estar disponible en los flujos de venta.'}
               </p>
               <Button
                 variant="outline"
-                color="error"
+                color={active ? 'error' : 'success'}
                 size="sm"
-                onClick={() => onSave({ name, sku, is_active: false }).then(() => onClose())}
+                onClick={() => onSave({ name, sku, is_active: !active }).then(() => onClose())}
               >
-                Inactivar producto
+                {active ? 'Inactivar producto' : 'Activar producto'}
               </Button>
             </div>
           )}

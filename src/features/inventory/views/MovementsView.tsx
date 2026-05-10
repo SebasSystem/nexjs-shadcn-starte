@@ -2,7 +2,6 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { Fragment, useMemo, useState } from 'react';
-import { useDebounce } from 'use-debounce';
 import { cn } from 'src/lib/utils';
 import {
   PageContainer,
@@ -21,6 +20,7 @@ import {
   useTable,
 } from 'src/shared/components/table';
 import { Badge, Button, Icon } from 'src/shared/components/ui';
+import { useDebounce } from 'use-debounce';
 
 import { GoodsReceiptDrawer } from '../components/GoodsReceiptDrawer';
 import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
@@ -132,7 +132,6 @@ export function MovementsView() {
         },
       ]
     : [];
-
 
   const COLUMNS = useMemo(
     () => [

@@ -9,6 +9,7 @@ export * from './calendar';
 export * from './card';
 export * from './checkbox';
 export * from './command';
+export * from './confirm-dialog';
 export * from './dialog';
 export * from './dropdown-menu';
 export * from './form';

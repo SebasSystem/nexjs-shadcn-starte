@@ -8,6 +8,7 @@ import {
   StatsCard,
 } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
@@ -16,7 +17,7 @@ import { useDebounce } from 'use-debounce';
 import { UserDrawer } from '../components/users/user-drawer';
 import { UsersTable } from '../components/users/users-table';
 import { useRoles } from '../hooks/use-roles';
-import { useSettingsUsers } from '../hooks/use-settings-users';
+import { useSettingsUsers, useUser } from '../hooks/use-settings-users';
 import { useTeams } from '../hooks/use-teams';
 import type { SettingsUser } from '../types/settings.types';
 
@@ -26,6 +27,7 @@ export const UsersView = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SettingsUser | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<SettingsUser | null>(null);
 
   const [debouncedSearch] = useDebounce(search, 400);
 
@@ -38,6 +40,10 @@ export const UsersView = () => {
 
   const { roles } = useRoles();
   const { teams } = useTeams();
+
+  // Fetch fresh user data (with role_uid/team_uid) when editing
+  const { data: editingUser } = useUser(selectedUser?.uid);
+  const effectiveUser = editingUser ?? selectedUser;
 
   const stats = useMemo(
     () => ({
@@ -116,6 +122,7 @@ export const UsersView = () => {
           <div className="flex items-end gap-3">
             <SelectField
               label="Rol"
+              searchable
               options={[
                 { value: '', label: 'Todos los roles' },
                 ...roles.map((r) => ({ value: r.uid, label: r.name })),
@@ -135,7 +142,7 @@ export const UsersView = () => {
             />
           </div>
         </div>
-        {isLoading ? (
+        {isLoading && users.length === 0 ? (
           <div className="flex flex-col gap-4 p-5 animate-pulse">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="h-14 bg-muted/40 rounded-lg w-full" />
@@ -146,7 +153,7 @@ export const UsersView = () => {
             users={users}
             onEdit={handleEdit}
             onToggleStatus={(u: SettingsUser) => toggleStatus(u.uid)}
-            onDelete={(u: SettingsUser) => deleteUser(u.uid)}
+            onDelete={(u: SettingsUser) => setDeleteTarget(u)}
             total={pagination.total}
             pageIndex={pagination.page - 1}
             pageSize={pagination.rowsPerPage}
@@ -159,10 +166,28 @@ export const UsersView = () => {
       <UserDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        user={selectedUser}
+        user={effectiveUser}
         roles={roles}
         equipos={teams}
         onSave={handleSave}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteUser(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar usuario?"
+        description={
+          <>
+            Vas a eliminar a <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
+            deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
       />
     </PageContainer>
   );

@@ -46,9 +46,8 @@ export interface Role {
   key: string;
   description: string;
   total_users?: number;
-  /** @deprecated Use permission_uids instead */
-  permissions?: ModulePermission[];
   permission_uids?: string[];
+  permission_entries?: { key: string; action: string }[];
   is_system: boolean;
   created_at: string;
 }

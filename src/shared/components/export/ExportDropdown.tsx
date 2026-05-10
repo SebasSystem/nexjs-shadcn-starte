@@ -57,7 +57,7 @@ export function ExportDropdown({
           disabled={loading !== null}
           className="gap-2 cursor-pointer"
         >
-          <Icon name="File" size={14} className="text-success" />
+          <Icon name="FileSpreadsheet" size={14} className="text-success" />
           Excel
         </DropdownMenuItem>
         <DropdownMenuItem
@@ -68,7 +68,7 @@ export function ExportDropdown({
           disabled={loading !== null}
           className="gap-2 cursor-pointer"
         >
-          <Icon name="FileText" size={14} className="text-error" />
+          <Icon name="FileType" size={14} className="text-error" />
           PDF
         </DropdownMenuItem>
       </DropdownMenuContent>

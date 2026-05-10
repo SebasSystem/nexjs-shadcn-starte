@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useDebounce } from 'use-debounce';
 import { toast } from 'sonner';
 import { cn } from 'src/lib/utils';
 import {
@@ -15,6 +14,7 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui';
 import { Input } from 'src/shared/components/ui';
+import { useDebounce } from 'use-debounce';
 
 import { useProducts } from '../hooks/use-products';
 import { inventoryStockService } from '../services/inventory-stock.service';

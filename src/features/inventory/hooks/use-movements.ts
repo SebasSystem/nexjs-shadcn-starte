@@ -8,6 +8,7 @@ import type {
   InventoryMovement,
   TransferStockPayload,
 } from 'src/features/inventory/types/inventory.types';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
@@ -47,7 +48,7 @@ export function useMovements(filters?: {
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.movementsSummary });
       toast.success('Stock ajustado');
     },
-    onError: () => toast.error('Error al ajustar stock'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const transferMutation = useMutation({
@@ -57,7 +58,7 @@ export function useMovements(filters?: {
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.movementsSummary });
       toast.success('Traslado realizado');
     },
-    onError: () => toast.error('Error al trasladar stock'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {

@@ -8,11 +8,12 @@ import type {
   Warehouse,
   WarehouseListSummary,
 } from 'src/features/inventory/types/inventory.types';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
-export function useWarehouses(filters?: { search?: string }) {
+export function useWarehouses(filters?: { search?: string; has_stock?: boolean }) {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
 
@@ -41,7 +42,7 @@ export function useWarehouses(filters?: { search?: string }) {
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.warehouses });
       toast.success('Bodega creada');
     },
-    onError: () => toast.error('Error al crear bodega'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const updateMutation = useMutation({
@@ -51,7 +52,7 @@ export function useWarehouses(filters?: { search?: string }) {
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.warehouses });
       toast.success('Bodega actualizada');
     },
-    onError: () => toast.error('Error al actualizar bodega'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const removeMutation = useMutation({
@@ -60,7 +61,7 @@ export function useWarehouses(filters?: { search?: string }) {
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.warehouses });
       toast.success('Bodega eliminada');
     },
-    onError: () => toast.error('Error al eliminar bodega'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {

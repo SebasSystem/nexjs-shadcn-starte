@@ -1,6 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 
 import { localizationService } from '../services/localization.service';
@@ -18,6 +20,7 @@ export function useLocalization() {
   const saveMutation = useMutation({
     mutationFn: (data: Partial<LocalizationConfig>) => localizationService.update(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.localization }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {

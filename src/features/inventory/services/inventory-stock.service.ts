@@ -28,7 +28,11 @@ export const inventoryStockService = {
     await axiosInstance.post(endpoints.inventory.transfer, payload);
   },
 
-  async categories(params?: { search?: string; per_page?: number; page?: number }): Promise<unknown> {
+  async categories(params?: {
+    search?: string;
+    per_page?: number;
+    page?: number;
+  }): Promise<unknown> {
     const res = await axiosInstance.get(endpoints.inventory.categories, { params });
     return res.data;
   },

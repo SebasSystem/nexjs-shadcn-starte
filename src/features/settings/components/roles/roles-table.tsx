@@ -12,15 +12,8 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
+import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
 import { Badge } from 'src/shared/components/ui/badge';
-import { Button } from 'src/shared/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from 'src/shared/components/ui/dropdown-menu';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import type { Role } from '../../types/settings.types';
@@ -58,20 +51,24 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
           <p className="text-sm text-muted-foreground truncate max-w-[220px]">{info.getValue()}</p>
         ),
       }),
-      columnHelper.accessor('permissions', {
-        header: 'Módulos con acceso',
+      columnHelper.display({
+        id: 'permission_uids',
+        header: 'Permisos',
         cell: (info) => {
-          const perms = info.getValue() ?? [];
+          const entries = info.row.original.permission_entries ?? [];
+          if (entries.length === 0) {
+            return <span className="text-xs text-muted-foreground">Sin permisos</span>;
+          }
           return (
             <div className="flex flex-wrap gap-1">
-              {perms.slice(0, 3).map((p, i) => (
-                <Badge key={p.module_uid ? `${p.module_uid}-${i}` : i} variant="outline" className="text-xs">
-                  {p.module_name}
+              {entries.slice(0, 3).map((entry) => (
+                <Badge key={entry.key} variant="outline" className="text-xs">
+                  {entry.key}
                 </Badge>
               ))}
-              {perms.length > 3 && (
+              {entries.length > 3 && (
                 <Badge variant="outline" className="text-xs text-muted-foreground">
-                  +{perms.length - 3}
+                  +{entries.length - 3}
                 </Badge>
               )}
             </div>
@@ -88,28 +85,12 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
         cell: (info) => {
           const role = info.row.original;
           return (
-            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(role)}>
-                <Icon name="Pencil" size={14} />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <Icon name="MoreHorizontal" size={14} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit(role)}>Editar permisos</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-red-600"
-                    onClick={() => onDelete(role)}
-                    disabled={role.is_system || (role.total_users ?? 0) > 0}
-                  >
-                    Eliminar rol
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex items-center gap-1">
+              <EditButton onClick={() => onEdit(role)} />
+              <DeleteButton
+                onClick={() => onDelete(role)}
+                disabled={role.is_system || (role.total_users ?? 0) > 0}
+              />
             </div>
           );
         },

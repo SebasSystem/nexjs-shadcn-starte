@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import { RoleDrawer } from '../components/roles/role-drawer';
@@ -14,6 +15,7 @@ export const RolesView = () => {
   const { roles, isLoading, createRole, updateRole, deleteRole } = useRoles();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Role | null>(null);
 
   const handleOpenNew = () => {
     setSelectedRole(null);
@@ -60,7 +62,7 @@ export const RolesView = () => {
           </div>
         ) : (
           <>
-            <RolesTable roles={roles} onEdit={handleEdit} onDelete={(r) => deleteRole(r.uid)} />
+            <RolesTable roles={roles} onEdit={handleEdit} onDelete={(r) => setDeleteTarget(r)} />
             <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
               {roles.length} rol{roles.length !== 1 ? 'es' : ''} configurado
               {roles.length !== 1 ? 's' : ''}
@@ -75,6 +77,23 @@ export const RolesView = () => {
         onClose={() => setIsDrawerOpen(false)}
         role={selectedRole}
         onSave={handleSave}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteRole(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar rol?"
+        description={
+          <>
+            Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
       />
     </PageContainer>
   );

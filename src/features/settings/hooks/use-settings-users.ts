@@ -1,11 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
+import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { usersService } from '../services/users.service';
 import type { SettingsUser } from '../types/settings.types';
+
+const EMPTY_USERS: SettingsUser[] = [];
 
 const generatePassword = () => Math.random().toString(36).slice(-10) + 'A1!';
 
@@ -16,56 +21,57 @@ interface UserFilters {
 }
 
 export function useSettingsUsers(filters: UserFilters = {}) {
-  const [users, setUsers] = useState<SettingsUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const pagination = usePaginationParams();
-  const { params, setTotal } = pagination;
 
-  const fetchUsers = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const res = await usersService.getAll({
-        ...params,
-        ...(filters.search && { search: filters.search }),
-        ...(filters.role_uid && { role_uid: filters.role_uid }),
-        ...(filters.estado && { estado: filters.estado }),
-      });
+  const queryParams = {
+    ...pagination.params,
+    ...(filters.search && { search: filters.search }),
+    ...(filters.role_uid && { role_uid: filters.role_uid }),
+    ...(filters.estado && { estado: filters.estado }),
+  };
+
+  const { data: rawData, isLoading } = useQuery({
+    queryKey: [...queryKeys.settings.users, queryParams],
+    staleTime: 0,
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      const res = await usersService.getAll(queryParams);
       const meta = extractPaginationMeta(res);
-      if (meta) setTotal(meta.total);
-      setUsers(((res as unknown as { data?: SettingsUser[] }).data ?? []) as SettingsUser[]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [params, setTotal, filters.search, filters.role_uid, filters.estado]);
+      if (meta) pagination.setTotal(meta.total);
+      return res;
+    },
+  });
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  const users: SettingsUser[] = ((rawData as unknown as { data?: SettingsUser[] })?.data ??
+    EMPTY_USERS) as SettingsUser[];
 
-  const createUser = async (
-    data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'> & {
-      password?: string;
-      role_uid?: string;
-    }
-  ): Promise<boolean> => {
-    try {
+  const createMutation = useMutation({
+    mutationFn: async (
+      data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'> & {
+        password?: string;
+        role_uid?: string;
+      }
+    ) => {
       const payload = { ...data, password: data.password || generatePassword() };
       const newUser = await usersService.create(payload as unknown as SettingsUser);
       if (data.role_uid) {
         await usersService.assignRole(newUser.uid, data.role_uid as string).catch(() => {});
       }
-      await fetchUsers();
-      return true;
-    } catch {
-      return false;
-    }
-  };
+      return newUser;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.users }),
+    onError: (error) => toast.error(extractApiError(error)),
+  });
 
-  const updateUser = async (
-    id: string,
-    data: Partial<SettingsUser> & { role_uid?: string }
-  ): Promise<boolean> => {
-    try {
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<SettingsUser> & { role_uid?: string };
+    }) => {
       await usersService.update(id, data);
       if (data.role_uid !== undefined) {
         const oldUser = users.find((u) => u.uid === id);
@@ -76,33 +82,61 @@ export function useSettingsUsers(filters: UserFilters = {}) {
           await usersService.assignRole(id, data.role_uid).catch(() => {});
         }
       }
-      await fetchUsers();
-      return true;
-    } catch {
-      return false;
-    }
-  };
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.users }),
+    onError: (error) => toast.error(extractApiError(error)),
+  });
 
-  const toggleStatus = async (id: string): Promise<void> => {
-    const user = users.find((u) => u.uid === id);
-    if (!user) return;
-    await usersService.toggleStatus(id, user.status);
-    await fetchUsers();
-  };
+  const toggleStatusMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const user = users.find((u) => u.uid === id);
+      if (!user) throw new Error('Usuario no encontrado');
+      await usersService.toggleStatus(id, user.status);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.users }),
+    onError: (error) => toast.error(extractApiError(error)),
+  });
 
-  const deleteUser = async (id: string): Promise<void> => {
-    await usersService.delete(id);
-    await fetchUsers();
-  };
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => usersService.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.users }),
+    onError: (error) => toast.error(extractApiError(error)),
+  });
 
   return {
     users,
     isLoading,
-    createUser,
-    updateUser,
-    toggleStatus,
-    deleteUser,
-    refetch: fetchUsers,
+    createUser: async (
+      data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'> & {
+        password?: string;
+        role_uid?: string;
+      }
+    ): Promise<boolean> => {
+      try {
+        await createMutation.mutateAsync(data);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    updateUser: async (
+      id: string,
+      data: Partial<SettingsUser> & { role_uid?: string }
+    ): Promise<boolean> => {
+      try {
+        await updateMutation.mutateAsync({ id, data });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    toggleStatus: async (id: string): Promise<void> => {
+      await toggleStatusMutation.mutateAsync(id);
+    },
+    deleteUser: async (id: string): Promise<void> => {
+      await deleteMutation.mutateAsync(id);
+    },
+    refetch: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.users }),
     pagination: {
       page: pagination.page,
       rowsPerPage: pagination.rowsPerPage,
@@ -111,4 +145,12 @@ export function useSettingsUsers(filters: UserFilters = {}) {
       onChangeRowsPerPage: pagination.onChangeRowsPerPage,
     },
   };
+}
+
+export function useUser(uid?: string) {
+  return useQuery({
+    queryKey: ['user', uid] as const,
+    queryFn: () => usersService.getById(uid!),
+    enabled: !!uid,
+  });
 }

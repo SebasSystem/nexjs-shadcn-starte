@@ -1,32 +1,28 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { PageContainer, PageHeader } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
+import { useDebounce } from 'use-debounce';
 
 import { TeamDrawer } from '../components/teams/team-drawer';
 import { TeamsGrid } from '../components/teams/teams-table';
-import { useSettingsUsers } from '../hooks/use-settings-users';
 import { useTeams } from '../hooks/use-teams';
 import type { Team } from '../types/settings.types';
 
 export const TeamsView = () => {
-  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    const t = setTimeout(() => setSearch(searchInput), 350);
-    return () => clearTimeout(t);
-  }, [searchInput]);
+  const [debouncedSearch] = useDebounce(search, 400);
 
   const { teams, isLoading, createTeam, updateTeam, addMember, removeMember, deleteTeam } =
-    useTeams(search);
-  const { users } = useSettingsUsers();
+    useTeams(debouncedSearch);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Team | null>(null);
 
   const handleOpenNew = () => {
     setSelectedTeam(null);
@@ -68,8 +64,8 @@ export const TeamsView = () => {
               />
               <Input
                 placeholder="Buscar equipo..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
               />
             </div>
@@ -89,7 +85,7 @@ export const TeamsView = () => {
         </div>
       ) : (
         <>
-          <TeamsGrid teams={teams} onEdit={handleEdit} onDelete={(t) => deleteTeam(t.uid)} />
+          <TeamsGrid teams={teams} onEdit={handleEdit} onDelete={(t) => setDeleteTarget(t)} />
           <div className="p-4 text-sm text-muted-foreground">
             {teams.length} equipo{teams.length !== 1 ? 's' : ''}
           </div>
@@ -101,10 +97,26 @@ export const TeamsView = () => {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         team={selectedTeam}
-        usuarios={users}
         onSave={handleSave}
         onAddMember={handleAddMember}
         onRemoveMember={handleRemoveMember}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteTeam(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar equipo?"
+        description={
+          <>
+            Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
       />
     </PageContainer>
   );

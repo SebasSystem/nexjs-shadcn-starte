@@ -1,6 +1,5 @@
 'use client';
 
-import { Eye, MoreHorizontal, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import * as React from 'react';
 import { cn } from 'src/lib/utils';
 
@@ -11,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './dropdown-menu';
+import { Icon } from './icon';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
 
 // ─── Base icon button (cursor + hover + active scale) ─────────────────────────
@@ -60,7 +60,7 @@ export function EditButton({ tooltip = 'Editar', className, ...props }: IconActi
       className={cn('hover:text-primary hover:bg-primary/10', className)}
       {...props}
     >
-      <Pencil size={14} />
+      <Icon name="Pencil" size={14} />
     </IconActionButton>
   );
 }
@@ -74,7 +74,7 @@ export function DeleteButton({ tooltip = 'Eliminar', className, ...props }: Icon
       className={cn('hover:text-error hover:bg-error/10', className)}
       {...props}
     >
-      <Trash2 size={14} />
+      <Icon name="Trash2" size={14} />
     </IconActionButton>
   );
 }
@@ -92,7 +92,7 @@ export function ViewButton({
       className={cn('hover:text-info hover:bg-info/10', className)}
       {...props}
     >
-      <Eye size={14} />
+      <Icon name="Eye" size={14} />
     </IconActionButton>
   );
 }
@@ -128,7 +128,8 @@ export function MoreActionsMenu({
   tooltip = 'Más acciones',
   className,
 }: MoreActionsMenuProps) {
-  const TriggerIcon = orientation === 'vertical' ? MoreVertical : MoreHorizontal;
+  const triggerIcon =
+    orientation === 'vertical' ? ('MoreVertical' as const) : ('MoreHorizontal' as const);
 
   return (
     <DropdownMenu>
@@ -144,7 +145,7 @@ export function MoreActionsMenu({
                   className
                 )}
               >
-                <TriggerIcon size={15} />
+                <Icon name={triggerIcon} size={15} />
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>

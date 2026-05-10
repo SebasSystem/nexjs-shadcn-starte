@@ -14,8 +14,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from 'src/shared/components/ui/sheet';
+import { useDebounce } from 'use-debounce';
 
-import type { SettingsUser, Team } from '../../types/settings.types';
+import { useSettingsUsers } from '../../hooks/use-settings-users';
+import type { Team } from '../../types/settings.types';
 
 function getInitials(name: string) {
   return name
@@ -30,7 +32,6 @@ interface TeamDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   team: Team | null;
-  usuarios: SettingsUser[];
   onSave: (
     data: Omit<Team, 'uid' | 'created_at' | 'members_count' | 'members'>
   ) => Promise<boolean>;
@@ -42,7 +43,6 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
   isOpen,
   onClose,
   team,
-  usuarios,
   onSave,
   onAddMember,
   onRemoveMember,
@@ -51,10 +51,16 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
   const [liderId, setLiderId] = useState(team?.leader_uid ?? '');
   const [selectedUserId, setSelectedUserId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
+  const [debouncedUserSearch] = useDebounce(userSearch, 400);
+
+  const { users } = useSettingsUsers({
+    search: debouncedUserSearch || undefined,
+  });
 
   const handleSave = async () => {
     if (!name.trim() || !liderId) return;
-    const lider = usuarios.find((u) => u.uid === liderId);
+    const lider = users.find((u) => u.uid === liderId);
     setIsSubmitting(true);
     const success = await onSave({
       name,
@@ -72,11 +78,9 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
   };
 
   const memberIds = team?.members.map((m) => m.user_uid) ?? [];
-  const availableUsers = usuarios.filter(
-    (u) => !memberIds.includes(u.uid) && u.status === 'ACTIVO'
-  );
+  const availableUsers = users.filter((u) => !memberIds.includes(u.uid) && u.status === 'ACTIVO');
 
-  const liderOptions = usuarios
+  const liderOptions = users
     .filter((u) => u.status === 'ACTIVO')
     .map((u) => ({ value: u.uid, label: `${u.name} (${u.role_name})` }));
 
@@ -105,6 +109,8 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
               onChange={(val) => setLiderId(val as string)}
               label="Líder del equipo"
               required
+              searchable
+              onSearch={setUserSearch}
               options={liderOptions}
               placeholder="Seleccionar líder..."
             />

@@ -9,6 +9,7 @@ import type {
   InventoryMasterResponse,
   InventoryMasterSummary,
 } from 'src/features/inventory/types/inventory.types';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
@@ -36,7 +37,10 @@ export function useProducts(filters?: ProductFilters) {
     staleTime: 0,
     placeholderData: keepPreviousData,
     queryFn: async () => {
-      const masterRes = await inventoryProductService.master({ ...paginationOverride, ...restFilters });
+      const masterRes = await inventoryProductService.master({
+        ...paginationOverride,
+        ...restFilters,
+      });
       const meta = extractPaginationMeta(masterRes);
       if (meta) pagination.setTotal(meta.total);
       return (masterRes as unknown as { data?: InventoryMasterResponse }).data ?? null;
@@ -52,7 +56,7 @@ export function useProducts(filters?: ProductFilters) {
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.products });
       toast.success('Producto creado');
     },
-    onError: () => toast.error('Error al crear producto'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const updateProduct = useMutation({
@@ -62,7 +66,7 @@ export function useProducts(filters?: ProductFilters) {
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.products });
       toast.success('Producto actualizado');
     },
-    onError: () => toast.error('Error al actualizar producto'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const removeProduct = useMutation({
@@ -71,7 +75,7 @@ export function useProducts(filters?: ProductFilters) {
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.products });
       toast.success('Producto eliminado');
     },
-    onError: () => toast.error('Error al eliminar producto'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {

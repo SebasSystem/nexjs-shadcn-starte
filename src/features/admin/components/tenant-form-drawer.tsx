@@ -146,7 +146,9 @@ export function TenantFormDrawer({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-full sm:max-w-[520px] p-0 flex flex-col">
         <SheetHeader className="px-6 py-5 border-b border-border/40">
-          <SheetTitle>{isEditing ? `Editar Tenant: ${tenant?.nombre}` : 'Nuevo Cliente'}</SheetTitle>
+          <SheetTitle>
+            {isEditing ? `Editar Tenant: ${tenant?.nombre}` : 'Nuevo Cliente'}
+          </SheetTitle>
           <SheetDescription>
             {isEditing
               ? 'Modifica los datos del cliente'

@@ -2,7 +2,6 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { useDebounce } from 'use-debounce';
 import { toast } from 'sonner';
 import { endpoints } from 'src/lib/axios';
 import { downloadExport } from 'src/lib/export-service';
@@ -25,6 +24,7 @@ import {
   useTable,
 } from 'src/shared/components/table';
 import { Badge, Button, EditButton, Icon } from 'src/shared/components/ui';
+import { useDebounce } from 'use-debounce';
 
 import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { ProductDrawer, type ProductDrawerMode } from '../components/ProductDrawer';
@@ -57,14 +57,13 @@ export function ProductsView() {
     ? (filterStatus as 'normal' | 'low' | 'out')
     : undefined;
 
-  const { items, summary, isLoading, createProduct, updateProduct, pagination } =
-    useProducts({
-      category_uid: filterCategory !== 'all' ? filterCategory : undefined,
-      warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
-      stock_state,
-      search: debouncedSearch || undefined,
-      is_active: filterStatus === 'inactive' ? false : undefined,
-    });
+  const { items, summary, isLoading, createProduct, updateProduct, pagination } = useProducts({
+    category_uid: filterCategory !== 'all' ? filterCategory : undefined,
+    warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
+    stock_state,
+    search: debouncedSearch || undefined,
+    is_active: filterStatus === 'inactive' ? false : undefined,
+  });
 
   const { categories: filterCategories } = useCategories({
     search: debouncedCategorySearch || undefined,
@@ -159,6 +158,17 @@ export function ProductsView() {
       columnHelper.accessor('stock_state', {
         header: 'Estado',
         cell: (info) => <StockBadge status={info.getValue()} />,
+      }),
+      columnHelper.accessor('is_active', {
+        header: 'Activo',
+        cell: (info) => (
+          <Badge
+            variant={info.getValue() ? 'soft' : 'outline'}
+            color={info.getValue() ? 'success' : 'default'}
+          >
+            {info.getValue() ? 'Activo' : 'Inactivo'}
+          </Badge>
+        ),
       }),
       columnHelper.display({
         id: 'actions',

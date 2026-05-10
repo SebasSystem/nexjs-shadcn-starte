@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import { CustomFieldDrawer } from '../components/custom-fields/custom-field-drawer';
@@ -20,11 +21,14 @@ const MODULE_LABELS: Record<CustomFieldModule, string> = {
 const MODULES = Object.keys(MODULE_LABELS) as CustomFieldModule[];
 
 export const CustomFieldsView = () => {
-  const { fields, isLoading, createField, updateField, deleteField, pagination } =
-    useCustomFields();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedField, setSelectedField] = useState<CustomField | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CustomField | null>(null);
   const [filterModule, setFilterModule] = useState<CustomFieldModule | 'ALL'>('ALL');
+
+  const { fields, isLoading, createField, updateField, deleteField, pagination } = useCustomFields({
+    module: filterModule,
+  });
 
   const counts = useMemo(() => {
     const map: Record<CustomFieldModule, number> = {
@@ -38,11 +42,6 @@ export const CustomFieldsView = () => {
     });
     return map;
   }, [fields]);
-
-  const filtered = useMemo(
-    () => (filterModule === 'ALL' ? fields : fields.filter((f) => f.module === filterModule)),
-    [fields, filterModule]
-  );
 
   const handleOpenNew = () => {
     setSelectedField(null);
@@ -127,9 +126,9 @@ export const CustomFieldsView = () => {
         ) : (
           <>
             <CustomFieldsTable
-              fields={filtered}
+              fields={fields}
               onEdit={handleEdit}
-              onDelete={(f) => deleteField(f.uid)}
+              onDelete={(f) => setDeleteTarget(f)}
               total={pagination.total}
               pageIndex={pagination.page - 1}
               pageSize={pagination.rowsPerPage}
@@ -137,8 +136,8 @@ export const CustomFieldsView = () => {
               onPageSizeChange={pagination.onChangeRowsPerPage}
             />
             <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
-              {filtered.length} campo{filtered.length !== 1 ? 's' : ''} personalizado
-              {filtered.length !== 1 ? 's' : ''}
+              {fields.length} campo{fields.length !== 1 ? 's' : ''} personalizado
+              {fields.length !== 1 ? 's' : ''}
             </div>
           </>
         )}
@@ -150,6 +149,23 @@ export const CustomFieldsView = () => {
         onClose={() => setIsDrawerOpen(false)}
         field={selectedField}
         onSave={handleSave}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteField(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar campo?"
+        description={
+          <>
+            Vas a eliminar <strong>{deleteTarget?.label}</strong>. Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
       />
     </PageContainer>
   );

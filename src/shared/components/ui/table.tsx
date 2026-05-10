@@ -1,14 +1,15 @@
 'use client';
 
-import { FileText } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
+import { Icon } from './icon';
+
 function TableEmptyState() {
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-10 text-muted-foreground">
-      <FileText size={40} strokeWidth={1.5} />
+      <Icon name="FileText" size={40} strokeWidth={1.5} />
       <p className="text-xs">Sin registros</p>
     </div>
   );

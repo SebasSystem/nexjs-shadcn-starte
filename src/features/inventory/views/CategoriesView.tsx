@@ -2,7 +2,6 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useState } from 'react';
-import { useDebounce } from 'use-debounce';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
   Table,
@@ -26,14 +25,8 @@ import {
   Textarea,
 } from 'src/shared/components/ui';
 import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from 'src/shared/components/ui/dialog';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
+import { useDebounce } from 'use-debounce';
 
 import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { useCategories } from '../hooks/use-categories';
@@ -257,34 +250,22 @@ export function CategoriesView() {
       </Sheet>
 
       {/* Delete confirmation */}
-      <Dialog
+      <ConfirmDialog
         open={!!deleteTarget}
-        onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}
-      >
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>¿Eliminar categoría?</DialogTitle>
-            <DialogDescription>
-              Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
-              deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
-              Cancelar
-            </Button>
-            <Button
-              className="bg-red-600 text-white hover:bg-red-700"
-              onClick={() => {
-                if (deleteTarget) deleteCategory.mutate(deleteTarget.uid);
-                setDeleteTarget(null);
-              }}
-            >
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteCategory.mutate(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar categoría?"
+        description={
+          <>
+            Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
+      />
     </PageContainer>
   );
 }

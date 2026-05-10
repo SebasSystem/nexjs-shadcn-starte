@@ -16,7 +16,9 @@ export const inventoryWarehouseService = {
   },
 
   /** Returns full response with meta for pagination */
-  async listRaw(params?: PaginationParams & { search?: string }): Promise<Record<string, unknown>> {
+  async listRaw(
+    params?: PaginationParams & { search?: string; has_stock?: boolean }
+  ): Promise<Record<string, unknown>> {
     const res = await axiosInstance.get(endpoints.inventory.warehouses, { params });
     return res.data;
   },

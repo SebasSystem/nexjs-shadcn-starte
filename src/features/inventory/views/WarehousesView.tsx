@@ -2,7 +2,6 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { useDebounce } from 'use-debounce';
 import { toast } from 'sonner';
 import { cn } from 'src/lib/utils';
 import {
@@ -22,6 +21,7 @@ import {
   useTable,
 } from 'src/shared/components/table';
 import { Button, EditButton, Icon } from 'src/shared/components/ui';
+import { useDebounce } from 'use-debounce';
 
 import { GoodsReceiptDrawer } from '../components/GoodsReceiptDrawer';
 import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
@@ -40,6 +40,7 @@ const columnHelper = createColumnHelper<WarehouseRow>();
 export function WarehousesView() {
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebounce(search, 400);
+  const [filterStock, setFilterStock] = useState('all');
 
   const {
     items: warehouses,
@@ -49,8 +50,10 @@ export function WarehousesView() {
     updateWarehouse,
     refetch,
     pagination,
-  } = useWarehouses({ search: debouncedSearch || undefined });
-  const [filterStock, setFilterStock] = useState('all');
+  } = useWarehouses({
+    search: debouncedSearch || undefined,
+    has_stock: filterStock === 'has_stock' ? true : undefined,
+  });
   const [warehouseDrawerOpen, setWarehouseDrawerOpen] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
@@ -99,11 +102,6 @@ export function WarehousesView() {
     () => warehouses.map((w) => ({ warehouse: w })),
     [warehouses]
   );
-
-  const filtered = useMemo(() => {
-    if (filterStock === 'all') return warehouseRows;
-    return warehouseRows.filter((r) => (r.warehouse.summary?.total_physical ?? 0) > 0);
-  }, [warehouseRows, filterStock]);
 
   const COLUMNS = useMemo(
     () => [
@@ -225,7 +223,7 @@ export function WarehousesView() {
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: filtered,
+    data: warehouseRows,
     columns: COLUMNS,
     total: pagination.total,
     pageIndex: pagination.page - 1,

@@ -2,7 +2,6 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { Fragment, useMemo, useState } from 'react';
-import { useDebounce } from 'use-debounce';
 import { endpoints } from 'src/lib/axios';
 import { downloadExport } from 'src/lib/export-service';
 import { cn } from 'src/lib/utils';
@@ -24,6 +23,7 @@ import {
   useTable,
 } from 'src/shared/components/table';
 import { Button, Icon } from 'src/shared/components/ui';
+import { useDebounce } from 'use-debounce';
 
 import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { StockAdjustmentDrawer } from '../components/StockAdjustmentDrawer';
@@ -100,7 +100,10 @@ export function StockView() {
     stock_state,
   });
 
-  const { categories } = useCategories({ search: debouncedCategorySearch || undefined, per_page: 15 });
+  const { categories } = useCategories({
+    search: debouncedCategorySearch || undefined,
+    per_page: 15,
+  });
   const { items: warehouses } = useWarehouses({ search: debouncedWarehouseSearch || undefined });
 
   const toggleRow = (uid: string) => {

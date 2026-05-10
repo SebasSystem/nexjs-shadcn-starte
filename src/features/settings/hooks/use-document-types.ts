@@ -7,6 +7,7 @@ import type {
   DocumentType,
   DocumentTypePayload,
 } from 'src/features/settings/types/document-type.types';
+import { extractApiError } from 'src/lib/api-errors';
 
 const QUERY_KEY = ['settings', 'document-types'] as const;
 
@@ -35,7 +36,7 @@ export function useDocumentTypes() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       toast.success('Tipo de documento creado');
     },
-    onError: () => toast.error('Error al crear tipo de documento'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const updateDocumentType = useMutation({
@@ -45,7 +46,7 @@ export function useDocumentTypes() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       toast.success('Tipo de documento actualizado');
     },
-    onError: () => toast.error('Error al actualizar tipo de documento'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const deleteDocumentType = useMutation({
@@ -54,7 +55,7 @@ export function useDocumentTypes() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       toast.success('Tipo de documento eliminado');
     },
-    onError: () => toast.error('Error al eliminar tipo de documento'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {

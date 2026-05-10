@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import { TagDrawer } from '../components/tags/tag-drawer';
@@ -15,6 +16,7 @@ export const TagsView = () => {
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Tag | null>(null);
 
   const handleOpenNew = () => {
     setSelectedTag(null);
@@ -73,7 +75,10 @@ export const TagsView = () => {
           <TagsTable
             tags={tags}
             onEdit={handleEdit}
-            onDelete={deleteTag}
+            onDelete={(id) => {
+              const tag = tags.find((t) => t.uid === id) ?? null;
+              setDeleteTarget(tag);
+            }}
             total={pagination.total}
             pageIndex={pagination.page - 1}
             pageSize={pagination.rowsPerPage}
@@ -82,6 +87,23 @@ export const TagsView = () => {
           />
         )}
       </SectionCard>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteTag(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar etiqueta?"
+        description={
+          <>
+            Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
+      />
 
       <TagDrawer
         key={isDrawerOpen ? (selectedTag?.uid ?? 'new') : 'closed'}

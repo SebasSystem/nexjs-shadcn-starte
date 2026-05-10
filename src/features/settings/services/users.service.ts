@@ -12,6 +12,18 @@ export const usersService = {
     return res.data; // full response — callers extract .data for the array
   },
 
+  // GET /users/{uid}
+  async getById(uid: string): Promise<SettingsUser> {
+    const res = await axiosInstance.get(endpoints.users.show(uid), {
+      params: { include: 'role,team' },
+    });
+    const payload = res.data?.data ?? res.data;
+    return {
+      ...(payload as Record<string, unknown>),
+      status: deriveStatus(payload as Record<string, unknown>),
+    } as SettingsUser;
+  },
+
   // POST /users
   async create(
     data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'>
@@ -43,34 +55,16 @@ export const usersService = {
     } as SettingsUser;
   },
 
-  // Toggle user active/inactive status via backend.
-  // TODO: Remove fallback once backend PUT /api/users/{uid} supports is_active field.
   async toggleStatus(uid: string, currentStatus: string): Promise<SettingsUser> {
-    try {
-      const isActive = currentStatus !== 'ACTIVO';
-      const res = await axiosInstance.put(endpoints.users.update(uid), {
-        is_active: isActive,
-      });
-      const data = res.data?.data ?? res.data;
-      // If backend responded with is_active, use it; otherwise fall through
-      if (data && typeof data.is_active !== 'undefined') {
-        return {
-          ...(data as Record<string, unknown>),
-          status: data.is_active ? 'ACTIVO' : 'INACTIVO',
-        } as SettingsUser;
-      }
-      throw new Error('Backend does not support is_active yet');
-    } catch {
-      // TODO: Remove this fallback when backend supports is_active
-      const res = await usersService.getAll();
-      const users = ((res as unknown as { data?: SettingsUser[] }).data ?? []) as SettingsUser[];
-      const user = users.find((u) => u.uid === uid);
-      if (!user) throw new Error('Usuario no encontrado');
-      return {
-        ...user,
-        status: user.status === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO',
-      };
-    }
+    const isActive = currentStatus !== 'ACTIVO';
+    const res = await axiosInstance.put(endpoints.users.update(uid), {
+      is_active: isActive,
+    });
+    const data = res.data?.data ?? res.data;
+    return {
+      ...(data as Record<string, unknown>),
+      status: deriveStatus(data as Record<string, unknown>),
+    } as SettingsUser;
   },
 
   // DELETE /users/{uid} — pending backend routing.

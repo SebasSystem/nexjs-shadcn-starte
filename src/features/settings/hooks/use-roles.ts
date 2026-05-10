@@ -1,6 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 
@@ -35,6 +37,7 @@ export function useRoles() {
       permission_uids: string[];
     }) => rolesService.create(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const updateMutation = useMutation({
@@ -46,11 +49,13 @@ export function useRoles() {
       data: { name: string; key: string; description: string; permission_uids: string[] };
     }) => rolesService.update(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => rolesService.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {

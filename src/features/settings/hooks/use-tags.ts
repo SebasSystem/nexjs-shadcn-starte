@@ -1,6 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
@@ -26,17 +28,20 @@ export const useTags = () => {
   const createMutation = useMutation({
     mutationFn: (form: TagForm) => tagsService.create(form),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.tags }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, form }: { id: string; form: Partial<TagForm> }) =>
       tagsService.update(id, form),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.tags }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => tagsService.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.tags }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {

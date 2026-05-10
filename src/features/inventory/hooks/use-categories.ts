@@ -4,6 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { toast } from 'sonner';
 import { inventoryStockService } from 'src/features/inventory/services/inventory-stock.service';
 import type { InventoryCategory } from 'src/features/inventory/types/inventory.types';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
@@ -38,7 +39,7 @@ export function useCategories(filters?: { search?: string; per_page?: number }) 
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.categories });
       toast.success('Categoría creada');
     },
-    onError: () => toast.error('Error al crear categoría'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const updateCategory = useMutation({
@@ -53,7 +54,7 @@ export function useCategories(filters?: { search?: string; per_page?: number }) 
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.categories });
       toast.success('Categoría actualizada');
     },
-    onError: () => toast.error('Error al actualizar categoría'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const deleteCategory = useMutation({
@@ -62,7 +63,7 @@ export function useCategories(filters?: { search?: string; per_page?: number }) 
       queryClient.invalidateQueries({ queryKey: queryKeys.inventory.categories });
       toast.success('Categoría eliminada');
     },
-    onError: () => toast.error('Error al eliminar categoría'),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {

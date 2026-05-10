@@ -28,14 +28,7 @@ import {
 } from 'src/shared/components/ui';
 import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
 import { Badge } from 'src/shared/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from 'src/shared/components/ui/dialog';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 
 import { useDocumentTypes } from '../hooks/use-document-types';
 import type { DocumentType } from '../types/document-type.types';
@@ -282,34 +275,22 @@ export function DocumentTypesView() {
       </Sheet>
 
       {/* Delete confirmation */}
-      <Dialog
+      <ConfirmDialog
         open={!!deleteTarget}
-        onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}
-      >
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>¿Eliminar tipo de documento?</DialogTitle>
-            <DialogDescription>
-              Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
-              deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
-              Cancelar
-            </Button>
-            <Button
-              className="bg-red-600 text-white hover:bg-red-700"
-              onClick={() => {
-                if (deleteTarget) deleteDocumentType.mutate(deleteTarget.uid);
-                setDeleteTarget(null);
-              }}
-            >
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deleteDocumentType.mutate(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar tipo de documento?"
+        description={
+          <>
+            Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
+      />
     </PageContainer>
   );
 }

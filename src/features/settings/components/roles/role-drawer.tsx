@@ -3,14 +3,10 @@
 import { Accordion as AccordionPrimitive } from 'radix-ui';
 import React, { useMemo, useState } from 'react';
 import { cn } from 'src/lib/utils';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-} from 'src/shared/components/ui/accordion';
-import { Icon } from 'src/shared/components/ui/icon';
+import { Accordion, AccordionContent, AccordionItem } from 'src/shared/components/ui/accordion';
 import { Button } from 'src/shared/components/ui/button';
 import { Checkbox } from 'src/shared/components/ui/checkbox';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import {
   Sheet,
@@ -226,8 +222,12 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
                           </AccordionPrimitive.Trigger>
                           <div onClick={(e) => e.stopPropagation()}>
                             <Checkbox
-                              checked={allSelected ? true : selectedCount > 0 ? 'indeterminate' : false}
-                              onCheckedChange={() => toggleModule(modulePerms, selectedCount, totalCount)}
+                              checked={
+                                allSelected ? true : selectedCount > 0 ? 'indeterminate' : false
+                              }
+                              onCheckedChange={() =>
+                                toggleModule(modulePerms, selectedCount, totalCount)
+                              }
                             />
                           </div>
                         </AccordionPrimitive.Header>

@@ -1,8 +1,11 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { teamsService } from '../services/teams.service';
 import type { Team } from '../types/settings.types';
@@ -16,11 +19,14 @@ export function useTeams(search = '') {
   const { data: teams = EMPTY, isLoading } = useQuery({
     queryKey: [...queryKeys.settings.teams, search, pagination.params],
     staleTime: 0,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
-      const data = await teamsService.getAll({ search: search || undefined, ...pagination.params });
-      // Backend doesn't paginate yet — track total client-side
-      pagination.setTotal(data.length);
-      return data;
+      const res = await teamsService.getAll({ search: search || undefined, ...pagination.params });
+      const meta = extractPaginationMeta(res);
+      const items = ((res as Record<string, unknown>)?.data ?? res) as Team[];
+      const teamArray = Array.isArray(items) ? items : [];
+      pagination.setTotal(meta ? meta.total : teamArray.length);
+      return teamArray;
     },
   });
 
@@ -28,29 +34,34 @@ export function useTeams(search = '') {
     mutationFn: (data: Omit<Team, 'uid' | 'created_at' | 'members_count' | 'members'>) =>
       teamsService.create(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.teams }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ uid, data }: { uid: string; data: Partial<Team> }) =>
       teamsService.update(uid, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.teams }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const addMemberMutation = useMutation({
     mutationFn: ({ uid, userUid }: { uid: string; userUid: string }) =>
       teamsService.addMember(uid, userUid),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.teams }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const removeMemberMutation = useMutation({
     mutationFn: ({ uid, userUid }: { uid: string; userUid: string }) =>
       teamsService.removeMember(uid, userUid),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.teams }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (uid: string) => teamsService.delete(uid),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.teams }),
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {

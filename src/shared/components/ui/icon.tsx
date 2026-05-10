@@ -52,7 +52,9 @@ import {
   File,
   FileDown,
   FileSignature,
+  FileSpreadsheet,
   FileText,
+  FileType,
   Filter,
   Flag,
   Flame,
@@ -294,6 +296,8 @@ const icons = {
   Lightbulb,
   Calculator,
   File,
+  FileSpreadsheet,
+  FileType,
   Sliders,
 
   // Admin
