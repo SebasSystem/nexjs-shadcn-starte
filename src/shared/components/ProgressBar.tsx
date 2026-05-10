@@ -65,7 +65,13 @@ function ProgressBarInner() {
       const target = (e.target as HTMLElement).closest('a[href]') as HTMLAnchorElement | null;
       if (!target) return;
       const href = target.getAttribute('href');
-      if (!href || href.startsWith('#') || href.startsWith('http') || href.startsWith('mailto'))
+      if (
+        !href ||
+        href.startsWith('#') ||
+        href.startsWith('http') ||
+        href.startsWith('blob:') ||
+        href.startsWith('mailto')
+      )
         return;
       // Solo iniciar si es una ruta diferente a la actual
       if (href !== pathname) startProgress();

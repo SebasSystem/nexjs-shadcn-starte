@@ -82,7 +82,6 @@ export function InvoicesListView() {
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
   const filtered = useMemo(
     () =>
@@ -217,17 +216,12 @@ export function InvoicesListView() {
   });
 
   const handleExport = async (format: 'excel' | 'pdf') => {
-    setExportLoading(format);
-    try {
-      await downloadExport({
-        endpoint: endpoints.invoicesExport,
-        format,
-        filters: { status: statusFilter || undefined, search },
-        filename: `facturas.${format === 'excel' ? 'xlsx' : 'pdf'}`,
-      });
-    } finally {
-      setExportLoading(null);
-    }
+    await downloadExport({
+      endpoint: endpoints.invoicesExport,
+      format,
+      filters: { status: statusFilter || undefined, search },
+      filename: `facturas.${format === 'excel' ? 'xlsx' : 'pdf'}`,
+    });
   };
 
   if (isLoading)
@@ -240,7 +234,7 @@ export function InvoicesListView() {
         subtitle={`${filtered.length} factura${filtered.length !== 1 ? 's' : ''}`}
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown onExport={handleExport} loading={exportLoading} />
+            <ExportDropdown onExport={handleExport} />
             <Button color="primary" onClick={() => router.push(paths.sales.pipeline)}>
               <Icon name="Plus" size={16} />
               Nueva Factura

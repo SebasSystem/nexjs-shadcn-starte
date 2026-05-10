@@ -41,7 +41,6 @@ export const ContactsView = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedContacto, setSelectedContacto] = useState<Contact | null>(null);
-  const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
   const empresas = useMemo(() => contactos.filter((c) => c.type === 'company'), [contactos]);
 
@@ -88,21 +87,16 @@ export const ContactsView = () => {
   };
 
   const handleExport = async (format: 'excel' | 'pdf') => {
-    setExportLoading(format);
-    try {
-      await downloadExport({
-        endpoint: endpoints.contactsExport,
-        format,
-        filters: {
-          search,
-          type: tab !== 'ALL' ? tab : undefined,
-          status: filterStatus !== 'ALL' ? filterStatus : undefined,
-        },
-        filename: `contactos.${format === 'excel' ? 'xlsx' : 'pdf'}`,
-      });
-    } finally {
-      setExportLoading(null);
-    }
+    await downloadExport({
+      endpoint: endpoints.contactsExport,
+      format,
+      filters: {
+        search,
+        type: tab !== 'ALL' ? tab : undefined,
+        status: filterStatus !== 'ALL' ? filterStatus : undefined,
+      },
+      filename: `contactos.${format === 'excel' ? 'xlsx' : 'pdf'}`,
+    });
   };
 
   // Sync selectedContacto with latest data after mutations
@@ -117,7 +111,7 @@ export const ContactsView = () => {
         subtitle="Gestiona empresas, personas e instituciones de tu base comercial"
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown onExport={handleExport} loading={exportLoading} />
+            <ExportDropdown onExport={handleExport} />
             <Button color="primary" onClick={handleOpenNew} className="gap-2 cursor-pointer">
               <Icon name="Plus" className="h-4 w-4" />
               Nuevo contacto

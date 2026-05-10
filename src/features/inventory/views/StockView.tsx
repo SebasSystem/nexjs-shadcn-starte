@@ -87,7 +87,6 @@ export function StockView() {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [adjustDrawerOpen, setAdjustDrawerOpen] = useState(false);
   const [adjustProduct, setAdjustProduct] = useState<InventoryMasterItem | null>(null);
-  const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
   const stock_state = ['normal', 'low', 'out'].includes(filterStatus)
     ? (filterStatus as 'normal' | 'low' | 'out')
@@ -116,22 +115,17 @@ export function StockView() {
   };
 
   const handleExport = async (format: 'excel' | 'pdf') => {
-    setExportLoading(format);
-    try {
-      await downloadExport({
-        endpoint: endpoints.stockExport,
-        format,
-        filters: {
-          search,
-          category_uid: filterCategory !== 'all' ? filterCategory : undefined,
-          warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
-          stock_status: filterStatus !== 'all' ? filterStatus : undefined,
-        },
-        filename: `stock.${format === 'excel' ? 'xlsx' : 'pdf'}`,
-      });
-    } finally {
-      setExportLoading(null);
-    }
+    await downloadExport({
+      endpoint: endpoints.stockExport,
+      format,
+      filters: {
+        search,
+        category_uid: filterCategory !== 'all' ? filterCategory : undefined,
+        warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
+        stock_status: filterStatus !== 'all' ? filterStatus : undefined,
+      },
+      filename: `stock.${format === 'excel' ? 'xlsx' : 'pdf'}`,
+    });
   };
 
   const statsCards = summary
@@ -278,7 +272,7 @@ export function StockView() {
         subtitle="Disponibilidad de inventario por bodega"
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown onExport={handleExport} loading={exportLoading} />
+            <ExportDropdown onExport={handleExport} />
             <Button
               color="primary"
               size="sm"

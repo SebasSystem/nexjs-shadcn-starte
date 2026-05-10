@@ -47,7 +47,6 @@ export function ProductsView() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<ProductDrawerMode>('create');
   const [selectedProduct, setSelectedProduct] = useState<InventoryMasterItem | null>(null);
-  const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
   const [debouncedSearch] = useDebounce(search, 400);
   const [debouncedCategorySearch] = useDebounce(categorySearch, 400);
@@ -208,22 +207,17 @@ export function ProductsView() {
   };
 
   const handleExport = async (format: 'excel' | 'pdf') => {
-    setExportLoading(format);
-    try {
-      await downloadExport({
-        endpoint: endpoints.productsExport,
-        format,
-        filters: {
-          search,
-          category_uid: filterCategory !== 'all' ? filterCategory : undefined,
-          warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
-          is_active: filterStatus !== 'all' ? filterStatus === 'active' : undefined,
-        },
-        filename: `productos.${format === 'excel' ? 'xlsx' : 'pdf'}`,
-      });
-    } finally {
-      setExportLoading(null);
-    }
+    await downloadExport({
+      endpoint: endpoints.productsExport,
+      format,
+      filters: {
+        search,
+        category_uid: filterCategory !== 'all' ? filterCategory : undefined,
+        warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
+        is_active: filterStatus !== 'all' ? filterStatus === 'active' : undefined,
+      },
+      filename: `productos.${format === 'excel' ? 'xlsx' : 'pdf'}`,
+    });
   };
 
   if (isLoading)
@@ -238,7 +232,7 @@ export function ProductsView() {
         subtitle="Gestión del catálogo de inventario"
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown onExport={handleExport} loading={exportLoading} />
+            <ExportDropdown onExport={handleExport} />
             <Button
               color="primary"
               size="sm"

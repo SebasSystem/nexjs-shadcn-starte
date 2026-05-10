@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
 import {
@@ -12,19 +13,26 @@ import {
 import { Icon } from 'src/shared/components/ui/icon';
 
 export interface ExportDropdownProps {
-  onExport: (format: 'excel' | 'pdf') => void;
-  loading?: 'excel' | 'pdf' | null;
+  onExport: (format: 'excel' | 'pdf') => Promise<void>;
   disabled?: boolean;
   className?: string;
 }
 
-export function ExportDropdown({
-  onExport,
-  loading,
-  disabled = false,
-  className,
-}: ExportDropdownProps) {
+export function ExportDropdown({ onExport, disabled = false, className }: ExportDropdownProps) {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleExport = async (format: 'excel' | 'pdf') => {
+    setOpen(false);
+    setLoading(true);
+    try {
+      await onExport(format);
+    } catch (error) {
+      toast.error((error as Error).message || 'Error al generar la descarga');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -32,7 +40,7 @@ export function ExportDropdown({
         <Button
           variant="outline"
           size="sm"
-          disabled={disabled || loading !== null}
+          disabled={disabled || loading}
           className={cn('gap-2', className)}
         >
           {loading ? (
@@ -50,22 +58,16 @@ export function ExportDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuItem
-          onClick={() => {
-            onExport('excel');
-            setOpen(false);
-          }}
-          disabled={loading !== null}
+          onClick={() => handleExport('excel')}
+          disabled={loading}
           className="gap-2 cursor-pointer"
         >
           <Icon name="FileSpreadsheet" size={14} className="text-success" />
           Excel
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => {
-            onExport('pdf');
-            setOpen(false);
-          }}
-          disabled={loading !== null}
+          onClick={() => handleExport('pdf')}
+          disabled={loading}
           className="gap-2 cursor-pointer"
         >
           <Icon name="FileType" size={14} className="text-error" />

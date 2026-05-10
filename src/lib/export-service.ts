@@ -13,7 +13,7 @@ export interface ExportParams {
 
 /**
  * Llama a un endpoint de exportación y dispara la descarga del archivo.
- * El backend debe devolver el binario con Content-Disposition: attachment.
+ * Detecta si el backend devolvió error en vez del binario.
  */
 export async function downloadExport({
   endpoint,
@@ -26,19 +26,38 @@ export async function downloadExport({
   const response = await axiosInstance.post(
     endpoint,
     { format, fields, filters, ...(tab ? { tab } : {}) },
-    { responseType: 'blob' }
+    { responseType: 'blob', timeout: 120_000 }
   );
 
-  const blob = new Blob([response.data], {
-    type:
-      format === 'pdf'
-        ? 'application/pdf'
-        : format === 'csv'
-          ? 'text/csv'
-          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
+  const blob = response.data as Blob;
 
-  const url = URL.createObjectURL(blob);
+  // Si el backend devolvió JSON (error) en vez del binario
+  if (blob.type.includes('json')) {
+    const text = await blob.text();
+    let message = 'Error al generar la descarga';
+    try {
+      const parsed = JSON.parse(text);
+      const errors = parsed?.errors as Record<string, string[]> | undefined;
+      if (errors) {
+        const first = Object.values(errors)[0];
+        message = first?.[0] ?? message;
+      } else if (parsed?.message) {
+        message = parsed.message;
+      }
+    } catch {
+      // text is not valid JSON, use default message
+    }
+    throw new Error(message);
+  }
+
+  const mime =
+    format === 'pdf'
+      ? 'application/pdf'
+      : format === 'csv'
+        ? 'text/csv'
+        : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+  const url = URL.createObjectURL(new Blob([blob], { type: mime }));
   const link = document.createElement('a');
   link.href = url;
   link.download = filename || `export.${format === 'excel' ? 'xlsx' : format}`;
