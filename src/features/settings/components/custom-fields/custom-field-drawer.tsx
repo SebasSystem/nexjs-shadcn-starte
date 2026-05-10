@@ -111,6 +111,7 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
   const onSubmit = async (data: FieldForm) => {
     const success = await onSave({
       ...data,
+      key: data.name,
       type: data.type as CustomFieldType,
       module: data.module as CustomFieldModule,
       options: data.type === 'select' ? options : undefined,

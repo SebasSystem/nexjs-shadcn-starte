@@ -71,7 +71,6 @@ export function ProductsView() {
     search: debouncedCategorySearch || undefined,
     per_page: 15,
   });
-  const { categories: drawerCategories } = useCategories({ per_page: 100 });
 
   const { items: warehouseItems } = useWarehouses({
     search: debouncedWarehouseSearch || undefined,
@@ -314,7 +313,6 @@ export function ProductsView() {
         open={drawerOpen}
         mode={drawerMode}
         product={selectedProduct}
-        categories={drawerCategories}
         warehouses={warehouseOptions}
         onClose={() => setDrawerOpen(false)}
         onSave={handleSave}

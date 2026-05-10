@@ -76,6 +76,7 @@ export type CustomFieldModule = 'contacts' | 'companies' | 'opportunities' | 'pr
 
 export interface CustomField {
   uid: string;
+  key?: string;
   name: string;
   label: string;
   type: CustomFieldType;

@@ -176,9 +176,9 @@ export function SelectField({
           {searchable ? (
             <Command shouldFilter={!onSearch}>
               <CommandInput placeholder="Buscar..." className="h-9" onValueChange={onSearch} />
-              <CommandList id={listboxId}>
+              <CommandList id={listboxId} onWheelCapture={(e) => e.stopPropagation()}>
                 <CommandEmpty>Sin resultados.</CommandEmpty>
-                <CommandGroup className="max-h-60 overflow-auto">
+                <CommandGroup>
                   {options.map((opt) => (
                     <CommandItem
                       key={opt.value}

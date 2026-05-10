@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useDebounce } from 'use-debounce';
 import { toast } from 'sonner';
 import {
   Button,
@@ -16,6 +17,7 @@ import {
   Textarea,
 } from 'src/shared/components/ui';
 
+import { useCategories } from '../hooks/use-categories';
 import type { CreateProductPayload, InventoryMasterItem } from '../types/inventory.types';
 
 export type ProductDrawerMode = 'create' | 'edit';
@@ -24,7 +26,6 @@ interface ProductDrawerProps {
   open: boolean;
   mode: ProductDrawerMode;
   product?: InventoryMasterItem | null;
-  categories: { uid: string; name: string }[];
   warehouses: { uid: string; name: string }[];
   onClose: () => void;
   onSave: (payload: CreateProductPayload) => Promise<void>;
@@ -34,11 +35,13 @@ export function ProductDrawer({
   open,
   mode,
   product,
-  categories,
   warehouses,
   onClose,
   onSave,
 }: ProductDrawerProps) {
+  const [categorySearch, setCategorySearch] = useState('');
+  const [debouncedCategorySearch] = useDebounce(categorySearch, 400);
+  const { categories } = useCategories({ search: debouncedCategorySearch || undefined, per_page: 15 });
   const [name, setName] = useState(product?.name ?? '');
   const [sku, setSku] = useState(product?.sku ?? '');
   const [description, setDescription] = useState(product?.description ?? '');
@@ -127,6 +130,8 @@ export function ProductDrawer({
           />
           <SelectField
             label="Categoría"
+            searchable
+            onSearch={setCategorySearch}
             options={[
               { value: '', label: 'Sin categoría' },
               ...categories.map((c) => ({ value: c.uid, label: c.name })),
