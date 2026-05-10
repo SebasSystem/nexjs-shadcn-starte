@@ -88,6 +88,22 @@ export function useTenants(filters: TenantFilters = {}) {
     [fetchTenants]
   );
 
+  const archiveTenant = useCallback(
+    async (uid: string) => {
+      await tenantsService.archive(uid);
+      await fetchTenants();
+    },
+    [fetchTenants]
+  );
+
+  const restoreTenant = useCallback(
+    async (uid: string) => {
+      await tenantsService.restore(uid);
+      await fetchTenants();
+    },
+    [fetchTenants]
+  );
+
   const createTenantUser = useCallback(
     async (tenantUid: string, data: { name: string; email: string; role: string }) => {
       return tenantsService.createUser(tenantUid, data);
@@ -103,6 +119,8 @@ export function useTenants(filters: TenantFilters = {}) {
     updateTenant,
     suspendTenant,
     activateTenant,
+    archiveTenant,
+    restoreTenant,
     createTenantUser,
     pagination: {
       page: pagination.page,

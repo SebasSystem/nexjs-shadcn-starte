@@ -99,6 +99,14 @@ export function useTelemetry(logFilters: Omit<LogFilters, 'page' | 'per_page'> =
     [fetchAlertas]
   );
 
+  const deleteAlerta = useCallback(
+    async (uid: string) => {
+      await telemetryService.deleteAlerta(uid);
+      await fetchAlertas();
+    },
+    [fetchAlertas]
+  );
+
   return {
     logs,
     alertas,
@@ -109,6 +117,7 @@ export function useTelemetry(logFilters: Omit<LogFilters, 'page' | 'per_page'> =
     toggleAlerta,
     saveAlerta,
     updateAlerta,
+    deleteAlerta,
     pagination: {
       page: pagination.page,
       rowsPerPage: pagination.rowsPerPage,

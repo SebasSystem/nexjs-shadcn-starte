@@ -27,6 +27,7 @@ export function useSignIn() {
         email: values.email,
         password: values.password,
         twoFactorCode: values.twoFactorCode || undefined,
+        recoveryCode: values.recoveryCode || undefined,
       });
       const session = await checkUserSession?.();
       const target = session ? getFirstAccessibleRoute(session.modules, session.role) : '/';

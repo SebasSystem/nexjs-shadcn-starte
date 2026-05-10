@@ -32,6 +32,20 @@ export const tenantsService = {
     const res = await axiosInstance.post(endpoints.admin.tenants.activate(uid));
     return res.data.data;
   },
+  async archive(uid: string): Promise<Tenant> {
+    const res = await axiosInstance.post(endpoints.admin.tenants.archive(uid));
+    return res.data.data;
+  },
+  async restore(uid: string): Promise<Tenant> {
+    const res = await axiosInstance.post(endpoints.admin.tenants.restore(uid));
+    return res.data.data;
+  },
+  async lockUser(tenantUid: string, userUid: string): Promise<void> {
+    await axiosInstance.post(endpoints.admin.tenants.lockUser(tenantUid, userUid));
+  },
+  async unlockUser(tenantUid: string, userUid: string): Promise<void> {
+    await axiosInstance.post(endpoints.admin.tenants.unlockUser(tenantUid, userUid));
+  },
   async createUser(
     tenantUid: string,
     data: CreateTenantUserPayload

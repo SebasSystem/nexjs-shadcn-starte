@@ -14,6 +14,7 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
+import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
@@ -26,6 +27,7 @@ interface AlertasTableProps {
   isLoading: boolean;
   onEdit: (alerta: Alerta) => void;
   onToggle: (id: string) => void;
+  onDelete: (id: string) => Promise<void>;
   onNewAlerta: () => void;
 }
 
@@ -34,6 +36,7 @@ export function AlertasTable({
   isLoading,
   onEdit,
   onToggle,
+  onDelete,
   onNewAlerta,
 }: AlertasTableProps) {
   const COLUMNS = useMemo(
@@ -93,17 +96,16 @@ export function AlertasTable({
       }),
       columnHelper.display({
         id: 'acciones',
-        header: 'Acciones',
+        header: '',
         cell: (info) => (
-          <div className="text-right">
-            <Button variant="ghost" size="sm" onClick={() => onEdit(info.row.original)}>
-              Editar
-            </Button>
+          <div className="flex items-center justify-end gap-1">
+            <EditButton onClick={() => onEdit(info.row.original)} />
+            <DeleteButton onClick={() => onDelete(info.row.original.uid)} />
           </div>
         ),
       }),
     ],
-    [onToggle, onEdit]
+    [onToggle, onEdit, onDelete]
   );
 
   const { table, dense, onChangeDense } = useTable({

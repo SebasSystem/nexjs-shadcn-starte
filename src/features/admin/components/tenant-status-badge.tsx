@@ -13,6 +13,7 @@ const estadoConfig: Record<EstadoTenant, { label: string; className: string }> =
   VENCIDO: { label: 'Vencido', className: 'bg-amber-100 text-amber-700 border-transparent' },
   SUSPENDIDO: { label: 'Suspendido', className: 'bg-red-100 text-red-700 border-transparent' },
   INACTIVO: { label: 'Inactivo', className: 'bg-gray-100 text-gray-500 border-transparent' },
+  ARCHIVADO: { label: 'Archivado', className: 'bg-slate-100 text-slate-500 border-transparent' },
 };
 
 export function TenantStatusBadge({ estado }: TenantStatusBadgeProps) {

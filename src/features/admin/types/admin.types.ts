@@ -1,4 +1,4 @@
-export type EstadoTenant = 'ACTIVO' | 'TRIAL' | 'VENCIDO' | 'SUSPENDIDO' | 'INACTIVO';
+export type EstadoTenant = 'ACTIVO' | 'TRIAL' | 'VENCIDO' | 'SUSPENDIDO' | 'INACTIVO' | 'ARCHIVADO';
 export type EstadoFactura = 'PAGADA' | 'PENDIENTE' | 'VENCIDA' | 'CANCELADA';
 export type TierPlan = 'STARTER' | 'PRO' | 'BUSINESS' | 'ENTERPRISE';
 export type SoportePlan = 'EMAIL' | 'EMAIL_CHAT' | 'DEDICADO';
@@ -21,6 +21,7 @@ export interface Tenant {
   limite_api_calls: number;
   created_at: string;
   last_access_at: string;
+  expires_at?: string | null;
 }
 
 export interface TenantUser {

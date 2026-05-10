@@ -6,9 +6,9 @@ import { Factura } from 'src/features/admin/types/admin.types';
 import { formatMoney } from 'src/lib/currency';
 import { toDate } from 'src/lib/date';
 import { formatDate as formatDateLib } from 'src/lib/date';
+import { ViewButton } from 'src/shared/components/ui/action-buttons';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
-import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 
 function getInitials(nombre: string) {
@@ -145,14 +145,7 @@ export function buildBillingColumns({
         const factura = info.row.original;
         return (
           <div onClick={(e) => e.stopPropagation()}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => onViewDetail(factura)}
-            >
-              <Icon name="Eye" className="h-3.5 w-3.5" />
-            </Button>
+            <ViewButton onClick={() => onViewDetail(factura)} />
           </div>
         );
       },

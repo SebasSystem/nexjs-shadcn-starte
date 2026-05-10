@@ -1,45 +1,28 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { dashboardService } from 'src/features/admin/services/dashboard.service';
+import { useCallback, useEffect, useState } from 'react';
+import { DashboardPeriod, dashboardService } from 'src/features/admin/services/dashboard.service';
 import { DashboardData } from 'src/features/admin/types/admin.types';
-import { cache } from 'src/lib/cache';
 
-const CACHE_KEY = 'admin:dashboard';
-
-export function useDashboard() {
-  const cached = cache.get<DashboardData>(CACHE_KEY);
-  const hasCache = useRef(!!cached);
-  const [data, setData] = useState<DashboardData | null>(cached ?? null);
-  const [isLoading, setIsLoading] = useState(!hasCache.current);
+export function useDashboard(period?: DashboardPeriod) {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetch = useCallback(async () => {
-    setIsLoading(!hasCache.current);
+    setIsLoading(true);
     try {
-      const result = await dashboardService.get();
-      cache.set(CACHE_KEY, result);
+      const result = await dashboardService.get(period);
       setData(result);
-      hasCache.current = true;
     } catch {
-      if (!hasCache.current) setData(null);
+      setData(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [period]);
 
   useEffect(() => {
     fetch();
   }, [fetch]);
 
-  const refetch = useCallback(async () => {
-    try {
-      const result = await dashboardService.get();
-      cache.set(CACHE_KEY, result);
-      setData(result);
-    } catch {
-      /* mantener data actual */
-    }
-  }, []);
-
-  return { data, isLoading, refetch };
+  return { data, isLoading, refetch: fetch };
 }

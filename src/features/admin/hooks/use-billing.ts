@@ -33,6 +33,8 @@ export function useBilling(filters: Omit<BillingFilters, 'page' | 'per_page'> = 
         ...(filters.estado && { estado: filters.estado }),
         ...(filters.from && { from: filters.from }),
         ...(filters.to && { to: filters.to }),
+        ...(filters.search && { search: filters.search }),
+        ...(filters.plan_uid && { plan_uid: filters.plan_uid }),
       };
       const res = await billingService.getAll(queryParams);
       const meta = extractPaginationMeta(res);
@@ -42,7 +44,16 @@ export function useBilling(filters: Omit<BillingFilters, 'page' | 'per_page'> = 
     } finally {
       setIsLoading(false);
     }
-  }, [params.page, params.per_page, filters.estado, filters.from, filters.to, setTotal]);
+  }, [
+    params.page,
+    params.per_page,
+    filters.estado,
+    filters.from,
+    filters.to,
+    filters.search,
+    filters.plan_uid,
+    setTotal,
+  ]);
 
   useEffect(() => {
     fetchFacturas();

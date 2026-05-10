@@ -5,6 +5,8 @@ export interface BillingFilters {
   estado?: string;
   from?: string;
   to?: string;
+  search?: string;
+  plan_uid?: string;
   page?: number;
   per_page?: number;
 }

@@ -6,10 +6,9 @@ import { Tenant } from 'src/features/admin/types/admin.types';
 import { formatMoney } from 'src/lib/currency';
 import { formatRelative } from 'src/lib/date';
 import { formatDate as formatDateLib } from 'src/lib/date';
+import { EditButton, ViewButton } from 'src/shared/components/ui/action-buttons';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
-import { Button } from 'src/shared/components/ui/button';
-import { Icon } from 'src/shared/components/ui/icon';
 
 function getInitials(nombre: string) {
   return (nombre ?? '')
@@ -119,17 +118,8 @@ export function buildTenantColumns({ onEdit, onViewDetail }: TenantColumnHandler
         const tenant = info.row.original;
         return (
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={() => onViewDetail(tenant)}
-            >
-              <Icon name="Eye" className="h-3.5 w-3.5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(tenant)}>
-              <Icon name="Pencil" className="h-3.5 w-3.5" />
-            </Button>
+            <ViewButton onClick={() => onViewDetail(tenant)} />
+            <EditButton onClick={() => onEdit(tenant)} />
           </div>
         );
       },

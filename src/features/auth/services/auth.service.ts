@@ -34,16 +34,19 @@ export const signInWithPassword = async ({
   email,
   password,
   twoFactorCode,
+  recoveryCode,
 }: {
   email: string;
   password: string;
   twoFactorCode?: string;
+  recoveryCode?: string;
 }) => {
   try {
     const res = await axiosInstance.post(endpoints.auth.login, {
       email,
       password,
       ...(twoFactorCode ? { two_factor_code: twoFactorCode } : {}),
+      ...(recoveryCode ? { recovery_code: recoveryCode } : {}),
     });
 
     const payload = res.data?.data ?? res.data;
@@ -70,9 +73,12 @@ export const signInWithPassword = async ({
     return { token, user };
   } catch (err) {
     const maybeAlreadyAuthErr = err as AuthError;
-    if (maybeAlreadyAuthErr?.code) throw err;
+    const OUR_CODES = ['TWO_FACTOR_REQUIRED', 'TWO_FACTOR_SETUP_REQUIRED', 'ACCOUNT_LOCKED'];
+    if (OUR_CODES.includes(maybeAlreadyAuthErr?.code)) throw err;
 
-    const responseBody = err as BackendErrorResponse;
+    const responseBody =
+      (err as { response?: { data?: BackendErrorResponse } }).response?.data ??
+      (err as BackendErrorResponse);
     if (isTwoFactorSignal(responseBody)) {
       throw makeAuthError('Se requiere código de verificación 2FA.', 'TWO_FACTOR_REQUIRED');
     }

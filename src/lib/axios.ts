@@ -129,6 +129,10 @@ export const endpoints = {
       update: (uid: string) => `/admin/tenants/${uid}`,
       suspend: (uid: string) => `/admin/tenants/${uid}/suspend`,
       activate: (uid: string) => `/admin/tenants/${uid}/activate`,
+      archive: (uid: string) => `/admin/tenants/${uid}/archive`,
+      restore: (uid: string) => `/admin/tenants/${uid}/restore`,
+      lockUser: (uid: string, userUid: string) => `/admin/tenants/${uid}/users/${userUid}/lock`,
+      unlockUser: (uid: string, userUid: string) => `/admin/tenants/${uid}/users/${userUid}/unlock`,
       createUser: (uid: string) => `/admin/tenants/${uid}/users`,
       users: (uid: string) => `/admin/tenants/${uid}/users`,
     },
@@ -145,6 +149,7 @@ export const endpoints = {
       alerts: '/admin/telemetry/alerts',
       alert: (uid: string) => `/admin/telemetry/alerts/${uid}`,
       toggleAlert: (uid: string) => `/admin/telemetry/alerts/${uid}/toggle`,
+      deleteAlert: (uid: string) => `/admin/telemetry/alerts/${uid}`,
     },
   },
   settings: {

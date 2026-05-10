@@ -240,10 +240,26 @@ function TwoFactorStep({
   onBack: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const recoveryRef = useRef<HTMLInputElement>(null);
+  const [useRecovery, setUseRecovery] = useState(false);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  const handleToggleRecovery = () => {
+    setUseRecovery((v) => {
+      if (!v) {
+        form.setValue('twoFactorCode', '');
+        setTimeout(() => recoveryRef.current?.focus(), 50);
+      } else {
+        form.setValue('recoveryCode', '');
+        setTimeout(() => inputRef.current?.focus(), 50);
+      }
+      return !v;
+    });
+    form.clearErrors();
+  };
 
   return (
     <>
@@ -255,7 +271,9 @@ function TwoFactorStep({
           Verificación en dos pasos
         </h1>
         <p className="text-sm text-slate-500 mt-2 text-center leading-relaxed max-w-[300px]">
-          Ingresá el código de 6 dígitos de tu app de autenticación
+          {useRecovery
+            ? 'Ingresá uno de tus códigos de recuperación de un solo uso'
+            : 'Ingresá el código de 6 dígitos de tu app de autenticación'}
         </p>
       </div>
 
@@ -267,46 +285,86 @@ function TwoFactorStep({
 
       <Form {...form}>
         <form onSubmit={onSubmit} className="flex flex-col gap-5">
-          <FormField
-            control={form.control}
-            name="twoFactorCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <div className="flex flex-col gap-1.5">
-                    <label
-                      htmlFor="login-2fa"
-                      className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-500"
-                    >
-                      Código de verificación
-                    </label>
-                    <input
-                      {...field}
-                      ref={inputRef}
-                      id="login-2fa"
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={6}
-                      autoComplete="one-time-code"
-                      placeholder="000000"
-                      disabled={isSubmitting}
-                      className="
-                        w-full h-14 text-center text-2xl font-bold tracking-[0.4em]
-                        text-slate-800 bg-slate-50 border border-slate-200 rounded-xl
-                        outline-none transition-all duration-200
-                        placeholder:text-slate-300 placeholder:tracking-[0.4em]
-                        hover:border-slate-300 hover:bg-white
-                        focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/10
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                      "
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage className="text-xs ml-1" />
-              </FormItem>
-            )}
-          />
+          {useRecovery ? (
+            <FormField
+              control={form.control}
+              name="recoveryCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <div className="flex flex-col gap-1.5">
+                      <label
+                        htmlFor="login-recovery"
+                        className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-500"
+                      >
+                        Código de recuperación
+                      </label>
+                      <input
+                        {...field}
+                        ref={recoveryRef}
+                        id="login-recovery"
+                        type="text"
+                        autoComplete="off"
+                        placeholder="Ej: a1b2c3d4"
+                        disabled={isSubmitting}
+                        className="
+                          w-full h-14 text-center text-lg font-mono font-bold tracking-widest
+                          text-slate-800 bg-slate-50 border border-slate-200 rounded-xl
+                          outline-none transition-all duration-200
+                          placeholder:text-slate-300 placeholder:tracking-normal placeholder:font-sans placeholder:text-sm placeholder:font-normal
+                          hover:border-slate-300 hover:bg-white
+                          focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/10
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                        "
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-xs ml-1" />
+                </FormItem>
+              )}
+            />
+          ) : (
+            <FormField
+              control={form.control}
+              name="twoFactorCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <div className="flex flex-col gap-1.5">
+                      <label
+                        htmlFor="login-2fa"
+                        className="text-[11px] font-semibold tracking-[0.08em] uppercase text-slate-500"
+                      >
+                        Código de verificación
+                      </label>
+                      <input
+                        {...field}
+                        ref={inputRef}
+                        id="login-2fa"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={6}
+                        autoComplete="one-time-code"
+                        placeholder="000000"
+                        disabled={isSubmitting}
+                        className="
+                          w-full h-14 text-center text-2xl font-bold tracking-[0.4em]
+                          text-slate-800 bg-slate-50 border border-slate-200 rounded-xl
+                          outline-none transition-all duration-200
+                          placeholder:text-slate-300 placeholder:tracking-[0.4em]
+                          hover:border-slate-300 hover:bg-white
+                          focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/10
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                        "
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-xs ml-1" />
+                </FormItem>
+              )}
+            />
+          )}
 
           <button
             type="submit"
@@ -319,7 +377,7 @@ function TwoFactorStep({
                 Verificando…
               </>
             ) : (
-              'Confirmar código'
+              'Confirmar'
             )}
           </button>
         </form>
@@ -327,8 +385,20 @@ function TwoFactorStep({
 
       <button
         type="button"
+        onClick={handleToggleRecovery}
+        disabled={isSubmitting}
+        className="mt-3 w-full flex items-center justify-center gap-1.5 text-[13px] text-indigo-500 hover:text-indigo-700 transition-colors duration-200 disabled:opacity-40"
+      >
+        <Icon name={useRecovery ? 'ShieldCheck' : 'Shield'} size={13} />
+        {useRecovery
+          ? 'Usar código de autenticación'
+          : '¿No podés acceder a tu app? Usá un código de recuperación'}
+      </button>
+
+      <button
+        type="button"
         onClick={onBack}
-        className="mt-4 w-full flex items-center justify-center gap-1.5 text-[13px] text-slate-400 hover:text-indigo-600 transition-colors duration-200"
+        className="mt-2 w-full flex items-center justify-center gap-1.5 text-[13px] text-slate-400 hover:text-indigo-600 transition-colors duration-200"
       >
         <Icon name="ChevronLeft" size={14} />
         Volver al inicio de sesión

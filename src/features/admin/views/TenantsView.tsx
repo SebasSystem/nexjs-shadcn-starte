@@ -27,6 +27,8 @@ export const TenantsView = () => {
     updateTenant,
     suspendTenant,
     activateTenant,
+    archiveTenant,
+    restoreTenant,
     createTenantUser,
     pagination,
   } = useTenants({ search: debouncedSearch, plan_uid: filterPlan, estado: filterEstado });
@@ -159,6 +161,8 @@ export const TenantsView = () => {
         onClose={() => setIsDetailOpen(false)}
         onSuspend={(t) => suspendTenant(t.uid)}
         onActivate={(t) => activateTenant(t.uid)}
+        onArchive={(t) => archiveTenant(t.uid)}
+        onRestore={(t) => restoreTenant(t.uid)}
         onCreateUser={createTenantUser}
       />
     </PageContainer>

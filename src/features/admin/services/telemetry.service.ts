@@ -52,4 +52,7 @@ export const telemetryService = {
     const res = await axiosInstance.put(endpoints.admin.telemetry.alert(uid), data);
     return res.data.data;
   },
+  async deleteAlerta(uid: string): Promise<void> {
+    await axiosInstance.delete(endpoints.admin.telemetry.deleteAlert(uid));
+  },
 };

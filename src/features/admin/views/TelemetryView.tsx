@@ -43,6 +43,7 @@ export const TelemetryView = () => {
     toggleAlerta,
     updateAlerta,
     saveAlerta,
+    deleteAlerta,
     pagination,
   } = useTelemetry({ nivel: filterNivel || undefined });
 
@@ -180,6 +181,7 @@ export const TelemetryView = () => {
             isLoading={isLoading}
             onEdit={handleOpenAlertas}
             onToggle={toggleAlerta}
+            onDelete={deleteAlerta}
             onNewAlerta={() => handleOpenAlertas()}
           />
         )}

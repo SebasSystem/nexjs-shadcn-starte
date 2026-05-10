@@ -34,6 +34,7 @@ import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
+import { SelectField } from 'src/shared/components/ui/select-field';
 
 function getInitials(nombre: string) {
   return (nombre ?? '')
@@ -46,8 +47,19 @@ function getInitials(nombre: string) {
 
 const columnHelper = createColumnHelper<Tenant>();
 
+import { DashboardPeriod } from 'src/features/admin/services/dashboard.service';
+
+const PERIOD_OPTIONS = [
+  { value: '', label: 'Global (sin filtro)' },
+  { value: '7d', label: 'Últimos 7 días' },
+  { value: '30d', label: 'Últimos 30 días' },
+  { value: '90d', label: 'Últimos 90 días' },
+  { value: '12m', label: 'Últimos 12 meses' },
+];
+
 export const DashboardAdminView = () => {
-  const { data, isLoading, refetch } = useDashboard();
+  const [period, setPeriod] = useState<DashboardPeriod | undefined>(undefined);
+  const { data, isLoading, refetch } = useDashboard(period);
   const { createTenantUser } = useTenants();
   const [isRefetching, setIsRefetching] = useState(false);
 
@@ -231,21 +243,28 @@ export const DashboardAdminView = () => {
         title="Dashboard Global"
         subtitle="Vista general del sistema y estado de todos los tenants"
         action={
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isRefetching}
-            onClick={async () => {
-              setIsRefetching(true);
-              await refetch();
-              setIsRefetching(false);
-              toast.success('Dashboard actualizado');
-            }}
-            className="gap-2"
-          >
-            <Icon name="RefreshCw" className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-            Actualizar
-          </Button>
+          <div className="flex items-center gap-3">
+            <SelectField
+              options={PERIOD_OPTIONS}
+              value={period ?? ''}
+              onChange={(v) => setPeriod((v as DashboardPeriod) || undefined)}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isRefetching}
+              onClick={async () => {
+                setIsRefetching(true);
+                await refetch();
+                setIsRefetching(false);
+                toast.success('Dashboard actualizado');
+              }}
+              className="gap-2"
+            >
+              <Icon name="RefreshCw" className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+              Actualizar
+            </Button>
+          </div>
         }
       />
 

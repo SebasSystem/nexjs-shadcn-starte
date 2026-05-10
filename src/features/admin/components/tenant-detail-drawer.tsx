@@ -35,6 +35,8 @@ interface TenantDetailDrawerProps {
   onClose: () => void;
   onSuspend?: (tenant: Tenant) => void;
   onActivate?: (tenant: Tenant) => void;
+  onArchive?: (tenant: Tenant) => void;
+  onRestore?: (tenant: Tenant) => void;
   onCreateUser: (
     tenantId: string,
     data: { name: string; email: string; role: string }
@@ -59,6 +61,8 @@ export function TenantDetailDrawer({
   onClose,
   onSuspend,
   onActivate,
+  onArchive,
+  onRestore,
   onCreateUser,
 }: TenantDetailDrawerProps) {
   const [confirmandoSuspension, setConfirmandoSuspension] = useState(false);
@@ -73,6 +77,7 @@ export function TenantDetailDrawer({
   const [facturas, setFacturas] = useState<TenantFacturaItem[]>([]);
   const [actividad, setActividad] = useState<TenantActividadItem[]>([]);
   const [loadingTab, setLoadingTab] = useState<string | null>(null);
+  const [lockingUser, setLockingUser] = useState<string | null>(null);
   const [usersPage, setUsersPage] = useState(1);
   const [usersTotal, setUsersTotal] = useState(0);
   const PER_PAGE = 5;
@@ -192,6 +197,11 @@ export function TenantDetailDrawer({
                 <span className="text-caption text-muted-foreground">
                   Desde {formatDate(tenant.created_at)}
                 </span>
+                {tenant.estado === 'TRIAL' && tenant.expires_at && (
+                  <Badge variant="soft" className="text-xs bg-amber-100 text-amber-700">
+                    Trial vence {formatDate(tenant.expires_at)}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -312,29 +322,54 @@ export function TenantDetailDrawer({
                     <Progress value={storagePct} className="h-2" />
                   </div>
                 </div>
-                {(onSuspend || onActivate) && (
+                {(onSuspend || onActivate || onArchive || onRestore) && (
                   <div className="pt-4 border-t border-border/40 flex flex-col gap-2">
-                    {tenant.estado === 'SUSPENDIDO'
-                      ? onActivate && (
+                    {tenant.estado === 'ARCHIVADO' ? (
+                      onRestore && (
+                        <Button
+                          variant="outline"
+                          className="w-full text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+                          onClick={() => onRestore(tenant)}
+                        >
+                          <Icon name="RefreshCw" className="h-4 w-4 mr-2" />
+                          Restaurar Tenant
+                        </Button>
+                      )
+                    ) : (
+                      <>
+                        {tenant.estado === 'SUSPENDIDO'
+                          ? onActivate && (
+                              <Button
+                                variant="outline"
+                                className="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
+                                onClick={() => onActivate(tenant)}
+                              >
+                                <Icon name="CheckCircle" className="h-4 w-4 mr-2" />
+                                Activar Tenant
+                              </Button>
+                            )
+                          : onSuspend && (
+                              <Button
+                                variant="outline"
+                                className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                                onClick={() => setConfirmandoSuspension(true)}
+                              >
+                                <Icon name="AlertTriangle" className="h-4 w-4 mr-2" />
+                                Suspender Tenant
+                              </Button>
+                            )}
+                        {onArchive && (
                           <Button
                             variant="outline"
-                            className="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
-                            onClick={() => onActivate(tenant)}
+                            className="w-full text-muted-foreground hover:text-foreground"
+                            onClick={() => onArchive(tenant)}
                           >
-                            <Icon name="CheckCircle" className="h-4 w-4 mr-2" />
-                            Activar Tenant
-                          </Button>
-                        )
-                      : onSuspend && (
-                          <Button
-                            variant="outline"
-                            className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                            onClick={() => setConfirmandoSuspension(true)}
-                          >
-                            <Icon name="AlertTriangle" className="h-4 w-4 mr-2" />
-                            Suspender Tenant
+                            <Icon name="Minus" className="h-4 w-4 mr-2" />
+                            Archivar Tenant
                           </Button>
                         )}
+                      </>
+                    )}
                   </div>
                 )}
               </TabsContent>
@@ -427,33 +462,76 @@ export function TenantDetailDrawer({
                               <th className="text-left py-2 text-caption font-semibold text-muted-foreground">
                                 Estado
                               </th>
+                              <th className="py-2" />
                             </tr>
                           </thead>
                           <tbody>
-                            {usuarios.map((u) => (
-                              <tr key={u.uid} className="border-b border-border/20">
-                                <td className="py-2.5">
-                                  <p className="font-medium text-foreground text-body2">{u.name}</p>
-                                  <p className="text-caption text-muted-foreground">{u.email}</p>
-                                </td>
-                                <td className="py-2.5 text-body2 text-muted-foreground">{u.rol}</td>
-                                <td className="py-2.5 text-body2 text-muted-foreground">
-                                  {formatRelative(u.ultimo_acceso)}
-                                </td>
-                                <td className="py-2.5">
-                                  <Badge
-                                    variant="soft"
-                                    className={
-                                      u.estado === 'Activo'
-                                        ? 'bg-emerald-100 text-emerald-700'
-                                        : 'bg-gray-100 text-gray-500'
-                                    }
-                                  >
-                                    {u.estado}
-                                  </Badge>
-                                </td>
-                              </tr>
-                            ))}
+                            {usuarios.map((u) => {
+                              const isLocking = lockingUser === u.uid;
+                              const isActive = u.estado === 'Activo';
+                              return (
+                                <tr key={u.uid} className="border-b border-border/20">
+                                  <td className="py-2.5">
+                                    <p className="font-medium text-foreground text-body2">
+                                      {u.name}
+                                    </p>
+                                    <p className="text-caption text-muted-foreground">{u.email}</p>
+                                  </td>
+                                  <td className="py-2.5 text-body2 text-muted-foreground">
+                                    {u.rol}
+                                  </td>
+                                  <td className="py-2.5 text-body2 text-muted-foreground">
+                                    {formatRelative(u.ultimo_acceso)}
+                                  </td>
+                                  <td className="py-2.5">
+                                    <Badge
+                                      variant="soft"
+                                      className={
+                                        isActive
+                                          ? 'bg-emerald-100 text-emerald-700'
+                                          : 'bg-gray-100 text-gray-500'
+                                      }
+                                    >
+                                      {u.estado}
+                                    </Badge>
+                                  </td>
+                                  <td className="py-2.5 text-right">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      disabled={isLocking}
+                                      className={
+                                        isActive
+                                          ? 'text-red-500 hover:text-red-600 hover:bg-red-50 text-xs'
+                                          : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 text-xs'
+                                      }
+                                      onClick={async () => {
+                                        if (!tenant) return;
+                                        setLockingUser(u.uid);
+                                        try {
+                                          if (isActive) {
+                                            await tenantsService.lockUser(tenant.uid, u.uid);
+                                          } else {
+                                            await tenantsService.unlockUser(tenant.uid, u.uid);
+                                          }
+                                          await cargarUsuarios(usersPage);
+                                        } finally {
+                                          setLockingUser(null);
+                                        }
+                                      }}
+                                    >
+                                      {isLocking ? (
+                                        <Icon name="Loader2" className="h-3.5 w-3.5 animate-spin" />
+                                      ) : isActive ? (
+                                        'Bloquear'
+                                      ) : (
+                                        'Desbloquear'
+                                      )}
+                                    </Button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { BillingDetailDrawer } from 'src/features/admin/components/billing-detail-drawer';
 import { BillingTable } from 'src/features/admin/components/billing-table';
 import { useBilling } from 'src/features/admin/hooks/use-billing';
+import { usePlansAdmin } from 'src/features/admin/hooks/use-plans-admin';
 import { Factura } from 'src/features/admin/types/admin.types';
 import { formatMoney } from 'src/lib/currency';
 import {
@@ -16,6 +17,7 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
+import { useDebounce } from 'use-debounce';
 
 function getPeriodDates(period: string): { from?: string; to?: string } {
   const now = new Date();
@@ -44,13 +46,18 @@ export const BillingView = () => {
   const [search, setSearch] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
   const [filterPeriodo, setFilterPeriodo] = useState('');
+  const [filterPlan, setFilterPlan] = useState('');
 
+  const [debouncedSearch] = useDebounce(search, 400);
   const { from, to } = getPeriodDates(filterPeriodo);
+  const { planes } = usePlansAdmin();
 
   const { facturas, summary, isLoading, marcarPagadas, pagination } = useBilling({
     estado: filterEstado || undefined,
     from,
     to,
+    search: debouncedSearch || undefined,
+    plan_uid: filterPlan || undefined,
   });
 
   const [selectedFactura, setSelectedFactura] = useState<Factura | null>(null);
@@ -61,17 +68,20 @@ export const BillingView = () => {
     setIsDetailOpen(true);
   };
 
-  const filteredFacturas = search
-    ? facturas.filter((f) => f.tenant_nombre.toLowerCase().includes(search.toLowerCase()))
-    : facturas;
-
-  const activeFiltersCount = (filterEstado ? 1 : 0) + (filterPeriodo ? 1 : 0) + (search ? 1 : 0);
+  const activeFiltersCount =
+    (filterEstado ? 1 : 0) + (filterPeriodo ? 1 : 0) + (search ? 1 : 0) + (filterPlan ? 1 : 0);
 
   const clearFilters = () => {
     setSearch('');
     setFilterEstado('');
     setFilterPeriodo('');
+    setFilterPlan('');
   };
+
+  const planOptions = [
+    { value: '', label: 'Todos los planes' },
+    ...planes.map((p) => ({ value: p.uid, label: p.name })),
+  ];
 
   return (
     <PageContainer>
@@ -136,7 +146,7 @@ export const BillingView = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-end px-5 py-4">
           <Input
             label="Buscar tenant"
-            placeholder="Filtrar en esta página..."
+            placeholder="Nombre, dominio o email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             leftIcon={<Icon name="Search" className="h-4 w-4" />}
@@ -144,6 +154,12 @@ export const BillingView = () => {
           />
 
           <div className="flex flex-wrap items-end gap-3 w-full sm:w-auto">
+            <SelectField
+              label="Plan"
+              options={planOptions}
+              value={filterPlan}
+              onChange={(v) => setFilterPlan(v as string)}
+            />
             <SelectField
               label="Período"
               options={[
@@ -183,7 +199,7 @@ export const BillingView = () => {
           </div>
         </div>
         <BillingTable
-          facturas={filteredFacturas}
+          facturas={facturas}
           isLoading={isLoading}
           onViewDetail={handleOpenDetail}
           onMarcarPagadas={async (ids) => {
