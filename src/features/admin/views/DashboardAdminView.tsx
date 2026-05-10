@@ -2,6 +2,7 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import type ApexCharts from 'apexcharts';
+import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { TenantDetailDrawer } from 'src/features/admin/components/tenant-detail-drawer';
@@ -58,6 +59,7 @@ const PERIOD_OPTIONS = [
 ];
 
 export const DashboardAdminView = () => {
+  const router = useRouter();
   const [period, setPeriod] = useState<DashboardPeriod | undefined>(undefined);
   const { data, isLoading, refetch } = useDashboard(period);
   const { createTenantUser } = useTenants();
@@ -384,7 +386,12 @@ export const DashboardAdminView = () => {
       <SectionCard noPadding>
         <div className="p-5 flex justify-between items-center">
           <h2 className="text-h6 text-foreground">Tenants Recientes</h2>
-          <Button variant="link" size="sm" className="text-sm font-medium pr-0">
+          <Button
+            variant="link"
+            size="sm"
+            className="text-sm font-medium pr-0"
+            onClick={() => router.push('/admin/tenants')}
+          >
             Ver todos los clientes &rarr;
           </Button>
         </div>
