@@ -84,6 +84,7 @@ export function useTable<TData>({
         onPageSizeChange(next.pageSize);
       }
     },
+    autoResetPageIndex: false,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });

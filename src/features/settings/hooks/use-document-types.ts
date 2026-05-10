@@ -3,17 +3,22 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { documentTypeService } from 'src/features/settings/services/document-type.service';
-import type { DocumentTypePayload } from 'src/features/settings/types/document-type.types';
+import type { DocumentType, DocumentTypePayload } from 'src/features/settings/types/document-type.types';
 
 const QUERY_KEY = ['settings', 'document-types'] as const;
+
+// Stable empty reference — prevents TanStack Table from seeing a "new" array
+// on every render when the query is in error/loading state (data = undefined).
+// Without this, `= []` creates a new reference each render → autoResetPageIndex
+// fires → setPagination called with new object → re-render → infinite loop.
+const EMPTY: DocumentType[] = [];
 
 export function useDocumentTypes() {
   const queryClient = useQueryClient();
 
-  const { data: documentTypes = [], isLoading, isError } = useQuery({
+  const { data: documentTypes = EMPTY, isLoading, isError } = useQuery({
     queryKey: QUERY_KEY,
     queryFn: () => documentTypeService.list(),
-    retry: 1,
   });
 
   const createDocumentType = useMutation({

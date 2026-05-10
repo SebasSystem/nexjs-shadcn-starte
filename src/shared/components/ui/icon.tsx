@@ -99,6 +99,7 @@ import {
   Package,
   PackageOpen,
   PackagePlus,
+  Paintbrush,
   PanelBottom,
   PanelLeft,
   PauseCircle,
@@ -274,6 +275,8 @@ const icons = {
   PlayCircle,
   Power,
   SplitSquareVertical,
+
+  Paintbrush,
 
   // UI / Feedback
   Cloud,

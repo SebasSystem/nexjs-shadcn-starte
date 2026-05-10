@@ -223,7 +223,7 @@ export function DocumentTypesView() {
               {editing ? 'Editá los datos del tipo de documento.' : 'Completá el formulario para crear un nuevo tipo de documento.'}
             </SheetDescription>
           </SheetHeader>
-          <div className="space-y-4 py-6">
+          <div className="space-y-4 px-4 py-6 flex-1 overflow-y-auto">
             <Input label="Nombre" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Certificado Fiscal" />
             <Textarea label="Descripción" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Opcional — describí el propósito de este tipo de documento" className="min-h-[60px] resize-none" />
             <Input label="Días de vigencia" type="number" value={validityDays} onChange={(e) => setValidityDays(e.target.value)} placeholder="Ej: 365 (dejar vacío si no expira)" />

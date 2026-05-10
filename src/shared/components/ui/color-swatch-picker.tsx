@@ -70,7 +70,7 @@ export function ColorSwatchPicker({ value, onChange, colors, className, allowCus
             {isCustomColor ? (
               <Icon name="Check" size={14} className="text-white drop-shadow-sm" />
             ) : (
-              <Icon name="Palette" size={14} className="text-muted-foreground" />
+              <Icon name="Paintbrush" size={14} className="text-muted-foreground" />
             )}
           </button>
         </>

@@ -20,7 +20,6 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error) {
     console.error('[ErrorBoundary]', error);
-    // Clean up Radix scroll-lock so the page doesn't get stuck
     if (typeof document !== 'undefined') {
       document.body.style.overflow = '';
       document.body.style.pointerEvents = '';
@@ -30,7 +29,22 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      return this.props.fallback ?? null;
+      return (
+        this.props.fallback ?? (
+          <div className="flex flex-col items-center justify-center h-full min-h-[300px] gap-4">
+            <p className="text-sm text-muted-foreground">Algo salió mal en esta sección.</p>
+            <button
+              onClick={() => {
+                this.setState({ hasError: false });
+                window.location.reload();
+              }}
+              className="text-sm px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors"
+            >
+              Recargar
+            </button>
+          </div>
+        )
+      );
     }
     return this.props.children;
   }
