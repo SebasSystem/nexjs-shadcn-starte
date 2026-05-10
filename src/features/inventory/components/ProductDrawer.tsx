@@ -45,9 +45,7 @@ export function ProductDrawer({
   const [categoryUid, setCategoryUid] = useState(product?.category_uid ?? '');
   const [reorderPoint, setReorderPoint] = useState(String(product?.reorder_point ?? 0));
   const [active, setActive] = useState(product ? product.is_active : true);
-  const [warehouseStocks, setWarehouseStocks] = useState<Record<string, string>>(
-    Object.fromEntries(warehouses.map((w) => [w.uid, '0']))
-  );
+  const [warehouseStocks, setWarehouseStocks] = useState<{ warehouse_uid: string; quantity: string }[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -58,7 +56,7 @@ export function ProductDrawer({
     setCategoryUid(product?.category_uid ?? '');
     setReorderPoint(String(product?.reorder_point ?? 0));
     setActive(product ? product.is_active : true);
-    setWarehouseStocks(Object.fromEntries(warehouses.map((w) => [w.uid, '0'])));
+    setWarehouseStocks([]);
     setErrors({});
   }, [open, product, warehouses]);
 
@@ -83,9 +81,9 @@ export function ProductDrawer({
         is_active: active,
       };
       if (mode === 'create') {
-        payload.warehouse_stocks = warehouses
-          .filter((w) => Number(warehouseStocks[w.uid]) > 0)
-          .map((w) => ({ warehouse_uid: w.uid, quantity: Number(warehouseStocks[w.uid]) }));
+        payload.warehouse_stocks = warehouseStocks
+          .filter((s) => Number(s.quantity) > 0)
+          .map((s) => ({ warehouse_uid: s.warehouse_uid, quantity: Number(s.quantity) }));
       }
       await onSave(payload);
       onClose();
@@ -151,26 +149,64 @@ export function ProductDrawer({
             <Switch checked={active} onCheckedChange={setActive} />
           </div>
 
-          {mode === 'create' && warehouses.length > 0 && (
-            <div className="rounded-xl border border-border/60 p-4 space-y-4 bg-muted/20">
-              <p className="text-subtitle2 text-foreground font-semibold">
-                Stock inicial por bodega
-              </p>
-              {warehouses.map((w) => (
-                <Input
-                  key={w.uid}
-                  label={w.name}
-                  type="number"
-                  min={0}
-                  value={warehouseStocks[w.uid] ?? '0'}
-                  onChange={(e) =>
-                    setWarehouseStocks((prev) => ({ ...prev, [w.uid]: e.target.value }))
+          {mode === 'create' && (
+            <div className="rounded-xl border border-border/60 p-4 space-y-3 bg-muted/20">
+              <p className="text-subtitle2 text-foreground font-semibold">Stock inicial por bodega</p>
+              <p className="text-caption text-muted-foreground">Opcional — agregá solo las bodegas con stock inicial.</p>
+
+              {warehouseStocks.map((entry, index) => {
+                const usedUids = new Set(warehouseStocks.map((s) => s.warehouse_uid));
+                const availableOptions = warehouses.filter(
+                  (w) => !usedUids.has(w.uid) || w.uid === entry.warehouse_uid
+                );
+                return (
+                  <div key={index} className="flex items-end gap-2">
+                    <div className="flex-1">
+                      <SelectField
+                        options={availableOptions.map((w) => ({ value: w.uid, label: w.name }))}
+                        value={entry.warehouse_uid}
+                        onChange={(v) =>
+                          setWarehouseStocks((prev) =>
+                            prev.map((s, i) => (i === index ? { ...s, warehouse_uid: v as string } : s))
+                          )
+                        }
+                        placeholder="Bodega..."
+                      />
+                    </div>
+                    <div className="w-24">
+                      <Input
+                        type="number"
+                        min={0}
+                        value={entry.quantity}
+                        onChange={(e) =>
+                          setWarehouseStocks((prev) =>
+                            prev.map((s, i) => (i === index ? { ...s, quantity: e.target.value } : s))
+                          )
+                        }
+                        placeholder="Cant."
+                      />
+                    </div>
+                    <button
+                      onClick={() => setWarehouseStocks((prev) => prev.filter((_, i) => i !== index))}
+                      className="mb-0.5 text-muted-foreground hover:text-error transition-colors p-1"
+                    >
+                      <Icon name="Trash2" size={15} />
+                    </button>
+                  </div>
+                );
+              })}
+
+              {warehouseStocks.length < warehouses.length && (
+                <button
+                  onClick={() =>
+                    setWarehouseStocks((prev) => [...prev, { warehouse_uid: '', quantity: '0' }])
                   }
-                />
-              ))}
-              <p className="text-caption text-muted-foreground">
-                El stock podrá ajustarse después desde movimientos.
-              </p>
+                  className="flex items-center gap-1.5 text-caption text-primary hover:text-primary/80 transition-colors font-medium"
+                >
+                  <Icon name="Plus" size={14} />
+                  Agregar bodega
+                </button>
+              )}
             </div>
           )}
 

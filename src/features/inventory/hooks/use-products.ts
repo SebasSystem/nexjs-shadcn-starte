@@ -1,12 +1,10 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { inventoryProductService } from 'src/features/inventory/services/inventory-product.service';
-import { inventoryStockService } from 'src/features/inventory/services/inventory-stock.service';
 import type {
   CreateProductPayload,
-  InventoryCategory,
   InventoryMasterItem,
   InventoryMasterResponse,
   InventoryMasterSummary,
@@ -16,41 +14,37 @@ import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 const EMPTY_ITEMS: InventoryMasterItem[] = [];
-const EMPTY_CATEGORIES: InventoryCategory[] = [];
 
 export interface ProductFilters {
   category_uid?: string;
   warehouse_uid?: string;
   stock_state?: 'normal' | 'low' | 'out';
+  search?: string;
+  is_active?: boolean;
+  per_page?: number;
 }
 
 export function useProducts(filters?: ProductFilters) {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
 
-  const { data: items = EMPTY_ITEMS, isLoading } = useQuery({
-    queryKey: [...queryKeys.inventory.products, pagination.params, filters],
+  const { per_page, ...restFilters } = filters ?? {};
+  const paginationOverride = per_page ? { ...pagination.params, per_page } : pagination.params;
+
+  const { data: masterData, isLoading } = useQuery({
+    queryKey: [...queryKeys.inventory.products, paginationOverride, filters],
+    staleTime: 0,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
-      const masterRes = await inventoryProductService.master({ ...pagination.params, ...filters });
+      const masterRes = await inventoryProductService.master({ ...paginationOverride, ...restFilters });
       const meta = extractPaginationMeta(masterRes);
       if (meta) pagination.setTotal(meta.total);
-      const inner = (masterRes as unknown as { data?: InventoryMasterResponse }).data;
-      return (inner?.data ?? EMPTY_ITEMS) as InventoryMasterItem[];
+      return (masterRes as unknown as { data?: InventoryMasterResponse }).data ?? null;
     },
   });
 
-  const { data: summaryRes } = useQuery({
-    queryKey: ['inventory', 'products', 'summary'],
-    queryFn: () => inventoryProductService.master(),
-  });
-  const summary: InventoryMasterSummary | undefined = (
-    summaryRes as unknown as { data?: InventoryMasterResponse }
-  )?.data?.summary;
-
-  const { data: categories = EMPTY_CATEGORIES } = useQuery({
-    queryKey: queryKeys.inventory.categories,
-    queryFn: () => inventoryStockService.categories(),
-  });
+  const items = (masterData?.data ?? EMPTY_ITEMS) as InventoryMasterItem[];
+  const summary: InventoryMasterSummary | undefined = masterData?.summary;
 
   const createProduct = useMutation({
     mutationFn: (payload: CreateProductPayload) => inventoryProductService.create(payload),
@@ -83,7 +77,6 @@ export function useProducts(filters?: ProductFilters) {
   return {
     items,
     summary,
-    categories: categories as InventoryCategory[],
     isLoading,
     refetch: () => queryClient.invalidateQueries({ queryKey: queryKeys.inventory.products }),
     createProduct: (payload: CreateProductPayload) => createProduct.mutateAsync(payload),

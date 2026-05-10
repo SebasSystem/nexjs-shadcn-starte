@@ -2,6 +2,7 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { Fragment, useMemo, useState } from 'react';
+import { useDebounce } from 'use-debounce';
 import { endpoints } from 'src/lib/axios';
 import { downloadExport } from 'src/lib/export-service';
 import { cn } from 'src/lib/utils';
@@ -28,6 +29,7 @@ import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { StockAdjustmentDrawer } from '../components/StockAdjustmentDrawer';
 import { StockBadge } from '../components/StockBadge';
 import { StockFilters } from '../components/StockFilters';
+import { useCategories } from '../hooks/use-categories';
 import { useProducts } from '../hooks/use-products';
 import { useWarehouses } from '../hooks/use-warehouses';
 import type { InventoryMasterItem, WarehouseStockEntry } from '../types/inventory.types';
@@ -76,6 +78,12 @@ export function StockView() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterWarehouse, setFilterWarehouse] = useState('all');
+  const [categorySearch, setCategorySearch] = useState('');
+  const [warehouseSearch, setWarehouseSearch] = useState('');
+
+  const [debouncedSearch] = useDebounce(search, 400);
+  const [debouncedCategorySearch] = useDebounce(categorySearch, 400);
+  const [debouncedWarehouseSearch] = useDebounce(warehouseSearch, 400);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [adjustDrawerOpen, setAdjustDrawerOpen] = useState(false);
   const [adjustProduct, setAdjustProduct] = useState<InventoryMasterItem | null>(null);
@@ -85,13 +93,15 @@ export function StockView() {
     ? (filterStatus as 'normal' | 'low' | 'out')
     : undefined;
 
-  const { items, summary, categories, isLoading, refetch, pagination } = useProducts({
+  const { items, summary, isLoading, refetch, pagination } = useProducts({
+    search: debouncedSearch || undefined,
     category_uid: filterCategory !== 'all' ? filterCategory : undefined,
     warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
     stock_state,
   });
 
-  const { items: warehouses } = useWarehouses();
+  const { categories } = useCategories({ search: debouncedCategorySearch || undefined, per_page: 15 });
+  const { items: warehouses } = useWarehouses({ search: debouncedWarehouseSearch || undefined });
 
   const toggleRow = (uid: string) => {
     setExpandedRows((prev) => {
@@ -154,15 +164,7 @@ export function StockView() {
       ]
     : [];
 
-  // Only search is a frontend-only filter — category, warehouse and stock_state go to backend
-  const filtered = useMemo(() => {
-    if (!search) return items;
-    return items.filter(
-      (p) =>
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.sku.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [items, search]);
+  const filtered = items;
 
   const COLUMNS = useMemo(
     () => [
@@ -309,10 +311,12 @@ export function StockView() {
           onSearch={setSearch}
           filterCategory={filterCategory}
           onFilterCategory={setFilterCategory}
+          onCategorySearch={setCategorySearch}
           filterStatus={filterStatus}
           onFilterStatus={setFilterStatus}
           filterWarehouse={filterWarehouse}
           onFilterWarehouse={setFilterWarehouse}
+          onWarehouseSearch={setWarehouseSearch}
           categories={categories}
           warehouses={warehouses}
         />
@@ -354,8 +358,8 @@ export function StockView() {
       <StockAdjustmentDrawer
         open={adjustDrawerOpen}
         productUid={adjustProduct?.uid}
+        product={adjustProduct ?? undefined}
         warehouses={warehouses}
-        products={items}
         onSuccess={refetch}
         onClose={() => setAdjustDrawerOpen(false)}
       />

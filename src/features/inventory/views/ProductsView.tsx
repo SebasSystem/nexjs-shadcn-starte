@@ -2,6 +2,7 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
+import { useDebounce } from 'use-debounce';
 import { toast } from 'sonner';
 import { endpoints } from 'src/lib/axios';
 import { downloadExport } from 'src/lib/export-service';
@@ -29,6 +30,7 @@ import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { ProductDrawer, type ProductDrawerMode } from '../components/ProductDrawer';
 import { ProductFilters } from '../components/ProductFilters';
 import { StockBadge } from '../components/StockBadge';
+import { useCategories } from '../hooks/use-categories';
 import { useProducts } from '../hooks/use-products';
 import { useWarehouses } from '../hooks/use-warehouses';
 import type { CreateProductPayload, InventoryMasterItem } from '../types/inventory.types';
@@ -40,23 +42,39 @@ export function ProductsView() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterWarehouse, setFilterWarehouse] = useState('all');
+  const [categorySearch, setCategorySearch] = useState('');
+  const [warehouseSearch, setWarehouseSearch] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<ProductDrawerMode>('create');
   const [selectedProduct, setSelectedProduct] = useState<InventoryMasterItem | null>(null);
   const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
+  const [debouncedSearch] = useDebounce(search, 400);
+  const [debouncedCategorySearch] = useDebounce(categorySearch, 400);
+  const [debouncedWarehouseSearch] = useDebounce(warehouseSearch, 400);
+
   const stock_state = ['normal', 'low', 'out'].includes(filterStatus)
     ? (filterStatus as 'normal' | 'low' | 'out')
     : undefined;
 
-  const { items, summary, categories, isLoading, createProduct, updateProduct, pagination } =
+  const { items, summary, isLoading, createProduct, updateProduct, pagination } =
     useProducts({
       category_uid: filterCategory !== 'all' ? filterCategory : undefined,
       warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
       stock_state,
+      search: debouncedSearch || undefined,
+      is_active: filterStatus === 'inactive' ? false : undefined,
     });
 
-  const { items: warehouseItems } = useWarehouses();
+  const { categories: filterCategories } = useCategories({
+    search: debouncedCategorySearch || undefined,
+    per_page: 15,
+  });
+  const { categories: drawerCategories } = useCategories({ per_page: 100 });
+
+  const { items: warehouseItems } = useWarehouses({
+    search: debouncedWarehouseSearch || undefined,
+  });
   const warehouseOptions = useMemo(
     () => warehouseItems.map((w) => ({ uid: w.uid, name: w.name })),
     [warehouseItems]
@@ -85,21 +103,15 @@ export function ProductsView() {
           icon: <Icon name="XCircle" size={18} />,
           iconClassName: 'bg-error/10 text-error',
         },
+        {
+          title: 'Stock físico total',
+          value: summary.total_physical_stock.toLocaleString(),
+          badge: 'unidades en sistema',
+          icon: <Icon name="Box" size={18} />,
+          iconClassName: 'bg-info/10 text-info',
+        },
       ]
     : [];
-
-  // Only search and inactive status are frontend-only filters
-  // category_uid, warehouse_uid and stock_state are handled by the backend
-  const filtered = useMemo(() => {
-    return items.filter((p) => {
-      const matchSearch =
-        !search ||
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.sku.toLowerCase().includes(search.toLowerCase());
-      const matchInactive = filterStatus !== 'inactive' || !p.is_active;
-      return matchSearch && matchInactive;
-    });
-  }, [items, search, filterStatus]);
 
   const COLUMNS = useMemo(
     () => [
@@ -166,7 +178,7 @@ export function ProductsView() {
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: filtered,
+    data: items,
     columns: COLUMNS,
     total: pagination.total,
     pageIndex: pagination.page - 1,
@@ -253,11 +265,13 @@ export function ProductsView() {
           onSearch={setSearch}
           filterCategory={filterCategory}
           onFilterCategory={setFilterCategory}
+          onCategorySearch={setCategorySearch}
           filterStatus={filterStatus}
           onFilterStatus={setFilterStatus}
           filterWarehouse={filterWarehouse}
           onFilterWarehouse={setFilterWarehouse}
-          categories={categories}
+          onWarehouseSearch={setWarehouseSearch}
+          categories={filterCategories}
           warehouses={warehouseOptions}
         />
         <TableContainer>
@@ -290,7 +304,7 @@ export function ProductsView() {
         open={drawerOpen}
         mode={drawerMode}
         product={selectedProduct}
-        categories={categories}
+        categories={drawerCategories}
         warehouses={warehouseOptions}
         onClose={() => setDrawerOpen(false)}
         onSave={handleSave}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { inventoryWarehouseService } from 'src/features/inventory/services/inventory-warehouse.service';
 import type {
@@ -12,14 +12,16 @@ import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
-export function useWarehouses() {
+export function useWarehouses(filters?: { search?: string }) {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
 
   const { data: result } = useQuery({
-    queryKey: [...queryKeys.inventory.warehouses, pagination.params],
+    queryKey: [...queryKeys.inventory.warehouses, pagination.params, filters],
+    staleTime: 0,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
-      const raw = await inventoryWarehouseService.listRaw(pagination.params);
+      const raw = await inventoryWarehouseService.listRaw({ ...pagination.params, ...filters });
       const meta = extractPaginationMeta(raw);
       if (meta) pagination.setTotal(meta.total);
       return {

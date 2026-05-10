@@ -25,6 +25,7 @@ export function useDocumentTypes() {
     isError,
   } = useQuery({
     queryKey: QUERY_KEY,
+    staleTime: 0,
     queryFn: () => documentTypeService.list(),
   });
 

@@ -127,7 +127,7 @@ export const TagsTable: React.FC<TagsTableProps> = ({
 
   return (
     <div className="w-full">
-      <TableContainer className="relative min-h-[300px]">
+      <TableContainer>
         <Table>
           <TableHeadCustom table={table} />
           <TableBody dense={dense}>

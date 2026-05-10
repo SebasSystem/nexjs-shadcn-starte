@@ -14,6 +14,7 @@ export function useCustomFields() {
 
   const { data: fields = [], isLoading } = useQuery({
     queryKey: [...queryKeys.settings.customFields, pagination.params],
+    staleTime: 0,
     queryFn: async () => {
       const res = await customFieldsService.getAll(pagination.params);
       const meta = extractPaginationMeta(res as Record<string, unknown>);

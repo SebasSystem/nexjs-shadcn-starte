@@ -31,6 +31,7 @@ export interface SelectFieldProps {
   error?: string;
   hint?: string;
   searchable?: boolean;
+  onSearch?: (q: string) => void;
   multiple?: boolean;
   disabled?: boolean;
   clearable?: boolean;
@@ -47,6 +48,7 @@ export function SelectField({
   error,
   hint,
   searchable = false,
+  onSearch,
   multiple = false,
   disabled = false,
   clearable = false,
@@ -172,8 +174,8 @@ export function SelectField({
           align="start"
         >
           {searchable ? (
-            <Command>
-              <CommandInput placeholder="Buscar..." className="h-9" />
+            <Command shouldFilter={!onSearch}>
+              <CommandInput placeholder="Buscar..." className="h-9" onValueChange={onSearch} />
               <CommandList id={listboxId}>
                 <CommandEmpty>Sin resultados.</CommandEmpty>
                 <CommandGroup className="max-h-60 overflow-auto">

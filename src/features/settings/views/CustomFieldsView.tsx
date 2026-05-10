@@ -118,7 +118,7 @@ export const CustomFieldsView = () => {
       </div>
 
       <SectionCard noPadding>
-        {isLoading ? (
+        {isLoading && fields.length === 0 ? (
           <div className="flex flex-col gap-4 p-5 animate-pulse">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="h-12 bg-muted/40 rounded-lg w-full" />

@@ -3,10 +3,8 @@ import axiosInstance, { endpoints } from 'src/lib/axios';
 import type { Team } from '../types/settings.types';
 
 export const teamsService = {
-  async getAll(search?: string): Promise<Team[]> {
-    const res = await axiosInstance.get(endpoints.settings.teams.list, {
-      params: search ? { search } : undefined,
-    });
+  async getAll(params?: { search?: string; page?: number; per_page?: number }): Promise<Team[]> {
+    const res = await axiosInstance.get(endpoints.settings.teams.list, { params });
     const payload = res.data?.data ?? res.data;
     return Array.isArray(payload) ? payload : [];
   },

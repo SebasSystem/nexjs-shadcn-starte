@@ -14,6 +14,7 @@ export const useTags = () => {
 
   const { data: tags = [], isLoading } = useQuery({
     queryKey: [...queryKeys.settings.tags, pagination.params],
+    staleTime: 0,
     queryFn: async () => {
       const res = await tagsService.getAll(pagination.params);
       const meta = extractPaginationMeta(res);

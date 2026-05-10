@@ -44,7 +44,7 @@ export function TablePaginationCustom<TData>({ table, dense, onChangeDense, tota
               value={`${pageSize}`}
               onValueChange={(value) => table.setPageSize(Number(value))}
             >
-              <SelectTrigger className="h-8 w-auto border-0 bg-transparent shadow-none text-sm font-normal px-1">
+              <SelectTrigger className="h-8 w-auto border-0 bg-transparent shadow-none focus:ring-0 focus:outline-none text-sm font-normal px-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent side="top">

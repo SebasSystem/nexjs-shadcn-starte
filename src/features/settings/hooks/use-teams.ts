@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from 'src/lib/query-keys';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 
 import { teamsService } from '../services/teams.service';
 import type { Team } from '../types/settings.types';
@@ -10,10 +11,17 @@ const EMPTY: Team[] = [];
 
 export function useTeams(search = '') {
   const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
   const { data: teams = EMPTY, isLoading } = useQuery({
-    queryKey: [...queryKeys.settings.teams, search],
-    queryFn: () => teamsService.getAll(search || undefined),
+    queryKey: [...queryKeys.settings.teams, search, pagination.params],
+    staleTime: 0,
+    queryFn: async () => {
+      const data = await teamsService.getAll({ search: search || undefined, ...pagination.params });
+      // Backend doesn't paginate yet — track total client-side
+      pagination.setTotal(data.length);
+      return data;
+    },
   });
 
   const createMutation = useMutation({
@@ -66,6 +74,13 @@ export function useTeams(search = '') {
     },
     deleteTeam: async (uid: string): Promise<void> => {
       await deleteMutation.mutateAsync(uid);
+    },
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
     },
   };
 }

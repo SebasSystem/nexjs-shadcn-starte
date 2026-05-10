@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useDebounce } from 'use-debounce';
 import { toast } from 'sonner';
 import { cn } from 'src/lib/utils';
 import {
@@ -16,6 +17,7 @@ import {
 } from 'src/shared/components/ui';
 import { Input } from 'src/shared/components/ui';
 
+import { useProducts } from '../hooks/use-products';
 import { inventoryStockService } from '../services/inventory-stock.service';
 import type { InventoryMasterItem, Warehouse } from '../types/inventory.types';
 
@@ -23,8 +25,8 @@ interface StockAdjustmentDrawerProps {
   open: boolean;
   onClose: () => void;
   productUid?: string;
+  product?: InventoryMasterItem;
   warehouses: Warehouse[];
-  products: InventoryMasterItem[];
   onSuccess?: () => void;
 }
 
@@ -32,8 +34,8 @@ export function StockAdjustmentDrawer({
   open,
   onClose,
   productUid,
+  product,
   warehouses,
-  products,
   onSuccess,
 }: StockAdjustmentDrawerProps) {
   const [selectedProductUid, setSelectedProductUid] = useState(productUid ?? '');
@@ -43,12 +45,22 @@ export function StockAdjustmentDrawer({
   const [comment, setComment] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [productSearch, setProductSearch] = useState('');
+  const [debouncedProductSearch] = useDebounce(productSearch, 400);
+
+  const { items: searchedProducts } = useProducts({
+    search: debouncedProductSearch || undefined,
+    per_page: 15,
+  });
 
   useEffect(() => {
     if (productUid) setSelectedProductUid(productUid);
   }, [productUid]);
 
-  const selectedProduct = products.find((p) => p.uid === selectedProductUid);
+  const selectedProduct = productUid
+    ? product
+    : searchedProducts.find((p) => p.uid === selectedProductUid);
+
   const currentWarehouseStock = selectedProduct?.stocks.find(
     (s) => s.warehouse_uid === warehouseUid
   );
@@ -103,6 +115,7 @@ export function StockAdjustmentDrawer({
     setQuantity('');
     setComment('');
     setErrors({});
+    setProductSearch('');
     onClose();
   };
 
@@ -115,18 +128,14 @@ export function StockAdjustmentDrawer({
 
         <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
           {/* Producto */}
-          {productUid && selectedProduct ? (
+          {productUid && product ? (
             <div>
               <p className="text-sm font-medium mb-1.5">Producto</p>
               <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2.5 flex items-center gap-3">
                 <Icon name="Package" size={16} className="text-muted-foreground shrink-0" />
                 <div>
-                  <p className="text-subtitle2 text-foreground font-medium">
-                    {selectedProduct.name}
-                  </p>
-                  <p className="text-caption text-muted-foreground font-mono">
-                    {selectedProduct.sku}
-                  </p>
+                  <p className="text-subtitle2 text-foreground font-medium">{product.name}</p>
+                  <p className="text-caption text-muted-foreground font-mono">{product.sku}</p>
                 </div>
               </div>
             </div>
@@ -134,7 +143,9 @@ export function StockAdjustmentDrawer({
             <SelectField
               label="Producto *"
               required
-              options={products
+              searchable
+              onSearch={setProductSearch}
+              options={searchedProducts
                 .filter((p) => p.is_active)
                 .map((p) => ({ value: p.uid, label: `${p.name} — ${p.sku}` }))}
               value={selectedProductUid}

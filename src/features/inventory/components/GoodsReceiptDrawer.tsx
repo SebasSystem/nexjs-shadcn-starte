@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useDebounce } from 'use-debounce';
 import { toast } from 'sonner';
 import { cn } from 'src/lib/utils';
 import {
@@ -15,8 +16,9 @@ import {
 } from 'src/shared/components/ui';
 import { Input } from 'src/shared/components/ui';
 
+import { useProducts } from '../hooks/use-products';
 import { inventoryStockService } from '../services/inventory-stock.service';
-import type { InventoryMasterItem, Warehouse } from '../types/inventory.types';
+import type { Warehouse } from '../types/inventory.types';
 
 interface ReceiptItem {
   product_uid: string;
@@ -27,7 +29,6 @@ interface GoodsReceiptDrawerProps {
   open: boolean;
   onClose: () => void;
   warehouses: Warehouse[];
-  products: InventoryMasterItem[];
   onSuccess?: () => void;
 }
 
@@ -35,7 +36,6 @@ export function GoodsReceiptDrawer({
   open,
   onClose,
   warehouses,
-  products,
   onSuccess,
 }: GoodsReceiptDrawerProps) {
   const [warehouseUid, setWarehouseUid] = useState('');
@@ -44,6 +44,13 @@ export function GoodsReceiptDrawer({
   const [items, setItems] = useState<ReceiptItem[]>([{ product_uid: '', quantity: 1 }]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [productSearch, setProductSearch] = useState('');
+  const [debouncedProductSearch] = useDebounce(productSearch, 400);
+
+  const { items: products } = useProducts({
+    search: debouncedProductSearch || undefined,
+    per_page: 20,
+  });
 
   const activeProducts = products.filter((p) => p.is_active);
 
@@ -115,6 +122,7 @@ export function GoodsReceiptDrawer({
     setNotes('');
     setItems([{ product_uid: '', quantity: 1 }]);
     setErrors({});
+    setProductSearch('');
     onClose();
   };
 
@@ -177,6 +185,8 @@ export function GoodsReceiptDrawer({
                     <div className="flex items-start gap-2">
                       <div className="flex-1 space-y-1">
                         <SelectField
+                          searchable
+                          onSearch={setProductSearch}
                           options={activeProducts.map((p) => ({
                             value: p.uid,
                             label: `${p.name} — ${p.sku}`,

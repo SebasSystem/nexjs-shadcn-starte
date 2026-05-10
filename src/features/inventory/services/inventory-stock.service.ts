@@ -13,6 +13,7 @@ export const inventoryStockService = {
       product_uid?: string;
       warehouse_uid?: string;
       type?: string;
+      search?: string;
     } & PaginationParams
   ): Promise<unknown> {
     const res = await axiosInstance.get(endpoints.inventory.movements, { params });
@@ -27,9 +28,9 @@ export const inventoryStockService = {
     await axiosInstance.post(endpoints.inventory.transfer, payload);
   },
 
-  async categories(): Promise<InventoryCategory[]> {
-    const res = await axiosInstance.get(endpoints.inventory.categories);
-    return res.data.data;
+  async categories(params?: { search?: string; per_page?: number; page?: number }): Promise<unknown> {
+    const res = await axiosInstance.get(endpoints.inventory.categories, { params });
+    return res.data;
   },
 
   async createCategory(payload: {

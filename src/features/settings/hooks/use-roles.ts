@@ -1,71 +1,102 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from 'src/lib/query-keys';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 
 import { rolesService } from '../services/roles.service';
 import type { Role } from '../types/settings.types';
 
-// TODO: migrate to TanStack Query for consistency with other hooks
+const EMPTY_ROLES: Role[] = [];
+
 export function useRoles() {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const pagination = usePaginationParams();
 
-  const fetchRoles = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await rolesService.getAll();
-      setRoles(data);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const { data: roles = EMPTY_ROLES, isLoading } = useQuery({
+    queryKey: [...queryKeys.settings.roles, pagination.params],
+    staleTime: 0,
+    queryFn: async () => {
+      const data = await rolesService.getAll({
+        only_active_modules: true,
+        ...pagination.params,
+      });
+      // Backend doesn't paginate yet — track total client-side
+      pagination.setTotal(data.length);
+      return data;
+    },
+  });
 
-  useEffect(() => {
-    fetchRoles();
-  }, [fetchRoles]);
+  const createMutation = useMutation({
+    mutationFn: (data: {
+      name: string;
+      key: string;
+      description: string;
+      permission_uids: string[];
+    }) => rolesService.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles }),
+  });
 
-  const createRole = async (data: {
-    name: string;
-    key: string;
-    description: string;
-    permission_uids: string[];
-  }): Promise<boolean> => {
-    try {
-      const newRole = await rolesService.create(data);
-      setRoles((prev) => [...prev, newRole]);
-      return true;
-    } catch {
-      return false;
-    }
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { name: string; key: string; description: string; permission_uids: string[] };
+    }) => rolesService.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => rolesService.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.roles }),
+  });
+
+  return {
+    roles,
+    isLoading,
+    createRole: async (data: {
+      name: string;
+      key: string;
+      description: string;
+      permission_uids: string[];
+    }): Promise<boolean> => {
+      try {
+        await createMutation.mutateAsync(data);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    updateRole: async (
+      id: string,
+      data: { name: string; key: string; description: string; permission_uids: string[] }
+    ): Promise<boolean> => {
+      try {
+        await updateMutation.mutateAsync({ id, data });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    deleteRole: async (id: string): Promise<void> => {
+      await deleteMutation.mutateAsync(id);
+    },
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
   };
-
-  const updateRole = async (
-    id: string,
-    data: { name: string; key: string; description: string; permission_uids: string[] }
-  ): Promise<boolean> => {
-    try {
-      const updated = await rolesService.update(id, data);
-      setRoles((prev) => prev.map((r) => (r.uid === id ? updated : r)));
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const deleteRole = async (id: string): Promise<void> => {
-    await rolesService.delete(id);
-    setRoles((prev) => prev.filter((r) => r.uid !== id));
-  };
-
-  return { roles, isLoading, createRole, updateRole, deleteRole, refetch: fetchRoles };
 }
 
 export function usePermissions() {
   return useQuery({
     queryKey: queryKeys.rbac.permissions,
     queryFn: () => rolesService.getPermissions(),
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
   });
 }

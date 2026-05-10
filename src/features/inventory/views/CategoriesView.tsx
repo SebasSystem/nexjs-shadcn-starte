@@ -2,6 +2,7 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useState } from 'react';
+import { useDebounce } from 'use-debounce';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
   Table,
@@ -73,9 +74,12 @@ const COLUMNS = (
 ];
 
 export function CategoriesView() {
-  const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useCategories();
-
   const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 400);
+
+  const { categories, isLoading, createCategory, updateCategory, deleteCategory, pagination } =
+    useCategories({ search: debouncedSearch || undefined });
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<InventoryCategory | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<InventoryCategory | null>(null);
@@ -84,18 +88,14 @@ export function CategoriesView() {
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const filtered = search
-    ? categories.filter(
-        (c) =>
-          c.name.toLowerCase().includes(search.toLowerCase()) ||
-          c.key.toLowerCase().includes(search.toLowerCase())
-      )
-    : categories;
-
   const { table, dense, onChangeDense } = useTable({
-    data: filtered,
+    data: categories,
     columns: COLUMNS(handleEdit, (cat) => setDeleteTarget(cat)),
-    defaultRowsPerPage: 10,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
   });
 
   function handleEdit(cat: InventoryCategory) {
@@ -161,16 +161,18 @@ export function CategoriesView() {
         }
       />
 
-      <div className="mb-4">
-        <Input
-          placeholder="Buscar por nombre o key..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-
       <SectionCard noPadding>
+        <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+          <div className="w-full max-w-sm">
+            <Input
+              label="Buscar"
+              placeholder="Buscar por nombre o key..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              leftIcon={<Icon name="Search" size={15} />}
+            />
+          </div>
+        </div>
         <TableContainer className="relative">
           <Table>
             <TableHeadCustom table={table} />
@@ -201,7 +203,12 @@ export function CategoriesView() {
           </Table>
         </TableContainer>
         <div className="border-t border-border/40">
-          <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
+          <TablePaginationCustom
+            table={table}
+            total={pagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
         </div>
       </SectionCard>
 

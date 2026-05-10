@@ -81,7 +81,7 @@ export const TeamsView = () => {
         }
       />
 
-      {isLoading ? (
+      {isLoading && teams.length === 0 ? (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 animate-pulse">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="h-44 bg-muted/40 rounded-2xl w-full" />

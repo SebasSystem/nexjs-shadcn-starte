@@ -10,8 +10,12 @@ type RoleSavePayload = {
 };
 
 export const rolesService = {
-  async getAll(): Promise<Role[]> {
-    const res = await axiosInstance.get(endpoints.rbac.roles);
+  async getAll(params?: {
+    only_active_modules?: boolean;
+    page?: number;
+    per_page?: number;
+  }): Promise<Role[]> {
+    const res = await axiosInstance.get(endpoints.rbac.roles, { params });
     const payload = res.data?.data ?? res.data;
     return (Array.isArray(payload) ? payload : []) as Role[];
   },

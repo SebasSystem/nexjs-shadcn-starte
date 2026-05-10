@@ -11,6 +11,7 @@ export function useLocalization() {
 
   const { data: config = null, isLoading } = useQuery({
     queryKey: queryKeys.settings.localization,
+    staleTime: 0,
     queryFn: () => localizationService.get(),
   });
 

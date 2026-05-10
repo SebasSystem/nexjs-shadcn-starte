@@ -5,10 +5,12 @@ interface ProductFiltersProps {
   onSearch: (v: string) => void;
   filterCategory: string;
   onFilterCategory: (v: string) => void;
+  onCategorySearch?: (q: string) => void;
   filterStatus: string;
   onFilterStatus: (v: string) => void;
   filterWarehouse: string;
   onFilterWarehouse: (v: string) => void;
+  onWarehouseSearch?: (q: string) => void;
   categories: { uid: string; name: string }[];
   warehouses: { uid: string; name: string }[];
 }
@@ -18,10 +20,12 @@ export function ProductFilters({
   onSearch,
   filterCategory,
   onFilterCategory,
+  onCategorySearch,
   filterStatus,
   onFilterStatus,
   filterWarehouse,
   onFilterWarehouse,
+  onWarehouseSearch,
   categories,
   warehouses,
 }: ProductFiltersProps) {
@@ -38,6 +42,8 @@ export function ProductFilters({
       </div>
       <SelectField
         label="Categoría"
+        searchable
+        onSearch={onCategorySearch}
         options={[
           { value: 'all', label: 'Todas las categorías' },
           ...categories.map((c) => ({ value: c.uid, label: c.name })),
@@ -59,6 +65,8 @@ export function ProductFilters({
       />
       <SelectField
         label="Bodega"
+        searchable
+        onSearch={onWarehouseSearch}
         options={[
           { value: 'all', label: 'Todas' },
           ...warehouses.map((w) => ({ value: w.uid, label: w.name })),

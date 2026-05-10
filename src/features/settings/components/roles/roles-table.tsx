@@ -64,8 +64,8 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
           const perms = info.getValue() ?? [];
           return (
             <div className="flex flex-wrap gap-1">
-              {perms.slice(0, 3).map((p) => (
-                <Badge key={p.module_uid} variant="outline" className="text-xs">
+              {perms.slice(0, 3).map((p, i) => (
+                <Badge key={p.module_uid ? `${p.module_uid}-${i}` : i} variant="outline" className="text-xs">
                   {p.module_name}
                 </Badge>
               ))}

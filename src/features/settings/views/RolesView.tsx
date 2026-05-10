@@ -52,7 +52,7 @@ export const RolesView = () => {
         <div className="flex items-center justify-between px-5 py-4">
           <p className="text-h6 text-foreground">Roles configurados</p>
         </div>
-        {isLoading ? (
+        {isLoading && roles.length === 0 ? (
           <div className="flex flex-col gap-4 p-5 animate-pulse">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="h-14 bg-muted/40 rounded-lg w-full" />

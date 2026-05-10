@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { inventoryStockService } from 'src/features/inventory/services/inventory-stock.service';
 import type {
@@ -16,12 +16,15 @@ export function useMovements(filters?: {
   product_uid?: string;
   warehouse_uid?: string;
   type?: string;
+  search?: string;
 }) {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: [...queryKeys.inventory.movements, filters, pagination.params],
+    staleTime: 0,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const result = await inventoryStockService.movements({ ...filters, ...pagination.params });
       const meta = extractPaginationMeta(result);
@@ -33,6 +36,7 @@ export function useMovements(filters?: {
 
   const { data: summary } = useQuery({
     queryKey: queryKeys.inventory.movementsSummary,
+    staleTime: 0,
     queryFn: () => inventoryStockService.movementsSummary(),
   });
 

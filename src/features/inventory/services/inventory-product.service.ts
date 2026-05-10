@@ -12,6 +12,8 @@ export const inventoryProductService = {
       category_uid?: string;
       warehouse_uid?: string;
       stock_state?: 'normal' | 'low' | 'out';
+      search?: string;
+      is_active?: boolean;
     }
   ): Promise<InventoryMasterResponse> {
     const res = await axiosInstance.get(endpoints.inventory.master, { params });

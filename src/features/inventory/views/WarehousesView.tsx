@@ -2,6 +2,7 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
+import { useDebounce } from 'use-debounce';
 import { toast } from 'sonner';
 import { cn } from 'src/lib/utils';
 import {
@@ -27,7 +28,6 @@ import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { TransferDrawer } from '../components/TransferDrawer';
 import { WarehouseDrawer } from '../components/WarehouseDrawer';
 import { WarehouseFilters } from '../components/WarehouseFilters';
-import { useProducts } from '../hooks/use-products';
 import { useWarehouses } from '../hooks/use-warehouses';
 import type { CreateWarehousePayload, Warehouse } from '../types/inventory.types';
 
@@ -38,6 +38,9 @@ interface WarehouseRow {
 const columnHelper = createColumnHelper<WarehouseRow>();
 
 export function WarehousesView() {
+  const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 400);
+
   const {
     items: warehouses,
     summary: warehousesSummary,
@@ -46,10 +49,7 @@ export function WarehousesView() {
     updateWarehouse,
     refetch,
     pagination,
-  } = useWarehouses();
-  const { items: products } = useProducts();
-
-  const [search, setSearch] = useState('');
+  } = useWarehouses({ search: debouncedSearch || undefined });
   const [filterStock, setFilterStock] = useState('all');
   const [warehouseDrawerOpen, setWarehouseDrawerOpen] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
@@ -101,17 +101,9 @@ export function WarehousesView() {
   );
 
   const filtered = useMemo(() => {
-    return warehouseRows.filter((r) => {
-      const matchSearch =
-        !search ||
-        r.warehouse.name.toLowerCase().includes(search.toLowerCase()) ||
-        r.warehouse.code.toLowerCase().includes(search.toLowerCase());
-      const matchStock =
-        filterStock === 'all' ||
-        (filterStock === 'with_stock' && (r.warehouse.summary?.total_physical ?? 0) > 0);
-      return matchSearch && matchStock;
-    });
-  }, [warehouseRows, search, filterStock]);
+    if (filterStock === 'all') return warehouseRows;
+    return warehouseRows.filter((r) => (r.warehouse.summary?.total_physical ?? 0) > 0);
+  }, [warehouseRows, filterStock]);
 
   const COLUMNS = useMemo(
     () => [
@@ -347,14 +339,12 @@ export function WarehousesView() {
         open={transferOpen}
         onClose={() => setTransferOpen(false)}
         warehouses={warehouses}
-        products={products}
         onSuccess={refetch}
       />
       <GoodsReceiptDrawer
         open={receiptOpen}
         onClose={() => setReceiptOpen(false)}
         warehouses={warehouses}
-        products={products}
         onSuccess={refetch}
       />
     </PageContainer>

@@ -2,6 +2,7 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { Fragment, useMemo, useState } from 'react';
+import { useDebounce } from 'use-debounce';
 import { cn } from 'src/lib/utils';
 import {
   PageContainer,
@@ -26,7 +27,6 @@ import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { MovementFilters } from '../components/MovementFilters';
 import { TransferDrawer } from '../components/TransferDrawer';
 import { useMovements } from '../hooks/use-movements';
-import { useProducts } from '../hooks/use-products';
 import { useWarehouses } from '../hooks/use-warehouses';
 import type { InventoryMovement, MovementType } from '../types/inventory.types';
 
@@ -74,17 +74,17 @@ function MovementExpandedRow({ movement }: { movement: InventoryMovement }) {
 
 export function MovementsView() {
   const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 400);
   const [filterType, setFilterType] = useState('all');
   const [transferOpen, setTransferOpen] = useState(false);
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  // filterType goes to backend; search stays frontend-only (backend doesn't support it yet)
   const { items, summary, isLoading, refetch, pagination } = useMovements({
     type: filterType !== 'all' ? filterType : undefined,
+    search: debouncedSearch || undefined,
   });
 
-  const { items: products } = useProducts();
   const { items: warehouses } = useWarehouses();
 
   const toggleRow = (uid: string) => {
@@ -133,14 +133,6 @@ export function MovementsView() {
       ]
     : [];
 
-  // Only search is frontend-only — type filter is handled by the backend
-  const filtered = useMemo(() => {
-    if (!search) return items;
-    return items.filter((m) => {
-      const searchStr = (m.product?.name ?? '') + (m.product?.sku ?? '') + (m.reference_uid ?? '');
-      return searchStr.toLowerCase().includes(search.toLowerCase());
-    });
-  }, [items, search]);
 
   const COLUMNS = useMemo(
     () => [
@@ -272,7 +264,7 @@ export function MovementsView() {
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: filtered,
+    data: items,
     columns: COLUMNS,
     defaultRowsPerPage: 20,
     total: pagination.total,
@@ -369,14 +361,12 @@ export function MovementsView() {
         open={transferOpen}
         onClose={() => setTransferOpen(false)}
         warehouses={warehouses}
-        products={products}
         onSuccess={refetch}
       />
       <GoodsReceiptDrawer
         open={receiptOpen}
         onClose={() => setReceiptOpen(false)}
         warehouses={warehouses}
-        products={products}
         onSuccess={refetch}
       />
     </PageContainer>
