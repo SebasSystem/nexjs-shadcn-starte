@@ -47,7 +47,7 @@ export interface Role {
   description: string;
   total_users?: number;
   permission_uids?: string[];
-  permission_entries?: { key: string; action: string }[];
+  permission_entries?: { key: string; action: string; description?: string }[];
   is_system: boolean;
   created_at: string;
 }

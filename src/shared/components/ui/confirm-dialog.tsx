@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, HelpCircle } from 'lucide-react';
 import * as React from 'react';
 import { Button } from 'src/shared/components/ui/button';
 import {
@@ -20,7 +20,7 @@ interface ConfirmDialogProps {
   description?: string | React.ReactNode;
   confirmLabel?: string;
   loading?: boolean;
-  variant?: 'error' | 'warning';
+  variant?: 'error' | 'warning' | 'default';
 }
 
 export function ConfirmDialog({
@@ -33,7 +33,23 @@ export function ConfirmDialog({
   loading = false,
   variant = 'error',
 }: ConfirmDialogProps) {
-  const isError = variant === 'error';
+  const iconConfig = {
+    error: {
+      icon: <AlertTriangle className="size-5 text-red-600" />,
+      bg: 'bg-red-100 dark:bg-red-900/30',
+      btn: 'bg-red-600 text-white hover:bg-red-700',
+    },
+    warning: {
+      icon: <AlertTriangle className="size-5 text-yellow-500" />,
+      bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+      btn: 'bg-yellow-500 text-white hover:bg-yellow-600',
+    },
+    default: {
+      icon: <HelpCircle className="size-5 text-primary" />,
+      bg: 'bg-primary/10',
+      btn: '',
+    },
+  }[variant ?? 'error'];
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -41,13 +57,9 @@ export function ConfirmDialog({
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div
-              className={`flex shrink-0 size-9 items-center justify-center rounded-full ${
-                isError ? 'bg-red-100 dark:bg-red-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30'
-              }`}
+              className={`flex shrink-0 size-9 items-center justify-center rounded-full ${iconConfig.bg}`}
             >
-              <AlertTriangle
-                className={`size-5 ${isError ? 'text-red-600' : 'text-yellow-500'}`}
-              />
+              {iconConfig.icon}
             </div>
             <DialogTitle>{title}</DialogTitle>
           </div>
@@ -62,11 +74,7 @@ export function ConfirmDialog({
           <Button
             onClick={onConfirm}
             loading={loading}
-            className={
-              isError
-                ? 'bg-red-600 text-white hover:bg-red-700'
-                : 'bg-yellow-500 text-white hover:bg-yellow-600'
-            }
+            {...(iconConfig.btn ? { className: iconConfig.btn } : { color: 'primary' })}
           >
             {confirmLabel}
           </Button>

@@ -63,7 +63,7 @@ export function RolesTable({ roles, onEdit, onDelete }: RolesTableProps) {
             <div className="flex flex-wrap gap-1">
               {entries.slice(0, 3).map((entry) => (
                 <Badge key={entry.key} variant="outline" className="text-xs">
-                  {entry.key}
+                  {entry.description ?? entry.key}
                 </Badge>
               ))}
               {entries.length > 3 && (

@@ -37,6 +37,7 @@ function mapRoles(raw: unknown): Role[] {
     permission_entries: ((role.permissions as BackendPermission[] | undefined) ?? []).map((p) => ({
       key: p.key,
       action: p.action,
+      description: p.description,
     })),
     is_system: (role.is_system as boolean) ?? false,
     created_at: role.created_at as string,
