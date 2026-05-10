@@ -10,9 +10,10 @@ const QUERY_KEY = ['settings', 'document-types'] as const;
 export function useDocumentTypes() {
   const queryClient = useQueryClient();
 
-  const { data: documentTypes = [], isLoading } = useQuery({
+  const { data: documentTypes = [], isLoading, isError } = useQuery({
     queryKey: QUERY_KEY,
     queryFn: () => documentTypeService.list(),
+    retry: 1,
   });
 
   const createDocumentType = useMutation({
@@ -46,6 +47,7 @@ export function useDocumentTypes() {
   return {
     documentTypes,
     isLoading,
+    isError,
     createDocumentType,
     updateDocumentType,
     deleteDocumentType,

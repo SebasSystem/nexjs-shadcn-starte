@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { AuthGuard, RouteGuard } from 'src/shared/auth/guard';
 import { AppLayout } from 'src/shared/components/layouts/AppLayout';
+import { ErrorBoundary } from 'src/shared/components/feedback/ErrorBoundary';
 import { SettingsInitializer } from 'src/shared/components/SettingsInitializer';
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
@@ -9,7 +10,9 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
       <SettingsInitializer />
       <AuthGuard>
         <RouteGuard>
-          <AppLayout>{children}</AppLayout>
+          <AppLayout>
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </AppLayout>
         </RouteGuard>
       </AuthGuard>
     </>

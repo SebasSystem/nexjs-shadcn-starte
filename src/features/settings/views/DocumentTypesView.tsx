@@ -1,7 +1,7 @@
 'use client';
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
   Table,
@@ -94,7 +94,7 @@ const COLUMNS = (onEdit: (dt: DocumentType) => void, onDelete: (dt: DocumentType
 ];
 
 export function DocumentTypesView() {
-  const { documentTypes, isLoading, createDocumentType, updateDocumentType, deleteDocumentType } =
+  const { documentTypes, isLoading, isError, createDocumentType, updateDocumentType, deleteDocumentType } =
     useDocumentTypes();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -107,12 +107,6 @@ export function DocumentTypesView() {
   const [isActive, setIsActive] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const { table, dense, onChangeDense } = useTable({
-    data: documentTypes,
-    columns: COLUMNS(handleEdit, (dt) => setDeleteTarget(dt)),
-    defaultRowsPerPage: 10,
-  });
-
   function handleEdit(dt: DocumentType) {
     setEditing(dt);
     setName(dt.name);
@@ -122,6 +116,18 @@ export function DocumentTypesView() {
     setIsActive(dt.is_active);
     setDrawerOpen(true);
   }
+
+  const columns = useMemo(
+    () => COLUMNS(handleEdit, (dt) => setDeleteTarget(dt)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  const { table, dense, onChangeDense } = useTable({
+    data: documentTypes,
+    columns,
+    defaultRowsPerPage: 10,
+  });
 
   function openCreate() {
     setEditing(null);
@@ -176,12 +182,14 @@ export function DocumentTypesView() {
               {table.getRowModel().rows.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={COLUMNS(handleEdit, () => {}).length}
+                    colSpan={columns.length}
                     className="py-10 text-center text-muted-foreground text-sm"
                   >
                     {isLoading
                       ? 'Cargando...'
-                      : 'No hay tipos de documento. Usá el botón "Nuevo Tipo" para crear el primero.'}
+                      : isError
+                        ? 'Error al cargar los tipos de documento. Intentá recargar la página.'
+                        : 'No hay tipos de documento. Usá el botón "Nuevo Tipo" para crear el primero.'}
                   </TableCell>
                 </TableRow>
               ) : (
