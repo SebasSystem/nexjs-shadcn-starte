@@ -10,14 +10,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from 'src/shared/components/ui/accordion';
+import { EditButton, MoreActionsMenu } from 'src/shared/components/ui/action-buttons';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from 'src/shared/components/ui/dropdown-menu';
 import { Icon } from 'src/shared/components/ui/icon';
 
 interface PlanCardProps {
@@ -87,33 +82,26 @@ export function PlanCard({ plan, onEdit, onDelete }: PlanCardProps) {
             )}
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(plan)}>
-              <Icon name="Pencil" className="h-3.5 w-3.5" />
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Icon name="MoreHorizontal" className="h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onEdit(plan)}>Editar</DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-red-600"
-                  disabled={deleting}
-                  onClick={async () => {
+            <EditButton onClick={() => onEdit(plan)} />
+            <MoreActionsMenu
+              items={[
+                { label: 'Editar', icon: <Icon name="Pencil" className="h-3.5 w-3.5" />, onClick: () => onEdit(plan) },
+                {
+                  label: deleting ? 'Procesando...' : plan.total_tenants > 0 ? 'Desactivar' : 'Eliminar',
+                  icon: <Icon name="Trash2" className="h-3.5 w-3.5" />,
+                  color: 'error',
+                  disabled: deleting,
+                  onClick: async () => {
                     setDeleting(true);
                     try {
                       await onDelete(plan);
                     } finally {
                       setDeleting(false);
                     }
-                  }}
-                >
-                  {deleting ? 'Procesando...' : plan.total_tenants > 0 ? 'Desactivar' : 'Eliminar'}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  },
+                },
+              ]}
+            />
           </div>
         </div>
         <h3 className="text-h6 font-bold text-foreground">{plan.name}</h3>
