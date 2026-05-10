@@ -78,6 +78,7 @@ export const signInWithPassword = async ({
 
     const responseBody =
       (err as { response?: { data?: BackendErrorResponse } }).response?.data ??
+      (err as { data?: BackendErrorResponse }).data ??
       (err as BackendErrorResponse);
     if (isTwoFactorSignal(responseBody)) {
       throw makeAuthError('Se requiere código de verificación 2FA.', 'TWO_FACTOR_REQUIRED');
