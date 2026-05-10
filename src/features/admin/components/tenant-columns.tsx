@@ -39,7 +39,7 @@ export interface TenantColumnHandlers {
 export function buildTenantColumns({ onEdit, onViewDetail }: TenantColumnHandlers) {
   return [
     columnHelper.accessor('nombre', {
-      header: 'Tenant',
+      header: 'Cliente',
       cell: (info) => {
         const tenant = info.row.original;
         return (

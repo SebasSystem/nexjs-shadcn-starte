@@ -74,7 +74,7 @@ export const DashboardAdminView = () => {
   const COLUMNS = useMemo(
     () => [
       columnHelper.accessor('nombre', {
-        header: 'Tenant',
+        header: 'Cliente',
         cell: (info) => {
           const t = info.row.original;
           return (
@@ -163,7 +163,7 @@ export const DashboardAdminView = () => {
       <PageContainer>
         <PageHeader
           title="Dashboard Global"
-          subtitle="Vista general del sistema y estado de todos los tenants"
+          subtitle="Vista general del sistema y estado de todos los clientes"
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
@@ -176,13 +176,13 @@ export const DashboardAdminView = () => {
         </div>
         <SectionCard noPadding className="mt-6">
           <div className="p-5">
-            <h2 className="text-h6 text-foreground">Tenants Recientes</h2>
+            <h2 className="text-h6 text-foreground">Clientes Recientes</h2>
           </div>
           <TableContainer>
             <Table>
               <thead>
                 <tr className="border-b border-border/50">
-                  {['Tenant', 'Plan', 'Usuarios', 'MRR', 'Estado', 'Último acceso', ''].map(
+                  {['Cliente', 'Plan', 'Usuarios', 'MRR', 'Estado', 'Último acceso', ''].map(
                     (h, i) => (
                       <th
                         key={i}
@@ -270,7 +270,7 @@ export const DashboardAdminView = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
-          title="Tenants Activos"
+          title="Clientes Activos"
           value={data.tenants_activos}
           trend={`${data.tenants_trial} en trial`}
           icon={<Icon name="Building2" className="h-5 w-5" />}
@@ -335,7 +335,7 @@ export const DashboardAdminView = () => {
                     className="h-10 w-10 text-emerald-500 mb-3 opacity-80"
                   />
                   <p className="text-body2 font-medium">Todo en orden</p>
-                  <p className="text-caption mt-1">No hay tenants en riesgo actualmente.</p>
+                  <p className="text-caption mt-1">No hay clientes en riesgo actualmente.</p>
                 </div>
               ) : (
                 data.tenants_en_riesgo.map((tenant) => (
@@ -371,7 +371,7 @@ export const DashboardAdminView = () => {
                       className="text-xs shrink-0 text-blue-600"
                       onClick={() => handleVerDetalle(tenant)}
                     >
-                      Ir al tenant &rarr;
+                      Ver cliente &rarr;
                     </Button>
                   </div>
                 ))
@@ -385,7 +385,7 @@ export const DashboardAdminView = () => {
         <div className="p-5 flex justify-between items-center">
           <h2 className="text-h6 text-foreground">Tenants Recientes</h2>
           <Button variant="link" size="sm" className="text-sm font-medium pr-0">
-            Ver todos los tenants &rarr;
+            Ver todos los clientes &rarr;
           </Button>
         </div>
 

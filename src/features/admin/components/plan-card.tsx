@@ -109,7 +109,7 @@ export function PlanCard({ plan, onEdit, onDelete }: PlanCardProps) {
           <span className="text-2xl font-bold text-foreground">
             {formatMoney(plan.price, { scope: 'platform', maximumFractionDigits: 0 })}
           </span>{' '}
-          / mes por tenant
+          / mes por cliente
         </p>
         <Accordion type="single" collapsible defaultValue="features">
           <AccordionItem value="features" className="border-0">
@@ -200,7 +200,7 @@ export function PlanCard({ plan, onEdit, onDelete }: PlanCardProps) {
         </Accordion>
         <div className="border-t border-border/40 pt-4 mt-3">
           <p className="text-body2 text-muted-foreground mb-2">
-            <span className="font-semibold text-foreground">{plan.total_tenants}</span> tenants
+            <span className="font-semibold text-foreground">{plan.total_tenants}</span> clientes
             activos
           </p>
           <Button
@@ -209,7 +209,7 @@ export function PlanCard({ plan, onEdit, onDelete }: PlanCardProps) {
             className="text-xs"
             onClick={() => router.push('/admin/tenants')}
           >
-            Ver tenants →
+            Ver clientes →
           </Button>
         </div>
       </div>

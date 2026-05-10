@@ -70,7 +70,7 @@ export const PlansAdminView = () => {
           </div>
           <h3 className="text-h6 text-foreground font-semibold mb-2">No hay planes creados</h3>
           <p className="text-body2 text-muted-foreground max-w-sm mb-6">
-            Comienza creando los niveles de suscripción que ofrecerás a tus tenants.
+            Comienza creando los niveles de suscripción que ofrecerás a tus clientes.
           </p>
           <Button color="primary" onClick={handleOpenNew} className="gap-2">
             <Icon name="Plus" className="h-4 w-4" />

@@ -77,12 +77,12 @@ export const TenantsView = () => {
   return (
     <PageContainer>
       <PageHeader
-        title="Tenants"
+        title="Clientes"
         subtitle="Gestiona todos los clientes del sistema"
         action={
           <Button color="primary" onClick={handleOpenNew} className="gap-2">
             <Icon name="Plus" className="h-4 w-4" />
-            Nuevo Tenant
+            Nuevo Cliente
           </Button>
         }
       />

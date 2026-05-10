@@ -83,8 +83,9 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
             <p className="text-sm font-medium text-foreground">Color *</p>
             <ColorSwatchPicker
               value={color}
-              onChange={(v) => setColor(v as TagColor)}
+              onChange={(v) => setColor(v)}
               colors={TAG_COLORS}
+              allowCustom
             />
           </div>
 

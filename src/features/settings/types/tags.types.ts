@@ -1,4 +1,4 @@
-export type TagColor = 'blue' | 'red' | 'green' | 'yellow' | 'purple' | 'orange' | 'slate' | 'pink';
+export type TagColor = string;
 
 export type TagEntity = 'CONTACT' | 'DEAL' | 'LEAD' | 'COMPANY';
 

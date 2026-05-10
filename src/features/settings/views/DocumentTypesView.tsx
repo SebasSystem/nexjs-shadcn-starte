@@ -28,6 +28,7 @@ import {
   Input,
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -218,6 +219,9 @@ export function DocumentTypesView() {
             <SheetTitle>
               {editing ? 'Editar Tipo de Documento' : 'Nuevo Tipo de Documento'}
             </SheetTitle>
+            <SheetDescription className="sr-only">
+              {editing ? 'Editá los datos del tipo de documento.' : 'Completá el formulario para crear un nuevo tipo de documento.'}
+            </SheetDescription>
           </SheetHeader>
           <div className="space-y-4 py-6">
             <Input label="Nombre" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Certificado Fiscal" />

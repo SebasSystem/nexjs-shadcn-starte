@@ -71,7 +71,7 @@ export function buildBillingColumns({
       },
     }),
     columnHelper.accessor('tenant_nombre', {
-      header: 'Tenant',
+      header: 'Cliente',
       cell: (info) => {
         const name = info.getValue();
         return (

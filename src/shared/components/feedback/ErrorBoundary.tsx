@@ -20,6 +20,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error) {
     console.error('[ErrorBoundary]', error);
+    // Clean up Radix scroll-lock so the page doesn't get stuck
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = '';
+      document.body.style.pointerEvents = '';
+      document.body.removeAttribute('data-scroll-locked');
+    }
   }
 
   render() {

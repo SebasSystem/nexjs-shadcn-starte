@@ -186,7 +186,7 @@ const ADMIN_NAV: StaticSection[] = [
     subheader: 'Admin SaaS',
     items: [
       { title: 'Dashboard', path: paths.admin.dashboard, icon: 'LayoutDashboard' },
-      { title: 'Tenants', path: paths.admin.tenants, icon: 'Building2' },
+      { title: 'Clientes', path: paths.admin.tenants, icon: 'Building2' },
       { title: 'Planes', path: paths.admin.plans, icon: 'CreditCard' },
       { title: 'Facturación', path: paths.admin.billing, icon: 'Receipt' },
       { title: 'Telemetría', path: paths.admin.telemetry, icon: 'Activity' },

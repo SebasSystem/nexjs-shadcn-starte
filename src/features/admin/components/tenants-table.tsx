@@ -62,7 +62,7 @@ export function TenantsTable({
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
         <Icon name="UserCheck" className="h-10 w-10 mb-3 opacity-40" />
-        <p className="text-body2">No se encontraron tenants con los filtros aplicados.</p>
+        <p className="text-body2">No se encontraron clientes con los filtros aplicados.</p>
       </div>
     );
   }

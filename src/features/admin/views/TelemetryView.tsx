@@ -73,7 +73,7 @@ export const TelemetryView = () => {
     <PageContainer>
       <PageHeader
         title="Telemetría Global"
-        subtitle="Monitoreo de errores y salud del sistema por tenant"
+        subtitle="Monitoreo de errores y salud del sistema por cliente"
         action={
           <Button color="primary" onClick={() => handleOpenAlertas()} className="gap-2">
             <Icon name="Settings" className="h-4 w-4" />
@@ -105,7 +105,7 @@ export const TelemetryView = () => {
               iconClassName="bg-red-500/10 text-red-600"
             />
             <StatsCard
-              title="Tenants con errores"
+              title="Clientes con errores"
               value={stats?.tenants_with_errors ?? 0}
               trend="con nivel ERROR"
               icon={<Icon name="Building2" className="h-5 w-5" />}
@@ -136,7 +136,7 @@ export const TelemetryView = () => {
               }`}
             >
               {t === 'errores'
-                ? 'Errores por Tenant'
+                ? 'Errores por Cliente'
                 : t === 'logs'
                   ? 'Logs del Sistema'
                   : 'Alertas Activas'}

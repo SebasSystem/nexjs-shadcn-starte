@@ -87,7 +87,7 @@ export const BillingView = () => {
     <PageContainer>
       <PageHeader
         title="Facturación"
-        subtitle="Historial de cobros y estado de pagos por tenant"
+        subtitle="Historial de cobros y estado de pagos por cliente"
         action={
           <Button variant="outline" className="gap-2">
             <Icon name="Download" className="h-4 w-4" />
@@ -145,7 +145,7 @@ export const BillingView = () => {
       <SectionCard noPadding className="flex flex-col shadow-sm border border-border/40">
         <div className="flex flex-col sm:flex-row gap-4 items-end px-5 py-4">
           <Input
-            label="Buscar tenant"
+            label="Buscar cliente"
             placeholder="Nombre, dominio o email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
