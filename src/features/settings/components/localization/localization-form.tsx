@@ -1,54 +1,21 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 import { useForm } from 'react-hook-form';
+import axiosInstance, { endpoints } from 'src/lib/axios';
 import { Button } from 'src/shared/components/ui/button';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import type { LocalizationConfig } from '../../types/settings.types';
 
-const ZONAS_HORARIAS = [
-  'America/Bogota',
-  'America/Mexico_City',
-  'America/Lima',
-  'America/Santiago',
-  'America/Argentina/Buenos_Aires',
-  'America/Caracas',
-  'America/Guayaquil',
-  'America/Montevideo',
-  'America/Panama',
-  'America/New_York',
-  'Europe/Madrid',
-  'UTC',
-];
-
-const MONEDAS = [
-  { code: 'COP', label: 'Peso colombiano (COP)', symbol: '$' },
-  { code: 'MXN', label: 'Peso mexicano (MXN)', symbol: '$' },
-  { code: 'PEN', label: 'Sol peruano (PEN)', symbol: 'S/' },
-  { code: 'CLP', label: 'Peso chileno (CLP)', symbol: '$' },
-  { code: 'ARS', label: 'Peso argentino (ARS)', symbol: '$' },
-  { code: 'USD', label: 'Dólar estadounidense (USD)', symbol: '$' },
-  { code: 'EUR', label: 'Euro (EUR)', symbol: '€' },
-];
-
-const FORMATOS_FECHA = [
-  { value: 'DD/MM/YYYY', label: 'DD/MM/AAAA (31/12/2025)' },
-  { value: 'MM/DD/YYYY', label: 'MM/DD/AAAA (12/31/2025)' },
-  { value: 'YYYY-MM-DD', label: 'AAAA-MM-DD (2025-12-31)' },
-];
-
-const IDIOMAS = [
-  { value: 'es-CO', label: 'Español (Colombia)' },
-  { value: 'es-MX', label: 'Español (México)' },
-  { value: 'es-PE', label: 'Español (Perú)' },
-  { value: 'es-AR', label: 'Español (Argentina)' },
-  { value: 'en-US', label: 'English (US)' },
-];
-
-const ZONA_OPTIONS = ZONAS_HORARIAS.map((tz) => ({ value: tz, label: tz }));
-const MONEDA_OPTIONS = MONEDAS.map((m) => ({ value: m.code, label: m.label }));
+interface LocalizationOptions {
+  timezones: string[];
+  currencies: { code: string; label: string; symbol: string }[];
+  date_formats: string[];
+  locales: { value: string; label: string }[];
+}
 
 interface LocalizationFormProps {
   config: LocalizationConfig;
@@ -57,6 +24,20 @@ interface LocalizationFormProps {
 }
 
 export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormProps) {
+  const { data: opts } = useQuery<LocalizationOptions>({
+    queryKey: ['localization-options'],
+    queryFn: async () => {
+      const res = await axiosInstance.get(endpoints.settings.localization.options);
+      return (res.data?.data ?? res.data) as LocalizationOptions;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const zonaOptions = (opts?.timezones ?? []).map((tz) => ({ value: tz, label: tz }));
+  const monedaOptions = (opts?.currencies ?? []).map((m) => ({ value: m.code, label: m.label }));
+  const fechaOptions = (opts?.date_formats ?? []).map((f) => ({ value: f, label: f }));
+  const idiomaOptions = opts?.locales ?? [];
+
   const {
     control,
     handleSubmit,
@@ -68,7 +49,7 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
   const [saved, setSaved] = React.useState(false);
 
   const onSubmit = async (data: LocalizationConfig) => {
-    const monedaInfo = MONEDAS.find((m) => m.code === data.currency);
+    const monedaInfo = opts?.currencies.find((m) => m.code === data.currency);
     const success = await onSave({ ...data, currency_symbol: monedaInfo?.symbol ?? '$' });
     if (success) {
       setSaved(true);
@@ -83,24 +64,24 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
           control={control}
           name="timezone"
           label="Zona horaria"
-          options={ZONA_OPTIONS}
+          options={zonaOptions}
         />
 
         <FormSelectField
           control={control}
           name="currency"
           label="Moneda principal"
-          options={MONEDA_OPTIONS}
+          options={monedaOptions}
         />
 
         <FormSelectField
           control={control}
           name="date_format"
           label="Formato de fecha"
-          options={FORMATOS_FECHA}
+          options={fechaOptions}
         />
 
-        <FormSelectField control={control} name="locale" label="Idioma" options={IDIOMAS} />
+        <FormSelectField control={control} name="locale" label="Idioma" options={idiomaOptions} />
       </div>
 
       <div className="flex items-center gap-3">

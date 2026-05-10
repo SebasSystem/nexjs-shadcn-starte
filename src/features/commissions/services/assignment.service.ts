@@ -5,16 +5,16 @@ import type { CommissionAssignment } from '../types/commissions.types';
 
 export interface CreateAssignmentPayload {
   user_uid: string;
-  plan_uid: string;
-  start_date: string;
-  end_date?: string;
+  commission_plan_uid: string;
+  starts_at: string;
+  ends_at?: string;
 }
 
 export interface UpdateAssignmentPayload {
-  plan_uid?: string;
-  start_date?: string;
-  end_date?: string;
-  status?: string;
+  commission_plan_uid?: string;
+  starts_at?: string;
+  ends_at?: string;
+  active?: boolean;
 }
 
 export const assignmentService = {

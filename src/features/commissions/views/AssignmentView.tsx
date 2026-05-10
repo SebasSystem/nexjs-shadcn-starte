@@ -10,9 +10,9 @@ import type { AssignmentForm } from 'src/features/commissions/schemas/assignment
 import type { CommissionAssignment } from 'src/features/commissions/types/commissions.types';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
-import { SelectField } from 'src/shared/components/ui/select-field';
 
 export const AssignmentView = () => {
   const { assignments, isLoading: isAsigLoading, updateAssignment, pagination } = useAssignment();
@@ -24,28 +24,32 @@ export const AssignmentView = () => {
 
   // States for arbitrary visual filters
   const [searchTerm, setSearchTerm] = useState('');
-  const [equipoFilter, setEquipoFilter] = useState('');
+  const [toggleTarget, setToggleTarget] = useState<{ uid: string; newActive: boolean } | null>(
+    null
+  );
 
   const handleEdit = (asignacion: CommissionAssignment) => {
     setSelectedAsignacion(asignacion);
     setIsDrawerOpen(true);
   };
 
-  const handleToggleStatus = (id: string, nuevoEstado: string) => {
-    const isConfirmed = window.confirm(
-      `¿Estás seguro de ${nuevoEstado === 'ACTIVO' ? 'activar' : 'desactivar'} esta asignación de plan?`
-    );
-    if (isConfirmed) {
-      updateAssignment(id, { status: nuevoEstado });
+  const handleToggleStatus = (id: string, newActive: boolean) => {
+    setToggleTarget({ uid: id, newActive });
+  };
+
+  const handleConfirmToggle = () => {
+    if (toggleTarget) {
+      updateAssignment(toggleTarget.uid, { active: toggleTarget.newActive });
+      setToggleTarget(null);
     }
   };
 
   const handleSave = async (data: AssignmentForm): Promise<boolean> => {
     if (selectedAsignacion) {
       const result = await updateAssignment(selectedAsignacion.uid, {
-        plan_uid: data.plan_uid,
-        start_date: data.start_date,
-        end_date: data.end_date || undefined,
+        commission_plan_uid: data.plan_uid,
+        starts_at: data.starts_at,
+        ends_at: data.ends_at || undefined,
       });
       return !!result;
     }
@@ -54,8 +58,7 @@ export const AssignmentView = () => {
 
   const filteredAsignaciones = assignments.filter((a) => {
     const matchName = a.user_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchEquipo = equipoFilter ? a.team_name === equipoFilter : true;
-    return matchName && matchEquipo;
+    return matchName;
   });
 
   return (
@@ -83,17 +86,6 @@ export const AssignmentView = () => {
               leftIcon={<Icon name="Search" size={16} />}
             />
           </div>
-          <SelectField
-            label="Equipo"
-            value={equipoFilter}
-            onChange={(val) => setEquipoFilter(val as string)}
-            options={[
-              { value: '', label: 'Todos los equipos' },
-              { value: 'Ventas Norte', label: 'Ventas Norte' },
-              { value: 'Ventas Sur', label: 'Ventas Sur' },
-              { value: 'Ventas Centro', label: 'Ventas Centro' },
-            ]}
-          />
         </div>
 
         <AssignmentsTable
@@ -121,6 +113,20 @@ export const AssignmentView = () => {
         isOpen={isMasivaOpen}
         onClose={() => setIsMasivaOpen(false)}
         planesDisponibles={plans}
+      />
+
+      <ConfirmDialog
+        open={!!toggleTarget}
+        onClose={() => setToggleTarget(null)}
+        onConfirm={handleConfirmToggle}
+        title={toggleTarget?.newActive ? '¿Activar asignación?' : '¿Desactivar asignación?'}
+        description={
+          toggleTarget?.newActive
+            ? 'El vendedor volverá a tener el plan activo.'
+            : 'El vendedor quedará sin plan de comisión activo.'
+        }
+        confirmLabel={toggleTarget?.newActive ? 'Activar' : 'Desactivar'}
+        variant={toggleTarget?.newActive ? 'default' : 'warning'}
       />
     </PageContainer>
   );

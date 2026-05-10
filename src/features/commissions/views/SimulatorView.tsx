@@ -44,7 +44,7 @@ export const SimulatorView = () => {
 
   // Default to first active plan
   useEffect(() => {
-    const activePlans = plans.filter((p) => p.status === 'ACTIVO');
+    const activePlans = plans.filter((p) => p.is_active);
     if (activePlans.length > 0 && !planUid) {
       setPlanUid(activePlans[0].uid);
     }
@@ -132,7 +132,7 @@ export const SimulatorView = () => {
   });
 
   const planOptions = plans
-    .filter((p) => p.status === 'ACTIVO')
+    .filter((p) => p.is_active)
     .map((p) => ({ value: p.uid, label: p.name }));
 
   return (
@@ -212,7 +212,7 @@ export const SimulatorView = () => {
                 📋 Plan aplicado: &quot;{selectedPlan.name}&quot;
               </p>
               <p className="text-muted-foreground">
-                Tipo: {selectedPlan.type === 'VENTA' ? 'Por Venta' : selectedPlan.type}
+                Tipo: {selectedPlan.type === 'sale' ? 'Por Venta' : selectedPlan.type === 'margin' ? 'Por Margen' : 'Por Meta'}
               </p>
               <p className="text-muted-foreground">
                 Base: {selectedPlan.base_percentage}% | Tramos: {selectedPlan.tiers.length}{' '}

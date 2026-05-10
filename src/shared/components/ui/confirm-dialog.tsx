@@ -63,9 +63,7 @@ export function ConfirmDialog({
             </div>
             <DialogTitle>{title}</DialogTitle>
           </div>
-          {description && (
-            <DialogDescription className="pt-1">{description}</DialogDescription>
-          )}
+          {description && <DialogDescription className="pt-1">{description}</DialogDescription>}
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={loading}>

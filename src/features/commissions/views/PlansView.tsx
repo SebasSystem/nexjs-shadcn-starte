@@ -8,12 +8,14 @@ import type { PlanForm } from 'src/features/commissions/schemas/plan.schema';
 import type { CommissionPlan } from 'src/features/commissions/types/commissions.types';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 
 export const PlansView = () => {
-  const { plans, isLoading, createPlan, updatePlan, pagination } = usePlans();
+  const { plans, isLoading, createPlan, updatePlan, deletePlan, pagination } = usePlans();
   const [selectedPlan, setSelectedPlan] = useState<CommissionPlan | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<CommissionPlan | null>(null);
 
   const handleEdit = (plan: CommissionPlan) => {
     setSelectedPlan(plan);
@@ -26,27 +28,20 @@ export const PlansView = () => {
   };
 
   const handleSave = async (form: PlanForm): Promise<boolean> => {
-    if (selectedPlan?.uid) {
-      const result = await updatePlan(selectedPlan.uid, {
-        name: form.name,
-        type: form.type,
-        base_percentage: form.base_percentage,
-        tiers: form.tiers.map((t) => ({ threshold: t.threshold, percent: t.percent })),
-        applicable_roles: form.applicable_roles,
-        start_date: form.start_date,
-        end_date: form.end_date || undefined,
-      });
-      return !!result;
-    }
-    const result = await createPlan({
+    const payload = {
       name: form.name,
       type: form.type,
       base_percentage: form.base_percentage,
       tiers: form.tiers.map((t) => ({ threshold: t.threshold, percent: t.percent })),
-      applicable_roles: form.applicable_roles,
-      start_date: form.start_date,
-      end_date: form.end_date || undefined,
-    });
+      role_uids: form.role_uids,
+      starts_at: form.starts_at,
+      ends_at: form.ends_at || undefined,
+    };
+    if (selectedPlan?.uid) {
+      const result = await updatePlan(selectedPlan.uid, payload);
+      return !!result;
+    }
+    const result = await createPlan(payload);
     return !!result;
   };
 
@@ -71,6 +66,7 @@ export const PlansView = () => {
           planes={plans}
           isLoading={isLoading}
           onEdit={handleEdit}
+          onDelete={setDeleteTarget}
           total={pagination.total}
           pageIndex={pagination.page - 1}
           pageSize={pagination.rowsPerPage}
@@ -84,6 +80,24 @@ export const PlansView = () => {
         onClose={() => setIsDrawerOpen(false)}
         plan={selectedPlan}
         onSave={handleSave}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) deletePlan(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar plan?"
+        description={
+          <>
+            Vas a eliminar <strong>{deleteTarget?.name}</strong>. Si tiene asignaciones activas, el
+            backend rechazará la operación.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
       />
     </PageContainer>
   );

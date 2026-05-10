@@ -5,35 +5,29 @@ import type { CommissionPlan } from '../types/commissions.types';
 
 export interface CreatePlanPayload {
   name: string;
-  type: string;
+  type: 'sale' | 'margin' | 'target';
   base_percentage: number;
   tiers: { threshold: number; percent: number }[];
-  applicable_roles: string[];
-  start_date: string;
-  end_date?: string;
-  status?: string;
+  role_uids: string[];
+  starts_at: string;
+  ends_at?: string;
 }
 
 export interface UpdatePlanPayload {
   name?: string;
-  type?: string;
+  type?: 'sale' | 'margin' | 'target';
   base_percentage?: number;
   tiers?: { threshold: number; percent: number }[];
-  applicable_roles?: string[];
-  start_date?: string;
-  end_date?: string;
-  status?: string;
+  role_uids?: string[];
+  starts_at?: string;
+  ends_at?: string;
+  active?: boolean;
 }
 
 export const plansService = {
   async getPlans(params?: PaginationParams): Promise<unknown> {
     const res = await axiosInstance.get(endpoints.commissions.plans.list, { params });
     return res.data;
-  },
-
-  async getPlanById(uid: string): Promise<CommissionPlan> {
-    const res = await axiosInstance.get(endpoints.commissions.plans.update(uid));
-    return (res.data?.data ?? res.data) as CommissionPlan;
   },
 
   async createPlan(data: CreatePlanPayload): Promise<CommissionPlan> {

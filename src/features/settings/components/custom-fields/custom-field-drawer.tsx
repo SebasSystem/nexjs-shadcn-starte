@@ -1,8 +1,10 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
+import axiosInstance, { endpoints } from 'src/lib/axios';
 import { Button } from 'src/shared/components/ui/button';
 import { Checkbox } from 'src/shared/components/ui/checkbox';
 import { FormInput } from 'src/shared/components/ui/form-input';
@@ -28,7 +30,7 @@ const schema = z.object({
     .min(2, 'Requerido')
     .regex(/^[a-z_]+$/, 'Solo minúsculas y guiones bajos'),
   type: z.enum(['text', 'number', 'date', 'select', 'boolean']),
-  module: z.enum(['contacts', 'companies', 'opportunities', 'products']),
+  module: z.string().min(1, 'Requerido'),
   required: z.boolean(),
 });
 
@@ -49,7 +51,7 @@ const TYPE_OPTIONS = [
   { value: 'boolean', label: 'Sí / No' },
 ];
 
-const MODULE_OPTIONS = [
+const MODULE_OPTIONS_FALLBACK = [
   { value: 'contacts', label: 'Contactos' },
   { value: 'companies', label: 'Empresas' },
   { value: 'opportunities', label: 'Oportunidades' },
@@ -64,6 +66,15 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
 }) => {
   const [options, setOptions] = useState<string[]>(() => field?.options ?? []);
   const [newOption, setNewOption] = useState('');
+
+  const { data: moduleOptions = MODULE_OPTIONS_FALLBACK } = useQuery({
+    queryKey: ['custom-fields-modules'],
+    queryFn: async () => {
+      const res = await axiosInstance.get(endpoints.settings.customFields.modules);
+      return (res.data?.data ?? res.data) as { value: string; label: string }[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const {
     control,
@@ -166,7 +177,7 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
                 name="module"
                 label="Módulo"
                 required
-                options={MODULE_OPTIONS}
+                options={moduleOptions}
               />
             </div>
 

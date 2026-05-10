@@ -1,8 +1,7 @@
-export type CommissionType = 'VENTA' | 'MARGEN' | 'META';
-export type PlanStatus = 'ACTIVO' | 'INACTIVO';
+export type CommissionType = 'sale' | 'margin' | 'target';
 
 export interface CommissionTier {
-  uid: string;
+  uid?: string;
   threshold: number;
   percent: number;
 }
@@ -13,27 +12,22 @@ export interface CommissionPlan {
   type: CommissionType;
   base_percentage: number;
   tiers: CommissionTier[];
-  applicable_roles: string[];
-  start_date: string;
-  end_date?: string;
-  status: PlanStatus;
+  role_uids: string[];
+  starts_at: string;
+  ends_at?: string;
+  is_active: boolean;
 }
-
-export type AssignmentStatus = 'ACTIVO' | 'INACTIVO' | 'SIN_ASIGNAR';
 
 export interface CommissionAssignment {
   uid: string;
   user_uid: string;
   user_name: string;
   user_avatar?: string;
-  team_uid: string;
-  team_name: string;
   plan_uid?: string;
   plan_name?: string;
-  plan_type?: CommissionType;
   start_date?: string;
   end_date?: string;
-  status: AssignmentStatus;
+  status: 'active' | 'inactive';
 }
 
 export type CommissionRunStatus = 'PENDING' | 'APPROVED' | 'PAID';
@@ -43,7 +37,6 @@ export interface CommissionRun {
   user_uid: string;
   user_name: string;
   user_avatar?: string;
-  team_uid: string;
   period: string;
   total_sales: number;
   plan_applied: string;

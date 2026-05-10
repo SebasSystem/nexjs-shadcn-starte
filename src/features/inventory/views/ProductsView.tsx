@@ -59,13 +59,14 @@ export function ProductsView() {
     ? (filterStatus as 'normal' | 'low' | 'out')
     : undefined;
 
-  const { items, summary, isLoading, createProduct, updateProduct, removeProduct, pagination } = useProducts({
-    category_uid: filterCategory !== 'all' ? filterCategory : undefined,
-    warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
-    stock_state,
-    search: debouncedSearch || undefined,
-    is_active: filterStatus === 'inactive' ? false : undefined,
-  });
+  const { items, summary, isLoading, createProduct, updateProduct, removeProduct, pagination } =
+    useProducts({
+      category_uid: filterCategory !== 'all' ? filterCategory : undefined,
+      warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
+      stock_state,
+      search: debouncedSearch || undefined,
+      is_active: filterStatus === 'inactive' ? false : undefined,
+    });
 
   const { categories: filterCategories } = useCategories({
     search: debouncedCategorySearch || undefined,
@@ -328,8 +329,7 @@ export function ProductsView() {
         title="¿Eliminar producto?"
         description={
           <>
-            Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
-            deshacer.
+            Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede deshacer.
           </>
         }
         confirmLabel="Eliminar"

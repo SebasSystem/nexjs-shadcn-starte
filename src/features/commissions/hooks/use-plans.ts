@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
@@ -30,6 +30,8 @@ export const usePlans = () => {
       if (meta) pagination.setTotal(meta.total);
       return ((res as Record<string, unknown>).data ?? []) as CommissionPlan[];
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   const createMutation = useMutation({

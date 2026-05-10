@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useDebounce } from 'use-debounce';
 import { toast } from 'sonner';
 import {
   Button,
@@ -16,6 +15,7 @@ import {
   Switch,
   Textarea,
 } from 'src/shared/components/ui';
+import { useDebounce } from 'use-debounce';
 
 import { useCategories } from '../hooks/use-categories';
 import type { CreateProductPayload, InventoryMasterItem } from '../types/inventory.types';
@@ -41,7 +41,10 @@ export function ProductDrawer({
 }: ProductDrawerProps) {
   const [categorySearch, setCategorySearch] = useState('');
   const [debouncedCategorySearch] = useDebounce(categorySearch, 400);
-  const { categories } = useCategories({ search: debouncedCategorySearch || undefined, per_page: 15 });
+  const { categories } = useCategories({
+    search: debouncedCategorySearch || undefined,
+    per_page: 15,
+  });
   const [name, setName] = useState(product?.name ?? '');
   const [sku, setSku] = useState(product?.sku ?? '');
   const [description, setDescription] = useState(product?.description ?? '');

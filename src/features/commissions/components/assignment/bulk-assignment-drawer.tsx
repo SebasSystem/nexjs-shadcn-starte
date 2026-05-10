@@ -85,9 +85,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
 
   const planOptions = [
     { value: '', label: '-- Seleccionar Plan --' },
-    ...planesDisponibles
-      .filter((p) => p.status === 'ACTIVO')
-      .map((p) => ({ value: p.uid, label: `${p.name} (${p.type})` })),
+    ...planesDisponibles.filter((p) => p.is_active).map((p) => ({ value: p.uid, label: p.name })),
   ];
 
   return (

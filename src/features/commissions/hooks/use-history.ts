@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
@@ -9,9 +9,17 @@ import { extractPaginationMeta } from 'src/shared/lib/pagination';
 import { commissionService } from '../services/commission.service';
 import type { CommissionRun } from '../types/commissions.types';
 
-export const useHistory = () => {
+interface HistoryFilters {
+  status?: string;
+}
+
+export const useHistory = (filters: HistoryFilters = {}) => {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
+
+  const serverFilters = {
+    ...(filters.status ? { status: filters.status.toLowerCase() } : {}),
+  };
 
   const {
     data: runs = [],
@@ -19,13 +27,15 @@ export const useHistory = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: [...queryKeys.commissions.runs, pagination.params],
+    queryKey: [...queryKeys.commissions.runs, pagination.params, serverFilters],
     queryFn: async () => {
-      const res = await commissionService.getRuns(pagination.params);
+      const res = await commissionService.getRuns({ ...pagination.params, ...serverFilters });
       const meta = extractPaginationMeta(res as Record<string, unknown>);
       if (meta) pagination.setTotal(meta.total);
       return ((res as Record<string, unknown>).data ?? []) as CommissionRun[];
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   const approveMutation = useMutation({
@@ -79,5 +89,4 @@ export const useHistory = () => {
   };
 };
 
-// Keep backward-compatible type alias
 export type { CommissionRun as RegistroComision };

@@ -171,10 +171,12 @@ export const endpoints = {
       create: '/custom-fields',
       update: (uid: string) => `/custom-fields/${uid}`,
       delete: (uid: string) => `/custom-fields/${uid}`,
+      modules: '/custom-fields/modules',
     },
     localization: {
       get: '/settings/localization',
       update: '/settings/localization',
+      options: '/settings/localization/options',
     },
   },
   contacts: {

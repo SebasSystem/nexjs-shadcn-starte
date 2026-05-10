@@ -19,6 +19,7 @@ export const useDashboardCommissions = (userUid?: string | null) => {
     queryKey: [...queryKeys.commissions.dashboard, targetUid],
     queryFn: () => commissionService.getDashboard(targetUid!),
     enabled: !!targetUid,
+    staleTime: 0,
   });
 
   const data = query.data;

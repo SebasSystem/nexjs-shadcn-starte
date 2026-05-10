@@ -13,6 +13,7 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
+import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
 import { Icon } from 'src/shared/components/ui/icon';
 import { SectionCard } from 'src/shared/components/ui/section-card';
 
@@ -22,6 +23,7 @@ interface PlansTableProps {
   planes: CommissionPlan[];
   isLoading: boolean;
   onEdit: (plan: CommissionPlan) => void;
+  onDelete: (plan: CommissionPlan) => void;
   total?: number;
   pageIndex?: number;
   pageSize?: number;
@@ -35,6 +37,7 @@ export const PlansTable: React.FC<PlansTableProps> = ({
   planes,
   isLoading,
   onEdit,
+  onDelete,
   total,
   pageIndex,
   pageSize,
@@ -73,19 +76,19 @@ export const PlansTable: React.FC<PlansTableProps> = ({
         header: 'Tipo',
         cell: (info) => {
           const planType = info.getValue();
-          if (planType === 'VENTA')
+          if (planType === 'sale')
             return (
               <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full">
                 Por Venta
               </span>
             );
-          if (planType === 'MARGEN')
+          if (planType === 'margin')
             return (
               <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">
                 Por Margen
               </span>
             );
-          if (planType === 'META')
+          if (planType === 'target')
             return (
               <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-1 rounded-full">
                 Por Meta
@@ -103,19 +106,10 @@ export const PlansTable: React.FC<PlansTableProps> = ({
         header: 'Tramos',
         cell: (info) => <span>{info.getValue()} config.</span>,
       }),
-      columnHelper.accessor('applicable_roles', {
-        header: 'Rol Aplicable',
+      columnHelper.accessor('role_uids', {
+        header: 'Roles',
         cell: (info) => (
-          <div className="flex gap-1 flex-wrap">
-            {info.getValue().map((role) => (
-              <span
-                key={role}
-                className="bg-muted text-muted-foreground text-[10px] px-2 py-0.5 rounded border border-border/40"
-              >
-                {role}
-              </span>
-            ))}
-          </div>
+          <span className="text-muted-foreground text-sm">{info.getValue().length} rol(es)</span>
         ),
       }),
       columnHelper.display({
@@ -125,58 +119,44 @@ export const PlansTable: React.FC<PlansTableProps> = ({
           const plan = info.row.original;
           return (
             <span className="text-muted-foreground text-sm">
-              {format(new Date(plan.start_date), 'dd/MM/yyyy')}
-              {plan.end_date
-                ? ` - ${format(new Date(plan.end_date), 'dd/MM/yyyy')}`
+              {format(new Date(plan.starts_at), 'dd/MM/yyyy')}
+              {plan.ends_at
+                ? ` - ${format(new Date(plan.ends_at), 'dd/MM/yyyy')}`
                 : ' - Indefinido'}
             </span>
           );
         },
       }),
-      columnHelper.accessor('status', {
+      columnHelper.accessor('is_active', {
         header: 'Estado',
-        cell: (info) => {
-          const val = info.getValue();
-          return (
-            <span
-              className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                val === 'ACTIVO' ? 'bg-green-100 text-green-800' : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              {val}
-            </span>
-          );
-        },
+        cell: (info) => (
+          <span
+            className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+              info.getValue() ? 'bg-green-100 text-green-800' : 'bg-muted text-muted-foreground'
+            }`}
+          >
+            {info.getValue() ? 'Activo' : 'Inactivo'}
+          </span>
+        ),
       }),
       columnHelper.display({
         id: 'actions',
-        header: 'Acciones',
+        header: '',
         cell: (info) => {
           const plan = info.row.original;
           return (
             <div
-              className="flex items-center justify-end gap-2"
+              className="flex items-center justify-end gap-1"
               onClick={(e) => e.stopPropagation()}
             >
-              <button
-                onClick={() => onEdit(plan)}
-                className="p-1 text-muted-foreground hover:text-blue-600 transition-colors"
-                title="Editar"
-              >
-                <Icon name="Edit" size={16} />
-              </button>
-              <button
-                className="p-1 text-muted-foreground hover:text-foreground transition-colors"
-                title="Duplicar"
-              >
-                <Icon name="Copy" size={16} />
-              </button>
+              <EditButton onClick={() => onEdit(plan)} />
+              <DeleteButton onClick={() => onDelete(plan)} />
             </div>
           );
         },
       }),
     ],
-    [expandedId, onEdit]
+    [expandedId, onEdit, onDelete]
   );
 
   const { table, dense, onChangeDense } = useTable({

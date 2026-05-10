@@ -19,6 +19,7 @@ import {
 } from 'src/shared/components/table';
 import { Button } from 'src/shared/components/ui/button';
 import { Checkbox } from 'src/shared/components/ui/checkbox';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
@@ -35,14 +36,21 @@ type RunRow = CommissionRun;
 const columnHelper = createColumnHelper<RunRow>();
 
 export const HistoryView = () => {
-  const { runs, isLoading, bulkApprove, bulkPay, pagination } = useHistory();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [bulkConfirm, setBulkConfirm] = useState<{
+    type: 'approve' | 'pay';
+    uids: string[];
+  } | null>(null);
 
   // States for filters
   const [searchTerm, setSearchTerm] = useState('');
   const [periodoFilter, setPeriodoFilter] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('');
+
+  const { runs, isLoading, bulkApprove, bulkPay, pagination } = useHistory({
+    status: estadoFilter || undefined,
+  });
 
   // Mini-modal PDF
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
@@ -193,10 +201,9 @@ export const HistoryView = () => {
     return runs.filter((r) => {
       const matchSearch = r.user_name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchPeriodo = periodoFilter ? r.period === periodoFilter : true;
-      const matchEstado = estadoFilter ? r.status === estadoFilter : true;
-      return matchSearch && matchPeriodo && matchEstado;
+      return matchSearch && matchPeriodo;
     });
-  }, [runs, searchTerm, periodoFilter, estadoFilter]);
+  }, [runs, searchTerm, periodoFilter]);
 
   const { table, dense, onChangeDense } = useTable({
     data: filteredRuns,
@@ -396,7 +403,7 @@ export const HistoryView = () => {
               size="sm"
               className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
               disabled={seleccionPendientes.length === 0}
-              onClick={() => bulkApprove(seleccionPendientes)}
+              onClick={() => setBulkConfirm({ type: 'approve', uids: seleccionPendientes })}
             >
               Aprobar ({seleccionPendientes.length})
             </Button>
@@ -404,7 +411,7 @@ export const HistoryView = () => {
               size="sm"
               className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               disabled={seleccionAprobados.length === 0}
-              onClick={() => bulkPay(seleccionAprobados)}
+              onClick={() => setBulkConfirm({ type: 'pay', uids: seleccionAprobados })}
             >
               Marcar Pagados ({seleccionAprobados.length})
             </Button>
@@ -419,6 +426,25 @@ export const HistoryView = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!bulkConfirm}
+        onClose={() => setBulkConfirm(null)}
+        onConfirm={() => {
+          if (bulkConfirm?.type === 'approve') bulkApprove(bulkConfirm.uids);
+          else if (bulkConfirm?.type === 'pay') bulkPay(bulkConfirm.uids);
+          setBulkConfirm(null);
+          setSelectedIds([]);
+        }}
+        title={bulkConfirm?.type === 'approve' ? '¿Aprobar comisiones?' : '¿Marcar como pagadas?'}
+        description={
+          bulkConfirm?.type === 'approve'
+            ? `Vas a aprobar ${bulkConfirm?.uids.length} registro(s). Esta acción no se puede deshacer.`
+            : `Vas a marcar ${bulkConfirm?.uids.length} registro(s) como pagados. Esta acción no se puede deshacer.`
+        }
+        confirmLabel={bulkConfirm?.type === 'approve' ? 'Aprobar' : 'Marcar Pagados'}
+        variant="warning"
+      />
 
       {/* Drawer PDF */}
       <Sheet

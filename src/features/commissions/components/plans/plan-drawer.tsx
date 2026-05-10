@@ -1,13 +1,16 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect } from 'react';
-import { useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
+import React, { useEffect, useState } from 'react';
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
+import axiosInstance, { endpoints } from 'src/lib/axios';
 import { Button } from 'src/shared/components/ui/button';
 import { FormInput } from 'src/shared/components/ui/form-input';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import {
   Sheet,
   SheetContent,
@@ -16,6 +19,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from 'src/shared/components/ui/sheet';
+import { useDebounce } from 'use-debounce';
 
 import { type PlanForm, planSchema } from '../../schemas/plan.schema';
 import type { CommissionPlan } from '../../types/commissions.types';
@@ -28,9 +32,9 @@ interface PlanDrawerProps {
 }
 
 const TIPO_OPTIONS = [
-  { value: 'VENTA', label: 'Por Venta (Monto)' },
-  { value: 'MARGEN', label: 'Por Margen (Ganancia)' },
-  { value: 'META', label: 'Por Meta (KPI)' },
+  { value: 'sale', label: 'Por Venta (Monto)' },
+  { value: 'margin', label: 'Por Margen (Ganancia)' },
+  { value: 'target', label: 'Por Meta (KPI)' },
 ];
 
 export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, onSave }) => {
@@ -44,12 +48,11 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
     resolver: zodResolver(planSchema),
     defaultValues: {
       name: '',
-      type: 'VENTA',
+      type: 'sale',
       base_percentage: 0,
-      applicable_roles: [],
-      start_date: '',
-      end_date: '',
-      status: 'ACTIVO',
+      role_uids: [],
+      starts_at: '',
+      ends_at: '',
       tiers: [{ threshold: 0, percent: 0 }],
     },
     mode: 'onChange',
@@ -65,20 +68,18 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
           name: plan.name,
           type: plan.type,
           base_percentage: plan.base_percentage,
-          applicable_roles: plan.applicable_roles.length ? plan.applicable_roles : [],
-          start_date: plan.start_date || '',
-          end_date: plan.end_date || '',
-          status: plan.status,
+          role_uids: plan.role_uids ?? [],
+          starts_at: plan.starts_at || '',
+          ends_at: plan.ends_at || '',
           tiers: plan.tiers,
         });
       } else {
         reset({
           name: '',
-          type: 'VENTA',
+          type: 'sale',
           base_percentage: 1,
-          applicable_roles: ['Vendedor'],
-          start_date: new Date().toISOString().split('T')[0],
-          status: 'ACTIVO',
+          role_uids: [],
+          starts_at: new Date().toISOString().split('T')[0],
           tiers: [{ threshold: 0, percent: 1 }],
         });
       }
@@ -91,6 +92,23 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
   };
 
   const planType = useWatch({ control, name: 'type' });
+
+  const [roleSearch, setRoleSearch] = useState('');
+  const [debouncedRoleSearch] = useDebounce(roleSearch, 300);
+
+  const { data: rolesData } = useQuery({
+    queryKey: ['rbac-roles', debouncedRoleSearch],
+    queryFn: async () => {
+      const res = await axiosInstance.get(endpoints.rbac.roles, {
+        params: debouncedRoleSearch ? { search: debouncedRoleSearch } : undefined,
+      });
+      const raw = res.data?.data ?? res.data;
+      return (Array.isArray(raw) ? raw : (raw?.data ?? [])) as { uid: string; name: string }[];
+    },
+    staleTime: 30_000,
+  });
+
+  const roleOptions = (rolesData ?? []).map((r) => ({ value: r.uid, label: r.name }));
 
   return (
     <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
@@ -125,7 +143,6 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                   options={TIPO_OPTIONS}
                 />
 
-                {/* base_percentage usa register + valueAsNumber */}
                 <Input
                   type="number"
                   step="0.01"
@@ -137,34 +154,39 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                 />
               </div>
 
-              {/* applicable_roles usa register + setValueAs */}
-              <Input
-                type="text"
-                {...register('applicable_roles', {
-                  setValueAs: (v) =>
-                    typeof v === 'string'
-                      ? v
-                          .split(',')
-                          .map((s) => s.trim())
-                          .filter(Boolean)
-                      : v,
-                })}
-                label="Roles Aplicables"
-                required
-                hint="Separados por coma"
-                placeholder="Ej. Vendedor, Gerente"
-                error={errors.applicable_roles?.message}
-              />
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium leading-none">
+                  Roles Aplicables <span className="text-destructive">*</span>
+                </label>
+                <Controller
+                  control={control}
+                  name="role_uids"
+                  render={({ field }) => (
+                    <SelectField
+                      multiple
+                      searchable
+                      options={roleOptions}
+                      value={field.value as string[]}
+                      onChange={(val) => field.onChange(val)}
+                      onSearch={setRoleSearch}
+                      placeholder="Seleccionar roles..."
+                    />
+                  )}
+                />
+                {errors.role_uids && (
+                  <p className="text-xs text-destructive">{errors.role_uids.message}</p>
+                )}
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <FormInput
                   control={control}
-                  name="start_date"
+                  name="starts_at"
                   type="date"
                   label="Vigencia Inicio"
                   required
                 />
-                <FormInput control={control} name="end_date" type="date" label="Vigencia Fin" />
+                <FormInput control={control} name="ends_at" type="date" label="Vigencia Fin" />
               </div>
             </section>
 
@@ -198,9 +220,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                         type="number"
                         step="0.01"
                         size="sm"
-                        {...register(`tiers.${index}.percent`, {
-                          valueAsNumber: true,
-                        })}
+                        {...register(`tiers.${index}.percent`, { valueAsNumber: true })}
                         rightIcon={<span className="text-muted-foreground text-xs">%</span>}
                       />
                     </div>

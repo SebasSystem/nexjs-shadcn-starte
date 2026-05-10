@@ -13,6 +13,7 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
+import { EditButton } from 'src/shared/components/ui/action-buttons';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
 
@@ -22,7 +23,7 @@ interface AssignmentsTableProps {
   asignaciones: CommissionAssignment[];
   isLoading: boolean;
   onEdit: (asignacion: CommissionAssignment) => void;
-  onToggleStatus: (id: string, nuevoEstado: string) => void;
+  onToggleStatus: (id: string, newActive: boolean) => void;
   total?: number;
   pageIndex?: number;
   pageSize?: number;
@@ -61,31 +62,17 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
           );
         },
       }),
-      columnHelper.accessor('team_name', {
-        header: 'Equipo',
-        cell: (info) => (
-          <span className="bg-muted text-muted-foreground px-2 py-1 rounded text-xs">
-            {info.getValue()}
-          </span>
-        ),
-      }),
       columnHelper.accessor('plan_name', {
         header: 'Plan Asignado',
-        cell: (info) => {
-          const row = info.row.original;
-          const plan = info.getValue();
-          return (
-            <span
-              className={
-                row.status === 'SIN_ASIGNAR'
-                  ? 'text-muted-foreground italic'
-                  : 'font-medium text-foreground'
-              }
-            >
-              {plan || '— Sin plan asignado'}
-            </span>
-          );
-        },
+        cell: (info) => (
+          <span
+            className={
+              info.getValue() ? 'font-medium text-foreground' : 'text-muted-foreground italic'
+            }
+          >
+            {info.getValue() || '— Sin plan asignado'}
+          </span>
+        ),
       }),
       columnHelper.display({
         id: 'vigencia',
@@ -104,34 +91,18 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
         header: 'Estado',
         cell: (info) => {
           const val = info.getValue();
-          if (val === 'ACTIVO')
-            return (
-              <Badge
-                variant="outline"
-                className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200"
-              >
-                Activo
-              </Badge>
-            );
-          if (val === 'INACTIVO')
-            return (
-              <Badge
-                variant="outline"
-                className="bg-gray-100 text-gray-800 hover:bg-gray-100 border-gray-200"
-              >
-                Inactivo
-              </Badge>
-            );
-          if (val === 'SIN_ASIGNAR')
-            return (
-              <Badge
-                variant="outline"
-                className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200"
-              >
-                Sin Asignar
-              </Badge>
-            );
-          return null;
+          return (
+            <Badge
+              variant="outline"
+              className={
+                val === 'active'
+                  ? 'bg-green-100 text-green-800 hover:bg-green-100 border-green-200'
+                  : 'bg-gray-100 text-gray-800 hover:bg-gray-100 border-gray-200'
+              }
+            >
+              {val === 'active' ? 'Activo' : 'Inactivo'}
+            </Badge>
+          );
         },
       }),
       columnHelper.display({
@@ -144,35 +115,17 @@ export const AssignmentsTable: React.FC<AssignmentsTableProps> = ({
               className="flex items-center justify-end gap-2"
               onClick={(e) => e.stopPropagation()}
             >
-              {asg.status === 'SIN_ASIGNAR' ? (
-                <button
-                  onClick={() => onEdit(asg)}
-                  className="text-blue-600 border border-blue-600 px-3 py-1 rounded-md text-xs hover:bg-blue-50 transition-colors"
-                >
-                  Asignar Plan
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={() => onEdit(asg)}
-                    className="text-muted-foreground hover:text-blue-600 px-2 py-1 text-xs transition-colors"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() =>
-                      onToggleStatus(asg.uid, asg.status === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO')
-                    }
-                    className={`px-3 py-1 rounded-md text-xs border transition-colors ${
-                      asg.status === 'ACTIVO'
-                        ? 'text-red-600 border-red-200 hover:bg-red-50'
-                        : 'text-green-600 border-green-200 hover:bg-green-50'
-                    }`}
-                  >
-                    {asg.status === 'ACTIVO' ? 'Desactivar' : 'Activar'}
-                  </button>
-                </>
-              )}
+              <EditButton onClick={() => onEdit(asg)} />
+              <button
+                onClick={() => onToggleStatus(asg.uid, asg.status !== 'active')}
+                className={`px-3 py-1 rounded-md text-xs border transition-colors ${
+                  asg.status === 'active'
+                    ? 'text-red-600 border-red-200 hover:bg-red-50'
+                    : 'text-green-600 border-green-200 hover:bg-green-50'
+                }`}
+              >
+                {asg.status === 'active' ? 'Desactivar' : 'Activar'}
+              </button>
             </div>
           );
         },
