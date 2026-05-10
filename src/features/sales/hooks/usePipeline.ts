@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { queryKeys } from 'src/lib/query-keys';
 
@@ -19,6 +19,7 @@ export function usePipeline() {
   } = useQuery<PipelineStage[]>({
     queryKey: queryKeys.sales.stages,
     queryFn: () => opportunityService.getStages(),
+    staleTime: 0,
   });
 
   const {
@@ -26,11 +27,22 @@ export function usePipeline() {
     isLoading: oppsLoading,
     error: oppsError,
   } = useQuery<Opportunity[]>({
-    queryKey: queryKeys.sales.opportunities,
+    queryKey: [...queryKeys.sales.board, search],
     queryFn: async () => {
-      const boardData = await opportunityService.getBoard();
+      const boardData = await opportunityService.getBoard(search ? { search } : undefined);
+      // Backend returns { stages: [{ stage, summary, items: [...] }], pagination }
+      if (boardData?.stages) {
+        return (boardData.stages as Array<{ items?: Array<Record<string, unknown>> }>)
+          .flatMap((s) => s.items ?? [])
+          .map((item) => ({
+            ...item,
+            amount: Number(item.amount) || 0,
+          })) as Opportunity[];
+      }
       return Array.isArray(boardData) ? boardData : Object.values(boardData).flat();
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   const isLoading = stagesLoading || oppsLoading;
@@ -56,35 +68,26 @@ export function usePipeline() {
     [opportunities, stages]
   );
 
-  // ─── Filters ────────────────────────────────────────────────────────────────
-
-  const filteredOpportunities = useMemo(() => {
-    return scoredOpportunities.filter((opp) => {
-      const matchSearch = !search || opp.title?.toLowerCase().includes(search.toLowerCase());
-      return matchSearch;
-    });
-  }, [scoredOpportunities, search]);
-
   // ─── Group by stage ─────────────────────────────────────────────────────────
 
   const opportunitiesByStage = useMemo(() => {
     const map = new Map<string, Opportunity[]>();
     stages.forEach((s) => map.set(s.uid, []));
-    filteredOpportunities.forEach((opp) => {
+    scoredOpportunities.forEach((opp) => {
       const list = map.get(opp.stage_uid);
       if (list) list.push(opp);
     });
     return map;
-  }, [filteredOpportunities, stages]);
+  }, [scoredOpportunities, stages]);
 
   // ─── Metrics ────────────────────────────────────────────────────────────────
 
   const metrics = useMemo(() => {
-    const active = filteredOpportunities.filter((opp) => {
+    const active = scoredOpportunities.filter((opp) => {
       const stage = stages.find((s) => s.uid === opp.stage_uid);
       return !stage?.is_won && !stage?.is_lost;
     });
-    const closedWon = filteredOpportunities.filter((opp) => {
+    const closedWon = scoredOpportunities.filter((opp) => {
       const stage = stages.find((s) => s.uid === opp.stage_uid);
       return stage?.is_won;
     });
@@ -101,7 +104,7 @@ export function usePipeline() {
       activeCount: active.length,
       closedWonCount: closedWon.length,
     };
-  }, [filteredOpportunities, stages]);
+  }, [scoredOpportunities, stages]);
 
   return {
     stages,
@@ -113,7 +116,7 @@ export function usePipeline() {
     error: (error ?? null) as Error | null,
     refresh: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.sales.stages });
-      queryClient.invalidateQueries({ queryKey: queryKeys.sales.opportunities });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sales.board });
     },
   };
 }

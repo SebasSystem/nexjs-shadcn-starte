@@ -25,8 +25,11 @@ export function PipelineColumn({
   const [isDragOver, setIsDragOver] = useState(false);
   const isTerminal = stage.is_won || stage.is_lost;
   const probability = stage.probability_percent / 100;
-  const totalValue = opportunities.reduce((sum, o) => sum + o.amount, 0);
-  const weightedValue = opportunities.reduce((sum, o) => sum + o.amount * probability, 0);
+  const totalValue = opportunities.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+  const weightedValue = opportunities.reduce(
+    (sum, o) => sum + (Number(o.amount) || 0) * probability,
+    0
+  );
 
   return (
     <div className="flex flex-col flex-1 min-w-[260px]">

@@ -4,7 +4,7 @@ import { type PaginationParams } from 'src/shared/lib/pagination';
 import type { Invoice, Payment } from '../types/sales.types';
 
 export const invoiceService = {
-  async getList(params?: PaginationParams): Promise<Invoice[]> {
+  async getList(params?: PaginationParams & { status?: string }): Promise<Invoice[]> {
     const res = await axiosInstance.get(endpoints.sales.financeInvoices, { params });
     return res.data; // full response — callers extract .data for the array
   },

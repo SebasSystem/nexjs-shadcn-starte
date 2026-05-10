@@ -16,6 +16,7 @@ export function useOpportunityPanel() {
   const { data: stages = [] } = useQuery<PipelineStage[]>({
     queryKey: queryKeys.sales.stages,
     queryFn: () => opportunityService.getStages(),
+    staleTime: 0,
   });
 
   const {
@@ -26,6 +27,7 @@ export function useOpportunityPanel() {
     queryKey: [...queryKeys.sales.opportunityList, selectedId],
     queryFn: () => opportunityService.getOne(selectedId!),
     enabled: !!selectedId,
+    staleTime: 0,
   });
 
   // ─── Derived values ─────────────────────────────────────────────────────────

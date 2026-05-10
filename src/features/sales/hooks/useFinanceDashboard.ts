@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { queryKeys } from 'src/lib/query-keys';
 
 import { financeService } from '../services/finance.service';
@@ -14,6 +14,8 @@ export function useFinanceDashboard() {
   } = useQuery<FinanceDashboard>({
     queryKey: queryKeys.sales.financeDashboard,
     queryFn: () => financeService.getDashboard(),
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   return { dashboard, isLoading, error: error ?? null };

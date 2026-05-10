@@ -20,6 +20,7 @@ export const queryKeys = {
     stages: ['sales', 'stages'] as const,
     opportunities: ['sales', 'opportunities'] as const,
     opportunityList: ['sales', 'opportunities', 'list'] as const,
+    board: ['sales', 'board'] as const,
     quotations: ['sales', 'quotations'] as const,
     invoices: ['sales', 'invoices'] as const,
     creditRules: ['sales', 'credit-rules'] as const,

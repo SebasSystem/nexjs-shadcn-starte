@@ -57,6 +57,10 @@ export const financeService = {
     return res.data?.data ?? res.data;
   },
 
+  async deleteCreditException(uid: string): Promise<void> {
+    await axiosInstance.delete(endpoints.sales.creditException(uid));
+  },
+
   async syncOverdue() {
     const res = await axiosInstance.post(endpoints.sales.financeSyncOverdue);
     return res.data.data;

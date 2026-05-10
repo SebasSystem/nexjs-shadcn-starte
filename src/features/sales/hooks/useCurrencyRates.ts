@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
@@ -27,6 +27,8 @@ export function useCurrencyRates() {
       if (meta) pagination.setTotal(meta.total);
       return ((res as Record<string, unknown>).data ?? []) as CurrencyRate[];
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   const [isDirty, setIsDirty] = useState(false);

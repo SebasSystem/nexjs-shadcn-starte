@@ -1,6 +1,8 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 
 import { invoiceService } from '../services/invoice.service';
@@ -17,12 +19,16 @@ export function useInvoice(invoiceUid: string) {
     queryKey: [...queryKeys.sales.invoices, invoiceUid],
     queryFn: () => invoiceService.getOne(invoiceUid),
     enabled: !!invoiceUid,
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   const { data: payments = [], isLoading: pmtLoading } = useQuery({
     queryKey: [...queryKeys.sales.invoices, invoiceUid, 'payments'],
     queryFn: () => invoiceService.getPaymentHistory(invoiceUid),
     enabled: !!invoiceUid,
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   const registerPaymentMutation = useMutation({
@@ -36,6 +42,7 @@ export function useInvoice(invoiceUid: string) {
         queryKey: [...queryKeys.sales.invoices, invoiceUid, 'payments'],
       });
     },
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {

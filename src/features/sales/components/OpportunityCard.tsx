@@ -61,7 +61,7 @@ export function OpportunityCard({
 
   const activityIndicator = getActivityStatus(opportunity.updated_at, opportunity.created_at);
   const daysInStage = getDaysInStage(opportunity);
-  const weightedAmount = opportunity.amount * (probability / 100);
+  const weightedAmount = (Number(opportunity.amount) || 0) * (probability / 100);
 
   const { label: leadScoreLabel, score: leadScoreValue } = computeLeadScore(opportunity, stages);
   const leadScoreCfg = LEAD_SCORE_CONFIG[leadScoreLabel];
@@ -142,7 +142,10 @@ export function OpportunityCard({
       {/* Amount section */}
       <div className="mt-4">
         <span className="text-base font-extrabold" style={{ color: stageColor }}>
-          {formatMoney(opportunity.amount, { scope: 'tenant', maximumFractionDigits: 0 })}
+          {formatMoney(Number(opportunity.amount) || 0, {
+            scope: 'tenant',
+            maximumFractionDigits: 0,
+          })}
         </span>
         {!isTerminal && (
           <p className="text-[10px] text-muted-foreground mt-0.5">

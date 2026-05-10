@@ -69,27 +69,15 @@ export function NewOpportunityDrawer({ open, onClose, onSave, stages }: NewOppor
       title: form.title.trim(),
       amount: Number(form.amount) || 0,
       expected_close_date: form.expected_close_date || defaultCloseDate.toISOString().split('T')[0],
-      stage_uid: form.stage_uid || defaultStageUid,
+      stage_uid: form.stage_uid || activeStages[0]?.uid,
       description: form.description.trim() || undefined,
     });
 
-    handleReset();
     onClose();
   };
 
-  const handleReset = () => {
-    setForm({
-      title: '',
-      amount: '',
-      stage_uid: defaultStageUid,
-      expected_close_date: '',
-      description: '',
-    });
-    setErrors({});
-  };
-
   return (
-    <Sheet open={open} onOpenChange={(v) => !v && (handleReset(), onClose())}>
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[540px] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40">
           <SheetTitle className="text-h6">Crear Nuevo Lead u Oportunidad</SheetTitle>
@@ -100,7 +88,6 @@ export function NewOpportunityDrawer({ open, onClose, onSave, stages }: NewOppor
 
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <div className="py-6 space-y-8">
-            {/* Cliente */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">
@@ -122,7 +109,6 @@ export function NewOpportunityDrawer({ open, onClose, onSave, stages }: NewOppor
 
             <hr className="border-border/40" />
 
-            {/* Oportunidad */}
             <div className="space-y-4">
               <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                 <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px]">
@@ -170,7 +156,7 @@ export function NewOpportunityDrawer({ open, onClose, onSave, stages }: NewOppor
         </div>
 
         <SheetFooter className="px-6 py-4 border-t border-border/40 shrink-0">
-          <Button variant="outline" onClick={() => (handleReset(), onClose())} className="flex-1">
+          <Button variant="outline" onClick={onClose} className="flex-1">
             Cancelar
           </Button>
           <Button color="primary" onClick={handleSubmit} className="flex-1">

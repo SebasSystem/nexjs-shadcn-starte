@@ -1,7 +1,7 @@
 'use client';
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { formatMoney } from 'src/lib/currency';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
@@ -16,8 +16,16 @@ import {
 import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from 'src/shared/components/ui/sheet';
 import { Switch } from 'src/shared/components/ui/switch';
 
 import { SalesPageSkeleton } from '../components/SalesPageSkeleton';
@@ -27,11 +35,58 @@ import type { CreditException } from '../types/sales.types';
 const columnHelper = createColumnHelper<CreditException>();
 
 export function CreditRulesView() {
-  const { rules, exceptions, isLoading, saveRules } = useCreditRules();
+  const { rules, exceptions, isLoading, saveRules, updateException, deleteException } =
+    useCreditRules();
 
   const [maxDays, setMaxDays] = useState(() => (rules ? String(rules.max_days) : ''));
   const [maxAmount, setMaxAmount] = useState(() => (rules ? String(rules.max_amount) : ''));
   const [autoBlock, setAutoBlock] = useState(() => (rules ? rules.auto_block : true));
+
+  // ─── Delete confirmation state ────────────────────────────────────────────────
+  const [deleteTarget, setDeleteTarget] = useState<CreditException | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await deleteException(deleteTarget.uid);
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  // ─── Edit drawer state ────────────────────────────────────────────────────────
+  const [editTarget, setEditTarget] = useState<CreditException | null>(null);
+  const [editCreditLimit, setEditCreditLimit] = useState('');
+  const [editMaxDays, setEditMaxDays] = useState('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+  const openEditDrawer = useCallback((exception: CreditException) => {
+    setEditTarget(exception);
+    setEditCreditLimit(String(exception.credit_limit));
+    setEditMaxDays(String(exception.max_days));
+  }, []);
+
+  const closeEditDrawer = useCallback(() => {
+    setEditTarget(null);
+    setEditCreditLimit('');
+    setEditMaxDays('');
+  }, []);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editTarget) return;
+    setIsSavingEdit(true);
+    try {
+      await updateException(editTarget.uid, {
+        credit_limit: parseFloat(editCreditLimit),
+      });
+      closeEditDrawer();
+    } finally {
+      setIsSavingEdit(false);
+    }
+  }, [editTarget, editCreditLimit, updateException, closeEditDrawer]);
 
   const columns = useMemo(
     () => [
@@ -86,15 +141,15 @@ export function CreditRulesView() {
       columnHelper.display({
         id: 'actions',
         header: () => <div className="text-center w-full">Acciones</div>,
-        cell: () => (
+        cell: ({ row }) => (
           <div className="flex items-center justify-center gap-1">
-            <EditButton onClick={() => {}} />
-            <DeleteButton onClick={() => {}} />
+            <EditButton onClick={() => openEditDrawer(row.original)} />
+            <DeleteButton onClick={() => setDeleteTarget(row.original)} />
           </div>
         ),
       }),
     ],
-    []
+    [openEditDrawer]
   );
 
   const { table, dense, onChangeDense } = useTable({
@@ -212,6 +267,56 @@ export function CreditRulesView() {
           <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
         </div>
       </SectionCard>
+
+      {/* Delete confirmation */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Eliminar excepción"
+        description={
+          deleteTarget
+            ? `¿Estás seguro de que querés eliminar la excepción para ${deleteTarget.client_name}? Esta acción no se puede deshacer.`
+            : undefined
+        }
+        confirmLabel="Eliminar"
+        loading={isDeleting}
+        variant="error"
+      />
+
+      {/* Edit exception drawer */}
+      <Sheet open={!!editTarget} onOpenChange={(open) => !open && closeEditDrawer()}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Editar excepción — {editTarget?.client_name}</SheetTitle>
+          </SheetHeader>
+          <div className="mt-6 space-y-4">
+            <Input
+              label="Límite de crédito especial"
+              type="number"
+              value={editCreditLimit}
+              onChange={(e) => setEditCreditLimit(e.target.value)}
+              hint="Monto máximo de crédito permitido para este cliente"
+            />
+            <Input
+              label="Días máximos de cartera"
+              type="number"
+              value={editMaxDays}
+              onChange={(e) => setEditMaxDays(e.target.value)}
+              hint="Número máximo de días que una factura puede estar pendiente"
+              disabled
+            />
+          </div>
+          <SheetFooter className="mt-6">
+            <Button variant="outline" onClick={closeEditDrawer} disabled={isSavingEdit}>
+              Cancelar
+            </Button>
+            <Button color="primary" onClick={handleSaveEdit} loading={isSavingEdit}>
+              Guardar cambios
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </PageContainer>
   );
 }

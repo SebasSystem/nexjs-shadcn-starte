@@ -1,6 +1,8 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
@@ -26,6 +28,8 @@ export function useQuotation(opportunityUid: string) {
       return data.filter((q) => q.quoteable_uid === opportunityUid);
     },
     enabled: !!opportunityUid,
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   const quotation = quotations[0] ?? null;
@@ -46,6 +50,7 @@ export function useQuotation(opportunityUid: string) {
         queryKey: [...queryKeys.sales.quotations, { opportunityUid }],
       });
     },
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {
@@ -78,6 +83,8 @@ export function useQuotationById(quotationUid: string) {
     queryKey: [...queryKeys.sales.quotations, quotationUid],
     queryFn: () => quotationService.getOne(quotationUid),
     enabled: !!quotationUid,
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   const saveMutation = useMutation({
@@ -88,6 +95,7 @@ export function useQuotationById(quotationUid: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [...queryKeys.sales.quotations, quotationUid] });
     },
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   return {

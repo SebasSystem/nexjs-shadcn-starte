@@ -1,7 +1,9 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, type ReactNode, useCallback, useContext } from 'react';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
@@ -69,6 +71,7 @@ export function SalesProvider({ children }: { children: ReactNode }) {
       const res = await opportunityService.getList();
       return (res as unknown as { data?: Opportunity[] }).data ?? [];
     },
+    staleTime: 0,
   });
 
   const { data: quotations = [], isLoading: quotesLoading } = useQuery({
@@ -79,6 +82,8 @@ export function SalesProvider({ children }: { children: ReactNode }) {
       if (meta) quotationsPagination.setTotal(meta.total);
       return ((res as unknown as { data?: Quotation[] }).data ?? []) as Quotation[];
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   const { data: invoices = [], isLoading: invsLoading } = useQuery({
@@ -89,6 +94,8 @@ export function SalesProvider({ children }: { children: ReactNode }) {
       if (meta) invoicesPagination.setTotal(meta.total);
       return ((res as unknown as { data?: Invoice[] }).data ?? []) as Invoice[];
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   const isLoading = oppsLoading || quotesLoading || invsLoading;
@@ -98,6 +105,7 @@ export function SalesProvider({ children }: { children: ReactNode }) {
 
   const refreshOpportunities = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: queryKeys.sales.opportunityList });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.sales.board });
   }, [queryClient]);
 
   const refreshQuotations = useCallback(async () => {
@@ -112,17 +120,27 @@ export function SalesProvider({ children }: { children: ReactNode }) {
 
   const addOpportunity = useCallback(
     async (data: Partial<Opportunity>): Promise<Opportunity> => {
-      const created = await opportunityService.create(data);
-      await refreshOpportunities();
-      return created;
+      try {
+        const created = await opportunityService.create(data);
+        await refreshOpportunities();
+        return created;
+      } catch (error) {
+        toast.error(extractApiError(error));
+        throw error;
+      }
     },
     [refreshOpportunities]
   );
 
   const moveOpportunity = useCallback(
     async (uid: string, stageUid: string) => {
-      await opportunityService.update(uid, { stage_uid: stageUid });
-      await refreshOpportunities();
+      try {
+        await opportunityService.update(uid, { stage_uid: stageUid });
+        await refreshOpportunities();
+      } catch (error) {
+        toast.error(extractApiError(error));
+        throw error;
+      }
     },
     [refreshOpportunities]
   );
@@ -131,24 +149,34 @@ export function SalesProvider({ children }: { children: ReactNode }) {
 
   const saveQuotation = useCallback(
     async (data: Partial<Quotation>) => {
-      if ((data as Quotation).uid) {
-        await quotationService.update((data as Quotation).uid, data);
-      } else {
-        await quotationService.create(data);
+      try {
+        if ((data as Quotation).uid) {
+          await quotationService.update((data as Quotation).uid, data);
+        } else {
+          await quotationService.create(data);
+        }
+        await refreshQuotations();
+      } catch (error) {
+        toast.error(extractApiError(error));
+        throw error;
       }
-      await refreshQuotations();
     },
     [refreshQuotations]
   );
 
   const convertQuotationToInvoice = useCallback(
     async (quotationUid: string): Promise<Invoice> => {
-      const created = (await invoiceService.create({
-        quotation_uid: quotationUid,
-      } as Partial<Invoice>)) as Invoice;
-      await refreshInvoices();
-      await refreshOpportunities();
-      return created;
+      try {
+        const created = (await invoiceService.create({
+          quotation_uid: quotationUid,
+        } as Partial<Invoice>)) as Invoice;
+        await refreshInvoices();
+        await refreshOpportunities();
+        return created;
+      } catch (error) {
+        toast.error(extractApiError(error));
+        throw error;
+      }
     },
     [refreshInvoices, refreshOpportunities]
   );
@@ -157,8 +185,13 @@ export function SalesProvider({ children }: { children: ReactNode }) {
 
   const registerPayment = useCallback(
     async (invoiceUid: string, data: Partial<Payment>) => {
-      await invoiceService.registerPayment(invoiceUid, data);
-      await refreshInvoices();
+      try {
+        await invoiceService.registerPayment(invoiceUid, data);
+        await refreshInvoices();
+      } catch (error) {
+        toast.error(extractApiError(error));
+        throw error;
+      }
     },
     [refreshInvoices]
   );

@@ -212,7 +212,12 @@ export const SimulatorView = () => {
                 📋 Plan aplicado: &quot;{selectedPlan.name}&quot;
               </p>
               <p className="text-muted-foreground">
-                Tipo: {selectedPlan.type === 'sale' ? 'Por Venta' : selectedPlan.type === 'margin' ? 'Por Margen' : 'Por Meta'}
+                Tipo:{' '}
+                {selectedPlan.type === 'sale'
+                  ? 'Por Venta'
+                  : selectedPlan.type === 'margin'
+                    ? 'Por Margen'
+                    : 'Por Meta'}
               </p>
               <p className="text-muted-foreground">
                 Base: {selectedPlan.base_percentage}% | Tramos: {selectedPlan.tiers.length}{' '}

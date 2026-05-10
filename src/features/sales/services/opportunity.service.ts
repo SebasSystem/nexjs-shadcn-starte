@@ -8,8 +8,8 @@ export const opportunityService = {
     return res.data.data;
   },
 
-  async getBoard() {
-    const res = await axiosInstance.get(endpoints.sales.board);
+  async getBoard(params?: { search?: string }) {
+    const res = await axiosInstance.get(endpoints.sales.board, { params });
     return res.data.data;
   },
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
@@ -22,6 +22,11 @@ const MODULE_LABELS: Record<CustomFieldModule, string> = {
 
 const MODULES = Object.keys(MODULE_LABELS) as CustomFieldModule[];
 
+const formatCount = (n: number | undefined) => {
+  if (n === undefined || n === 0) return null;
+  return n > 999 ? '+999' : String(n);
+};
+
 export const CustomFieldsView = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedField, setSelectedField] = useState<CustomField | null>(null);
@@ -34,19 +39,6 @@ export const CustomFieldsView = () => {
     module: filterModule,
     search: debouncedSearch || undefined,
   });
-
-  const counts = useMemo(() => {
-    const map: Record<CustomFieldModule, number> = {
-      contacts: 0,
-      companies: 0,
-      opportunities: 0,
-      products: 0,
-    };
-    fields.forEach((f) => {
-      map[f.module] = (map[f.module] ?? 0) + 1;
-    });
-    return map;
-  }, [fields]);
 
   const handleOpenNew = () => {
     setSelectedField(null);
@@ -106,7 +98,7 @@ export const CustomFieldsView = () => {
                 : 'bg-muted text-muted-foreground'
             }`}
           >
-            {fields.length}
+            {formatCount(pagination.total)}
           </span>
         </button>
         {MODULES.map((mod) => (
@@ -120,53 +112,35 @@ export const CustomFieldsView = () => {
             }`}
           >
             {MODULE_LABELS[mod]}
-            <span
-              className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
-                filterModule === mod
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              {counts[mod]}
-            </span>
           </button>
         ))}
       </div>
 
       <SectionCard noPadding>
         {isLoading && fields.length === 0 ? (
-          <div className="flex flex-col gap-4 p-5 animate-pulse">
-            {[...Array(5)].map((_, i) => (
+          <div className="p-8 flex flex-col gap-4 animate-pulse">
+            {[...Array(4)].map((_, i) => (
               <div key={i} className="h-12 bg-muted/40 rounded-lg w-full" />
             ))}
           </div>
+        ) : fields.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <Icon name="Sliders" size={40} className="mb-3 opacity-40" />
+            <p className="text-sm">No hay campos personalizados en este módulo.</p>
+          </div>
         ) : (
-          <>
-            <CustomFieldsTable
-              fields={fields}
-              onEdit={handleEdit}
-              onDelete={(f) => setDeleteTarget(f)}
-              total={pagination.total}
-              pageIndex={pagination.page - 1}
-              pageSize={pagination.rowsPerPage}
-              onPageChange={(pi: number) => pagination.onChangePage(pi + 1)}
-              onPageSizeChange={pagination.onChangeRowsPerPage}
-            />
-            <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
-              {fields.length} campo{fields.length !== 1 ? 's' : ''} personalizado
-              {fields.length !== 1 ? 's' : ''}
-            </div>
-          </>
+          <CustomFieldsTable
+            fields={fields}
+            onEdit={handleEdit}
+            onDelete={(f) => setDeleteTarget(f)}
+            total={pagination.total}
+            pageIndex={pagination.page - 1}
+            pageSize={pagination.rowsPerPage}
+            onPageChange={(pi) => pagination.onChangePage(pi + 1)}
+            onPageSizeChange={pagination.onChangeRowsPerPage}
+          />
         )}
       </SectionCard>
-
-      <CustomFieldDrawer
-        key={isDrawerOpen ? (selectedField?.uid ?? 'new') : 'closed'}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        field={selectedField}
-        onSave={handleSave}
-      />
 
       <ConfirmDialog
         open={!!deleteTarget}
@@ -178,11 +152,20 @@ export const CustomFieldsView = () => {
         title="¿Eliminar campo?"
         description={
           <>
-            Vas a eliminar <strong>{deleteTarget?.label}</strong>. Esta acción no se puede deshacer.
+            Vas a eliminar <strong>{deleteTarget?.label ?? deleteTarget?.name}</strong>. Esta acción
+            no se puede deshacer.
           </>
         }
         confirmLabel="Eliminar"
         variant="error"
+      />
+
+      <CustomFieldDrawer
+        key={isDrawerOpen ? (selectedField?.uid ?? 'new') : 'closed'}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        field={selectedField}
+        onSave={handleSave}
       />
     </PageContainer>
   );

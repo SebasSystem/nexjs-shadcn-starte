@@ -7,7 +7,6 @@ import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/la
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
-import { SelectField } from 'src/shared/components/ui/select-field';
 
 import {
   NewOpportunityDrawer,
@@ -20,25 +19,6 @@ import { PipelineColumn } from '../components/PipelineColumn';
 import { useSalesContext } from '../context/SalesContext';
 import { useOpportunityPanel } from '../hooks/useOpportunityPanel';
 import { usePipeline } from '../hooks/usePipeline';
-
-const ORIGIN_OPTIONS = [
-  { value: 'Web', label: 'Sitio Web' },
-  { value: 'Facebook Ads', label: 'Facebook Ads' },
-  { value: 'LinkedIn', label: 'LinkedIn' },
-  { value: 'Referido', label: 'Referido' },
-  { value: 'Evento', label: 'Evento / Conferencia' },
-  { value: 'Email', label: 'Campaña de Email' },
-  { value: 'Otro', label: 'Otro' },
-];
-
-const MAIN_PRODUCTS = [
-  { value: 'Licencias ERP', label: 'Licencias ERP' },
-  { value: 'Implementación', label: 'Servicio de Implementación' },
-  { value: 'Infraestructura Cloud', label: 'Infraestructura Cloud' },
-  { value: 'Consultoría Estratégica', label: 'Consultoría Estratégica' },
-  { value: 'Soporte Técnico', label: 'Soporte Técnico Anual' },
-  { value: 'Otro', label: 'Otro' },
-];
 
 export function PipelineView() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -116,26 +96,6 @@ export function PipelineView() {
               leftIcon={<Icon name="Search" size={16} />}
             />
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
-            <div className="w-full sm:w-48">
-              <SelectField
-                label="Origen"
-                options={[{ value: '', label: 'Cualquier origen' }, ...ORIGIN_OPTIONS]}
-                value=""
-                onChange={() => {}}
-                disabled
-              />
-            </div>
-            <div className="w-full sm:w-48">
-              <SelectField
-                label="Producto"
-                options={[{ value: '', label: 'Cualquier producto' }, ...MAIN_PRODUCTS]}
-                value=""
-                onChange={() => {}}
-                disabled
-              />
-            </div>
-          </div>
         </div>
       </SectionCard>
 
@@ -163,6 +123,7 @@ export function PipelineView() {
 
       {/* Drawer nueva oportunidad */}
       <NewOpportunityDrawer
+        key={drawerOpen ? 'open' : 'closed'}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onSave={handleSaveOpportunity}
