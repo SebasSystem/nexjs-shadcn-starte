@@ -248,16 +248,14 @@ function TwoFactorStep({
   }, []);
 
   const handleToggleRecovery = () => {
-    setUseRecovery((v) => {
-      if (!v) {
-        form.setValue('twoFactorCode', '');
-        setTimeout(() => recoveryRef.current?.focus(), 50);
-      } else {
-        form.setValue('recoveryCode', '');
-        setTimeout(() => inputRef.current?.focus(), 50);
-      }
-      return !v;
-    });
+    if (!useRecovery) {
+      form.setValue('twoFactorCode', '');
+      setTimeout(() => recoveryRef.current?.focus(), 50);
+    } else {
+      form.setValue('recoveryCode', '');
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+    setUseRecovery((v) => !v);
     form.clearErrors();
   };
 
