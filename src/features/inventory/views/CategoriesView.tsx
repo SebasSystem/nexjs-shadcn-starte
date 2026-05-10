@@ -24,12 +24,19 @@ import {
   SheetTitle,
   Textarea,
 } from 'src/shared/components/ui';
+import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from 'src/shared/components/ui/dialog';
 
 import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
 import { useCategories } from '../hooks/use-categories';
 import type { InventoryCategory } from '../types/inventory.types';
-
-// ─── Table columns ──────────────────────────────────────────────────────────
 
 const columnHelper = createColumnHelper<InventoryCategory>();
 
@@ -58,29 +65,12 @@ const COLUMNS = (
     header: () => <div className="text-right w-full">Acciones</div>,
     cell: (info) => (
       <div className="flex items-center justify-end gap-1">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => onEdit(info.row.original)}
-          title="Editar categoría"
-        >
-          <Icon name="Pencil" size={14} />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => onDelete(info.row.original)}
-          className="text-red-500 hover:text-red-600 hover:bg-red-50"
-          title="Eliminar categoría"
-        >
-          <Icon name="Trash2" size={14} />
-        </Button>
+        <EditButton onClick={() => onEdit(info.row.original)} />
+        <DeleteButton onClick={() => onDelete(info.row.original)} />
       </div>
     ),
   }),
 ];
-
-// ─── View ───────────────────────────────────────────────────────────────────
 
 export function CategoriesView() {
   const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useCategories();
@@ -88,6 +78,7 @@ export function CategoriesView() {
   const [search, setSearch] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<InventoryCategory | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<InventoryCategory | null>(null);
   const [name, setName] = useState('');
   const [key, setKey] = useState('');
   const [description, setDescription] = useState('');
@@ -103,7 +94,7 @@ export function CategoriesView() {
 
   const { table, dense, onChangeDense } = useTable({
     data: filtered,
-    columns: COLUMNS(handleEdit, handleDelete),
+    columns: COLUMNS(handleEdit, (cat) => setDeleteTarget(cat)),
     defaultRowsPerPage: 10,
   });
 
@@ -113,12 +104,6 @@ export function CategoriesView() {
     setKey(cat.key);
     setDescription(cat.description ?? '');
     setDrawerOpen(true);
-  }
-
-  function handleDelete(cat: InventoryCategory) {
-    if (window.confirm(`¿Eliminar la categoría "${cat.name}"?`)) {
-      deleteCategory.mutate(cat.uid);
-    }
   }
 
   function openCreate() {
@@ -176,7 +161,6 @@ export function CategoriesView() {
         }
       />
 
-      {/* Search */}
       <div className="mb-4">
         <Input
           placeholder="Buscar por nombre o key..."
@@ -194,7 +178,7 @@ export function CategoriesView() {
               {table.getRowModel().rows.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={COLUMNS(handleEdit, handleDelete).length}
+                    colSpan={COLUMNS(handleEdit, (cat) => setDeleteTarget(cat)).length}
                     className="py-10 text-center text-muted-foreground text-sm"
                   >
                     {search
@@ -264,6 +248,36 @@ export function CategoriesView() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      {/* Delete confirmation */}
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}
+      >
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>¿Eliminar categoría?</DialogTitle>
+            <DialogDescription>
+              Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
+              deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              Cancelar
+            </Button>
+            <Button
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={() => {
+                if (deleteTarget) deleteCategory.mutate(deleteTarget.uid);
+                setDeleteTarget(null);
+              }}
+            >
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageContainer>
   );
 }

@@ -73,15 +73,19 @@ function MovementExpandedRow({ movement }: { movement: InventoryMovement }) {
 }
 
 export function MovementsView() {
-  const { items, summary, isLoading, refetch, pagination } = useMovements();
-  const { items: products } = useProducts();
-  const { items: warehouses } = useWarehouses();
-
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [transferOpen, setTransferOpen] = useState(false);
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // filterType goes to backend; search stays frontend-only (backend doesn't support it yet)
+  const { items, summary, isLoading, refetch, pagination } = useMovements({
+    type: filterType !== 'all' ? filterType : undefined,
+  });
+
+  const { items: products } = useProducts();
+  const { items: warehouses } = useWarehouses();
 
   const toggleRow = (uid: string) => {
     setExpandedRows((prev) => {
@@ -129,14 +133,14 @@ export function MovementsView() {
       ]
     : [];
 
+  // Only search is frontend-only — type filter is handled by the backend
   const filtered = useMemo(() => {
+    if (!search) return items;
     return items.filter((m) => {
       const searchStr = (m.product?.name ?? '') + (m.product?.sku ?? '') + (m.reference_uid ?? '');
-      const matchSearch = !search || searchStr.toLowerCase().includes(search.toLowerCase());
-      const matchType = filterType === 'all' || m.type === filterType;
-      return matchSearch && matchType;
+      return searchStr.toLowerCase().includes(search.toLowerCase());
     });
-  }, [items, search, filterType]);
+  }, [items, search]);
 
   const COLUMNS = useMemo(
     () => [

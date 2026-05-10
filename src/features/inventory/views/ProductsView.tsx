@@ -30,14 +30,12 @@ import { ProductDrawer, type ProductDrawerMode } from '../components/ProductDraw
 import { ProductFilters } from '../components/ProductFilters';
 import { StockBadge } from '../components/StockBadge';
 import { useProducts } from '../hooks/use-products';
+import { useWarehouses } from '../hooks/use-warehouses';
 import type { CreateProductPayload, InventoryMasterItem } from '../types/inventory.types';
 
 const columnHelper = createColumnHelper<InventoryMasterItem>();
 
 export function ProductsView() {
-  const { items, summary, categories, isLoading, createProduct, updateProduct, pagination } =
-    useProducts();
-
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -46,6 +44,23 @@ export function ProductsView() {
   const [drawerMode, setDrawerMode] = useState<ProductDrawerMode>('create');
   const [selectedProduct, setSelectedProduct] = useState<InventoryMasterItem | null>(null);
   const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
+
+  const stock_state = ['normal', 'low', 'out'].includes(filterStatus)
+    ? (filterStatus as 'normal' | 'low' | 'out')
+    : undefined;
+
+  const { items, summary, categories, isLoading, createProduct, updateProduct, pagination } =
+    useProducts({
+      category_uid: filterCategory !== 'all' ? filterCategory : undefined,
+      warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
+      stock_state,
+    });
+
+  const { items: warehouseItems } = useWarehouses();
+  const warehouseOptions = useMemo(
+    () => warehouseItems.map((w) => ({ uid: w.uid, name: w.name })),
+    [warehouseItems]
+  );
 
   const statsCards = summary
     ? [
@@ -73,32 +88,18 @@ export function ProductsView() {
       ]
     : [];
 
-  const allWarehouses = useMemo(() => {
-    const map = new Map<string, { uid: string; name: string }>();
-    items.forEach((p) =>
-      p.stocks.forEach((s) =>
-        map.set(s.warehouse_uid, { uid: s.warehouse_uid, name: s.warehouse.name })
-      )
-    );
-    return Array.from(map.values());
-  }, [items]);
-
+  // Only search and inactive status are frontend-only filters
+  // category_uid, warehouse_uid and stock_state are handled by the backend
   const filtered = useMemo(() => {
     return items.filter((p) => {
       const matchSearch =
         !search ||
         p.name.toLowerCase().includes(search.toLowerCase()) ||
         p.sku.toLowerCase().includes(search.toLowerCase());
-      const matchCategory = filterCategory === 'all' || p.category_uid === filterCategory;
-      const matchStatus =
-        filterStatus === 'all' ||
-        (filterStatus === 'inactive' ? !p.is_active : p.stock_state === filterStatus);
-      const matchWarehouse =
-        filterWarehouse === 'all' ||
-        p.stocks.some((s) => s.warehouse_uid === filterWarehouse && s.physical_stock > 0);
-      return matchSearch && matchCategory && matchStatus && matchWarehouse;
+      const matchInactive = filterStatus !== 'inactive' || !p.is_active;
+      return matchSearch && matchInactive;
     });
-  }, [items, search, filterCategory, filterStatus, filterWarehouse]);
+  }, [items, search, filterStatus]);
 
   const COLUMNS = useMemo(
     () => [
@@ -257,7 +258,7 @@ export function ProductsView() {
           filterWarehouse={filterWarehouse}
           onFilterWarehouse={setFilterWarehouse}
           categories={categories}
-          warehouses={allWarehouses}
+          warehouses={warehouseOptions}
         />
         <TableContainer>
           <Table>
@@ -290,7 +291,7 @@ export function ProductsView() {
         mode={drawerMode}
         product={selectedProduct}
         categories={categories}
-        warehouses={allWarehouses}
+        warehouses={warehouseOptions}
         onClose={() => setDrawerOpen(false)}
         onSave={handleSave}
       />

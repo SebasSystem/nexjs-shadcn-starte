@@ -15,18 +15,27 @@ import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
-export function useProducts() {
+const EMPTY_ITEMS: InventoryMasterItem[] = [];
+const EMPTY_CATEGORIES: InventoryCategory[] = [];
+
+export interface ProductFilters {
+  category_uid?: string;
+  warehouse_uid?: string;
+  stock_state?: 'normal' | 'low' | 'out';
+}
+
+export function useProducts(filters?: ProductFilters) {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
 
-  const { data: items = [] as InventoryMasterItem[], isLoading } = useQuery({
-    queryKey: [...queryKeys.inventory.products, pagination.params],
+  const { data: items = EMPTY_ITEMS, isLoading } = useQuery({
+    queryKey: [...queryKeys.inventory.products, pagination.params, filters],
     queryFn: async () => {
-      const masterRes = await inventoryProductService.master(pagination.params);
+      const masterRes = await inventoryProductService.master({ ...pagination.params, ...filters });
       const meta = extractPaginationMeta(masterRes);
       if (meta) pagination.setTotal(meta.total);
       const inner = (masterRes as unknown as { data?: InventoryMasterResponse }).data;
-      return (inner?.data ?? []) as InventoryMasterItem[];
+      return (inner?.data ?? EMPTY_ITEMS) as InventoryMasterItem[];
     },
   });
 
@@ -38,7 +47,7 @@ export function useProducts() {
     summaryRes as unknown as { data?: InventoryMasterResponse }
   )?.data?.summary;
 
-  const { data: categories = [] } = useQuery({
+  const { data: categories = EMPTY_CATEGORIES } = useQuery({
     queryKey: queryKeys.inventory.categories,
     queryFn: () => inventoryStockService.categories(),
   });

@@ -38,7 +38,7 @@ export function StockAdjustmentDrawer({
 }: StockAdjustmentDrawerProps) {
   const [selectedProductUid, setSelectedProductUid] = useState(productUid ?? '');
   const [warehouseUid, setWarehouseUid] = useState('');
-  const [operation, setOperation] = useState<'in' | 'out'>('in');
+  const [operation, setOperation] = useState<'in' | 'out' | 'set'>('in');
   const [quantity, setQuantity] = useState('');
   const [comment, setComment] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -54,16 +54,21 @@ export function StockAdjustmentDrawer({
   );
   const qty = Number(quantity) || 0;
   const currentStock = currentWarehouseStock?.available_stock ?? 0;
-  const newStock = operation === 'in' ? currentStock + qty : currentStock - qty;
+  const newStock =
+    operation === 'in' ? currentStock + qty : operation === 'out' ? currentStock - qty : qty;
   const wouldGoNegative = operation === 'out' && qty > currentStock;
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!selectedProductUid) newErrors.product = 'Seleccioná un producto';
     if (!warehouseUid) newErrors.warehouse = 'Seleccioná una bodega';
-    if (!quantity || qty < 1) newErrors.quantity = 'Ingresá una cantidad válida (mínimo 1)';
-    else if (wouldGoNegative)
-      newErrors.quantity = `No podés reducir más de lo disponible (${currentStock} uds)`;
+    if (operation === 'set') {
+      if (quantity === '' || qty < 0) newErrors.quantity = 'Ingresá una cantidad válida (mínimo 0)';
+    } else {
+      if (!quantity || qty < 1) newErrors.quantity = 'Ingresá una cantidad válida (mínimo 1)';
+      else if (wouldGoNegative)
+        newErrors.quantity = `No podés reducir más de lo disponible (${currentStock} uds)`;
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -79,7 +84,9 @@ export function StockAdjustmentDrawer({
         quantity: qty,
         comment: comment.trim() || undefined,
       });
-      toast.success(`Ajuste ${operation === 'in' ? 'positivo' : 'negativo'} registrado`);
+      const label =
+        operation === 'in' ? 'positivo' : operation === 'out' ? 'negativo' : 'de balance';
+      toast.success(`Ajuste ${label} registrado`);
       onSuccess?.();
       handleClose();
     } catch {
@@ -92,7 +99,7 @@ export function StockAdjustmentDrawer({
   const handleClose = () => {
     if (!productUid) setSelectedProductUid('');
     setWarehouseUid('');
-    setOperation('in');
+    setOperation('in' as const);
     setQuantity('');
     setComment('');
     setErrors({});
@@ -164,35 +171,50 @@ export function StockAdjustmentDrawer({
           {/* Tipo de ajuste */}
           <div className="space-y-2">
             <p className="text-sm font-medium">Tipo de ajuste *</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => setOperation('in')}
                 className={cn(
-                  'flex items-center gap-2.5 rounded-xl border px-4 py-3 transition-all text-left',
+                  'flex items-center gap-2 rounded-xl border px-3 py-3 transition-all text-left',
                   operation === 'in'
                     ? 'border-success bg-success/5 text-success'
                     : 'border-border/60 text-muted-foreground hover:border-success/40'
                 )}
               >
-                <Icon name="Plus" size={18} />
+                <Icon name="Plus" size={16} />
                 <div>
-                  <p className="text-subtitle2 font-semibold">Aumentar</p>
-                  <p className="text-caption">Añadir unidades</p>
+                  <p className="text-subtitle2 font-semibold text-xs">Aumentar</p>
+                  <p className="text-caption text-[10px]">Añadir</p>
                 </div>
               </button>
               <button
                 onClick={() => setOperation('out')}
                 className={cn(
-                  'flex items-center gap-2.5 rounded-xl border px-4 py-3 transition-all text-left',
+                  'flex items-center gap-2 rounded-xl border px-3 py-3 transition-all text-left',
                   operation === 'out'
                     ? 'border-warning bg-warning/5 text-warning'
                     : 'border-border/60 text-muted-foreground hover:border-warning/40'
                 )}
               >
-                <Icon name="Minus" size={18} />
+                <Icon name="Minus" size={16} />
                 <div>
-                  <p className="text-subtitle2 font-semibold">Reducir</p>
-                  <p className="text-caption">Descontar unidades</p>
+                  <p className="text-subtitle2 font-semibold text-xs">Reducir</p>
+                  <p className="text-caption text-[10px]">Descontar</p>
+                </div>
+              </button>
+              <button
+                onClick={() => setOperation('set')}
+                className={cn(
+                  'flex items-center gap-2 rounded-xl border px-3 py-3 transition-all text-left',
+                  operation === 'set'
+                    ? 'border-info bg-info/5 text-info'
+                    : 'border-border/60 text-muted-foreground hover:border-info/40'
+                )}
+              >
+                <Icon name="Target" size={16} />
+                <div>
+                  <p className="text-subtitle2 font-semibold text-xs">Fijar</p>
+                  <p className="text-caption text-[10px]">Balance exacto</p>
                 </div>
               </button>
             </div>
@@ -216,30 +238,39 @@ export function StockAdjustmentDrawer({
               }}
               error={errors.quantity}
             />
-            {selectedProduct && warehouseUid && qty > 0 && !wouldGoNegative && (
-              <div
-                className={cn(
-                  'rounded-lg px-3 py-2.5 mt-2 border',
-                  operation === 'in'
-                    ? 'bg-success/5 border-success/20'
-                    : 'bg-warning/5 border-warning/20'
-                )}
-              >
-                <p className="text-caption text-muted-foreground">
-                  Actual: <span className="font-semibold text-foreground">{currentStock}</span>
-                  {' → '}Nuevo:{' '}
-                  <span
-                    className={cn(
-                      'font-bold',
-                      operation === 'in' ? 'text-success' : 'text-warning'
-                    )}
-                  >
-                    {newStock}
-                  </span>{' '}
-                  uds
-                </p>
-              </div>
-            )}
+            {selectedProduct &&
+              warehouseUid &&
+              (qty > 0 || operation === 'set') &&
+              !wouldGoNegative && (
+                <div
+                  className={cn(
+                    'rounded-lg px-3 py-2.5 mt-2 border',
+                    operation === 'in'
+                      ? 'bg-success/5 border-success/20'
+                      : operation === 'out'
+                        ? 'bg-warning/5 border-warning/20'
+                        : 'bg-info/5 border-info/20'
+                  )}
+                >
+                  <p className="text-caption text-muted-foreground">
+                    Actual: <span className="font-semibold text-foreground">{currentStock}</span>
+                    {' → '}Nuevo:{' '}
+                    <span
+                      className={cn(
+                        'font-bold',
+                        operation === 'in'
+                          ? 'text-success'
+                          : operation === 'out'
+                            ? 'text-warning'
+                            : 'text-info'
+                      )}
+                    >
+                      {newStock}
+                    </span>{' '}
+                    uds
+                  </p>
+                </div>
+              )}
           </div>
 
           {/* Notas */}

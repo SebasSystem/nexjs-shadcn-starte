@@ -72,9 +72,6 @@ function WarehouseBreakdownRow({ stocks }: { stocks: WarehouseStockEntry[] }) {
 }
 
 export function StockView() {
-  const { items, summary, categories, isLoading, refetch, pagination } = useProducts();
-  const { items: warehouses } = useWarehouses();
-
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -83,6 +80,18 @@ export function StockView() {
   const [adjustDrawerOpen, setAdjustDrawerOpen] = useState(false);
   const [adjustProduct, setAdjustProduct] = useState<InventoryMasterItem | null>(null);
   const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
+
+  const stock_state = ['normal', 'low', 'out'].includes(filterStatus)
+    ? (filterStatus as 'normal' | 'low' | 'out')
+    : undefined;
+
+  const { items, summary, categories, isLoading, refetch, pagination } = useProducts({
+    category_uid: filterCategory !== 'all' ? filterCategory : undefined,
+    warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
+    stock_state,
+  });
+
+  const { items: warehouses } = useWarehouses();
 
   const toggleRow = (uid: string) => {
     setExpandedRows((prev) => {
@@ -145,20 +154,15 @@ export function StockView() {
       ]
     : [];
 
+  // Only search is a frontend-only filter — category, warehouse and stock_state go to backend
   const filtered = useMemo(() => {
-    return items.filter((p) => {
-      const matchSearch =
-        !search ||
+    if (!search) return items;
+    return items.filter(
+      (p) =>
         p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.sku.toLowerCase().includes(search.toLowerCase());
-      const matchCategory = filterCategory === 'all' || p.category_uid === filterCategory;
-      const matchStatus = filterStatus === 'all' || p.stock_state === filterStatus;
-      const matchWarehouse =
-        filterWarehouse === 'all' ||
-        p.stocks.some((s) => s.warehouse_uid === filterWarehouse && s.physical_stock > 0);
-      return matchSearch && matchCategory && matchStatus && matchWarehouse;
-    });
-  }, [items, search, filterCategory, filterStatus, filterWarehouse]);
+        p.sku.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [items, search]);
 
   const COLUMNS = useMemo(
     () => [

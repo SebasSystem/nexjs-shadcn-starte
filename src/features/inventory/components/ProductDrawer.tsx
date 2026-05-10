@@ -13,6 +13,7 @@ import {
   SheetHeader,
   SheetTitle,
   Switch,
+  Textarea,
 } from 'src/shared/components/ui';
 
 import type { CreateProductPayload, InventoryMasterItem } from '../types/inventory.types';
@@ -40,6 +41,7 @@ export function ProductDrawer({
 }: ProductDrawerProps) {
   const [name, setName] = useState(product?.name ?? '');
   const [sku, setSku] = useState(product?.sku ?? '');
+  const [description, setDescription] = useState(product?.description ?? '');
   const [categoryUid, setCategoryUid] = useState(product?.category_uid ?? '');
   const [reorderPoint, setReorderPoint] = useState(String(product?.reorder_point ?? 0));
   const [active, setActive] = useState(product ? product.is_active : true);
@@ -52,6 +54,7 @@ export function ProductDrawer({
   useEffect(() => {
     setName(product?.name ?? '');
     setSku(product?.sku ?? '');
+    setDescription(product?.description ?? '');
     setCategoryUid(product?.category_uid ?? '');
     setReorderPoint(String(product?.reorder_point ?? 0));
     setActive(product ? product.is_active : true);
@@ -74,6 +77,7 @@ export function ProductDrawer({
       const payload: CreateProductPayload = {
         name,
         sku,
+        description: description.trim() || undefined,
         category_uid: categoryUid || undefined,
         reorder_point: Number(reorderPoint),
         is_active: active,
@@ -113,6 +117,13 @@ export function ProductDrawer({
             onChange={(e) => setSku(e.target.value)}
             placeholder="Ej: SKU-001-XL"
             error={errors.sku}
+          />
+          <Textarea
+            label="Descripción"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Descripción opcional del producto"
+            className="min-h-[60px] resize-none"
           />
           <SelectField
             label="Categoría"

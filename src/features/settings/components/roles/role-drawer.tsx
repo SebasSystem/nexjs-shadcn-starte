@@ -221,16 +221,15 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
                               </span>
                             </div>
                           </AccordionTrigger>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleModule(modulePerms, selectedCount, totalCount);
-                            }}
-                            className="text-xs text-primary hover:underline shrink-0 ml-2"
+                          <div
+                            className="shrink-0 ml-2"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            {allSelected ? 'Quitar todos' : 'Todos'}
-                          </button>
+                            <Checkbox
+                              checked={allSelected ? true : selectedCount > 0 ? 'indeterminate' : false}
+                              onCheckedChange={() => toggleModule(modulePerms, selectedCount, totalCount)}
+                            />
+                          </div>
                         </div>
 
                         <AccordionContent className="pb-0">
