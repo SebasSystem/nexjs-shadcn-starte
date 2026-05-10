@@ -9,7 +9,13 @@ import type { SettingsUser } from '../types/settings.types';
 
 const generatePassword = () => Math.random().toString(36).slice(-10) + 'A1!';
 
-export function useSettingsUsers() {
+interface UserFilters {
+  search?: string;
+  role_uid?: string;
+  estado?: string;
+}
+
+export function useSettingsUsers(filters: UserFilters = {}) {
   const [users, setUsers] = useState<SettingsUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const pagination = usePaginationParams();
@@ -18,14 +24,19 @@ export function useSettingsUsers() {
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await usersService.getAll(params);
+      const res = await usersService.getAll({
+        ...params,
+        ...(filters.search && { search: filters.search }),
+        ...(filters.role_uid && { role_uid: filters.role_uid }),
+        ...(filters.estado && { estado: filters.estado }),
+      });
       const meta = extractPaginationMeta(res);
       if (meta) setTotal(meta.total);
       setUsers(((res as unknown as { data?: SettingsUser[] }).data ?? []) as SettingsUser[]);
     } finally {
       setIsLoading(false);
     }
-  }, [params, setTotal]);
+  }, [params, setTotal, filters.search, filters.role_uid, filters.estado]);
 
   useEffect(() => {
     fetchUsers();

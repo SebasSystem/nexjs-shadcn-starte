@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
+import { ColorSwatchPicker, type SwatchColor } from 'src/shared/components/ui/color-swatch-picker';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import {
@@ -13,24 +14,23 @@ import {
 } from 'src/shared/components/ui/sheet';
 
 import type { Tag, TagColor, TagEntity, TagForm } from '../../types/tags.types';
-import { BadgeColorMap } from './tags-table';
 
-const COLORS: { value: TagColor; label: string }[] = [
-  { value: 'blue', label: 'Azul' },
-  { value: 'red', label: 'Rojo' },
-  { value: 'green', label: 'Verde' },
-  { value: 'yellow', label: 'Amarillo' },
-  { value: 'purple', label: 'Morado' },
-  { value: 'orange', label: 'Naranja' },
-  { value: 'slate', label: 'Gris' },
-  { value: 'pink', label: 'Rosa' },
+const TAG_COLORS: SwatchColor[] = [
+  { value: 'blue',   label: 'Azul',     dotClassName: 'bg-blue-500' },
+  { value: 'red',    label: 'Rojo',     dotClassName: 'bg-red-500' },
+  { value: 'green',  label: 'Verde',    dotClassName: 'bg-green-500' },
+  { value: 'yellow', label: 'Amarillo', dotClassName: 'bg-yellow-400' },
+  { value: 'purple', label: 'Morado',   dotClassName: 'bg-purple-500' },
+  { value: 'orange', label: 'Naranja',  dotClassName: 'bg-orange-500' },
+  { value: 'slate',  label: 'Gris',     dotClassName: 'bg-slate-500' },
+  { value: 'pink',   label: 'Rosa',     dotClassName: 'bg-pink-500' },
 ];
 
 const ENTITIES: { value: TagEntity; label: string }[] = [
   { value: 'CONTACT', label: 'Contactos' },
   { value: 'COMPANY', label: 'Empresas' },
-  { value: 'LEAD', label: 'Prospectos' },
-  { value: 'DEAL', label: 'Negocios' },
+  { value: 'LEAD',    label: 'Prospectos' },
+  { value: 'DEAL',    label: 'Negocios' },
 ];
 
 interface TagDrawerProps {
@@ -42,7 +42,7 @@ interface TagDrawerProps {
 
 export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSave }) => {
   const [name, setName] = useState(tag?.name ?? '');
-  const [color, setColor] = useState<TagColor>(tag?.color ?? 'blue');
+  const [color, setColor] = useState<TagColor>((tag?.color as TagColor) ?? 'blue');
   const [entities, setEntities] = useState<TagEntity[]>(tag?.entity_types ?? []);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -66,7 +66,7 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
           <SheetTitle>{tag ? 'Editar Etiqueta' : 'Nueva Etiqueta'}</SheetTitle>
           <SheetDescription>
-            Personaliza el color y en qué módulos estará disponible.
+            Personaliza el color y en qué entidades estará disponible.
           </SheetDescription>
         </SheetHeader>
 
@@ -80,30 +80,16 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
           />
 
           <div className="space-y-3">
-            <p className="text-sm font-medium text-foreground">Color visual *</p>
-            <div className="flex flex-wrap gap-3">
-              {COLORS.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setColor(c.value)}
-                  className={cn(
-                    'w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer',
-                    BadgeColorMap[c.value],
-                    color === c.value
-                      ? 'ring-2 ring-offset-2 ring-primary scale-110'
-                      : 'opacity-70 hover:opacity-100'
-                  )}
-                  title={c.label}
-                >
-                  {color === c.value && <Icon name="Check" size={16} />}
-                </button>
-              ))}
-            </div>
+            <p className="text-sm font-medium text-foreground">Color *</p>
+            <ColorSwatchPicker
+              value={color}
+              onChange={(v) => setColor(v as TagColor)}
+              colors={TAG_COLORS}
+            />
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm font-medium text-foreground">Aplicable en módulos *</p>
+            <p className="text-sm font-medium text-foreground">Disponible en *</p>
             <div className="grid grid-cols-2 gap-3">
               {ENTITIES.map((e) => (
                 <button
@@ -119,7 +105,7 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
                 >
                   <div
                     className={cn(
-                      'w-4 h-4 rounded-sm border flex items-center justify-center',
+                      'w-4 h-4 rounded-sm border flex items-center justify-center shrink-0',
                       entities.includes(e.value)
                         ? 'bg-primary border-primary text-primary-foreground'
                         : 'border-muted-foreground/30'
@@ -132,7 +118,7 @@ export const TagDrawer: React.FC<TagDrawerProps> = ({ isOpen, onClose, tag, onSa
               ))}
             </div>
             {entities.length === 0 && (
-              <p className="text-xs text-red-500 mt-1">Selecciona al menos un módulo.</p>
+              <p className="text-xs text-red-500 mt-1">Seleccioná al menos una entidad.</p>
             )}
           </div>
         </div>

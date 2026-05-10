@@ -1,16 +1,9 @@
 'use client';
 
 import { SectionCard } from 'src/shared/components/layouts/page';
+import { EditButton, MoreActionsMenu } from 'src/shared/components/ui/action-buttons';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
-import { Button } from 'src/shared/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from 'src/shared/components/ui/dropdown-menu';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import type { Team } from '../../types/settings.types';
@@ -97,32 +90,19 @@ export function TeamsGrid({ teams, onEdit, onDelete }: TeamsGridProps) {
               </div>
 
               <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 cursor-pointer"
-                  onClick={() => onEdit(team)}
-                >
-                  <Icon name="Pencil" size={14} />
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 cursor-pointer">
-                      <Icon name="MoreHorizontal" size={14} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit(team)}>Editar equipo</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-red-600"
-                      onClick={() => onDelete(team)}
-                      disabled={team.members_count > 0}
-                    >
-                      Eliminar equipo
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <EditButton onClick={() => onEdit(team)} />
+                <MoreActionsMenu
+                  items={[
+                    { label: 'Editar equipo', icon: <Icon name="Pencil" size={14} />, onClick: () => onEdit(team) },
+                    {
+                      label: 'Eliminar equipo',
+                      icon: <Icon name="Trash2" size={14} />,
+                      color: 'error',
+                      disabled: team.members_count > 0,
+                      onClick: () => onDelete(team),
+                    },
+                  ]}
+                />
               </div>
             </div>
 

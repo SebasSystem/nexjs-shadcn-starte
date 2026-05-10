@@ -11,8 +11,7 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import { Button } from 'src/shared/components/ui/button';
-import { Icon } from 'src/shared/components/ui/icon';
+import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
 
 import type { Tag, TagColor, TagEntity } from '../../types/tags.types';
 
@@ -105,23 +104,9 @@ export const TagsTable: React.FC<TagsTableProps> = ({
         id: 'acciones',
         header: '',
         cell: (info) => (
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => onEdit(info.row.original)}
-            >
-              <Icon name="Edit" size={16} className="text-muted-foreground" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 hover:text-red-600 hover:bg-red-50"
-              onClick={() => onDelete(info.row.original.uid)}
-            >
-              <Icon name="Trash2" size={16} />
-            </Button>
+          <div className="flex justify-end gap-1">
+            <EditButton onClick={() => onEdit(info.row.original)} />
+            <DeleteButton onClick={() => onDelete(info.row.original.uid)} />
           </div>
         ),
       }),

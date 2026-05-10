@@ -171,29 +171,59 @@ export function SelectField({
           className="w-[var(--radix-popover-trigger-width)] min-w-[var(--radix-popover-trigger-width)] p-0"
           align="start"
         >
-          <Command>
-            {searchable && <CommandInput placeholder="Buscar..." className="h-9" />}
-            <CommandList id={listboxId}>
-              <CommandEmpty>Sin resultados.</CommandEmpty>
-              <CommandGroup className="max-h-60 overflow-auto">
-                {options.map((opt) => (
-                  <CommandItem
+          {searchable ? (
+            <Command>
+              <CommandInput placeholder="Buscar..." className="h-9" />
+              <CommandList id={listboxId}>
+                <CommandEmpty>Sin resultados.</CommandEmpty>
+                <CommandGroup className="max-h-60 overflow-auto">
+                  {options.map((opt) => (
+                    <CommandItem
+                      key={opt.value}
+                      value={opt.value}
+                      disabled={opt.disabled}
+                      onSelect={() => toggle(opt.value)}
+                      className="gap-2 cursor-pointer"
+                    >
+                      {opt.icon}
+                      {opt.label}
+                      {selected.includes(opt.value) && (
+                        <Icon name="Check" className="ml-auto h-4 w-4 text-primary" />
+                      )}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          ) : (
+            <div id={listboxId} role="listbox" className="max-h-60 overflow-auto p-1">
+              {options.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">Sin resultados.</p>
+              ) : (
+                options.map((opt) => (
+                  <div
                     key={opt.value}
-                    value={opt.value}
-                    disabled={opt.disabled}
-                    onSelect={() => toggle(opt.value)}
-                    className="gap-2 cursor-pointer"
+                    role="option"
+                    aria-selected={selected.includes(opt.value)}
+                    aria-disabled={opt.disabled}
+                    onClick={() => !opt.disabled && toggle(opt.value)}
+                    className={cn(
+                      'relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors',
+                      opt.disabled
+                        ? 'pointer-events-none opacity-50'
+                        : 'hover:bg-accent hover:text-accent-foreground'
+                    )}
                   >
                     {opt.icon}
                     {opt.label}
                     {selected.includes(opt.value) && (
                       <Icon name="Check" className="ml-auto h-4 w-4 text-primary" />
                     )}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </PopoverContent>
       </Popover>
 

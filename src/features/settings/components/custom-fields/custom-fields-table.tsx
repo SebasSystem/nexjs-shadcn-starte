@@ -12,15 +12,8 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
+import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
 import { Badge } from 'src/shared/components/ui/badge';
-import { Button } from 'src/shared/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from 'src/shared/components/ui/dropdown-menu';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import type { CustomField, CustomFieldModule, CustomFieldType } from '../../types/settings.types';
@@ -124,28 +117,8 @@ export function CustomFieldsTable({
           const field = info.row.original;
           return (
             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 cursor-pointer"
-                onClick={() => onEdit(field)}
-              >
-                <Icon name="Pencil" size={14} />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 cursor-pointer">
-                    <Icon name="MoreHorizontal" size={14} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit(field)}>Editar campo</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600" onClick={() => onDelete(field)}>
-                    Eliminar campo
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <EditButton onClick={() => onEdit(field)} />
+              <DeleteButton onClick={() => onDelete(field)} />
             </div>
           );
         },

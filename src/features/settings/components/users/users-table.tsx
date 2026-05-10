@@ -13,16 +13,9 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
+import { EditButton, MoreActionsMenu } from 'src/shared/components/ui/action-buttons';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
-import { Button } from 'src/shared/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from 'src/shared/components/ui/dropdown-menu';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import type { SettingsUser } from '../../types/settings.types';
@@ -117,26 +110,23 @@ export function UsersTable({
           const user = info.row.original;
           return (
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(user)}>
-                <Icon name="Pencil" size={14} />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7">
-                    <Icon name="MoreHorizontal" size={14} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit(user)}>Editar</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onToggleStatus(user)}>
-                    {user.status === 'ACTIVO' ? 'Desactivar' : 'Activar'}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-red-600" onClick={() => onDelete(user)}>
-                    Eliminar usuario
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <EditButton onClick={() => onEdit(user)} />
+              <MoreActionsMenu
+                items={[
+                  { label: 'Editar', icon: <Icon name="Pencil" size={14} />, onClick: () => onEdit(user) },
+                  {
+                    label: user.status === 'ACTIVO' ? 'Desactivar' : 'Activar',
+                    icon: <Icon name={user.status === 'ACTIVO' ? 'UserX' : 'UserCheck'} size={14} />,
+                    onClick: () => onToggleStatus(user),
+                  },
+                  {
+                    label: 'Eliminar usuario',
+                    icon: <Icon name="Trash2" size={14} />,
+                    color: 'error',
+                    onClick: () => onDelete(user),
+                  },
+                ]}
+              />
             </div>
           );
         },

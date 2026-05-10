@@ -11,6 +11,7 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
+import { useDebounce } from 'use-debounce';
 
 import { UserDrawer } from '../components/users/user-drawer';
 import { UsersTable } from '../components/users/users-table';
@@ -20,36 +21,32 @@ import { useTeams } from '../hooks/use-teams';
 import type { SettingsUser } from '../types/settings.types';
 
 export const UsersView = () => {
-  const { users, isLoading, createUser, updateUser, toggleStatus, deleteUser, pagination } =
-    useSettingsUsers();
-  const { roles } = useRoles();
-  const { teams } = useTeams();
-
   const [search, setSearch] = useState('');
-  const [filterRole, setFilterRole] = useState('ALL');
-  const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterRole, setFilterRole] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SettingsUser | null>(null);
 
+  const [debouncedSearch] = useDebounce(search, 400);
+
+  const { users, isLoading, createUser, updateUser, toggleStatus, deleteUser, pagination } =
+    useSettingsUsers({
+      search: debouncedSearch || undefined,
+      role_uid: filterRole || undefined,
+      estado: filterStatus || undefined,
+    });
+
+  const { roles } = useRoles();
+  const { teams } = useTeams();
+
   const stats = useMemo(
     () => ({
-      total: users.length,
+      total: pagination.total,
       activos: users.filter((u) => u.status === 'ACTIVO').length,
       inactivos: users.filter((u) => u.status === 'INACTIVO').length,
     }),
-    [users]
+    [users, pagination.total]
   );
-
-  const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
-      const matchSearch =
-        u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.email.toLowerCase().includes(search.toLowerCase());
-      const matchRole = filterRole === 'ALL' || u.role_uid === filterRole;
-      const matchStatus = filterStatus === 'ALL' || u.status === filterStatus;
-      return matchSearch && matchRole && matchStatus;
-    });
-  }, [users, search, filterRole, filterStatus]);
 
   const handleOpenNew = () => {
     setSelectedUser(null);
@@ -91,7 +88,7 @@ export const UsersView = () => {
         <StatsCard
           title="Activos"
           value={stats.activos}
-          trend={`${stats.total ? Math.round((stats.activos / stats.total) * 100) : 0}% del total`}
+          trend="en esta página"
           trendUp
           icon={<Icon name="UserCheck" size={20} />}
           iconClassName="bg-emerald-500/10 text-emerald-600"
@@ -99,7 +96,7 @@ export const UsersView = () => {
         <StatsCard
           title="Inactivos"
           value={stats.inactivos}
-          trend={`${stats.total ? Math.round((stats.inactivos / stats.total) * 100) : 0}% del total`}
+          trend="en esta página"
           trendUp={false}
           icon={<Icon name="UserX" size={20} />}
           iconClassName="bg-gray-500/10 text-gray-500"
@@ -120,7 +117,7 @@ export const UsersView = () => {
             <SelectField
               label="Rol"
               options={[
-                { value: 'ALL', label: 'Todos los roles' },
+                { value: '', label: 'Todos los roles' },
                 ...roles.map((r) => ({ value: r.uid, label: r.name })),
               ]}
               value={filterRole}
@@ -129,9 +126,8 @@ export const UsersView = () => {
             <SelectField
               label="Estado"
               options={[
-                { value: 'ALL', label: 'Todos' },
+                { value: '', label: 'Todos' },
                 { value: 'ACTIVO', label: 'Activo' },
-                { value: 'PENDIENTE', label: 'Pendiente' },
                 { value: 'INACTIVO', label: 'Inactivo' },
               ]}
               value={filterStatus}
@@ -146,22 +142,17 @@ export const UsersView = () => {
             ))}
           </div>
         ) : (
-          <>
-            <UsersTable
-              users={filteredUsers}
-              onEdit={handleEdit}
-              onToggleStatus={(u: SettingsUser) => toggleStatus(u.uid)}
-              onDelete={(u: SettingsUser) => deleteUser(u.uid)}
-              total={pagination.total}
-              pageIndex={pagination.page - 1}
-              pageSize={pagination.rowsPerPage}
-              onPageChange={(pi) => pagination.onChangePage(pi + 1)}
-              onPageSizeChange={pagination.onChangeRowsPerPage}
-            />
-            <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
-              {filteredUsers.length} usuario{filteredUsers.length !== 1 ? 's' : ''}
-            </div>
-          </>
+          <UsersTable
+            users={users}
+            onEdit={handleEdit}
+            onToggleStatus={(u: SettingsUser) => toggleStatus(u.uid)}
+            onDelete={(u: SettingsUser) => deleteUser(u.uid)}
+            total={pagination.total}
+            pageIndex={pagination.page - 1}
+            pageSize={pagination.rowsPerPage}
+            onPageChange={(pi) => pagination.onChangePage(pi + 1)}
+            onPageSizeChange={pagination.onChangeRowsPerPage}
+          />
         )}
       </SectionCard>
 
