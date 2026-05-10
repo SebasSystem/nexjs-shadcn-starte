@@ -1,10 +1,12 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { PlanFormData, planSchema } from 'src/features/admin/schemas/plan.schema';
+import { plansService } from 'src/features/admin/services/plans.service';
 import { PlanSaaS } from 'src/features/admin/types/admin.types';
 import { getCurrencyPreferences } from 'src/lib/currency';
 import { Button } from 'src/shared/components/ui/button';
@@ -31,14 +33,7 @@ const SOPORTE = [
   { value: 'EMAIL_CHAT', label: 'Email + Chat' },
   { value: 'DEDICADO', label: 'Soporte Dedicado' },
 ];
-const MODULOS = [
-  { key: 'ventas', label: 'Ventas' },
-  { key: 'inventario', label: 'Inventario' },
-  { key: 'rh', label: 'RH / Comisiones' },
-  { key: 'reportes', label: 'Reportes' },
-  { key: 'multi-currency', label: 'Multi-currency' },
-  { key: 'api-publica', label: 'API Pública' },
-];
+const MODULOS_FALLBACK: { key: string; label: string }[] = [];
 
 const DEFAULTS: PlanFormData = {
   name: '',
@@ -69,6 +64,13 @@ interface PlanFormDrawerProps {
 
 export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawerProps) {
   const isEditing = !!plan;
+
+  const { data: modulos = MODULOS_FALLBACK } = useQuery({
+    queryKey: ['admin', 'plan-modules'],
+    queryFn: () => plansService.getModules(),
+    staleTime: Infinity,
+  });
+
   const {
     control,
     handleSubmit,
@@ -240,7 +242,7 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
             <div>
               <h3 className="text-sm font-semibold mb-4">Módulos</h3>
               <div className="grid grid-cols-2 gap-2">
-                {MODULOS.map((m) => (
+                {modulos.map((m) => (
                   <div key={m.key} className="flex items-center gap-2">
                     <Checkbox
                       id={`m-${m.key}`}

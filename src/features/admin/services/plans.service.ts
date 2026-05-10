@@ -2,6 +2,10 @@ import type { PlanPayload, PlanSaaS } from 'src/features/admin/types/admin.types
 import axiosInstance, { endpoints } from 'src/lib/axios';
 
 export const plansService = {
+  async getModules(): Promise<{ key: string; label: string }[]> {
+    const res = await axiosInstance.get(endpoints.admin.planModules);
+    return res.data.data ?? res.data;
+  },
   async getAll(): Promise<PlanSaaS[]> {
     const res = await axiosInstance.get(endpoints.plans.list);
     return res.data.data;

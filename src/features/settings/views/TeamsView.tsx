@@ -61,7 +61,11 @@ export const TeamsView = () => {
         action={
           <div className="flex items-center gap-3">
             <div className="relative w-52">
-              <Icon name="Search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Icon
+                name="Search"
+                size={15}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+              />
               <Input
                 placeholder="Buscar equipo..."
                 value={searchInput}

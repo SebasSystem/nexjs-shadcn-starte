@@ -122,6 +122,7 @@ export const endpoints = {
   },
   admin: {
     dashboard: '/admin/dashboard',
+    planModules: '/admin/plan-modules',
     tenants: {
       list: '/admin/tenants',
       create: '/admin/tenants',
