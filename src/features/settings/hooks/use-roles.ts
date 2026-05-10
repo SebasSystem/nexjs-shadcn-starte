@@ -6,6 +6,8 @@ import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
+
 import { rolesService } from '../services/roles.service';
 import type { Role } from '../types/settings.types';
 
@@ -59,8 +61,9 @@ export function useRoles(filters?: { search?: string }) {
         only_active_modules: true,
         ...queryParams,
       });
+      const meta = extractPaginationMeta(raw);
       const mapped = mapRoles(raw);
-      pagination.setTotal(mapped.length);
+      pagination.setTotal(meta ? meta.total : mapped.length);
       return mapped;
     },
   });

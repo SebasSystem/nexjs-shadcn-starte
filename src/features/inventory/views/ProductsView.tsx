@@ -24,6 +24,15 @@ import {
   useTable,
 } from 'src/shared/components/table';
 import { Badge, Button, EditButton, Icon } from 'src/shared/components/ui';
+import { DeleteButton } from 'src/shared/components/ui/action-buttons';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from 'src/shared/components/ui/dialog';
 import { useDebounce } from 'use-debounce';
 
 import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
@@ -47,6 +56,7 @@ export function ProductsView() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<ProductDrawerMode>('create');
   const [selectedProduct, setSelectedProduct] = useState<InventoryMasterItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<InventoryMasterItem | null>(null);
 
   const [debouncedSearch] = useDebounce(search, 400);
   const [debouncedCategorySearch] = useDebounce(categorySearch, 400);
@@ -56,7 +66,7 @@ export function ProductsView() {
     ? (filterStatus as 'normal' | 'low' | 'out')
     : undefined;
 
-  const { items, summary, isLoading, createProduct, updateProduct, pagination } = useProducts({
+  const { items, summary, isLoading, createProduct, updateProduct, removeProduct, pagination } = useProducts({
     category_uid: filterCategory !== 'all' ? filterCategory : undefined,
     warehouse_uid: filterWarehouse !== 'all' ? filterWarehouse : undefined,
     stock_state,
@@ -173,13 +183,16 @@ export function ProductsView() {
         id: 'actions',
         header: '',
         cell: (info) => (
-          <EditButton
-            onClick={() => {
-              setSelectedProduct(info.row.original);
-              setDrawerMode('edit');
-              setDrawerOpen(true);
-            }}
-          />
+          <div className="flex items-center justify-end gap-1">
+            <EditButton
+              onClick={() => {
+                setSelectedProduct(info.row.original);
+                setDrawerMode('edit');
+                setDrawerOpen(true);
+              }}
+            />
+            <DeleteButton onClick={() => setDeleteTarget(info.row.original)} />
+          </div>
         ),
       }),
     ],
@@ -313,6 +326,32 @@ export function ProductsView() {
         onClose={() => setDrawerOpen(false)}
         onSave={handleSave}
       />
+
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>¿Eliminar producto?</DialogTitle>
+            <DialogDescription>
+              Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
+              deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              Cancelar
+            </Button>
+            <Button
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={() => {
+                if (deleteTarget) removeProduct(deleteTarget.uid);
+                setDeleteTarget(null);
+              }}
+            >
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageContainer>
   );
 }

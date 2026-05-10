@@ -55,7 +55,7 @@ export function ProductFilters({
         label="Estado"
         options={[
           { value: 'all', label: 'Todos los estados' },
-          { value: 'normal', label: 'Normal' },
+          { value: 'normal', label: 'Disponible' },
           { value: 'low', label: 'Stock bajo' },
           { value: 'out', label: 'Sin stock' },
           { value: 'inactive', label: 'Inactivo' },
