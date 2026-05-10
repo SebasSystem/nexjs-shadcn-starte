@@ -16,21 +16,21 @@ import {
 import type { Tag, TagColor, TagEntity, TagForm } from '../../types/tags.types';
 
 const TAG_COLORS: SwatchColor[] = [
-  { value: 'blue',   label: 'Azul',     dotClassName: 'bg-blue-500' },
-  { value: 'red',    label: 'Rojo',     dotClassName: 'bg-red-500' },
-  { value: 'green',  label: 'Verde',    dotClassName: 'bg-green-500' },
+  { value: 'blue', label: 'Azul', dotClassName: 'bg-blue-500' },
+  { value: 'red', label: 'Rojo', dotClassName: 'bg-red-500' },
+  { value: 'green', label: 'Verde', dotClassName: 'bg-green-500' },
   { value: 'yellow', label: 'Amarillo', dotClassName: 'bg-yellow-400' },
-  { value: 'purple', label: 'Morado',   dotClassName: 'bg-purple-500' },
-  { value: 'orange', label: 'Naranja',  dotClassName: 'bg-orange-500' },
-  { value: 'slate',  label: 'Gris',     dotClassName: 'bg-slate-500' },
-  { value: 'pink',   label: 'Rosa',     dotClassName: 'bg-pink-500' },
+  { value: 'purple', label: 'Morado', dotClassName: 'bg-purple-500' },
+  { value: 'orange', label: 'Naranja', dotClassName: 'bg-orange-500' },
+  { value: 'slate', label: 'Gris', dotClassName: 'bg-slate-500' },
+  { value: 'pink', label: 'Rosa', dotClassName: 'bg-pink-500' },
 ];
 
 const ENTITIES: { value: TagEntity; label: string }[] = [
   { value: 'CONTACT', label: 'Contactos' },
   { value: 'COMPANY', label: 'Empresas' },
-  { value: 'LEAD',    label: 'Prospectos' },
-  { value: 'DEAL',    label: 'Negocios' },
+  { value: 'LEAD', label: 'Prospectos' },
+  { value: 'DEAL', label: 'Negocios' },
 ];
 
 interface TagDrawerProps {

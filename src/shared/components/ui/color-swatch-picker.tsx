@@ -20,7 +20,13 @@ interface ColorSwatchPickerProps {
   allowCustom?: boolean;
 }
 
-export function ColorSwatchPicker({ value, onChange, colors, className, allowCustom }: ColorSwatchPickerProps) {
+export function ColorSwatchPicker({
+  value,
+  onChange,
+  colors,
+  className,
+  allowCustom,
+}: ColorSwatchPickerProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);
   const isCustomColor = allowCustom && !colors.some((c) => c.value === value);
 

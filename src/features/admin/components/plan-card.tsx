@@ -85,9 +85,17 @@ export function PlanCard({ plan, onEdit, onDelete }: PlanCardProps) {
             <EditButton onClick={() => onEdit(plan)} />
             <MoreActionsMenu
               items={[
-                { label: 'Editar', icon: <Icon name="Pencil" className="h-3.5 w-3.5" />, onClick: () => onEdit(plan) },
                 {
-                  label: deleting ? 'Procesando...' : plan.total_tenants > 0 ? 'Desactivar' : 'Eliminar',
+                  label: 'Editar',
+                  icon: <Icon name="Pencil" className="h-3.5 w-3.5" />,
+                  onClick: () => onEdit(plan),
+                },
+                {
+                  label: deleting
+                    ? 'Procesando...'
+                    : plan.total_tenants > 0
+                      ? 'Desactivar'
+                      : 'Eliminar',
                   icon: <Icon name="Trash2" className="h-3.5 w-3.5" />,
                   color: 'error',
                   disabled: deleting,

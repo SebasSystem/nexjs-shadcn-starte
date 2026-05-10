@@ -3,7 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { documentTypeService } from 'src/features/settings/services/document-type.service';
-import type { DocumentType, DocumentTypePayload } from 'src/features/settings/types/document-type.types';
+import type {
+  DocumentType,
+  DocumentTypePayload,
+} from 'src/features/settings/types/document-type.types';
 
 const QUERY_KEY = ['settings', 'document-types'] as const;
 
@@ -16,7 +19,11 @@ const EMPTY: DocumentType[] = [];
 export function useDocumentTypes() {
   const queryClient = useQueryClient();
 
-  const { data: documentTypes = EMPTY, isLoading, isError } = useQuery({
+  const {
+    data: documentTypes = EMPTY,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: QUERY_KEY,
     queryFn: () => documentTypeService.list(),
   });

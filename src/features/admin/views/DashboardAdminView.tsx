@@ -294,16 +294,16 @@ export const DashboardAdminView = () => {
         <StatsCard
           title="Facturas Vencidas"
           value={data.facturas_vencidas !== 0 ? data.facturas_vencidas : '—'}
-          trend={data.facturas_vencidas !== 0 ? 'requieren atención' : 'Pendiente de backend'}
-          trendUp={false}
+          trend={data.facturas_vencidas !== 0 ? 'requieren atención' : 'Todo al día'}
+          trendUp={data.facturas_vencidas === 0}
           icon={<Icon name="AlertCircle" className="h-5 w-5" />}
           iconClassName="bg-amber-500/10 text-amber-600"
         />
         <StatsCard
           title="Errores Críticos (24h)"
           value={data.errores_criticos_24h !== 0 ? data.errores_criticos_24h : '—'}
-          trend={data.errores_criticos_24h !== 0 ? 'en las últimas 24h' : 'Pendiente de backend'}
-          trendUp={false}
+          trend={data.errores_criticos_24h !== 0 ? 'en las últimas 24h' : 'Sin errores recientes'}
+          trendUp={data.errores_criticos_24h === 0}
           icon={<Icon name="Activity" className="h-5 w-5" />}
           iconClassName="bg-red-500/10 text-red-600"
         />

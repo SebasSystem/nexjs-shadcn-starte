@@ -13,15 +13,6 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from 'src/shared/components/ui/dialog';
 import {
   Button,
   Icon,
@@ -35,7 +26,16 @@ import {
   Switch,
   Textarea,
 } from 'src/shared/components/ui';
+import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
 import { Badge } from 'src/shared/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from 'src/shared/components/ui/dialog';
 
 import { useDocumentTypes } from '../hooks/use-document-types';
 import type { DocumentType } from '../types/document-type.types';
@@ -62,7 +62,10 @@ const COLUMNS = (onEdit: (dt: DocumentType) => void, onDelete: (dt: DocumentType
     header: 'Requerido',
     cell: (info) =>
       info.getValue() ? (
-        <Badge variant="soft" className="bg-red-50 text-red-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border-none">
+        <Badge
+          variant="soft"
+          className="bg-red-50 text-red-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border-none"
+        >
           Requerido
         </Badge>
       ) : (
@@ -73,11 +76,17 @@ const COLUMNS = (onEdit: (dt: DocumentType) => void, onDelete: (dt: DocumentType
     header: 'Estado',
     cell: (info) =>
       info.getValue() ? (
-        <Badge variant="soft" className="bg-emerald-50 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border-none">
+        <Badge
+          variant="soft"
+          className="bg-emerald-50 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded-full border-none"
+        >
           Activo
         </Badge>
       ) : (
-        <Badge variant="soft" className="bg-gray-100 text-gray-500 text-[10px] font-semibold px-2 py-0.5 rounded-full border-none">
+        <Badge
+          variant="soft"
+          className="bg-gray-100 text-gray-500 text-[10px] font-semibold px-2 py-0.5 rounded-full border-none"
+        >
           Inactivo
         </Badge>
       ),
@@ -95,8 +104,14 @@ const COLUMNS = (onEdit: (dt: DocumentType) => void, onDelete: (dt: DocumentType
 ];
 
 export function DocumentTypesView() {
-  const { documentTypes, isLoading, isError, createDocumentType, updateDocumentType, deleteDocumentType } =
-    useDocumentTypes();
+  const {
+    documentTypes,
+    isLoading,
+    isError,
+    createDocumentType,
+    updateDocumentType,
+    deleteDocumentType,
+  } = useDocumentTypes();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<DocumentType | null>(null);
@@ -120,7 +135,7 @@ export function DocumentTypesView() {
 
   const columns = useMemo(
     () => COLUMNS(handleEdit, (dt) => setDeleteTarget(dt)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     []
   );
 
@@ -220,13 +235,32 @@ export function DocumentTypesView() {
               {editing ? 'Editar Tipo de Documento' : 'Nuevo Tipo de Documento'}
             </SheetTitle>
             <SheetDescription className="sr-only">
-              {editing ? 'Editá los datos del tipo de documento.' : 'Completá el formulario para crear un nuevo tipo de documento.'}
+              {editing
+                ? 'Editá los datos del tipo de documento.'
+                : 'Completá el formulario para crear un nuevo tipo de documento.'}
             </SheetDescription>
           </SheetHeader>
           <div className="space-y-4 px-4 py-6 flex-1 overflow-y-auto">
-            <Input label="Nombre" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Certificado Fiscal" />
-            <Textarea label="Descripción" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Opcional — describí el propósito de este tipo de documento" className="min-h-[60px] resize-none" />
-            <Input label="Días de vigencia" type="number" value={validityDays} onChange={(e) => setValidityDays(e.target.value)} placeholder="Ej: 365 (dejar vacío si no expira)" />
+            <Input
+              label="Nombre"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ej: Certificado Fiscal"
+            />
+            <Textarea
+              label="Descripción"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Opcional — describí el propósito de este tipo de documento"
+              className="min-h-[60px] resize-none"
+            />
+            <Input
+              label="Días de vigencia"
+              type="number"
+              value={validityDays}
+              onChange={(e) => setValidityDays(e.target.value)}
+              placeholder="Ej: 365 (dejar vacío si no expira)"
+            />
             <div className="flex items-center justify-between py-1">
               <span className="text-sm text-foreground">¿Es requerido?</span>
               <Switch checked={isRequired} onCheckedChange={setIsRequired} />
@@ -237,7 +271,9 @@ export function DocumentTypesView() {
             </div>
           </div>
           <SheetFooter>
-            <Button variant="outline" onClick={() => setDrawerOpen(false)} disabled={saving}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setDrawerOpen(false)} disabled={saving}>
+              Cancelar
+            </Button>
             <Button color="primary" onClick={handleSave} disabled={saving || !name.trim()}>
               {saving ? 'Guardando...' : editing ? 'Actualizar' : 'Crear'}
             </Button>
@@ -246,16 +282,22 @@ export function DocumentTypesView() {
       </Sheet>
 
       {/* Delete confirmation */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}>
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}
+      >
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>¿Eliminar tipo de documento?</DialogTitle>
             <DialogDescription>
-              Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede deshacer.
+              Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
+              deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              Cancelar
+            </Button>
             <Button
               className="bg-red-600 text-white hover:bg-red-700"
               onClick={() => {

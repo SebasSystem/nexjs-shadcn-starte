@@ -113,10 +113,16 @@ export function UsersTable({
               <EditButton onClick={() => onEdit(user)} />
               <MoreActionsMenu
                 items={[
-                  { label: 'Editar', icon: <Icon name="Pencil" size={14} />, onClick: () => onEdit(user) },
+                  {
+                    label: 'Editar',
+                    icon: <Icon name="Pencil" size={14} />,
+                    onClick: () => onEdit(user),
+                  },
                   {
                     label: user.status === 'ACTIVO' ? 'Desactivar' : 'Activar',
-                    icon: <Icon name={user.status === 'ACTIVO' ? 'UserX' : 'UserCheck'} size={14} />,
+                    icon: (
+                      <Icon name={user.status === 'ACTIVO' ? 'UserX' : 'UserCheck'} size={14} />
+                    ),
                     onClick: () => onToggleStatus(user),
                   },
                   {

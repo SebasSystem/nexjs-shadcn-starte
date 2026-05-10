@@ -191,7 +191,10 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
                   ))}
                 </div>
               ) : (
-                <Accordion type="multiple" className="border border-border rounded-lg divide-y divide-border/60">
+                <Accordion
+                  type="multiple"
+                  className="border border-border rounded-lg divide-y divide-border/60"
+                >
                   {[...grouped.entries()].map(([module, modulePerms]) => {
                     const selectedCount = modulePerms.filter((p) =>
                       selectedUids.includes(p.uid)

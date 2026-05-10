@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PageContainer, PageHeader } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
+import { Input } from 'src/shared/components/ui/input';
 
 import { TeamDrawer } from '../components/teams/team-drawer';
 import { TeamsGrid } from '../components/teams/teams-table';
@@ -12,8 +13,16 @@ import { useTeams } from '../hooks/use-teams';
 import type { Team } from '../types/settings.types';
 
 export const TeamsView = () => {
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const t = setTimeout(() => setSearch(searchInput), 350);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
   const { teams, isLoading, createTeam, updateTeam, addMember, removeMember, deleteTeam } =
-    useTeams();
+    useTeams(search);
   const { users } = useSettingsUsers();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -50,10 +59,21 @@ export const TeamsView = () => {
         title="Equipos y Cartera"
         subtitle="Organiza vendedores en equipos y controla qué clientes puede ver cada uno"
         action={
-          <Button color="primary" onClick={handleOpenNew} className="gap-2">
-            <Icon name="Plus" size={16} />
-            Nuevo equipo
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="relative w-52">
+              <Icon name="Search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Buscar equipo..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button color="primary" onClick={handleOpenNew} className="gap-2">
+              <Icon name="Plus" size={16} />
+              Nuevo equipo
+            </Button>
+          </div>
         }
       />
 

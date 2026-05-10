@@ -93,7 +93,11 @@ export function TeamsGrid({ teams, onEdit, onDelete }: TeamsGridProps) {
                 <EditButton onClick={() => onEdit(team)} />
                 <MoreActionsMenu
                   items={[
-                    { label: 'Editar equipo', icon: <Icon name="Pencil" size={14} />, onClick: () => onEdit(team) },
+                    {
+                      label: 'Editar equipo',
+                      icon: <Icon name="Pencil" size={14} />,
+                      onClick: () => onEdit(team),
+                    },
                     {
                       label: 'Eliminar equipo',
                       icon: <Icon name="Trash2" size={14} />,

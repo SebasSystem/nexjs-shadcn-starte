@@ -6,12 +6,14 @@ import { queryKeys } from 'src/lib/query-keys';
 import { teamsService } from '../services/teams.service';
 import type { Team } from '../types/settings.types';
 
-export function useTeams() {
+const EMPTY: Team[] = [];
+
+export function useTeams(search = '') {
   const queryClient = useQueryClient();
 
-  const { data: teams = [], isLoading } = useQuery({
-    queryKey: queryKeys.settings.teams,
-    queryFn: () => teamsService.getAll(),
+  const { data: teams = EMPTY, isLoading } = useQuery({
+    queryKey: [...queryKeys.settings.teams, search],
+    queryFn: () => teamsService.getAll(search || undefined),
   });
 
   const createMutation = useMutation({
