@@ -25,14 +25,7 @@ import {
 } from 'src/shared/components/table';
 import { Badge, Button, EditButton, Icon } from 'src/shared/components/ui';
 import { DeleteButton } from 'src/shared/components/ui/action-buttons';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from 'src/shared/components/ui/dialog';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { useDebounce } from 'use-debounce';
 
 import { InventoryPageSkeleton } from '../components/InventoryPageSkeleton';
@@ -327,31 +320,23 @@ export function ProductsView() {
         onSave={handleSave}
       />
 
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>¿Eliminar producto?</DialogTitle>
-            <DialogDescription>
-              Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
-              deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
-              Cancelar
-            </Button>
-            <Button
-              className="bg-red-600 text-white hover:bg-red-700"
-              onClick={() => {
-                if (deleteTarget) removeProduct(deleteTarget.uid);
-                setDeleteTarget(null);
-              }}
-            >
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) removeProduct(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar producto?"
+        description={
+          <>
+            Vas a eliminar <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
+            deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
+      />
     </PageContainer>
   );
 }
