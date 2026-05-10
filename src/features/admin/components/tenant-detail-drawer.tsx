@@ -18,7 +18,6 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { PaginationControl } from 'src/shared/components/ui/pagination-control';
 import { Progress } from 'src/shared/components/ui/progress';
-import { SelectField } from 'src/shared/components/ui/select-field';
 import {
   Sheet,
   SheetContent,
@@ -69,7 +68,6 @@ export function TenantDetailDrawer({
   const [textoConfirmacion, setTextoConfirmacion] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
-  const [newUserRole, setNewUserRole] = useState('owner');
   const [creatingUser, setCreatingUser] = useState(false);
   const [userCreatedMsg, setUserCreatedMsg] = useState<string | null>(null);
 
@@ -90,7 +88,6 @@ export function TenantDetailDrawer({
       setUserCreatedMsg(null);
       setNewUserName('');
       setNewUserEmail('');
-      setNewUserRole('owner');
       setUsersPage(1);
     }
   }, [tenant, isOpen]);
@@ -140,7 +137,6 @@ export function TenantDetailDrawer({
     setTextoConfirmacion('');
     setNewUserName('');
     setNewUserEmail('');
-    setNewUserRole('owner');
     setUserCreatedMsg(null);
     onClose();
   };
@@ -157,7 +153,7 @@ export function TenantDetailDrawer({
       const result = await onCreateUser(tenant.uid, {
         name: newUserName,
         email: newUserEmail,
-        role: newUserRole,
+        role: 'owner',
       });
       setUserCreatedMsg(
         result.reset_email_sent
@@ -166,7 +162,6 @@ export function TenantDetailDrawer({
       );
       setNewUserName('');
       setNewUserEmail('');
-      setNewUserRole('owner');
       setUsuarios([]);
     } catch {
     } finally {
@@ -399,16 +394,6 @@ export function TenantDetailDrawer({
                       placeholder="juan@empresa.com"
                       value={newUserEmail}
                       onChange={(e) => setNewUserEmail(e.target.value)}
-                    />
-                    <SelectField
-                      label="Rol"
-                      value={newUserRole}
-                      onChange={(v) => setNewUserRole(v as string)}
-                      options={[
-                        { value: 'owner', label: 'Owner' },
-                        { value: 'manager', label: 'Manager' },
-                        { value: 'seller', label: 'Seller' },
-                      ]}
                     />
                     <Button
                       className="w-full"
