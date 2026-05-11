@@ -10,6 +10,15 @@ import { useTenantOptions } from 'src/shared/hooks/useTenantOptions';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { intelligenceService } from '../services/intelligence.service';
+
+function normalizeBattlecard(raw: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...raw,
+    our_strengths: raw.differentiators ?? raw.our_strengths ?? [],
+    their_strengths: raw.recommended_actions ?? raw.their_strengths ?? [],
+    objections: raw.objection_handlers ?? raw.objections ?? [],
+  };
+}
 import type {
   Battlecard,
   Competitor,
@@ -50,7 +59,11 @@ export function useIntelligence(filters: IntelligenceFilters = {}) {
       const res = await intelligenceService.battlecards.getAll(battlecardsPagination.params);
       const meta = extractPaginationMeta(res);
       if (meta) battlecardsPagination.setTotal(meta.total);
-      return ((res as unknown as { data?: Battlecard[] }).data ?? []) as Battlecard[];
+      const raw = ((res as unknown as { data?: Record<string, unknown>[] }).data ?? []) as Record<
+        string,
+        unknown
+      >[];
+      return raw.map(normalizeBattlecard) as unknown as Battlecard[];
     },
     staleTime: 0,
     placeholderData: keepPreviousData,
