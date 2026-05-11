@@ -15,6 +15,8 @@ import {
   Badge,
   Button,
   ConfirmDialog,
+  DeleteButton,
+  EditButton,
   Icon,
   Input,
   Sheet,
@@ -45,8 +47,8 @@ export function CostCentersView() {
   });
 
   const COLUMNS = [
-    columnHelper.accessor('code', {
-      header: 'Código',
+    columnHelper.accessor('key', {
+      header: 'Clave',
       cell: (i) => (
         <span className="font-mono text-xs bg-muted px-2 py-0.5 rounded">{i.getValue()}</span>
       ),
@@ -83,29 +85,18 @@ export function CostCentersView() {
       header: () => <div className="text-right w-full">Acciones</div>,
       cell: (i) => (
         <div className="flex items-center justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="icon-sm"
+          <EditButton
             onClick={() => {
               const cc = i.row.original;
               setEditing(cc);
               setName(cc.name);
-              setCode(cc.code);
+              setCode(cc.key);
               setDescription(cc.description || '');
               setIsActive(cc.is_active);
               setDrawerOpen(true);
             }}
-          >
-            <Icon name="Pencil" size={14} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="text-red-500"
-            onClick={() => setDeleteDialog({ open: true, uid: i.row.original.uid })}
-          >
-            <Icon name="Trash2" size={14} />
-          </Button>
+          />
+          <DeleteButton onClick={() => setDeleteDialog({ open: true, uid: i.row.original.uid })} />
         </div>
       ),
     }),

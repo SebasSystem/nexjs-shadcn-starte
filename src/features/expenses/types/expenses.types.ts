@@ -17,7 +17,7 @@ export interface Supplier {
 export interface CostCenter {
   uid: string;
   name: string;
-  code: string;
+  key: string;
   description: string | null;
   is_active: boolean;
 }

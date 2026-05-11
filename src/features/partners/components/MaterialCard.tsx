@@ -23,7 +23,10 @@ interface Props {
 }
 
 export function MaterialCard({ material, onDelete }: Props) {
-  const typeConfig = MATERIAL_TYPE_CONFIG[material.type];
+  const typeConfig = MATERIAL_TYPE_CONFIG[material.type] ?? {
+    label: material.type,
+    icon: 'File' as const,
+  };
   const iconBg = MATERIAL_ICON_BG[material.type] ?? 'bg-muted text-muted-foreground';
 
   const handleDownload = () => {

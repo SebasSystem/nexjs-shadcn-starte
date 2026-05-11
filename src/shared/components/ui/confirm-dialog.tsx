@@ -1,6 +1,5 @@
 'use client';
 
-import { AlertTriangle, HelpCircle } from 'lucide-react';
 import * as React from 'react';
 import { Button } from 'src/shared/components/ui/button';
 import {
@@ -11,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from 'src/shared/components/ui/dialog';
+import { Icon } from 'src/shared/components/ui/icon';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -35,17 +35,17 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const iconConfig = {
     error: {
-      icon: <AlertTriangle className="size-5 text-red-600" />,
+      icon: <Icon name="AlertTriangle" size={20} className="text-red-600" />,
       bg: 'bg-red-100 dark:bg-red-900/30',
       btn: 'bg-red-600 text-white hover:bg-red-700',
     },
     warning: {
-      icon: <AlertTriangle className="size-5 text-yellow-500" />,
+      icon: <Icon name="AlertTriangle" size={20} className="text-yellow-500" />,
       bg: 'bg-yellow-100 dark:bg-yellow-900/30',
       btn: 'bg-yellow-500 text-white hover:bg-yellow-600',
     },
     default: {
-      icon: <HelpCircle className="size-5 text-primary" />,
+      icon: <Icon name="AlertCircle" size={20} className="text-primary" />,
       bg: 'bg-primary/10',
       btn: '',
     },

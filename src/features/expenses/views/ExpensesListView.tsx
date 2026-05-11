@@ -1,10 +1,9 @@
 'use client';
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { useState } from 'react';
 import { formatMoney } from 'src/lib/currency';
+import { formatDate } from 'src/lib/date';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
   Table,
@@ -19,6 +18,8 @@ import {
 import {
   Button,
   ConfirmDialog,
+  DeleteButton,
+  EditButton,
   Icon,
   Input,
   SelectField,
@@ -64,6 +65,7 @@ export function ExpensesListView() {
   const [supplierUid, setSupplierUid] = useState('');
   const [costCenterUid, setCostCenterUid] = useState('');
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; uid: string }>({
     open: false,
     uid: '',
@@ -96,7 +98,7 @@ export function ExpensesListView() {
       header: 'Fecha',
       cell: (i) => (
         <span className="text-sm">
-          {format(new Date(i.getValue()), 'dd MMM yyyy', { locale: es })}
+          {formatDate(i.getValue(), { day: '2-digit', month: 'short', year: 'numeric' })}
         </span>
       ),
     }),
@@ -105,9 +107,7 @@ export function ExpensesListView() {
       header: () => <div className="text-right w-full">Acciones</div>,
       cell: (i) => (
         <div className="flex items-center justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="icon-sm"
+          <EditButton
             onClick={() => {
               const e = i.row.original;
               setEditing(e);
@@ -120,17 +120,8 @@ export function ExpensesListView() {
               setCostCenterUid(e.cost_center?.uid || '');
               setDrawerOpen(true);
             }}
-          >
-            <Icon name="Pencil" size={14} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="text-red-500"
-            onClick={() => setDeleteDialog({ open: true, uid: i.row.original.uid })}
-          >
-            <Icon name="Trash2" size={14} />
-          </Button>
+          />
+          <DeleteButton onClick={() => setDeleteDialog({ open: true, uid: i.row.original.uid })} />
         </div>
       ),
     }),
@@ -147,7 +138,14 @@ export function ExpensesListView() {
   });
 
   async function handleSave() {
-    if (!title.trim() || !description.trim() || !amount || !categoryUid) return;
+    const errs: Record<string, string> = {};
+    if (!title.trim()) errs.title = 'El título es requerido';
+    if (!description.trim()) errs.description = 'La descripción es requerida';
+    if (!amount) errs.amount = 'El monto es requerido';
+    if (!categoryUid) errs.category = 'La categoría es requerida';
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+
     setSaving(true);
     try {
       const payload: ExpensePayload = {
@@ -280,21 +278,33 @@ export function ExpensesListView() {
             <Input
               label="Título"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setErrors((p) => ({ ...p, title: '' }));
+              }}
               placeholder="Ej: Pago de servicios"
+              error={errors.title}
             />
             <Input
               label="Descripción"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                setErrors((p) => ({ ...p, description: '' }));
+              }}
               placeholder="Ej: Pago de servicios"
+              error={errors.description}
             />
             <Input
               label="Monto"
               type="number"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => {
+                setAmount(e.target.value);
+                setErrors((p) => ({ ...p, amount: '' }));
+              }}
               placeholder="0.00"
+              error={errors.amount}
             />
             <Input
               label="Fecha"
@@ -305,11 +315,15 @@ export function ExpensesListView() {
             <SelectField
               label="Categoría"
               options={[
-                { value: '', label: 'Sin categoría' },
+                { value: '', label: 'Seleccionar categoría' },
                 ...categories.map((c) => ({ value: c.uid, label: c.name })),
               ]}
               value={categoryUid}
-              onChange={(v) => setCategoryUid(v as string)}
+              onChange={(v) => {
+                setCategoryUid(v as string);
+                setErrors((p) => ({ ...p, category: '' }));
+              }}
+              error={errors.category}
             />
             <SelectField
               label="Proveedor"
