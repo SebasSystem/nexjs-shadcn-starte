@@ -177,6 +177,11 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
     try {
       const saved = await saveQuotation(quotation);
       setLocalQuotation(saved as Quotation);
+      // Navigate to the new quotation UID if it changed (first save)
+      const savedUid = (saved as Quotation)?.uid;
+      if (savedUid && savedUid !== quotationId) {
+        router.replace(paths.sales.quotation(savedUid));
+      }
       toast.success('Cotización guardada como borrador');
     } catch {
       toast.error('Error al guardar la cotización');
@@ -482,6 +487,15 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                               if (product) {
                                 updateLine(item.uid, 'description', product.name);
                                 updateLine(item.uid, 'sku', product.sku ?? '');
+                                // Auto-fill price if available (backend needs sale_price on products)
+                                const price =
+                                  (product as unknown as Record<string, unknown>).sale_price ??
+                                  (product as unknown as Record<string, unknown>).unit_price ??
+                                  (product as unknown as Record<string, unknown>).cost_price ??
+                                  (product as unknown as Record<string, unknown>).price;
+                                if (price) {
+                                  updateLine(item.uid, 'list_unit_price', String(price));
+                                }
                               }
                             }}
                             options={(products ?? []).map((p) => ({
