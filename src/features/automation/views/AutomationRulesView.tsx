@@ -4,6 +4,7 @@ import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { formatDate as formatDateLib } from 'src/lib/date';
+import { cn } from 'src/lib/utils';
 import { paths } from 'src/routes/paths';
 import {
   PageContainer,
@@ -20,10 +21,14 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import { Button } from 'src/shared/components/ui/button';
-import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
-import { Icon } from 'src/shared/components/ui/icon';
-import { Input } from 'src/shared/components/ui/input';
+import {
+  Button,
+  ConfirmDialog,
+  DeleteButton,
+  EditButton,
+  Icon,
+  Input,
+} from 'src/shared/components/ui';
 
 import { RuleStatusBadge } from '../components/RuleStatusBadge';
 import { useAutomationRules } from '../hooks/useAutomationRules';
@@ -104,7 +109,7 @@ export function AutomationRulesView() {
       columnHelper.display({
         id: 'estado',
         header: 'Estado',
-        cell: (info) => <RuleStatusBadge enabled={info.row.original.enabled} />,
+        cell: (info) => <RuleStatusBadge enabled={info.row.original.is_active ?? false} />,
       }),
       columnHelper.accessor('last_run_at', {
         header: 'Última ej.',
@@ -112,7 +117,7 @@ export function AutomationRulesView() {
           <span className="text-sm text-muted-foreground">{formatDate(info.getValue())}</span>
         ),
       }),
-      columnHelper.accessor('run_count', {
+      columnHelper.accessor('execution_count', {
         header: 'Ej.',
         cell: (info) => (
           <span className="text-sm text-right font-mono text-foreground">{info.getValue()}</span>
@@ -128,27 +133,20 @@ export function AutomationRulesView() {
               className="flex items-center justify-end gap-1"
               onClick={(e) => e.stopPropagation()}
             >
+              <EditButton onClick={() => router.push(paths.automation.ruleEdit(rule.uid))} />
               <button
-                title="Editar"
-                onClick={() => router.push(paths.automation.ruleEdit(rule.uid))}
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              >
-                <Icon name="Pencil" size={14} />
-              </button>
-              <button
-                title={rule.enabled ? 'Pausar' : 'Activar'}
+                title={rule.is_active ? 'Pausar regla' : 'Activar regla'}
                 onClick={() => toggleRule(rule.uid)}
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className={cn(
+                  'p-1.5 rounded-lg transition-colors',
+                  rule.is_active
+                    ? 'text-success hover:bg-success/10'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                )}
               >
                 <Icon name="Power" size={14} />
               </button>
-              <button
-                title="Eliminar"
-                onClick={() => setDeleteTarget(rule)}
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-              >
-                <Icon name="Trash2" size={14} />
-              </button>
+              <DeleteButton onClick={() => setDeleteTarget(rule)} />
             </div>
           );
         },

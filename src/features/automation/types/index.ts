@@ -127,6 +127,7 @@ export interface AutomationRule {
   name: string;
   description?: string;
   enabled: boolean;
+  is_active?: boolean;
   trigger_source: TriggerSource;
   trigger_event: TriggerEvent;
   trigger_config?: {
@@ -136,6 +137,7 @@ export interface AutomationRule {
   condition_groups: ConditionGroup[];
   actions: AutomationAction[];
   run_count: number;
+  execution_count?: number;
   last_run_at?: string;
   created_at: string;
 }

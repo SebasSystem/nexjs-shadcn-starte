@@ -36,8 +36,8 @@ export function useAutomationRules() {
 
   const stats = useMemo(
     () => ({
-      activeCount: rules.filter((r) => r.enabled).length,
-      inactiveCount: rules.filter((r) => !r.enabled).length,
+      activeCount: rules.filter((r) => r.is_active).length,
+      inactiveCount: rules.filter((r) => !r.is_active).length,
       totalRuns: rules.reduce((sum, r) => sum + r.run_count, 0),
       lastRun: rules
         .filter((r) => r.last_run_at)
