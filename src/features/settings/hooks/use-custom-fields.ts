@@ -45,12 +45,10 @@ export function useCustomFields(filters: CustomFieldFilters = {}) {
       const raw = res as Record<string, unknown>;
       const meta = extractPaginationMeta(raw);
       if (meta) pagination.setTotal(meta.total);
-      // Extract meta.totals if present (backend returns totals for all modules)
-      const totals = (raw.meta as Record<string, unknown> | undefined)?.totals as
-        | ModuleTotals
-        | undefined;
+      // Extract totals from backend response (totals is at data level, not meta)
+      const totals = (raw as Record<string, unknown>).totals as ModuleTotals | undefined;
       if (totals) setModuleTotals(totals);
-      return (raw.data ?? []) as CustomField[];
+      return ((raw as Record<string, unknown>).items ?? []) as CustomField[];
     },
   });
 

@@ -98,66 +98,65 @@ export const CustomFieldsView = () => {
         }
       />
 
-      {/* Search */}
-      <div className="px-5 pt-4">
-        <Input
-          label="Buscar"
-          placeholder="Buscar por nombre..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          leftIcon={<Icon name="Search" size={16} />}
-          className="max-w-sm"
-        />
-      </div>
+      <SectionCard noPadding>
+        {/* Search + filters inside card */}
+        <div className="px-5 pt-4">
+          <Input
+            label="Buscar"
+            placeholder="Buscar por nombre..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            leftIcon={<Icon name="Search" size={16} />}
+            className="max-w-sm"
+          />
+        </div>
 
-      {/* Module filter tabs */}
-      <div className="flex gap-1 border-b border-border/40">
-        <button
-          onClick={() => setFilterModule('ALL')}
-          className={`px-4 py-2.5 text-sm font-medium transition-colors relative cursor-pointer ${
-            filterModule === 'ALL'
-              ? 'text-blue-600 border-b-2 border-blue-600 -mb-px'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Todos
-          <span
-            className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
-              filterModule === 'ALL'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-muted text-muted-foreground'
-            }`}
-          >
-            {formatCount(totalAll)}
-          </span>
-        </button>
-        {availableModules.map((mod) => (
+        {/* Module filter tabs */}
+        <div className="flex gap-1 border-b border-border/40">
           <button
-            key={mod.key}
-            onClick={() => setFilterModule(mod.key)}
+            onClick={() => setFilterModule('ALL')}
             className={`px-4 py-2.5 text-sm font-medium transition-colors relative cursor-pointer ${
-              filterModule === mod.key
+              filterModule === 'ALL'
                 ? 'text-blue-600 border-b-2 border-blue-600 -mb-px'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            {mod.label}
-            {moduleTotals && (
-              <span
-                className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
-                  filterModule === mod.key
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                {formatCount(moduleTotals[mod.key])}
-              </span>
-            )}
+            Todos
+            <span
+              className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
+                filterModule === 'ALL'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {formatCount(totalAll)}
+            </span>
           </button>
-        ))}
-      </div>
-
-      <SectionCard noPadding>
+          {availableModules.map((mod) => (
+            <button
+              key={mod.key}
+              onClick={() => setFilterModule(mod.key)}
+              className={`px-4 py-2.5 text-sm font-medium transition-colors relative cursor-pointer ${
+                filterModule === mod.key
+                  ? 'text-blue-600 border-b-2 border-blue-600 -mb-px'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {mod.label}
+              {moduleTotals && (
+                <span
+                  className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
+                    filterModule === mod.key
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {formatCount(moduleTotals[mod.key] ?? 0)}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
         {isLoading && fields.length === 0 ? (
           <div className="p-8 flex flex-col gap-4 animate-pulse">
             {[...Array(4)].map((_, i) => (
