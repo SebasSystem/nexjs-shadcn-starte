@@ -34,6 +34,7 @@ export function ExpenseCategoriesView() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<ExpenseCategory | null>(null);
   const [name, setName] = useState('');
+  const [key, setKey] = useState('');
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; uid: string }>({
@@ -83,10 +84,14 @@ export function ExpenseCategoriesView() {
   const { table } = useTable({ data: categories, columns: COLUMNS });
 
   async function handleSave() {
-    if (!name.trim()) return;
+    if (!name.trim() || !key.trim()) return;
     setSaving(true);
     try {
-      const p = { name: name.trim(), description: description.trim() || undefined };
+      const p = {
+        name: name.trim(),
+        key: key.trim(),
+        description: description.trim() || undefined,
+      };
       if (editing) {
         await updateCategory.mutateAsync({ uid: editing.uid, payload: p });
       } else {
@@ -101,6 +106,7 @@ export function ExpenseCategoriesView() {
   function openCreate() {
     setEditing(null);
     setName('');
+    setKey('');
     setDescription('');
     setDrawerOpen(true);
   }
@@ -140,12 +146,18 @@ export function ExpenseCategoriesView() {
           <SheetHeader>
             <SheetTitle>{editing ? 'Editar' : 'Nueva'} Categoría</SheetTitle>
           </SheetHeader>
-          <div className="space-y-4 py-6">
+          <div className="space-y-4 px-6 py-6">
             <Input
               label="Nombre"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ej: Servicios"
+            />
+            <Input
+              label="Clave"
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              placeholder="Ej: services"
             />
             <Textarea
               label="Descripción"

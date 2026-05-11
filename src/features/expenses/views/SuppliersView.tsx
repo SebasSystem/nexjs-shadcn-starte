@@ -123,7 +123,7 @@ export function SuppliersView() {
         contact_name: contactName.trim() || undefined,
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
-        tax_id: taxId.trim() || undefined,
+        document: taxId.trim() || undefined,
         is_active: isActive,
       };
       if (editing) {
@@ -182,7 +182,7 @@ export function SuppliersView() {
           <SheetHeader>
             <SheetTitle>{editing ? 'Editar' : 'Nuevo'} Proveedor</SheetTitle>
           </SheetHeader>
-          <div className="space-y-4 py-6">
+          <div className="space-y-4 px-6 py-6">
             <Input
               label="Nombre"
               value={name}

@@ -147,7 +147,7 @@ export function ExpensesListView() {
   });
 
   async function handleSave() {
-    if (!title.trim() || !description.trim() || !amount) return;
+    if (!title.trim() || !description.trim() || !amount || !categoryUid) return;
     setSaving(true);
     try {
       const payload: ExpensePayload = {
@@ -276,7 +276,7 @@ export function ExpensesListView() {
           <SheetHeader>
             <SheetTitle>{editing ? 'Editar Gasto' : 'Nuevo Gasto'}</SheetTitle>
           </SheetHeader>
-          <div className="space-y-4 py-6">
+          <div className="space-y-4 px-6 py-6">
             <Input
               label="Título"
               value={title}

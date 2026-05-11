@@ -1,9 +1,12 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
+import { useProducts } from 'src/features/inventory/hooks/use-products';
 import type { Quotation, QuotationItem } from 'src/features/sales/types/sales.types';
+import { localizationService } from 'src/features/settings/services/localization.service';
 import { formatMoney } from 'src/lib/currency';
 import { paths } from 'src/routes/paths';
 import { PageContainer } from 'src/shared/components/layouts/page';
@@ -12,6 +15,7 @@ import { Button } from 'src/shared/components/ui/button';
 import { Card, CardContent } from 'src/shared/components/ui/card';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
+import { SelectField } from 'src/shared/components/ui/select-field';
 
 import { OpportunityTimeline } from '../components/OpportunityTimeline';
 import { useSalesContext } from '../context/SalesContext';
@@ -53,6 +57,23 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   const router = useRouter();
   const { saveQuotation, convertQuotationToInvoice, invoices, opportunities } = useSalesContext();
   const { quotation: apiQuotation } = useQuotationById(quotationId);
+
+  const { items: products } = useProducts();
+
+  const { data: currencyOptions = [] } = useQuery({
+    queryKey: ['settings', 'localization', 'options', 'currencies'],
+    queryFn: async () => {
+      const res = (await localizationService.getOptions()) as Record<string, unknown>;
+      const data = (res?.data ?? res) as {
+        currencies?: Array<{ code: string; name: string; symbol: string }>;
+      };
+      return (data.currencies ?? []).map((c) => ({
+        value: c.code,
+        label: `${c.code} - ${c.name}`,
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
   // Find linked opportunity for timeline
   const opp =
@@ -232,6 +253,9 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             </Badge>
           </div>
           <p className="text-body2 text-muted-foreground mt-1">{quotation.title}</p>
+          {opp?.title && (
+            <p className="text-caption text-muted-foreground/70 mt-0.5">Cliente: {opp.title}</p>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 w-full md:w-auto shrink-0 mt-2 md:mt-0">
@@ -342,13 +366,13 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                   placeholder="Título de la cotización"
                   disabled={!isEditable}
                 />
-                <Input
+                <SelectField
                   label="Moneda"
                   value={quotation.currency}
-                  onChange={(e) =>
-                    setLocalQuotation((p) => ({ ...p, currency: e.target.value }) as Quotation)
+                  onChange={(val) =>
+                    setLocalQuotation((p) => ({ ...p, currency: val as string }) as Quotation)
                   }
-                  placeholder="USD"
+                  options={currencyOptions}
                   disabled={!isEditable}
                 />
                 <Input
@@ -433,17 +457,23 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                         }`}
                       >
                         <td className="px-6 py-4">
-                          <input
-                            className="w-full bg-transparent border-none outline-none font-medium text-foreground placeholder:text-muted-foreground/50 focus:ring-0"
-                            placeholder="Descripción del producto"
-                            value={item.description}
-                            onChange={(e) => updateLine(item.uid, 'description', e.target.value)}
-                          />
-                          <input
-                            className="w-full mt-1 bg-transparent border-none outline-none text-xs text-muted-foreground placeholder:text-muted-foreground/30 focus:ring-0"
-                            placeholder="SKU"
+                          <SelectField
                             value={item.sku ?? ''}
-                            onChange={(e) => updateLine(item.uid, 'sku', e.target.value)}
+                            onChange={(val) => {
+                              const product = (products ?? []).find(
+                                (p) => (p.sku ?? p.uid) === val
+                              );
+                              if (product) {
+                                updateLine(item.uid, 'description', product.name);
+                                updateLine(item.uid, 'sku', product.sku ?? '');
+                              }
+                            }}
+                            options={(products ?? []).map((p) => ({
+                              value: p.sku ?? p.uid,
+                              label: `${p.name}${p.sku ? ` (${p.sku})` : ''}`,
+                            }))}
+                            placeholder="Seleccionar producto..."
+                            disabled={!isEditable}
                           />
                         </td>
                         <td className="px-4 py-4">

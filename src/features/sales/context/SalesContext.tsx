@@ -193,8 +193,12 @@ export function SalesProvider({ children }: { children: ReactNode }) {
   const convertQuotationToInvoice = useCallback(
     async (quotationUid: string): Promise<Invoice> => {
       try {
+        const quotation = quotations.find((q) => q.uid === quotationUid);
+        if (!quotation) throw new Error('Cotización no encontrada');
         const created = (await invoiceService.create({
           quotation_uid: quotationUid,
+          invoice_number: `INV-${quotation.quote_number}`,
+          currency: quotation.currency,
         } as Partial<Invoice>)) as Invoice;
         await refreshInvoices();
         await refreshOpportunities();
@@ -204,7 +208,7 @@ export function SalesProvider({ children }: { children: ReactNode }) {
         throw error;
       }
     },
-    [refreshInvoices, refreshOpportunities]
+    [quotations, refreshInvoices, refreshOpportunities]
   );
 
   // ─── Invoice mutations ──────────────────────────────────────────────────────

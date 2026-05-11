@@ -53,6 +53,7 @@ export interface Quotation {
   items: QuotationItem[];
   quoteable_type: string;
   quoteable_uid: string;
+  client_name?: string;
   created_at: string;
   updated_at: string;
 }

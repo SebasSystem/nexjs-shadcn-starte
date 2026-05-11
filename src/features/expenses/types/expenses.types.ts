@@ -51,6 +51,7 @@ export interface ExpensePayload {
 
 export interface CategoryPayload {
   name: string;
+  key: string;
   description?: string;
 }
 
@@ -59,13 +60,13 @@ export interface SupplierPayload {
   contact_name?: string;
   email?: string;
   phone?: string;
-  tax_id?: string;
+  document?: string;
   is_active?: boolean;
 }
 
 export interface CostCenterPayload {
   name: string;
-  code: string;
+  key: string;
   description?: string;
   is_active?: boolean;
 }

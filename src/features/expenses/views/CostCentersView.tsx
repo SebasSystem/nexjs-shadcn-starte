@@ -118,7 +118,7 @@ export function CostCentersView() {
     try {
       const p = {
         name: name.trim(),
-        code: code.trim(),
+        key: code.trim(),
         description: description.trim() || undefined,
         is_active: isActive,
       };
@@ -176,7 +176,7 @@ export function CostCentersView() {
           <SheetHeader>
             <SheetTitle>{editing ? 'Editar' : 'Nuevo'} Centro de Costo</SheetTitle>
           </SheetHeader>
-          <div className="space-y-4 py-6">
+          <div className="space-y-4 px-6 py-6">
             <Input
               label="Código"
               value={code}
