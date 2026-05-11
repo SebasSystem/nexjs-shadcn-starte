@@ -21,6 +21,7 @@ export interface BattlecardObjection {
 
 export interface Battlecard {
   uid: string;
+  title?: string;
   competitor_uid: string;
   competitor_name: string;
   summary: string;

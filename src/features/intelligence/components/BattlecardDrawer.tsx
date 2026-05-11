@@ -117,6 +117,7 @@ export function BattlecardDrawer({ open, item, competitors, onClose, onCreate, o
     const payload = {
       competitor_uid: data.competitorId,
       competitor_name: competitor?.name ?? '',
+      title: item?.title ?? `${competitor?.name ?? 'Competidor'} — Battlecard`,
       summary: data.summary,
       our_strengths: data.ourStrengths.map((s) => s.value),
       their_strengths: data.theirStrengths.map((s) => s.value),

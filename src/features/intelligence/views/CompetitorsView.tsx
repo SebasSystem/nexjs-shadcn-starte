@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { extractApiError } from 'src/lib/api-errors';
@@ -36,6 +37,7 @@ interface CompetitorRow {
 const columnHelper = createColumnHelper<CompetitorRow>();
 
 export function CompetitorsView({ onClose }: { onClose?: () => void }) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<CompetitorRow | null>(null);
@@ -141,11 +143,9 @@ export function CompetitorsView({ onClose }: { onClose?: () => void }) {
         subtitle="Gestioná los competidores para battlecards e inteligencia competitiva"
         action={
           <div className="flex gap-2">
-            {onClose && (
-              <Button variant="outline" onClick={onClose}>
-                ← Volver
-              </Button>
-            )}
+            <Button variant="outline" onClick={() => (onClose ? onClose() : router.back())}>
+              ← Volver
+            </Button>
             <Button color="primary" onClick={openCreate}>
               + Nuevo
             </Button>
