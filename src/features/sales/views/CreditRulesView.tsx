@@ -13,12 +13,20 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
+import { Textarea } from 'src/shared/components/ui';
 import { DeleteButton, EditButton } from 'src/shared/components/ui/action-buttons';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from 'src/shared/components/ui/select';
 import {
   Sheet,
   SheetContent,
@@ -35,8 +43,15 @@ import type { CreditException } from '../types/sales.types';
 const columnHelper = createColumnHelper<CreditException>();
 
 export function CreditRulesView() {
-  const { rules, exceptions, isLoading, saveRules, updateException, deleteException } =
-    useCreditRules();
+  const {
+    rules,
+    exceptions,
+    isLoading,
+    saveRules,
+    createException,
+    updateException,
+    deleteException,
+  } = useCreditRules();
 
   const [maxDays, setMaxDays] = useState(() => (rules ? String(rules.max_days) : ''));
   const [maxAmount, setMaxAmount] = useState(() => (rules ? String(rules.max_amount) : ''));
@@ -74,6 +89,43 @@ export function CreditRulesView() {
     setEditCreditLimit('');
     setEditMaxDays('');
   }, []);
+
+  // ─── Add exception drawer state ───────────────────────────────────────────────
+  const [isAdding, setIsAdding] = useState(false);
+  const [newEntityType, setNewEntityType] = useState('client');
+  const [newEntityUid, setNewEntityUid] = useState('');
+  const [newCreditLimit, setNewCreditLimit] = useState('');
+  const [newNotes, setNewNotes] = useState('');
+  const [isSavingNew, setIsSavingNew] = useState(false);
+
+  const handleOpenAdd = useCallback(() => {
+    setIsAdding(true);
+    setNewEntityType('client');
+    setNewEntityUid('');
+    setNewCreditLimit('');
+    setNewNotes('');
+  }, []);
+
+  const handleCloseAdd = useCallback(() => {
+    if (isSavingNew) return;
+    setIsAdding(false);
+  }, [isSavingNew]);
+
+  const handleSaveNew = useCallback(async () => {
+    if (!newEntityUid.trim() || !newCreditLimit.trim()) return;
+    setIsSavingNew(true);
+    try {
+      await createException({
+        entity_type: newEntityType,
+        entity_uid: newEntityUid.trim(),
+        credit_limit: parseFloat(newCreditLimit),
+        ...(newNotes.trim() ? { notes: newNotes.trim() } : {}),
+      });
+      setIsAdding(false);
+    } finally {
+      setIsSavingNew(false);
+    }
+  }, [newEntityType, newEntityUid, newCreditLimit, newNotes, createException]);
 
   const handleSaveEdit = useCallback(async () => {
     if (!editTarget) return;
@@ -229,7 +281,7 @@ export function CreditRulesView() {
       <SectionCard noPadding>
         <div className="px-6 py-4 flex items-center justify-between">
           <h2 className="text-h6 text-foreground">Excepciones por cliente</h2>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleOpenAdd}>
             <Icon name="Plus" size={15} />
             Agregar excepción
           </Button>
@@ -267,6 +319,67 @@ export function CreditRulesView() {
           <TablePaginationCustom table={table} dense={dense} onChangeDense={onChangeDense} />
         </div>
       </SectionCard>
+
+      {/* Add exception drawer */}
+      <Sheet open={isAdding} onOpenChange={(open) => !open && handleCloseAdd()}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Nueva excepción de crédito</SheetTitle>
+          </SheetHeader>
+          <div className="mt-6 space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Tipo de entidad</label>
+              <Select value={newEntityType} onValueChange={setNewEntityType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="client">Cliente</SelectItem>
+                  <SelectItem value="contact">Contacto</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">Tipo de entidad para la excepción</p>
+            </div>
+
+            <Input
+              label="UID de la entidad"
+              value={newEntityUid}
+              onChange={(e) => setNewEntityUid(e.target.value)}
+              placeholder="UID del cliente o contacto"
+              hint="Identificador único de la entidad en el sistema"
+            />
+
+            <Input
+              label="Límite de crédito especial"
+              type="number"
+              value={newCreditLimit}
+              onChange={(e) => setNewCreditLimit(e.target.value)}
+              hint="Monto máximo de crédito permitido para esta entidad"
+            />
+
+            <Textarea
+              label="Notas"
+              value={newNotes}
+              onChange={(e) => setNewNotes(e.target.value)}
+              placeholder="Motivo de la excepción..."
+              rows={2}
+            />
+          </div>
+          <SheetFooter className="mt-6">
+            <Button variant="outline" onClick={handleCloseAdd} disabled={isSavingNew}>
+              Cancelar
+            </Button>
+            <Button
+              color="primary"
+              onClick={handleSaveNew}
+              loading={isSavingNew}
+              disabled={!newEntityUid.trim() || !newCreditLimit.trim()}
+            >
+              Guardar excepción
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       {/* Delete confirmation */}
       <ConfirmDialog

@@ -113,7 +113,8 @@ export function InventoryReportsView() {
 
     // Defensive: unwrap if backend returns { success, data } wrapper
     const safeData =
-      ((reportData as unknown as Record<string, unknown>)?.data as InventoryReport | undefined) ?? reportData;
+      ((reportData as unknown as Record<string, unknown>)?.data as InventoryReport | undefined) ??
+      reportData;
     const { kpis = {}, chart_data, table_data = [], most_critical } = safeData;
     const chartData = chart_data ?? { series: [], categories: [], labels: [] };
 

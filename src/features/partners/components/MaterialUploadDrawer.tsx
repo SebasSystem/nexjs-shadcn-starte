@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import {
   Button,
@@ -15,7 +15,7 @@ import {
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 
-import type { MaterialType, PortalMaterialPayload } from '../types';
+import type { MaterialType } from '../types';
 
 const TYPE_OPTIONS: { value: MaterialType; label: string }[] = [
   { value: 'deck', label: 'Presentación' },
@@ -28,7 +28,7 @@ const TYPE_OPTIONS: { value: MaterialType; label: string }[] = [
 interface Props {
   open: boolean;
   onClose: () => void;
-  onUpload: (data: PortalMaterialPayload) => Promise<boolean>;
+  onUpload: (formData: FormData) => Promise<boolean>;
 }
 
 export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
@@ -36,12 +36,15 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
   const [description, setDescription] = useState('');
   const [type, setType] = useState<MaterialType>('deck');
   const [tagsInput, setTagsInput] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!title.trim()) errs.title = 'El título es requerido';
+    if (!file) errs.file = 'Debés seleccionar un archivo';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -55,24 +58,21 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
       .map((t) => t.trim())
       .filter(Boolean);
 
-    const data: PortalMaterialPayload = {
-      title,
-      description,
-      type,
-      file_name: `${title.toLowerCase().replace(/\s+/g, '-')}.pdf`,
-      file_size: '2.4 MB',
-      uploaded_at: new Date().toISOString().split('T')[0],
-      uploaded_by: 'Juan Díaz',
-      tags,
-    };
+    const formData = new FormData();
+    formData.append('file', file!);
+    formData.append('title', title.trim());
+    formData.append('description', description.trim());
+    formData.append('type', type);
+    tags.forEach((tag) => formData.append('tags[]', tag));
 
-    const ok = await onUpload(data);
+    const ok = await onUpload(formData);
     if (ok) {
       toast.success(`"${title}" subido. Disponible para todos los partners.`);
       setTitle('');
       setDescription('');
       setType('deck');
       setTagsInput('');
+      setFile(null);
       setErrors({});
       onClose();
     } else {
@@ -131,12 +131,59 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
             hint="Separados por coma"
           />
 
-          {/* Zona de subida (solo visual) */}
-          <div className="rounded-xl border border-dashed border-border/60 p-8 flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-muted/20 transition-colors">
-            <Icon name="Upload" size={28} className="text-muted-foreground" />
-            <p className="text-body2 text-muted-foreground font-medium">Arrastrá tu archivo aquí</p>
-            <p className="text-caption text-muted-foreground">PDF, PPTX, XLSX — máx. 50 MB</p>
-          </div>
+          {/* File input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.pptx,.xlsx,.docx,.jpg,.png"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null;
+              setFile(f);
+              setErrors((prev) => {
+                const next = { ...prev };
+                delete next.file;
+                return next;
+              });
+            }}
+          />
+
+          {file ? (
+            <div className="rounded-xl border border-border/60 p-4 flex items-center gap-3">
+              <Icon name="FileText" size={22} className="text-primary shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-body2 font-medium truncate">{file.name}</p>
+                <p className="text-caption text-muted-foreground">
+                  {(file.size / 1024 / 1024).toFixed(1)} MB
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-error"
+                onClick={() => {
+                  setFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }}
+              >
+                <Icon name="X" size={16} />
+              </Button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-xl border border-dashed border-border/60 p-8 flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-muted/20 transition-colors w-full"
+            >
+              <Icon name="Upload" size={28} className="text-muted-foreground" />
+              <p className="text-body2 text-muted-foreground font-medium">Seleccionar archivo</p>
+              <p className="text-caption text-muted-foreground">
+                PDF, PPTX, XLSX, imágenes — máx. 50 MB
+              </p>
+            </button>
+          )}
+
+          {errors.file && <p className="text-caption text-error -mt-3">{errors.file}</p>}
         </div>
 
         <SheetFooter className="border-t border-border/60 pt-4 px-4 pb-4">

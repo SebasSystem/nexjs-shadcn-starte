@@ -7,7 +7,6 @@ import type {
   PartnerOpportunityPayload,
   PartnerPayload,
   PortalMaterial,
-  PortalMaterialPayload,
 } from '../types';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -116,8 +115,10 @@ export const partnersService = {
       }
     },
 
-    create: async (payload: PortalMaterialPayload): Promise<PortalMaterial> => {
-      const res = await axiosInstance.post(endpoints.partners.materials.create, payload);
+    create: async (payload: FormData): Promise<PortalMaterial> => {
+      const res = await axiosInstance.post(endpoints.partners.materials.create, payload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       return (res.data?.data ?? res.data) as PortalMaterial;
     },
 

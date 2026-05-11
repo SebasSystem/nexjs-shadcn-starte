@@ -101,7 +101,8 @@ export function SalesReportsView() {
 
     // Defensive: unwrap if backend returns { success, data } wrapper
     const safeData =
-      ((reportData as unknown as Record<string, unknown>)?.data as SalesReport | undefined) ?? reportData;
+      ((reportData as unknown as Record<string, unknown>)?.data as SalesReport | undefined) ??
+      reportData;
     const { kpis = {}, chart_data, table_data = [] } = safeData;
     const chartData = chart_data ?? { series: [], categories: [], labels: [] };
 

@@ -15,7 +15,6 @@ import type {
   PartnerOpportunityPayload,
   PartnerPayload,
   PortalMaterial,
-  PortalMaterialPayload,
 } from '../types';
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -266,7 +265,7 @@ export function usePartners(filters: PartnersFilters = {}) {
   // ── Materials mutations ─────────────────────────────────────────────────
 
   const createMaterialMutation = useMutation({
-    mutationFn: (data: PortalMaterialPayload) => partnersService.materials.create(data),
+    mutationFn: (data: FormData) => partnersService.materials.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.partners.materials.list });
       toast.success('Material creado correctamente');
@@ -283,7 +282,7 @@ export function usePartners(filters: PartnersFilters = {}) {
     onError: (error) => toast.error(extractApiError(error)),
   });
 
-  const createMaterial = async (data: PortalMaterialPayload): Promise<boolean> => {
+  const createMaterial = async (data: FormData): Promise<boolean> => {
     await createMaterialMutation.mutateAsync(data);
     return true;
   };

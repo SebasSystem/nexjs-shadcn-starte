@@ -6,6 +6,7 @@ import {
   TableBody,
   TableCell,
   TableContainer,
+  TableEmptyRows,
   TableHeadCustom,
   TablePaginationCustom,
   TableRow,
@@ -155,6 +156,12 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
     onPageSizeChange,
   });
 
+  const currentPageSize = table.getState().pagination.pageSize;
+  const emptyRows =
+    total !== undefined && segments.length < currentPageSize
+      ? currentPageSize - segments.length
+      : 0;
+
   return (
     <div className="w-full">
       <TableContainer className="relative min-h-[300px]">
@@ -170,6 +177,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
                 ))}
               </TableRow>
             ))}
+            <TableEmptyRows emptyRows={emptyRows} />
           </TableBody>
         </Table>
       </TableContainer>
