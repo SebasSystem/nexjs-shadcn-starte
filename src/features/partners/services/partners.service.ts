@@ -125,5 +125,12 @@ export const partnersService = {
     remove: async (uid: string): Promise<void> => {
       await axiosInstance.delete(endpoints.partners.materials.delete(uid));
     },
+
+    download: async (uid: string): Promise<Blob> => {
+      const res = await axiosInstance.get(endpoints.partners.materials.detail(uid), {
+        responseType: 'blob',
+      });
+      return res.data as Blob;
+    },
   },
 };

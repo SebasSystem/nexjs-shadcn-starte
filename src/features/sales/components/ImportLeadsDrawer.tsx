@@ -70,7 +70,7 @@ export function ImportLeadsDrawer({ open, onClose, onImported }: Props) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 py-6 space-y-5">
+        <div className="flex-1 px-6 py-6 space-y-5">
           <Button variant="outline" className="w-full" onClick={handleDownloadTemplate}>
             <Icon name="Download" size={16} className="mr-2" />
             Descargar plantilla Excel

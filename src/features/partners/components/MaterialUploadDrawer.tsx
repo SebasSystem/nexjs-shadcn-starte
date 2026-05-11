@@ -32,7 +32,8 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState<MaterialType>('sales');
-  const [tagsInput, setTagsInput] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -50,11 +51,6 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
     if (!validate()) return;
     setLoading(true);
 
-    const tags = tagsInput
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
-
     const formData = new FormData();
     formData.append('file', file!);
     formData.append('title', title.trim());
@@ -68,7 +64,8 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
       setTitle('');
       setDescription('');
       setType('sales');
-      setTagsInput('');
+      setTags([]);
+      setTagInput('');
       setFile(null);
       setErrors({});
       onClose();
@@ -120,13 +117,38 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
             onChange={(v) => setType(v as MaterialType)}
           />
 
-          <Input
-            label="Tags"
-            value={tagsInput}
-            onChange={(e) => setTagsInput(e.target.value)}
-            placeholder="ventas, demo, Q2 2026"
-            hint="Separados por coma"
-          />
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none">Tags</label>
+            <div className="flex flex-wrap gap-1.5 p-2 border border-border rounded-lg min-h-[42px] bg-background">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-xs font-medium"
+                >
+                  {tag}
+                  <button type="button" onClick={() => setTags((p) => p.filter((t) => t !== tag))}>
+                    <Icon name="X" size={10} />
+                  </button>
+                </span>
+              ))}
+              <input
+                className="flex-1 min-w-[80px] border-none outline-none bg-transparent text-sm py-0.5"
+                placeholder={tags.length === 0 ? 'Escribí y presioná Enter...' : 'Agregar otro...'}
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    const val = tagInput.trim();
+                    if (val && !tags.includes(val)) {
+                      setTags((p) => [...p, val]);
+                      setTagInput('');
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
 
           {/* File input */}
           <input

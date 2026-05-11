@@ -1,20 +1,18 @@
 import { toast } from 'sonner';
 import { formatDate } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
-import { SectionCard } from 'src/shared/components/layouts/page';
 import { Badge, Button, Icon } from 'src/shared/components/ui';
+import { SectionCard } from 'src/shared/components/layouts/page';
 
+import { partnersService } from '../services/partners.service';
 import type { PortalMaterial } from '../types';
 import { MATERIAL_TYPE_CONFIG } from '../types';
 
 // ─── Icon map for material types ──────────────────────────────────────────────
 
 const MATERIAL_ICON_BG: Record<string, string> = {
-  deck: 'bg-primary/10 text-primary',
+  sales: 'bg-primary/10 text-primary',
   training: 'bg-info/10 text-info',
-  product_sheet: 'bg-success/10 text-success',
-  guide: 'bg-warning/10 text-warning',
-  contract_template: 'bg-secondary/10 text-secondary-foreground',
 };
 
 interface Props {
@@ -29,12 +27,22 @@ export function MaterialCard({ material, onDelete }: Props) {
   };
   const iconBg = MATERIAL_ICON_BG[material.type] ?? 'bg-muted text-muted-foreground';
 
-  const handleDownload = () => {
-    toast.success(`"${material.title}" descargado exitosamente.`);
+  const handleDownload = async () => {
+    try {
+      const blob = await partnersService.materials.download(material.uid);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = material.file_name;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Error al descargar el archivo');
+    }
   };
 
   return (
-    <SectionCard className="p-4 flex flex-col hover:shadow-md transition-shadow">
+    <SectionCard className="p-4 flex flex-col hover:shadow-md hover:bg-muted/10 transition-all">
       <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', iconBg)}>
         <Icon name={typeConfig.icon as 'FileText'} size={18} />
       </div>
