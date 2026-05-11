@@ -62,7 +62,7 @@ export interface LowStockProduct {
 
 export interface RecentActivity {
   uid: string;
-  type: 'task' | 'reminder' | 'meeting';
+  type: 'task' | 'reminder' | 'meeting' | 'call' | 'email' | 'note';
   title: string;
   status: 'pending' | 'completed' | 'overdue';
   scheduled_at: string;

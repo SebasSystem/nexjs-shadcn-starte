@@ -355,6 +355,6 @@ interface IconProps {
 }
 
 export function Icon({ name, size = 16, strokeWidth, className }: IconProps) {
-  const LucideIconComponent: LucideIcon = icons[name];
+  const LucideIconComponent = icons[name] ?? icons.Circle;
   return <LucideIconComponent size={size} strokeWidth={strokeWidth} className={className} />;
 }

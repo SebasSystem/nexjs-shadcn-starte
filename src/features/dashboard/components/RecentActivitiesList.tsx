@@ -7,11 +7,14 @@ import { paths } from 'src/routes/paths';
 import { SectionCard } from 'src/shared/components/layouts/page';
 import { Icon } from 'src/shared/components/ui';
 
-const ACTIVITY_ICON = {
+const ACTIVITY_ICON: Record<string, import('src/shared/components/ui').IconName> = {
   task: 'CheckSquare',
   reminder: 'Bell',
   meeting: 'Users',
-} as const;
+  call: 'PhoneCall',
+  email: 'Mail',
+  note: 'StickyNote',
+};
 
 interface Props {
   activities: RecentActivity[];
@@ -49,7 +52,7 @@ export function RecentActivitiesList({ activities }: Props) {
             <div className="flex items-center gap-3 min-w-0">
               <div className="p-2 rounded-lg bg-muted shrink-0">
                 <Icon
-                  name={ACTIVITY_ICON[activity.type]}
+                  name={ACTIVITY_ICON[activity.type] ?? 'Circle'}
                   size={14}
                   className="text-muted-foreground"
                 />
