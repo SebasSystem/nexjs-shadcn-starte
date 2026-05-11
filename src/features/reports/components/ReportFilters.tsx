@@ -150,6 +150,7 @@ export function ReportFilters({ onFiltersChange }: ReportFiltersProps) {
         <div className="md:col-span-3">
           <SelectField
             label="Bodega"
+            searchable
             disabled={filtersLoading}
             options={[{ value: 'all', label: 'Todas' }, ...filterOptions.warehouses]}
             value={warehouse}
@@ -161,6 +162,7 @@ export function ReportFilters({ onFiltersChange }: ReportFiltersProps) {
         <div className="md:col-span-3">
           <SelectField
             label="Categoría"
+            searchable
             disabled={filtersLoading}
             options={[{ value: 'all', label: 'Todas las categorías' }, ...filterOptions.categories]}
             value={category}

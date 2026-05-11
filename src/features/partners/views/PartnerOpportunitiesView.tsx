@@ -158,11 +158,11 @@ export function PartnerOpportunitiesView() {
                     variant="soft"
                     className="h-6 text-[11px] px-2"
                     onClick={async () => {
-                      const ok = await convertOpportunity(info.row.original.uid);
-                      if (ok) {
+                      try {
+                        await convertOpportunity(info.row.original.uid);
                         toast.success('Oportunidad convertida a deal.');
-                      } else {
-                        toast.error('Error al convertir la oportunidad');
+                      } catch {
+                        // error handled by mutation onError
                       }
                     }}
                   >

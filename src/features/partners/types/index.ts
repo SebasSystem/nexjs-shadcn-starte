@@ -1,7 +1,7 @@
 export type PartnerType = 'distributor' | 'reseller' | 'ally';
 export type PartnerStatus = 'active' | 'inactive' | 'prospect';
 export type PartnerOpportunityStatus = 'pending' | 'approved' | 'rejected' | 'converted' | 'lost';
-export type MaterialType = 'deck' | 'training' | 'product_sheet' | 'guide' | 'contract_template';
+export type MaterialType = 'sales' | 'training';
 
 // ─── Status configs ───────────────────────────────────────────────────────────
 
@@ -38,11 +38,8 @@ export const PARTNER_OPP_STATUS_CONFIG: Record<
 };
 
 export const MATERIAL_TYPE_CONFIG: Record<MaterialType, { label: string; icon: string }> = {
-  deck: { label: 'Presentación', icon: 'Presentation' },
+  sales: { label: 'Ventas', icon: 'Presentation' },
   training: { label: 'Capacitación', icon: 'GraduationCap' },
-  product_sheet: { label: 'Ficha de Producto', icon: 'FileText' },
-  guide: { label: 'Guía', icon: 'BookOpen' },
-  contract_template: { label: 'Plantilla Contrato', icon: 'FileSignature' },
 };
 
 // ─── Entities ─────────────────────────────────────────────────────────────────

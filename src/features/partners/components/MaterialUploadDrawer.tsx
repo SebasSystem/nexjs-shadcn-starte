@@ -18,11 +18,8 @@ import { Textarea } from 'src/shared/components/ui';
 import type { MaterialType } from '../types';
 
 const TYPE_OPTIONS: { value: MaterialType; label: string }[] = [
-  { value: 'deck', label: 'Presentación' },
+  { value: 'sales', label: 'Ventas' },
   { value: 'training', label: 'Capacitación' },
-  { value: 'product_sheet', label: 'Ficha de Producto' },
-  { value: 'guide', label: 'Guía' },
-  { value: 'contract_template', label: 'Plantilla Contrato' },
 ];
 
 interface Props {
@@ -34,7 +31,7 @@ interface Props {
 export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<MaterialType>('deck');
+  const [type, setType] = useState<MaterialType>('sales');
   const [tagsInput, setTagsInput] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -70,7 +67,7 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
       toast.success(`"${title}" subido. Disponible para todos los partners.`);
       setTitle('');
       setDescription('');
-      setType('deck');
+      setType('sales');
       setTagsInput('');
       setFile(null);
       setErrors({});
