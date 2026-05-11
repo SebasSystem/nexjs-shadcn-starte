@@ -170,12 +170,14 @@ export function CostCentersView() {
           <div className="space-y-4 px-6 py-6">
             <Input
               label="Código"
+              required
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="Ej: CC-ADM"
             />
             <Input
               label="Nombre"
+              required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ej: Administración"

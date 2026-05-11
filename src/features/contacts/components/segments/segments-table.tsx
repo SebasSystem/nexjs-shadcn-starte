@@ -95,7 +95,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
         cell: (info) => (
           <div className="flex items-center gap-2 text-sm font-medium">
             <Icon name="Users" className="h-4 w-4 text-emerald-600" />
-            {info.getValue().toLocaleString()}
+            {info.getValue()?.toLocaleString() ?? '0'}
           </div>
         ),
       }),

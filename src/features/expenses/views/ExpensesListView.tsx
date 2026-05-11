@@ -217,6 +217,7 @@ export function ExpensesListView() {
         />
         <SelectField
           label="Categoría"
+          searchable
           options={[
             { value: '', label: 'Todas las categorías' },
             ...categories.map((c) => ({ value: c.uid, label: c.name })),
@@ -226,6 +227,7 @@ export function ExpensesListView() {
         />
         <SelectField
           label="Proveedor"
+          searchable
           options={[
             { value: '', label: 'Todos los proveedores' },
             ...suppliers.map((s) => ({ value: s.uid, label: s.name })),
@@ -235,6 +237,7 @@ export function ExpensesListView() {
         />
         <SelectField
           label="Centro de Costo"
+          searchable
           options={[
             { value: '', label: 'Todos los centros' },
             ...costCenters.map((cc) => ({ value: cc.uid, label: cc.name })),
@@ -277,6 +280,7 @@ export function ExpensesListView() {
           <div className="space-y-4 px-6 py-6">
             <Input
               label="Título"
+              required
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
@@ -298,6 +302,7 @@ export function ExpensesListView() {
             <Input
               label="Monto"
               type="number"
+              required
               value={amount}
               onChange={(e) => {
                 setAmount(e.target.value);
@@ -314,6 +319,8 @@ export function ExpensesListView() {
             />
             <SelectField
               label="Categoría"
+              required
+              searchable
               options={[
                 { value: '', label: 'Seleccionar categoría' },
                 ...categories.map((c) => ({ value: c.uid, label: c.name })),
@@ -327,6 +334,7 @@ export function ExpensesListView() {
             />
             <SelectField
               label="Proveedor"
+              searchable
               options={[
                 { value: '', label: 'Sin proveedor' },
                 ...suppliers.map((s) => ({ value: s.uid, label: s.name })),
@@ -336,6 +344,7 @@ export function ExpensesListView() {
             />
             <SelectField
               label="Centro de Costo"
+              searchable
               options={[
                 { value: '', label: 'Sin centro' },
                 ...costCenters.map((cc) => ({ value: cc.uid, label: cc.name })),

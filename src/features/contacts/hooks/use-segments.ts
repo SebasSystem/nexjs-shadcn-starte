@@ -10,6 +10,24 @@ import { extractPaginationMeta } from 'src/shared/lib/pagination';
 import { segmentsService } from '../services/segments.service';
 import type { Segment, SegmentPayload } from '../types/segments.types';
 
+function normalizeSegment(raw: Record<string, unknown>): Segment {
+  return {
+    uid: raw.uid as string,
+    name: raw.name as string,
+    description: (raw.description as string) ?? '',
+    logic: ((raw.logic as string)?.toUpperCase() === 'OR' ? 'OR' : 'AND') as 'AND' | 'OR',
+    rules: ((raw.rules as Record<string, unknown>[]) ?? []).map((r) => ({
+      uid: r.uid as string,
+      field: r.field as string,
+      operator: r.operator as string,
+      value: r.value as string | number | string[],
+    })),
+    total_contacts: (raw.total_contacts as number) ?? (raw.totalContacts as number) ?? 0,
+    created_at: raw.created_at as string,
+    updated_at: raw.updated_at as string,
+  };
+}
+
 export function useSegments() {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
@@ -20,7 +38,8 @@ export function useSegments() {
       const res = await segmentsService.list(pagination.params);
       const meta = extractPaginationMeta(res);
       if (meta) pagination.setTotal(meta.total);
-      return (res as unknown as { data?: Segment[] }).data ?? ([] as Segment[]);
+      const raw = (res as unknown as { data?: Record<string, unknown>[] }).data ?? [];
+      return raw.map(normalizeSegment);
     },
     staleTime: 0,
     placeholderData: keepPreviousData,

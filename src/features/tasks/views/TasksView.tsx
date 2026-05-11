@@ -1,9 +1,10 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { useState } from 'react';
+import { usersService } from 'src/features/settings/services/users.service';
+import { formatDate } from 'src/lib/date';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
   Table,
@@ -17,6 +18,9 @@ import {
 } from 'src/shared/components/table';
 import {
   Button,
+  ConfirmDialog,
+  DeleteButton,
+  EditButton,
   Icon,
   Input,
   SelectField,
@@ -97,7 +101,7 @@ const COLUMNS = (onEdit: (t: Task) => void, onDelete: (t: Task) => void) => [
       const val = info.getValue();
       return (
         <span className="text-sm text-muted-foreground">
-          {val ? format(new Date(val), 'dd MMM yyyy', { locale: es }) : '—'}
+          {val ? formatDate(val, { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
         </span>
       );
     },
@@ -107,23 +111,8 @@ const COLUMNS = (onEdit: (t: Task) => void, onDelete: (t: Task) => void) => [
     header: () => <div className="text-right w-full">Acciones</div>,
     cell: (info) => (
       <div className="flex items-center justify-end gap-1">
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => onEdit(info.row.original)}
-          title="Editar"
-        >
-          <Icon name="Pencil" size={14} />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => onDelete(info.row.original)}
-          className="text-red-500 hover:text-red-600 hover:bg-red-50"
-          title="Eliminar"
-        >
-          <Icon name="Trash2" size={14} />
-        </Button>
+        <EditButton onClick={() => onEdit(info.row.original)} />
+        <DeleteButton onClick={() => onDelete(info.row.original)} />
       </div>
     ),
   }),
@@ -134,6 +123,17 @@ const COLUMNS = (onEdit: (t: Task) => void, onDelete: (t: Task) => void) => [
 export function TasksView() {
   const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks();
 
+  // ── Users for assignment ─────────────────────────────────────────────────
+  const { data: usersList } = useQuery({
+    queryKey: ['users', 'list'],
+    queryFn: async () => {
+      const res = await usersService.getAll({ per_page: 500 });
+      return ((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  const userOptions = (usersList ?? []).map((u) => ({ value: u.uid, label: u.name }));
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const [title, setTitle] = useState('');
@@ -141,7 +141,12 @@ export function TasksView() {
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [status, setStatus] = useState<TaskStatus>('pending');
   const [dueDate, setDueDate] = useState('');
+  const [assignedUserUid, setAssignedUserUid] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; task: Task | null }>({
+    open: false,
+    task: null,
+  });
 
   const { table, dense, onChangeDense } = useTable({
     data: tasks,
@@ -156,13 +161,12 @@ export function TasksView() {
     setPriority(task.priority);
     setStatus(task.status);
     setDueDate(task.due_date ? task.due_date.substring(0, 10) : '');
+    setAssignedUserUid(task.assigned_user?.uid || '');
     setDrawerOpen(true);
   }
 
   function handleDelete(task: Task) {
-    if (window.confirm(`¿Eliminar la tarea "${task.title}"?`)) {
-      deleteTask.mutate(task.uid);
-    }
+    setDeleteDialog({ open: true, task });
   }
 
   function openCreate() {
@@ -172,6 +176,7 @@ export function TasksView() {
     setPriority('medium');
     setStatus('pending');
     setDueDate('');
+    setAssignedUserUid('');
     setDrawerOpen(true);
   }
 
@@ -185,6 +190,7 @@ export function TasksView() {
         priority,
         status,
         due_date: dueDate || undefined,
+        assigned_user_uid: assignedUserUid || undefined,
       };
       if (editing) {
         await updateTask.mutateAsync({ uid: editing.uid, payload });
@@ -251,9 +257,10 @@ export function TasksView() {
           <SheetHeader>
             <SheetTitle>{editing ? 'Editar Tarea' : 'Nueva Tarea'}</SheetTitle>
           </SheetHeader>
-          <div className="space-y-4 py-6">
+          <div className="space-y-4 px-6 py-6">
             <Input
               label="Título"
+              required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="¿Qué hay que hacer?"
@@ -264,6 +271,12 @@ export function TasksView() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Detalles de la tarea"
               className="min-h-[80px] resize-none"
+            />
+            <SelectField
+              label="Asignar a"
+              options={[{ value: '', label: 'Sin asignar' }, ...userOptions]}
+              value={assignedUserUid}
+              onChange={(v) => setAssignedUserUid(v as string)}
             />
             <SelectField
               label="Prioridad"
@@ -304,6 +317,21 @@ export function TasksView() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      <ConfirmDialog
+        open={deleteDialog.open}
+        onClose={() => setDeleteDialog({ open: false, task: null })}
+        onConfirm={async () => {
+          if (deleteDialog.task) {
+            await deleteTask.mutateAsync(deleteDialog.task.uid);
+            setDeleteDialog({ open: false, task: null });
+          }
+        }}
+        title="Eliminar tarea"
+        description={`¿Eliminar la tarea "${deleteDialog.task?.title}"?`}
+        confirmLabel="Eliminar"
+        variant="error"
+      />
     </PageContainer>
   );
 }

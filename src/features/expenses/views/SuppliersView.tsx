@@ -185,6 +185,7 @@ export function SuppliersView() {
           <div className="space-y-4 px-6 py-6">
             <Input
               label="Nombre"
+              required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Razón social"

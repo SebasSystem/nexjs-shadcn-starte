@@ -149,12 +149,14 @@ export function ExpenseCategoriesView() {
           <div className="space-y-4 px-6 py-6">
             <Input
               label="Nombre"
+              required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ej: Servicios"
             />
             <Input
               label="Clave"
+              required
               value={key}
               onChange={(e) => setKey(e.target.value)}
               placeholder="Ej: services"
