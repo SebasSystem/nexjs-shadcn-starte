@@ -87,7 +87,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
     // If no API quotation yet, create a local draft
     return {
       uid: '',
-      quote_number: `COT-${Date.now().toString(36)}`,
+      quote_number: '',
       title: opp?.title ?? '',
       status: 'draft',
       currency: 'USD',

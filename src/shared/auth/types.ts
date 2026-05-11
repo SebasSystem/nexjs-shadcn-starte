@@ -4,6 +4,7 @@ export type UserType = {
   email: string;
   role?: string;
   tenant_uid?: string;
+  tenant_plan?: string;
   two_factor_enabled?: boolean;
   locked_until?: string | null;
   permissions: string[];

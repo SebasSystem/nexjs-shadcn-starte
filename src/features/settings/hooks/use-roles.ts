@@ -4,6 +4,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { toast } from 'sonner';
 import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
+import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
@@ -137,9 +138,14 @@ export function useRoles(filters?: { search?: string }) {
 }
 
 export function usePermissions() {
+  const { user } = useAuthContext();
   return useQuery({
-    queryKey: queryKeys.rbac.permissions,
-    queryFn: () => rolesService.getPermissions(),
+    queryKey: [...queryKeys.rbac.permissions, user?.tenant_plan],
+    queryFn: async () => {
+      const params: Record<string, string> = {};
+      if (user?.tenant_plan) params.plan = user.tenant_plan;
+      return rolesService.getPermissions(params);
+    },
     staleTime: 0,
   });
 }

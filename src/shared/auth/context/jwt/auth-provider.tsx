@@ -56,6 +56,7 @@ export function AuthProvider({ children }: Props) {
               email: user.email ?? '',
               role: user.role,
               tenant_uid: user.tenant_uid,
+              tenant_plan: payload.tenant?.plan ?? '',
               two_factor_enabled: user.two_factor_enabled,
               permissions,
             },

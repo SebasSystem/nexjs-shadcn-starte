@@ -326,6 +326,7 @@ export const endpoints = {
       create: '/partners',
       update: (uid: string) => `/partners/${uid}`,
       delete: (uid: string) => `/partners/${uid}`,
+      types: '/partners/types',
     },
     opportunities: {
       list: '/partners/opportunities',
@@ -340,12 +341,14 @@ export const endpoints = {
       validate: '/partners/opportunities/validate',
       /** @deprecated Use convert(uid) instead */
       close: (uid: string) => `/partners/opportunities/${uid}/close`,
+      statuses: '/partners/opportunities/statuses',
     },
     materials: {
       list: '/partner-resources',
       detail: (uid: string) => `/partner-resources/${uid}`,
       create: '/partner-resources',
       delete: (uid: string) => `/partner-resources/${uid}`,
+      types: '/partner-resources/types',
     },
   },
   intelligence: {
