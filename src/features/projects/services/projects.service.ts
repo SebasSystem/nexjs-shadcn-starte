@@ -90,4 +90,10 @@ export const projectsService = {
   removeResource: async (projectUid: string, resourceUid: string): Promise<void> => {
     await axiosInstance.delete(endpoints.projects.resources.delete(projectUid, resourceUid));
   },
+
+  /** Fetches available resource roles for assignment */
+  getResourceRoles: async (): Promise<{ value: string; label: string }[]> => {
+    const res = await axiosInstance.get(endpoints.projects.resourceRoles);
+    return ((res.data?.data ?? []) as Array<{ value: string; label: string }>);
+  },
 };

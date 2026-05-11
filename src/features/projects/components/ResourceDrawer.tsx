@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { usersService } from 'src/features/settings/services/users.service';
+import { projectsService } from '../services/projects.service';
 import { cn } from 'src/lib/utils';
 import {
   Button,
@@ -49,6 +50,14 @@ export function ResourceDrawer({ open, onClose, onAssign }: Props) {
     },
     staleTime: 0,
   });
+
+  const { data: roleOptionsData } = useQuery({
+    queryKey: ['projects', 'resource-roles'],
+    queryFn: () => projectsService.getResourceRoles(),
+    staleTime: 0,
+  });
+
+  const resolvedRoleOptions = (roleOptionsData?.length ?? 0) > 0 ? roleOptionsData! : ROLE_OPTIONS;
 
   const reset = () => {
     setSelectedConsultant('');
@@ -114,7 +123,7 @@ export function ResourceDrawer({ open, onClose, onAssign }: Props) {
           <SelectField
             label="Rol en el proyecto"
             required
-            options={ROLE_OPTIONS}
+            options={resolvedRoleOptions}
             value={role}
             onChange={(v) => setRole(v as ResourceRole)}
           />

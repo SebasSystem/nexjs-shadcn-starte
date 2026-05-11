@@ -265,6 +265,7 @@ export const endpoints = {
       delete: (projectUid: string, resourceUid: string) =>
         `/projects/${projectUid}/assignments/${resourceUid}`,
     },
+    resourceRoles: '/projects/resource-roles',
   },
   documentTypes: '/document-types',
   contactsExport: '/contacts/export',
