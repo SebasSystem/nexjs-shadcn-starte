@@ -44,8 +44,8 @@ export const rolesService = {
     await axiosInstance.delete(endpoints.rbac.role(id));
   },
 
-  async getPermissions(params?: Record<string, string>): Promise<Permission[]> {
-    const res = await axiosInstance.get(endpoints.rbac.permissions, { params });
+  async getPermissions(): Promise<Permission[]> {
+    const res = await axiosInstance.get(endpoints.rbac.permissions);
     const payload = res.data?.data ?? res.data;
     return (Array.isArray(payload) ? payload : []).map((p: Record<string, unknown>) => ({
       uid: p.uid as string,

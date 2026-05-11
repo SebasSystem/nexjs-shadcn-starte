@@ -2,6 +2,7 @@
 
 import { Accordion as AccordionPrimitive } from 'radix-ui';
 import React, { useMemo, useState } from 'react';
+import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
 import { cn } from 'src/lib/utils';
 import { Accordion, AccordionContent, AccordionItem } from 'src/shared/components/ui/accordion';
 import { Button } from 'src/shared/components/ui/button';
@@ -86,7 +87,16 @@ function groupByModule(permissions: Permission[]): Map<string, Permission[]> {
 }
 
 export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, onSave }) => {
+  const { modules } = useAuthContext();
   const { data: permissions = [], isLoading: isLoadingPerms } = usePermissions();
+
+  // Filter permissions by tenant plan modules
+  const allowedPermissions = useMemo(() => {
+    if (!modules || modules.length === 0) return permissions;
+    const allowedKeys = new Set<string>();
+    modules.forEach((m) => m.permissions.forEach((p) => allowedKeys.add(`${m.key}.${p}`)));
+    return permissions.filter((p) => allowedKeys.has(p.key));
+  }, [permissions, modules]);
 
   const [name, setName] = useState(role?.name ?? '');
   const [key, setKey] = useState(role?.key ?? '');
@@ -103,7 +113,7 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
     }
   }, [isOpen, role]);
 
-  const grouped = useMemo(() => groupByModule(permissions), [permissions]);
+  const grouped = useMemo(() => groupByModule(allowedPermissions), [allowedPermissions]);
 
   const toggleUid = (uid: string) => {
     setSelectedUids((prev) =>
@@ -171,9 +181,9 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
                   </span>
                   <label className="flex items-center gap-1.5 cursor-pointer">
                     <Checkbox
-                      checked={permissions.length > 0 && selectedUids.length === permissions.length}
+                      checked={allowedPermissions.length > 0 && selectedUids.length === allowedPermissions.length}
                       onCheckedChange={(checked) =>
-                        setSelectedUids(checked ? permissions.map((p) => p.uid) : [])
+                        setSelectedUids(checked ? allowedPermissions.map((p) => p.uid) : [])
                       }
                     />
                     <span className="text-xs text-muted-foreground">Todos</span>
