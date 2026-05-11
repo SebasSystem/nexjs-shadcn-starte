@@ -25,7 +25,7 @@ interface SalesContextValue {
   addOpportunity: (data: Partial<Opportunity>) => Promise<Opportunity>;
   moveOpportunity: (uid: string, stageUid: string) => Promise<void>;
 
-  saveQuotation: (data: Partial<Quotation>) => Promise<void>;
+  saveQuotation: (data: Partial<Quotation>) => Promise<unknown>;
   convertQuotationToInvoice: (quotationUid: string) => Promise<Invoice>;
 
   registerPayment: (invoiceUid: string, data: Partial<Payment>) => Promise<void>;
@@ -174,14 +174,16 @@ export function SalesProvider({ children }: { children: ReactNode }) {
   // ─── Quotation mutations ────────────────────────────────────────────────────
 
   const saveQuotation = useCallback(
-    async (data: Partial<Quotation>) => {
+    async (data: Partial<Quotation>): Promise<unknown> => {
       try {
+        let result;
         if ((data as Quotation).uid) {
-          await quotationService.update((data as Quotation).uid, data);
+          result = await quotationService.update((data as Quotation).uid, data);
         } else {
-          await quotationService.create(data);
+          result = await quotationService.create(data);
         }
         await refreshQuotations();
+        return result;
       } catch (error) {
         toast.error(extractApiError(error));
         throw error;

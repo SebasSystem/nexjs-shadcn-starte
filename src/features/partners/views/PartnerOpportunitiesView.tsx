@@ -25,7 +25,7 @@ import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 
 import { PartnerOpportunityDrawer } from '../components/PartnerOpportunityDrawer';
 import { usePartners } from '../hooks/usePartners';
-import type { PartnerOpportunity } from '../types';
+import type { PartnerOpportunity, PartnerOpportunityStatus } from '../types';
 import { PARTNER_OPP_STATUS_CONFIG } from '../types';
 
 // ─── Column helper ────────────────────────────────────────────────────────────
@@ -101,7 +101,10 @@ export function PartnerOpportunitiesView() {
       columnHelper.accessor('status', {
         header: 'Estado',
         cell: (info) => {
-          const cfg = PARTNER_OPP_STATUS_CONFIG[info.getValue()];
+          const cfg = PARTNER_OPP_STATUS_CONFIG[info.getValue() as PartnerOpportunityStatus] ?? {
+            label: info.getValue(),
+            color: 'default' as const,
+          };
           return (
             <Badge variant="soft" color={cfg.color}>
               {cfg.label}

@@ -1,6 +1,6 @@
 export type PartnerType = 'distributor' | 'reseller' | 'ally';
 export type PartnerStatus = 'active' | 'inactive' | 'prospect';
-export type PartnerOpportunityStatus = 'pending' | 'approved' | 'rejected' | 'converted' | 'lost';
+export type PartnerOpportunityStatus = 'pending' | 'approved' | 'rejected' | 'converted' | 'won' | 'lost';
 export type MaterialType = 'sales' | 'training';
 
 // ─── Status configs ───────────────────────────────────────────────────────────
@@ -34,6 +34,7 @@ export const PARTNER_OPP_STATUS_CONFIG: Record<
   approved: { label: 'Aprobada', color: 'success' },
   rejected: { label: 'Rechazada', color: 'error' },
   converted: { label: 'Convertida', color: 'info' },
+  won: { label: 'Ganada', color: 'success' },
   lost: { label: 'Perdida', color: 'secondary' },
 };
 

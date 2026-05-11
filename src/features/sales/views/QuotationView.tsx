@@ -86,8 +86,8 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
     if (apiQuotation) return apiQuotation;
     // If no API quotation yet, create a local draft
     return {
-      uid: `COT-${crypto.randomUUID().split('-')[0]}`,
-      quote_number: `COT-${crypto.randomUUID().split('-')[0]}`,
+      uid: '',
+      quote_number: '',
       title: opp?.title ?? '',
       status: 'draft',
       currency: 'USD',
@@ -121,7 +121,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
         items: [
           ...prev.items,
           {
-            uid: `line-${crypto.randomUUID().split('-')[0]}`,
+            uid: '',
             description: '',
             sku: '',
             quantity: 1,
@@ -170,10 +170,15 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   const handleSave = async () => {
     if (!quotation) return;
     setIsSaving(true);
-    await new Promise((r) => setTimeout(r, 400));
-    saveQuotation(quotation);
-    setIsSaving(false);
-    toast.success('Cotización guardada como borrador');
+    try {
+      const saved = await saveQuotation(quotation);
+      setLocalQuotation(saved as Quotation);
+      toast.success('Cotización guardada como borrador');
+    } catch {
+      toast.error('Error al guardar la cotización');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSend = async () => {
