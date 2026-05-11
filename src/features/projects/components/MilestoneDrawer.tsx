@@ -60,7 +60,7 @@ function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
         (u) => ({ value: u.uid, label: u.name })
       );
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 
   const validate = () => {

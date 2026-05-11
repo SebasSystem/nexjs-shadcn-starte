@@ -73,7 +73,7 @@ export const CustomFieldDrawer: React.FC<CustomFieldDrawerProps> = ({
       const res = await axiosInstance.get(endpoints.settings.customFields.modules);
       return (res.data?.data ?? res.data) as { value: string; label: string }[];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 
   const {

@@ -62,7 +62,7 @@ export const HistoryView = () => {
   const { data: availablePeriods = [] } = useQuery({
     queryKey: queryKeys.commissions.periods,
     queryFn: () => commissionService.getPeriods(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 
   const periodOptions = useMemo(

@@ -68,7 +68,7 @@ export function PlanFormDrawer({ plan, isOpen, onClose, onSave }: PlanFormDrawer
   const { data: modulos = MODULOS_FALLBACK } = useQuery({
     queryKey: ['admin', 'plan-modules'],
     queryFn: () => plansService.getModules(),
-    staleTime: Infinity,
+    staleTime: 0,
   });
 
   const {

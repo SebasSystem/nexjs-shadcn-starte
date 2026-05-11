@@ -15,7 +15,7 @@ const PER_PAGE = 500;
 export function useUsers() {
   const { data } = useQuery({
     queryKey: [...queryKeys.settings.users, { per_page: PER_PAGE, status: 'active' }] as const,
-    staleTime: STALE_TIME,
+    staleTime: 0,
     queryFn: async () => {
       const res = await usersService.getAll({ per_page: PER_PAGE });
       return res;

@@ -64,7 +64,7 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
         (u) => ({ value: u.uid, label: u.name })
       );
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 
   useEffect(() => {

@@ -130,7 +130,7 @@ export function TasksView() {
       const res = await usersService.getAll({ per_page: 500 });
       return ((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
   const userOptions = (usersList ?? []).map((u) => ({ value: u.uid, label: u.name }));
 

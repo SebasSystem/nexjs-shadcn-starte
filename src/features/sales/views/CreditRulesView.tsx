@@ -130,7 +130,7 @@ export function CreditRulesView() {
       }));
     },
     enabled: true,
-    staleTime: 30 * 1000,
+    staleTime: 0,
   });
 
   const handleOpenAdd = useCallback(() => {

@@ -54,7 +54,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
       const res = await teamsService.getAll();
       return (res as Record<string, unknown>).data as TeamOption[];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
   const equipos = (teamsData ?? []).map((t) => ({ value: t.uid, label: t.name }));
 
@@ -67,7 +67,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
       const res = await usersService.getAll(params);
       return (res as Record<string, unknown>).data as VendedorOption[];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
     enabled: isOpen,
   });
 

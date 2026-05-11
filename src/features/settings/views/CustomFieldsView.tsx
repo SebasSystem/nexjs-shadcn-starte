@@ -47,7 +47,7 @@ export const CustomFieldsView = () => {
   const { data: modulesData } = useQuery({
     queryKey: queryKeys.settings.customFieldsModules,
     queryFn: () => customFieldsService.getModules(),
-    staleTime: 10 * 60 * 1000,
+    staleTime: 0,
   });
 
   const availableModules: { key: CustomFieldModule; label: string }[] =

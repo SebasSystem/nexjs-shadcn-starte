@@ -105,7 +105,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
       const raw = res.data?.data ?? res.data;
       return (Array.isArray(raw) ? raw : (raw?.data ?? [])) as { uid: string; name: string }[];
     },
-    staleTime: 30_000,
+    staleTime: 0,
   });
 
   const roleOptions = (rolesData ?? []).map((r) => ({ value: r.uid, label: r.name }));

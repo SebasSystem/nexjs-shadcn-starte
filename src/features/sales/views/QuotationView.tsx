@@ -73,7 +73,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
         label: `${c.code} - ${c.name}`,
       }));
     },
-    staleTime: 10 * 60 * 1000,
+    staleTime: 0,
   });
 
   // Find linked opportunity for timeline

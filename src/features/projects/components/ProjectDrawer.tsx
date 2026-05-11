@@ -99,7 +99,7 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
       });
       return (res.data?.data ?? []) as { uid: string; name: string }[];
     },
-    staleTime: 30_000,
+    staleTime: 0,
     placeholderData: keepPreviousData,
   });
   const userOptions = useMemo(

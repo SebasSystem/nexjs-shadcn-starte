@@ -30,7 +30,7 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
       const res = (await localizationService.getOptions()) as Record<string, unknown>;
       return (res.data ?? res) as LocalizationOptions;
     },
-    staleTime: 10 * 60 * 1000,
+    staleTime: 0,
   });
 
   const zonaOptions = (opts?.timezones ?? []).map((tz) => ({ value: tz, label: tz }));

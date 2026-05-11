@@ -47,7 +47,7 @@ export function ResourceDrawer({ open, onClose, onAssign }: Props) {
         (u) => ({ value: u.uid, label: u.name })
       );
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 
   const reset = () => {
