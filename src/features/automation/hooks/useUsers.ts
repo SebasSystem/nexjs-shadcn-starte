@@ -9,15 +9,16 @@ export interface UserOption {
   label: string;
 }
 
-const STALE_TIME = 5 * 60 * 1000; // 5 min — users rarely change mid-session
-const PER_PAGE = 500;
+const PER_PAGE = 25;
 
-export function useUsers() {
+export function useUsers(search = '') {
   const { data } = useQuery({
-    queryKey: [...queryKeys.settings.users, { per_page: PER_PAGE, status: 'active' }] as const,
+    queryKey: [...queryKeys.settings.users, { per_page: PER_PAGE, search: search || undefined }] as const,
     staleTime: 0,
     queryFn: async () => {
-      const res = await usersService.getAll({ per_page: PER_PAGE });
+      const params: Record<string, unknown> = { per_page: PER_PAGE };
+      if (search) params.search = search;
+      const res = await usersService.getAll(params);
       return res;
     },
   });

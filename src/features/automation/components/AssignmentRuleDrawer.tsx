@@ -1,10 +1,11 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
+import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { Switch } from 'src/shared/components/ui/switch';
@@ -58,8 +59,6 @@ export function AssignmentRuleDrawer({
 }: AssignmentRuleDrawerProps) {
   const isEditing = !!item;
 
-  const { userOptions } = useUsers();
-
   const form = useForm<AssignmentRuleFormData>({
     resolver: zodResolver(assignmentRuleSchema),
     defaultValues: {
@@ -97,22 +96,45 @@ export function AssignmentRuleDrawer({
   const watchedUserIds = useWatch({ control: form.control, name: 'user_ids' });
   const watchedGeoMapping = useWatch({ control: form.control, name: 'geo_mapping' });
 
-  const toggleUser = (userId: string) => {
+  const toggleUser = (userId: string, userName?: string) => {
     const current = watchedUserIds;
     const next = current.includes(userId)
       ? current.filter((id) => id !== userId)
       : [...current, userId];
     form.setValue('user_ids', next);
+    // Track name for chip display
+    if (userName && !current.includes(userId)) {
+      setSelectedUsers((prev) => new Map(prev).set(userId, userName));
+    }
+    if (!next.includes(userId)) {
+      setSelectedUsers((prev) => {
+        const nextMap = new Map(prev);
+        nextMap.delete(userId);
+        return nextMap;
+      });
+    }
   };
 
   const [userSearch, setUserSearch] = useState('');
-  const filteredUsers = useMemo(
-    () =>
-      userSearch
-        ? userOptions.filter((u) => u.label.toLowerCase().includes(userSearch.toLowerCase()))
-        : userOptions,
-    [userOptions, userSearch]
-  );
+
+  const { userOptions } = useUsers(userSearch);
+
+  // Local map of selected users for chip display
+  const [selectedUsers, setSelectedUsers] = useState<Map<string, string>>(new Map());
+
+  // Sync selected users when userOptions load
+  useEffect(() => {
+    if (userOptions.length > 0) {
+      setSelectedUsers((prev) => {
+        const next = new Map(prev);
+        watchedUserIds.forEach((uid) => {
+          const user = userOptions.find((u) => u.value === uid);
+          if (user && !next.has(uid)) next.set(uid, user.label);
+        });
+        return next;
+      });
+    }
+  }, [userOptions, watchedUserIds]);
 
   const handleSubmit = form.handleSubmit((data) => {
     if (isEditing && item) {
@@ -184,31 +206,50 @@ export function AssignmentRuleDrawer({
 
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">Usuarios asignables</p>
+            {/* Selected users as chips */}
+            {watchedUserIds.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {watchedUserIds.map((uid) => (
+                  <span
+                    key={uid}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium"
+                  >
+                    {selectedUsers.get(uid) ?? uid}
+                    <button type="button" onClick={() => toggleUser(uid)}>
+                      <Icon name="X" size={10} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
             <Input
               placeholder="Buscar usuario..."
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
             />
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {filteredUsers.map((user) => (
+            <div className="space-y-1 max-h-60 overflow-y-auto border border-border rounded-lg">
+              {userOptions.map((user) => (
                 <label
                   key={user.value}
                   className={cn(
-                    'flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors',
-                    watchedUserIds.includes(user.value)
-                      ? 'border-primary/40 bg-primary/5'
-                      : 'border-border/50 hover:border-border'
+                    'flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors hover:bg-muted/50',
+                    watchedUserIds.includes(user.value) && 'bg-primary/5'
                   )}
                 >
                   <input
                     type="checkbox"
-                    className="accent-primary"
+                    className="accent-primary rounded"
                     checked={watchedUserIds.includes(user.value)}
-                    onChange={() => toggleUser(user.value)}
+                    onChange={() => toggleUser(user.value, user.label)}
                   />
-                  <span className="text-sm font-medium text-foreground">{user.label}</span>
+                  <span className="text-sm">{user.label}</span>
                 </label>
               ))}
+              {userOptions.length === 0 && (
+                <p className="px-3 py-4 text-xs text-muted-foreground text-center">
+                  Sin resultados
+                </p>
+              )}
             </div>
           </div>
 
