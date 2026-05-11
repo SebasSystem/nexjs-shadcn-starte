@@ -260,10 +260,10 @@ export const endpoints = {
         `/projects/${projectUid}/milestones/${milestoneUid}`,
     },
     resources: {
-      list: (projectUid: string) => `/projects/${projectUid}/resources`,
-      create: (projectUid: string) => `/projects/${projectUid}/resources`,
+      list: (projectUid: string) => `/projects/${projectUid}/assignments`,
+      create: (projectUid: string) => `/projects/${projectUid}/assignments`,
       delete: (projectUid: string, resourceUid: string) =>
-        `/projects/${projectUid}/resources/${resourceUid}`,
+        `/projects/${projectUid}/assignments/${resourceUid}`,
     },
   },
   documentTypes: '/document-types',
