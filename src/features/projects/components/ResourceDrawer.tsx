@@ -16,7 +16,6 @@ import {
 } from 'src/shared/components/ui';
 
 import { projectsService } from '../services/projects.service';
-import { projectsService } from '../services/projects.service';
 import type { ProjectResourcePayload, ResourceRole } from '../types';
 
 const ROLE_OPTIONS: { value: ResourceRole; label: string }[] = [
