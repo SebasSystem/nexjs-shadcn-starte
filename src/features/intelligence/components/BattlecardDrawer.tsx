@@ -166,8 +166,9 @@ export function BattlecardDrawer({ open, item, competitors, onClose, onCreate, o
                 control={control}
                 render={({ field }) => (
                   <SelectField
-                    label="Competidor *"
+                    label="Competidor"
                     required
+                    searchable
                     options={COMPETITOR_OPTIONS_FROM(competitors)}
                     value={field.value}
                     onChange={(v) => field.onChange(v as string)}

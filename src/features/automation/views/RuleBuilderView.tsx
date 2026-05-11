@@ -1,10 +1,10 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useMemo, useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { useQuery } from '@tanstack/react-query';
 import axiosInstance, { endpoints } from 'src/lib/axios';
 import { paths } from 'src/routes/paths';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
@@ -179,21 +179,29 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
           triggerSource={triggerSource}
           triggerEvent={triggerEvent}
           daysThreshold={daysThreshold}
-          sourceOptions={[
-            { value: 'crm', label: 'CRM' },
-            { value: 'linkedin', label: 'LinkedIn' },
-            { value: 'facebook', label: 'Facebook' },
-            { value: 'time', label: 'Tiempo' },
-          ]}
-          eventOptions={[
-            { value: 'lead_created', label: 'Lead creado' },
-            { value: 'lead_stage_changed', label: 'Lead cambió de etapa' },
-            { value: 'deal_won', label: 'Deal ganado' },
-            { value: 'deal_lost', label: 'Deal perdido' },
-            { value: 'contact_updated', label: 'Contacto actualizado' },
-            { value: 'task_completed', label: 'Tarea completada' },
-            { value: 'inactivity_days', label: 'Inactividad (días)' },
-          ]}
+          sourceOptions={
+            sourceOptions.length > 0
+              ? sourceOptions
+              : [
+                  { value: 'crm', label: 'CRM' },
+                  { value: 'linkedin', label: 'LinkedIn' },
+                  { value: 'facebook', label: 'Facebook' },
+                  { value: 'time', label: 'Tiempo' },
+                ]
+          }
+          eventOptions={
+            eventOptions.length > 0
+              ? eventOptions
+              : [
+                  { value: 'lead_created', label: 'Lead creado' },
+                  { value: 'lead_stage_changed', label: 'Lead cambió de etapa' },
+                  { value: 'deal_won', label: 'Deal ganado' },
+                  { value: 'deal_lost', label: 'Deal perdido' },
+                  { value: 'contact_updated', label: 'Contacto actualizado' },
+                  { value: 'task_completed', label: 'Tarea completada' },
+                  { value: 'inactivity_days', label: 'Inactividad (días)' },
+                ]
+          }
           onSourceChange={(v: TriggerSource) => form.setValue('trigger_source', v)}
           onEventChange={(v: TriggerEvent) => form.setValue('trigger_event', v)}
           onDaysThresholdChange={(v) => form.setValue('trigger_config.days_threshold', v)}

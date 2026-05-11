@@ -78,7 +78,7 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
   ];
 
   return (
-    <Sheet open={isOpen && !!asignacion} onOpenChange={(v) => !v && onClose()}>
+    <Sheet open={isOpen} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[480px] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40 bg-muted/30">
           <div className="flex items-center gap-3">

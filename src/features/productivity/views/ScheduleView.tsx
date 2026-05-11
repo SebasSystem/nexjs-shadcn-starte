@@ -360,11 +360,7 @@ export const ScheduleView = () => {
                                   Ver
                                   <Icon name="ArrowRight" size={12} />
                                 </button>
-                              ) : (
-                                <button className="p-1 hover:bg-muted rounded text-muted-foreground">
-                                  <Icon name="MoreHorizontal" size={16} />
-                                </button>
-                              )}
+                              ) : null}
                             </div>
                           </div>
                         </div>

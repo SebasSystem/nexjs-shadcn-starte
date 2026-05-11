@@ -1,17 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-  Button,
-  Input,
-  SelectField,
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from 'src/shared/components/ui';
+import { usersService } from 'src/features/settings/services/users.service';
+import { Button, Input, SelectField, Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 
 import type {
@@ -78,6 +71,17 @@ function OpportunityForm({
   const [notes, setNotes] = useState(init ? (opportunity.notes ?? '') : '');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { data: userOptions = [] } = useQuery({
+    queryKey: ['users', 'list'],
+    queryFn: async () => {
+      const res = await usersService.getAll({ per_page: 500 });
+      return (((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>).map(
+        (u) => ({ value: u.uid, label: u.name })
+      );
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -202,11 +206,12 @@ function OpportunityForm({
           onChange={(v) => setStatus(v as PartnerOpportunityStatus)}
         />
 
-        <Input
+        <SelectField
           label="Vendedor interno asignado"
+          searchable
+          options={[{ value: '', label: 'Sin asignar' }, ...userOptions]}
           value={assignedToInternal}
-          onChange={(e) => setAssignedToInternal(e.target.value)}
-          placeholder="Nombre del vendedor (opcional)"
+          onChange={(v) => setAssignedToInternal(v as string)}
         />
 
         <Textarea

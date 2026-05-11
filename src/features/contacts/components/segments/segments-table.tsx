@@ -15,7 +15,7 @@ import {
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
-import { Icon } from 'src/shared/components/ui/icon';
+import { DeleteButton, EditButton, Icon } from 'src/shared/components/ui';
 
 import type { Segment } from '../../types/segments.types';
 
@@ -122,22 +122,8 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
               <Icon name="Play" className="h-3 w-3" />
               Ver Contactos
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => onEdit(info.row.original)}
-            >
-              <Icon name="Edit" className="h-4 w-4 text-muted-foreground" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 hover:text-red-600 hover:bg-red-50"
-              onClick={() => setDeleteUid(info.row.original.uid)}
-            >
-              <Icon name="Trash2" className="h-4 w-4" />
-            </Button>
+            <EditButton onClick={() => onEdit(info.row.original)} />
+            <DeleteButton onClick={() => setDeleteUid(info.row.original.uid)} />
           </div>
         ),
       }),

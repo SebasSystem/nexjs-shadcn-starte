@@ -1,6 +1,12 @@
 export type PartnerType = 'distributor' | 'reseller' | 'ally';
 export type PartnerStatus = 'active' | 'inactive' | 'prospect';
-export type PartnerOpportunityStatus = 'pending' | 'approved' | 'rejected' | 'converted' | 'won' | 'lost';
+export type PartnerOpportunityStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'converted'
+  | 'won'
+  | 'lost';
 export type MaterialType = 'sales' | 'training';
 
 // ─── Status configs ───────────────────────────────────────────────────────────
@@ -78,12 +84,12 @@ export interface PartnerOpportunity {
 export interface PortalMaterial {
   uid: string;
   title: string;
-  description: string;
+  description: string | null;
   type: MaterialType;
   file_name: string;
   file_size: string;
   uploaded_at: string;
-  uploaded_by: string;
+  uploaded_by: string | null;
   tags: string[];
   download_count: number;
 }

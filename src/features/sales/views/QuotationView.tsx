@@ -87,7 +87,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
     // If no API quotation yet, create a local draft
     return {
       uid: '',
-      quote_number: '',
+      quote_number: `COT-${Date.now().toString(36)}`,
       title: opp?.title ?? '',
       status: 'draft',
       currency: 'USD',
@@ -169,6 +169,10 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
 
   const handleSave = async () => {
     if (!quotation) return;
+    if (!quotation.title?.trim()) {
+      toast.error('El título es requerido');
+      return;
+    }
     setIsSaving(true);
     try {
       const saved = await saveQuotation(quotation);
@@ -370,6 +374,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <Input
                   label="Título"
+                  required
                   value={quotation.title}
                   onChange={(e) =>
                     setLocalQuotation((p) => ({ ...p, title: e.target.value }) as Quotation)
