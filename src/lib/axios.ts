@@ -347,7 +347,9 @@ export const endpoints = {
     materials: {
       list: '/partner-resources',
       detail: (uid: string) => `/partner-resources/${uid}`,
+      download: (uid: string) => `/partner-resources/${uid}/download`,
       create: '/partner-resources',
+      update: (uid: string) => `/partner-resources/${uid}`,
       delete: (uid: string) => `/partner-resources/${uid}`,
       types: '/partner-resources/types',
     },

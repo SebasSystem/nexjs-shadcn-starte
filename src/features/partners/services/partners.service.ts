@@ -137,7 +137,7 @@ export const partnersService = {
     },
 
     download: async (uid: string): Promise<Blob> => {
-      const res = await axiosInstance.get(endpoints.partners.materials.detail(uid), {
+      const res = await axiosInstance.get(endpoints.partners.materials.download(uid), {
         responseType: 'blob',
       });
       return res.data as Blob;
