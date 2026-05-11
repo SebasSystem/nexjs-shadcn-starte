@@ -5,12 +5,14 @@ import axiosInstance, { endpoints } from 'src/lib/axios';
 export const reportsService = {
   async getSalesReport(params: Record<string, unknown>) {
     const res = await axiosInstance.get(endpoints.reports.sales, { params });
-    return res.data;
+    // Unwrap { success, data } wrapper from backend
+    return res.data?.data ?? res.data;
   },
 
   async getInventoryReport(params: Record<string, unknown>) {
     const res = await axiosInstance.get(endpoints.reports.inventory, { params });
-    return res.data;
+    // Unwrap { success, data } wrapper from backend
+    return res.data?.data ?? res.data;
   },
 
   async getFilterOptions() {

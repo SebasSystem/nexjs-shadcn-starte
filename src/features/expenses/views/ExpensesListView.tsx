@@ -45,15 +45,18 @@ export function ExpensesListView() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [supplierFilter, setSupplierFilter] = useState('');
   const [costCenterFilter, setCostCenterFilter] = useState('');
+  const [catSearch, setCatSearch] = useState('');
+  const [supSearch, setSupSearch] = useState('');
+  const [ccSearch, setCcSearch] = useState('');
   const { expenses, createExpense, updateExpense, deleteExpense, pagination } = useExpenses({
     status: statusFilter || undefined,
     category_uid: categoryFilter || undefined,
     supplier_uid: supplierFilter || undefined,
     cost_center_uid: costCenterFilter || undefined,
   });
-  const { categories } = useExpenseCategories();
-  const { suppliers } = useSuppliers();
-  const { costCenters } = useCostCenters();
+  const { categories } = useExpenseCategories(catSearch);
+  const { suppliers } = useSuppliers(supSearch);
+  const { costCenters } = useCostCenters(ccSearch);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
@@ -321,6 +324,7 @@ export function ExpensesListView() {
               label="Categoría"
               required
               searchable
+              onSearch={setCatSearch}
               options={[
                 { value: '', label: 'Seleccionar categoría' },
                 ...categories.map((c) => ({ value: c.uid, label: c.name })),
@@ -335,6 +339,7 @@ export function ExpensesListView() {
             <SelectField
               label="Proveedor"
               searchable
+              onSearch={setSupSearch}
               options={[
                 { value: '', label: 'Sin proveedor' },
                 ...suppliers.map((s) => ({ value: s.uid, label: s.name })),
@@ -345,6 +350,7 @@ export function ExpensesListView() {
             <SelectField
               label="Centro de Costo"
               searchable
+              onSearch={setCcSearch}
               options={[
                 { value: '', label: 'Sin centro' },
                 ...costCenters.map((cc) => ({ value: cc.uid, label: cc.name })),

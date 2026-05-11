@@ -9,7 +9,69 @@ import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { contactsService } from '../services/contacts.service';
-import type { Contact, ContactPayload, ContactType } from '../types/contacts.types';
+import type {
+  Contact,
+  ContactPayload,
+  ContactRelation,
+  ContactStatus,
+  ContactType,
+} from '../types/contacts.types';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Normalization — maps backend response to Contact type (defense against field
+// name mismatches like camelCase vs snake_case or missing optional fields)
+// ─────────────────────────────────────────────────────────────────────────────
+function normalizeContact(raw: Record<string, unknown>): Contact {
+  const type: ContactType =
+    (raw.type as string) === 'company'
+      ? 'company'
+      : (raw.type as string) === 'government'
+        ? 'government'
+        : 'person';
+
+  const base = {
+    uid: raw.uid as string,
+    type,
+    name: (raw.name as string) ?? '',
+    email: (raw.email as string) ?? '',
+    phone: raw.phone as string | undefined,
+    country: (raw.country as string) ?? '',
+    city: raw.city as string | undefined,
+    status: (raw.status as ContactStatus) || 'active',
+    relations: raw.relations as Record<string, unknown>[],
+    created_at: (raw.created_at as string) ?? '',
+  };
+
+  if (type === 'company') {
+    return {
+      ...base,
+      type: 'company' as const,
+      tax_id: raw.tax_id as string | undefined,
+      industry: raw.industry as string | undefined,
+      company_size: raw.company_size as string | undefined,
+      website: raw.website as string | undefined,
+    } as unknown as Contact;
+  }
+
+  if (type === 'government') {
+    return {
+      ...base,
+      type: 'government' as const,
+      institution_type: raw.institution_type as string | undefined,
+      is_public_entity: (raw.is_public_entity as boolean) ?? false,
+      bid_code: raw.bid_code as string | undefined,
+    } as unknown as Contact;
+  }
+
+  return {
+    ...base,
+    type: 'person' as const,
+    id_number: raw.id_number as string | undefined,
+    job_title: raw.job_title as string | undefined,
+    company_uid: raw.company_uid as string | undefined,
+    company_name: raw.company_name as string | undefined,
+  } as unknown as Contact;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers — module-level (owned by the hook, exported for component reuse)
@@ -113,8 +175,12 @@ export function useContacts() {
     placeholderData: keepPreviousData,
   });
 
-  const companies = ((accountsData as Record<string, unknown>)?.data ?? []) as Contact[];
-  const persons = ((contactsData as Record<string, unknown>)?.data ?? []) as Contact[];
+  const companies = (
+    ((accountsData as Record<string, unknown>)?.data ?? []) as Record<string, unknown>[]
+  ).map(normalizeContact);
+  const persons = (
+    ((contactsData as Record<string, unknown>)?.data ?? []) as Record<string, unknown>[]
+  ).map(normalizeContact);
 
   // Merge both arrays and extract pagination meta from accounts response
   const contactos: Contact[] = [...companies, ...persons];

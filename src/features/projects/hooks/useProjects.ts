@@ -11,6 +11,26 @@ import { extractPaginationMeta } from 'src/shared/lib/pagination';
 import { projectsService } from '../services/projects.service';
 import type { MilestonePayload, Project, ProjectPayload, ProjectResourcePayload } from '../types';
 
+function normalizeProject(raw: Record<string, unknown>): Project {
+  return {
+    uid: raw.uid as string,
+    name: raw.name as string,
+    client_uid: raw.client_uid as string,
+    client_name: (raw.client_name as string) ?? '',
+    opportunity_uid: raw.opportunity_uid as string | undefined,
+    status: raw.status as Project['status'],
+    start_date: (raw.start_date as string) ?? '',
+    end_date: (raw.end_date as string) ?? '',
+    manager: (raw.manager as string) ?? '',
+    description: (raw.description as string) ?? '',
+    milestones: (raw.milestones as Project['milestones']) ?? [],
+    resources: (raw.resources as Project['resources']) ?? [],
+    progress: (raw.progress as number) ?? 0,
+    created_at: (raw.created_at as string) ?? '',
+    updated_at: raw.updated_at as string | undefined,
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Hook
 // ─────────────────────────────────────────────────────────────────────────────
@@ -37,7 +57,11 @@ export function useProjects(params?: UseProjectsParams) {
       const res = await projectsService.list(queryParams);
       const meta = extractPaginationMeta(res);
       if (meta) pagination.setTotal(meta.total);
-      return ((res as unknown as { data?: Project[] }).data ?? []) as Project[];
+      const raw = ((res as unknown as { data?: Record<string, unknown>[] }).data ?? []) as Record<
+        string,
+        unknown
+      >[];
+      return raw.map(normalizeProject);
     },
     staleTime: 0,
     placeholderData: keepPreviousData,
@@ -52,7 +76,7 @@ export function useProjects(params?: UseProjectsParams) {
     const completed = projects.filter((p) => p.status === 'completed').length;
     const onHold = projects.filter((p) => p.status === 'on_hold').length;
     const delayedMilestones = projects.reduce(
-      (acc, p) => acc + p.milestones.filter((m) => m.status === 'delayed').length,
+      (acc, p) => acc + (p.milestones?.filter((m) => m.status === 'delayed').length ?? 0),
       0
     );
     return { active, completed, onHold, delayedMilestones };

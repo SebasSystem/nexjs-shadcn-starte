@@ -114,7 +114,7 @@ export type ActivityStatus = 'pendiente' | 'completada' | 'cancelada';
 /** Raw response from GET /opportunities/{uid}/activities (backend Activity model) */
 export interface Activity {
   uid: string;
-  type: string; // backend stores English: note, call, meeting, email, reminder
+  type: string;
   title?: string;
   description?: string;
   scheduled_at: string;
@@ -122,6 +122,7 @@ export interface Activity {
   status?: string;
   priority?: string;
   owner_user_uid?: string;
+  owner_user_name?: string;
   assigned_to_name?: string;
   activityable_uid?: string;
 }

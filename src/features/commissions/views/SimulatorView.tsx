@@ -184,7 +184,7 @@ export const SimulatorView = () => {
               {isSimulating ? '...' : `$${totalCommission.toLocaleString()}`}
             </div>
             <p className="text-sm text-muted-foreground mt-4 font-medium">
-              Sobre la venta hipotética de ${hypotheticalSale.toLocaleString()}
+              Sobre la venta hipotética de ${hypotheticalSale?.toLocaleString() ?? '0'}
             </p>
           </SectionCard>
 
@@ -264,7 +264,7 @@ export const SimulatorView = () => {
                       <span>Progreso hacia el siguiente tramo</span>
                       <span className="font-medium">
                         ${accumulatedSales.toLocaleString()} / $
-                        {siguienteTramo.tramo.threshold.toLocaleString()}
+                        {siguienteTramo.tramo.threshold?.toLocaleString() ?? '0'}
                       </span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">

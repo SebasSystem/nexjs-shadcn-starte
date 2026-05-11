@@ -93,7 +93,7 @@ export function SuppliersView() {
               setContactName(s.contact_name || '');
               setEmail(s.email || '');
               setPhone(s.phone || '');
-              setTaxId(s.tax_id || '');
+              setTaxId(s.document || '');
               setIsActive(s.is_active);
               setDrawerOpen(true);
             }}

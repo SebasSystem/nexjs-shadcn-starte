@@ -101,7 +101,7 @@ export const PlansTable: React.FC<PlansTableProps> = ({
         header: 'Base',
         cell: (info) => <span className="font-medium">{info.getValue()}%</span>,
       }),
-      columnHelper.accessor((row) => row.tiers.length, {
+      columnHelper.accessor((row) => row.tiers?.length ?? 0, {
         id: 'tiersCount',
         header: 'Tramos',
         cell: (info) => <span>{info.getValue()} config.</span>,
@@ -109,7 +109,9 @@ export const PlansTable: React.FC<PlansTableProps> = ({
       columnHelper.accessor('role_uids', {
         header: 'Roles',
         cell: (info) => (
-          <span className="text-muted-foreground text-sm">{info.getValue().length} rol(es)</span>
+          <span className="text-muted-foreground text-sm">
+            {info.getValue()?.length ?? 0} rol(es)
+          </span>
         ),
       }),
       columnHelper.display({
@@ -119,7 +121,7 @@ export const PlansTable: React.FC<PlansTableProps> = ({
           const plan = info.row.original;
           return (
             <span className="text-muted-foreground text-sm">
-              {format(new Date(plan.starts_at), 'dd/MM/yyyy')}
+              {plan.starts_at ? format(new Date(plan.starts_at), 'dd/MM/yyyy') : '—'}
               {plan.ends_at
                 ? ` - ${format(new Date(plan.ends_at), 'dd/MM/yyyy')}`
                 : ' - Indefinido'}
@@ -234,10 +236,10 @@ export const PlansTable: React.FC<PlansTableProps> = ({
                               </tr>
                             </thead>
                             <TableBody>
-                              {plan.tiers.map((tier, index) => (
+                              {plan.tiers?.map((tier, index) => (
                                 <TableRow key={tier.uid || index}>
                                   <TableCell className="py-2.5 px-6">
-                                    ${tier.threshold.toLocaleString()}+
+                                    ${tier.threshold?.toLocaleString() ?? '0'}+
                                   </TableCell>
                                   <TableCell className="py-2.5 px-6 text-right font-medium text-blue-600">
                                     {tier.percent}%

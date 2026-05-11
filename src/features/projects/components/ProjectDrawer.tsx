@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { contactsService } from 'src/features/contacts/services/contacts.service';
 import {
   Button,
   ConfirmDialog,
@@ -48,6 +50,7 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
   const init = isEdit && project;
   const [name, setName] = useState(init ? project.name : '');
   const [clientId, setClientId] = useState(init ? project.client_uid : '');
+  const [clientSearch, setClientSearch] = useState('');
   const [manager, setManager] = useState(init ? project.manager : '');
   const [status, setStatus] = useState<ProjectStatus>(init ? project.status : 'planning');
   const [startDate, setStartDate] = useState(init ? project.start_date : '');
@@ -56,6 +59,29 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+
+  // ── Account search (GET /accounts?search=) ─────────────────────────────
+  const { data: accountsData } = useQuery({
+    queryKey: ['accounts', 'search', clientSearch],
+    queryFn: async () => {
+      const res = await contactsService.accounts.list({
+        page: 1,
+        per_page: 20,
+        search: clientSearch || undefined,
+      });
+      return (res as Record<string, unknown>).data as Array<{ uid: string; name: string }>;
+    },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
+  });
+  const accountOptions = useMemo(
+    () =>
+      (accountsData ?? []).map((a) => ({
+        value: a.uid,
+        label: a.name,
+      })),
+    [accountsData]
+  );
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -124,13 +150,17 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
           error={errors.name}
         />
 
-        {/* TODO: Replace with backend clients lookup */}
-        <Input
-          label="Cliente *"
+        <SelectField
+          label="Cliente"
           required
+          searchable
+          options={accountOptions}
           value={clientId}
-          onChange={(e) => setClientId(e.target.value)}
-          placeholder="Nombre del cliente"
+          onChange={(v) => {
+            setClientId(v as string);
+            setErrors((p) => ({ ...p, clientId: '' }));
+          }}
+          onSearch={setClientSearch}
           error={errors.clientId}
         />
 

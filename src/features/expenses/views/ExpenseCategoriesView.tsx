@@ -63,6 +63,7 @@ export function ExpenseCategoriesView() {
               const c = i.row.original;
               setEditing(c);
               setName(c.name);
+              setKey(c.key || '');
               setDescription(c.description || '');
               setDrawerOpen(true);
             }}

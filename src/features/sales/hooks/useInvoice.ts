@@ -17,18 +17,7 @@ export function useInvoice(invoiceUid: string) {
     error,
   } = useQuery({
     queryKey: [...queryKeys.sales.invoices, invoiceUid],
-    // TODO(backend-pendiente): GET /finance/invoices/{uid} no existe aún.
-    // Buscamos en el listado general como workaround temporal.
-    queryFn: async () => {
-      const res = await invoiceService.getList({
-        page: 1,
-        per_page: 10,
-        search: invoiceUid,
-      });
-      const data = (res as unknown as { data?: Array<Record<string, unknown>> }).data ?? [];
-      return (data.find((inv) => inv.uid === invoiceUid) ??
-        null) as unknown as import('../types/sales.types').Invoice;
-    },
+    queryFn: () => invoiceService.getOne(invoiceUid),
     enabled: !!invoiceUid,
     staleTime: 0,
     placeholderData: keepPreviousData,

@@ -36,7 +36,7 @@ export const CommissionsDashboardView = () => {
         header: 'Monto Venta',
         cell: (info) => (
           <div className="text-right font-medium text-foreground">
-            ${info.getValue().toLocaleString()}
+            ${info.getValue()?.toLocaleString() ?? '0'}
           </div>
         ),
       }),
@@ -44,7 +44,7 @@ export const CommissionsDashboardView = () => {
         header: 'Comisión Gen.',
         cell: (info) => (
           <div className="text-right font-bold text-blue-600">
-            ${info.getValue().toLocaleString()}
+            ${info.getValue()?.toLocaleString() ?? '0'}
           </div>
         ),
       }),
@@ -86,12 +86,7 @@ export const CommissionsDashboardView = () => {
     );
   }
 
-  // TODO(backend-pendiente): Backend debe enviar progress_percent ya calculado
-  // en lugar de forzar al frontend a calcular sales_achieved / monthly_target.
-  const porcentajeMeta =
-    kpis.monthly_target > 0
-      ? Math.min(Math.round((kpis.sales_achieved / kpis.monthly_target) * 100), 100)
-      : 0;
+  const porcentajeMeta = kpis.progress_percent ?? 0;
 
   return (
     <PageContainer fluid className="pb-10 min-w-0 w-full space-y-6">
@@ -109,7 +104,7 @@ export const CommissionsDashboardView = () => {
             </span>
             <Icon name="Target" className="text-blue-500" size={20} />
           </div>
-          <div className="text-3xl font-bold">${kpis.monthly_target.toLocaleString()}</div>
+          <div className="text-3xl font-bold">${kpis.monthly_target?.toLocaleString() ?? '0'}</div>
           <div className="text-xs text-muted-foreground mt-2">Periodo actual</div>
         </SectionCard>
 
@@ -123,7 +118,7 @@ export const CommissionsDashboardView = () => {
           <div
             className={`text-3xl font-bold ${porcentajeMeta >= 50 ? 'text-green-600' : 'text-foreground'}`}
           >
-            ${kpis.sales_achieved.toLocaleString()}
+            ${kpis.sales_achieved?.toLocaleString() ?? '0'}
           </div>
           <div className="text-xs text-muted-foreground mt-2 font-medium">
             {porcentajeMeta}% de la meta
@@ -144,7 +139,7 @@ export const CommissionsDashboardView = () => {
             <Icon name="DollarSign" className="text-yellow-600" size={20} />
           </div>
           <div className="text-3xl font-bold text-blue-600 h-[36px]">
-            ${kpis.projected_commission.toLocaleString()}
+            ${kpis.projected_commission?.toLocaleString() ?? '0'}
           </div>
           <div className="text-xs text-muted-foreground mt-2">Basado en ventas actuales</div>
         </SectionCard>
@@ -157,7 +152,7 @@ export const CommissionsDashboardView = () => {
             <Icon name="CheckCircle2" className="text-green-500" size={20} />
           </div>
           <div className="text-3xl font-bold text-green-700 h-[36px]">
-            ${kpis.liquidated_commission.toLocaleString()}
+            ${kpis.liquidated_commission?.toLocaleString() ?? '0'}
           </div>
           <div className="text-xs text-muted-foreground mt-2">Periodos anteriores</div>
         </SectionCard>
@@ -194,7 +189,8 @@ export const CommissionsDashboardView = () => {
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-2 font-medium">
-            ${kpis.sales_achieved.toLocaleString()} / ${kpis.monthly_target.toLocaleString()}
+            ${kpis.sales_achieved?.toLocaleString() ?? '0'} / $
+            {kpis.monthly_target?.toLocaleString() ?? '0'}
           </p>
         </SectionCard>
 
@@ -235,7 +231,7 @@ export const CommissionsDashboardView = () => {
                 <div className="flex justify-between items-center text-xs text-muted-foreground">
                   <span>
                     {tier.status === 'IN_PROGRESS'
-                      ? `$${tier.amount_achieved.toLocaleString()} de $${tier.amount_target.toLocaleString()}`
+                      ? `$${tier.amount_achieved?.toLocaleString() ?? '0'} de $${tier.amount_target?.toLocaleString() ?? '0'}`
                       : tier.status === 'PENDING'
                         ? 'Por desbloquear'
                         : 'Completado'}

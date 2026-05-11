@@ -121,7 +121,9 @@ export function ContactsTable({
       columnHelper.accessor('relations', {
         header: 'Relaciones',
         cell: (info) => (
-          <span className="text-body2 font-medium text-foreground">{info.getValue().length}</span>
+          <span className="text-body2 font-medium text-foreground">
+            {info.getValue()?.length ?? 0}
+          </span>
         ),
       }),
       columnHelper.display({

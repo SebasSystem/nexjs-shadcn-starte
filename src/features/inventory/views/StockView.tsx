@@ -132,21 +132,21 @@ export function StockView() {
     ? [
         {
           title: 'Disponible para venta',
-          value: summary.total_available_stock.toLocaleString(),
+          value: summary.total_available_stock?.toLocaleString() ?? '0',
           badge: `${summary.total_physical_stock > 0 ? Math.round((summary.total_available_stock / summary.total_physical_stock) * 100) : 0}% del físico`,
           icon: <Icon name="CheckCircle" size={18} />,
           iconClassName: 'bg-success/10 text-success',
         },
         {
           title: 'Reservado',
-          value: summary.total_reserved_stock.toLocaleString(),
+          value: summary.total_reserved_stock?.toLocaleString() ?? '0',
           badge: `${summary.total_physical_stock > 0 ? Math.round((summary.total_reserved_stock / summary.total_physical_stock) * 100) : 0}% del físico`,
           icon: <Icon name="CalendarDays" size={18} />,
           iconClassName: 'bg-info/10 text-info',
         },
         {
           title: 'Stock físico total',
-          value: summary.total_physical_stock.toLocaleString(),
+          value: summary.total_physical_stock?.toLocaleString() ?? '0',
           badge: 'unidades en sistema',
           icon: <Icon name="Package" size={18} />,
           iconClassName: 'bg-primary/10 text-primary',

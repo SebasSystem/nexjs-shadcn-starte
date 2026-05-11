@@ -161,7 +161,7 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
       date: new Date(a.scheduled_at),
       type: normalizeActivityType(a.type),
       content: a.description,
-      author: a.assigned_to_name || 'Sin asignar',
+      author: a.assigned_to_name || a.owner_user_name || 'Sin asignar',
       status: (a.status as ActivityStatus) || 'pendiente',
     }))
     .sort((a, b) => b.date.getTime() - a.date.getTime());

@@ -197,7 +197,7 @@ export const HistoryView = () => {
       columnHelper.accessor('total_sales', {
         header: 'Ventas',
         cell: (info) => (
-          <span className="text-foreground">${info.getValue().toLocaleString()}</span>
+          <span className="text-foreground">${info.getValue()?.toLocaleString() ?? '0'}</span>
         ),
       }),
       columnHelper.accessor('plan_applied', {
@@ -208,7 +208,7 @@ export const HistoryView = () => {
         header: 'Comisión',
         cell: (info) => (
           <div className="text-right font-bold text-foreground">
-            ${info.getValue().toLocaleString()}
+            ${info.getValue()?.toLocaleString() ?? '0'}
           </div>
         ),
       }),
@@ -423,7 +423,7 @@ export const HistoryView = () => {
                               <div className="px-6 py-5 text-center text-muted-foreground text-sm">
                                 Comisión total:{' '}
                                 <span className="font-bold text-blue-600">
-                                  ${row.original.calculated_commission.toLocaleString()}
+                                  ${row.original.calculated_commission?.toLocaleString() ?? '0'}
                                 </span>
                               </div>
                             </TableCell>

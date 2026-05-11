@@ -21,6 +21,7 @@ export interface DashboardKPIs {
   sales_achieved: number;
   projected_commission: number;
   liquidated_commission: number;
+  progress_percent: number;
 }
 
 export interface TierProgress {

@@ -102,7 +102,8 @@ export function ReportTable({ data, columns, search = '', onSearchChange }: Repo
     defaultRowsPerPage: 10,
   });
 
-  if (data.length === 0) return null;
+  // Defensive: guard against non-array table_data from wrapped API responses
+  if (!Array.isArray(data) || data.length === 0) return null;
 
   return (
     <SectionCard noPadding className="shadow-sm overflow-hidden flex flex-col w-full bg-card">

@@ -1,6 +1,7 @@
 export interface ExpenseCategory {
   uid: string;
   name: string;
+  key: string;
   description: string | null;
 }
 
@@ -10,7 +11,7 @@ export interface Supplier {
   contact_name: string | null;
   email: string | null;
   phone: string | null;
-  tax_id: string | null;
+  document: string | null;
   is_active: boolean;
 }
 

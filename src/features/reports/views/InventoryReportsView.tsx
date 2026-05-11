@@ -13,7 +13,7 @@ import { ExportBar } from '../components/ExportBar';
 import { ReportFilters } from '../components/ReportFilters';
 import { ReportTable } from '../components/tables/ReportTable';
 import { useInventoryReport } from '../hooks/use-reports';
-import type { InventoryReportTab, ReportFilterParams } from '../types';
+import type { InventoryReport, InventoryReportTab, ReportFilterParams } from '../types';
 
 function getKpiMeta(key: string): { icon: IconName; iconBg: string; iconColor: string } {
   const k = key.toLowerCase();
@@ -111,7 +111,10 @@ export function InventoryReportsView() {
       );
     }
 
-    const { kpis = {}, chart_data, table_data = [], most_critical } = reportData;
+    // Defensive: unwrap if backend returns { success, data } wrapper
+    const safeData =
+      ((reportData as unknown as Record<string, unknown>)?.data as InventoryReport | undefined) ?? reportData;
+    const { kpis = {}, chart_data, table_data = [], most_critical } = safeData;
     const chartData = chart_data ?? { series: [], categories: [], labels: [] };
 
     const namedSeries =

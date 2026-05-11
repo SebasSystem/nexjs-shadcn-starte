@@ -106,7 +106,7 @@ export function ProductsView() {
         },
         {
           title: 'Stock físico total',
-          value: summary.total_physical_stock.toLocaleString(),
+          value: summary.total_physical_stock?.toLocaleString() ?? '0',
           badge: 'unidades en sistema',
           icon: <Icon name="Box" size={18} />,
           iconClassName: 'bg-info/10 text-info',

@@ -13,7 +13,7 @@ import { ExportBar } from '../components/ExportBar';
 import { ReportFilters } from '../components/ReportFilters';
 import { ReportTable } from '../components/tables/ReportTable';
 import { useSalesReport } from '../hooks/use-reports';
-import type { ReportFilterParams, SalesReportTab } from '../types';
+import type { ReportFilterParams, SalesReport, SalesReportTab } from '../types';
 
 function getKpiMeta(key: string): { icon: IconName; iconBg: string; iconColor: string } {
   const k = key.toLowerCase();
@@ -99,7 +99,10 @@ export function SalesReportsView() {
       );
     }
 
-    const { kpis = {}, chart_data, table_data = [] } = reportData;
+    // Defensive: unwrap if backend returns { success, data } wrapper
+    const safeData =
+      ((reportData as unknown as Record<string, unknown>)?.data as SalesReport | undefined) ?? reportData;
+    const { kpis = {}, chart_data, table_data = [] } = safeData;
     const chartData = chart_data ?? { series: [], categories: [], labels: [] };
 
     const namedSeries =
