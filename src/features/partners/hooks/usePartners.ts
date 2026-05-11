@@ -69,7 +69,7 @@ export function usePartners(filters: PartnersFilters = {}) {
       );
       const meta = extractPaginationMeta(res as unknown as Record<string, unknown>);
       if (meta) oppPagination.setTotal(meta.total);
-      return ((res as unknown as Record<string, unknown>).data ?? []) as PartnerOpportunity[];
+      return res as unknown as PartnerOpportunity[];
     },
     staleTime: 0,
     placeholderData: keepPreviousData,

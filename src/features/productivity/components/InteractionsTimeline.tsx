@@ -11,7 +11,9 @@ import { Textarea } from 'src/shared/components/ui/textarea';
 import { useInteractions } from '../hooks/use-interactions';
 import type { InteractionType } from '../types/productivity.types';
 
-const ICONS: Record<InteractionType, React.ReactNode> = {
+const FALLBACK_ICON = <Icon name="Circle" size={16} className="text-gray-400" />;
+
+const ICONS: Record<string, React.ReactNode> = {
   NOTE: <Icon name="StickyNote" size={16} className="text-amber-500" />,
   CALL: <Icon name="PhoneCall" size={16} className="text-green-500" />,
   EMAIL: <Icon name="Mail" size={16} className="text-blue-500" />,
@@ -81,7 +83,7 @@ export const InteractionsTimeline = ({ contactoId }: { contactoId: string }) => 
             {data.map((item) => (
               <div key={item.uid} className="relative pl-6">
                 <div className="absolute -left-[13px] top-1 h-6 w-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm">
-                  {ICONS[item.type]}
+                  {ICONS[item.type] ?? FALLBACK_ICON}
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">

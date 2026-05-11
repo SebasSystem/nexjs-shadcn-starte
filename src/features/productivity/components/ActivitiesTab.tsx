@@ -58,6 +58,8 @@ export const ActivitiesTab = ({
         return <Icon name="XCircle" size={16} className="text-gray-400" />;
       case 'overdue':
         return <Icon name="AlertCircle" size={16} className="text-red-500" />;
+      default:
+        return <Icon name="Circle" size={16} className="text-blue-500" />;
     }
   };
 

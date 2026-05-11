@@ -8,6 +8,27 @@ import { extractPaginationMeta } from 'src/shared/lib/pagination';
 import { productivityService } from '../services/productivity.service';
 import type { Activity, ActivityPayload, ActivityStatus } from '../types/productivity.types';
 
+function normalizeActivity(raw: Record<string, unknown>): Activity {
+  return {
+    uid: raw.uid as string,
+    contact_uid: raw.contact_uid as string | undefined,
+    contact_name: (raw.contact_name as string) || undefined,
+    type: raw.type as Activity['type'],
+    title: raw.title as string,
+    description: raw.description as string | undefined,
+    status: raw.status as ActivityStatus,
+    due_date: (raw.scheduled_at as string) ?? (raw.due_date as string) ?? '',
+    assigned_to_uid: raw.assigned_to_uid as string | undefined,
+    assigned_to_name: (raw.assigned_to_name as string) ?? (raw.owner_user_name as string) ?? '',
+    source: raw.source as Activity['source'],
+    source_uid: raw.source_uid as string | undefined,
+    source_path: raw.source_path as string | undefined,
+    source_label: raw.source_label as string | undefined,
+    created_at: raw.created_at as string | undefined,
+    updated_at: raw.updated_at as string | undefined,
+  };
+}
+
 export function useActivities(contactUid?: string) {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
@@ -22,7 +43,11 @@ export function useActivities(contactUid?: string) {
       const res = await productivityService.listActivities(contactUid, pagination.params);
       const meta = extractPaginationMeta(res);
       if (meta) pagination.setTotal(meta.total);
-      return ((res as unknown as { data?: Activity[] }).data ?? []) as Activity[];
+      const raw = ((res as unknown as { data?: Record<string, unknown>[] }).data ?? []) as Record<
+        string,
+        unknown
+      >[];
+      return raw.map(normalizeActivity);
     },
   });
 

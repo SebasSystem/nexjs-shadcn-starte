@@ -36,6 +36,8 @@ const getStatusIcon = (status: ActivityStatus) => {
           className="text-red-500 hover:text-red-600 transition-colors"
         />
       );
+    default:
+      return <Icon name="Circle" size={20} className="text-gray-300" />;
   }
 };
 
