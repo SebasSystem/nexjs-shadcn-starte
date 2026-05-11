@@ -39,4 +39,8 @@ export const automationService = {
     const res = await axiosInstance.post(endpoints.automation.rules.toggle(uid));
     return res.data?.data ?? res.data;
   },
+  async getActions(): Promise<{ value: string; label: string }[]> {
+    const res = await axiosInstance.get(endpoints.automation.actions);
+    return (res.data?.data ?? []) as { value: string; label: string }[];
+  },
 };

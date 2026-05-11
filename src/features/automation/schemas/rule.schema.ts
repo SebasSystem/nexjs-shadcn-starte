@@ -51,6 +51,10 @@ const automationActionSchema = z.object({
     subject: z.string().optional(),
     title: z.string().optional(),
     url: z.string().optional(),
+    owner_uid: z.string().optional(),
+    user_uid: z.string().optional(),
+    assigned_to_uid: z.string().optional(),
+    to_user_uid: z.string().optional(),
   }),
 });
 

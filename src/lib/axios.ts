@@ -378,6 +378,7 @@ export const endpoints = {
   },
   automation: {
     triggerEvents: '/automation/trigger-events',
+    actions: '/automation/actions',
     rules: {
       list: '/automation/rules',
       detail: (uid: string) => `/automation/rules/${uid}`,

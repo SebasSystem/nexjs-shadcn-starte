@@ -88,13 +88,13 @@ export function HeaderUserButton({ user }: Props) {
           <Icon name="User" size={15} />
           Mi perfil
         </DropdownMenuItem>
-        <DropdownMenuItem
+        {/* <DropdownMenuItem
           className="gap-2 cursor-pointer text-muted-foreground"
           onClick={() => router.push(paths.settings.localization)}
         >
           <Icon name="Settings" size={15} />
           Configuración
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSignOut}

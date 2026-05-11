@@ -5,8 +5,8 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { contactsService } from 'src/features/contacts/services/contacts.service';
 import { useUsers } from 'src/features/automation/hooks/useUsers';
+import { contactsService } from 'src/features/contacts/services/contacts.service';
 import { localizationService } from 'src/features/settings/services/localization.service';
 import {
   Button,
@@ -87,9 +87,14 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
   const { data: accountOptions = [] } = useQuery({
     queryKey: ['accounts', 'search', accountSearch],
     queryFn: async () => {
-      const res = await contactsService.accounts.list({ page: 1, per_page: 25, search: accountSearch || undefined });
-      return ((res as Record<string, unknown>).data as Array<{ uid: string; name: string }> ?? [])
-        .map((a) => ({ value: a.uid, label: a.name }));
+      const res = await contactsService.accounts.list({
+        page: 1,
+        per_page: 25,
+        search: accountSearch || undefined,
+      });
+      return (
+        ((res as Record<string, unknown>).data as Array<{ uid: string; name: string }>) ?? []
+      ).map((a) => ({ value: a.uid, label: a.name }));
     },
     staleTime: 0,
     placeholderData: keepPreviousData,

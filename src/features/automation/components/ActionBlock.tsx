@@ -160,6 +160,18 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
               )}
 
               {actionType === 'create_lead' && (
+                <SelectField
+                  label="Propietario (opcional)"
+                  options={[
+                    { value: '', label: 'Aleatorio / Regla de asignación' },
+                    ...(userOptions ?? []),
+                  ]}
+                  value={form.getValues(`actions.${index}.config.owner_uid`) ?? ''}
+                  onChange={(v) => form.setValue(`actions.${index}.config.owner_uid`, v as string)}
+                />
+              )}
+
+              {actionType === 'send_email' && (
                 <div className="space-y-3">
                   <Input
                     label="Destinatario"
