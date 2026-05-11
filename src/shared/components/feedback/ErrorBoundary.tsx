@@ -1,25 +1,37 @@
 'use client';
 
 import { Component, type ReactNode } from 'react';
+import { toast } from 'sonner';
 
 interface Props {
   children: ReactNode;
-  fallback?: ReactNode;
 }
 
 interface State {
   hasError: boolean;
+  errorMessage: string;
 }
 
+/**
+ * Error boundary que no bloquea la navegación.
+ * - Muestra un toast con el error
+ * - Hace auto-reset para que el usuario pueda seguir usando la app
+ * - Si el error persiste, se mostrará otro toast (sin bloquear)
+ */
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false };
+  state: State = { hasError: false, errorMessage: '' };
 
-  static getDerivedStateFromError(): State {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): State {
+    return {
+      hasError: true,
+      errorMessage: error?.message || 'Error inesperado',
+    };
   }
 
   componentDidCatch(error: Error) {
     console.error('[ErrorBoundary]', error);
+
+    // Clean up any leftover body locks
     if (typeof document !== 'undefined') {
       document.body.style.overflow = '';
       document.body.style.pointerEvents = '';
@@ -27,25 +39,26 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   }
 
-  render() {
-    if (this.state.hasError) {
-      return (
-        this.props.fallback ?? (
-          <div className="flex flex-col items-center justify-center h-full min-h-[300px] gap-4">
-            <p className="text-sm text-muted-foreground">Algo salió mal en esta sección.</p>
-            <button
-              onClick={() => {
-                this.setState({ hasError: false });
-                window.location.reload();
-              }}
-              className="text-sm px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors"
-            >
-              Recargar
-            </button>
-          </div>
-        )
-      );
+  componentDidUpdate(_prevProps: Props, prevState: State) {
+    // Cuando se detecta un error, mostrar toast y resetear
+    if (this.state.hasError && !prevState.hasError) {
+      toast.error('Ocurrió un error en esta sección', {
+        description: this.state.errorMessage,
+        duration: 5000,
+      });
+
+      // Auto-reset para no bloquear la UI
+      // Pequeño delay para que React termine el render antes de resetear
+      requestAnimationFrame(() => {
+        this.setState({ hasError: false, errorMessage: '' });
+      });
     }
+  }
+
+  render() {
+    // Siempre renderizar children — el toast ya informó al usuario.
+    // Si el error fue transitorio (ej: dato undefined momentáneo), la UI se recupera sola.
+    // Si es persistente, el boundary volverá a capturarlo y mostrará otro toast.
     return this.props.children;
   }
 }
