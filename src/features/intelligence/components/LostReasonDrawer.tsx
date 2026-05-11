@@ -1,10 +1,11 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo } from 'react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { contactsService } from 'src/features/contacts/services/contacts.service';
 import { useUsers } from 'src/features/automation/hooks/useUsers';
 import { localizationService } from 'src/features/settings/services/localization.service';
 import {
@@ -82,6 +83,18 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
     return data.map((opt) => ({ value: opt.key, label: opt.name }));
   }, [lostReasonCategories.data]);
 
+  const [accountSearch, setAccountSearch] = useState('');
+  const { data: accountOptions = [] } = useQuery({
+    queryKey: ['accounts', 'search', accountSearch],
+    queryFn: async () => {
+      const res = await contactsService.accounts.list({ page: 1, per_page: 25, search: accountSearch || undefined });
+      return ((res as Record<string, unknown>).data as Array<{ uid: string; name: string }> ?? [])
+        .map((a) => ({ value: a.uid, label: a.name }));
+    },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
+  });
+
   const {
     register,
     handleSubmit,
@@ -115,9 +128,12 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
 
   const onSubmit = async (data: LostReasonFormData) => {
     const competitor = competitors.find((c) => c.uid === data.competitorId);
+    const account = accountOptions.find((a) => a.value === data.clientName);
     const payload: Omit<LostReason, 'uid'> = {
       opportunity_name: data.opportunityName,
-      client_name: data.clientName,
+      client_name: account?.label ?? data.clientName,
+      entity_type: account ? 'account' : undefined,
+      entity_uid: account ? account.value : undefined,
       amount: data.amount,
       currency: data.currency,
       competitor_uid: data.competitorId || undefined,
@@ -159,12 +175,22 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
               error={errors.opportunityName?.message}
             />
 
-            <Input
-              label="Cliente"
-              required
-              {...register('clientName')}
-              placeholder="Nombre de la empresa o persona"
-              error={errors.clientName?.message}
+            <Controller
+              name="clientName"
+              control={control}
+              render={({ field }) => (
+                <SelectField
+                  label="Cliente"
+                  required
+                  searchable
+                  options={accountOptions}
+                  value={field.value}
+                  onChange={(v) => field.onChange(v as string)}
+                  onSearch={setAccountSearch}
+                  placeholder="Buscar empresa..."
+                  error={errors.clientName?.message}
+                />
+              )}
             />
 
             <div className="grid grid-cols-2 gap-3">

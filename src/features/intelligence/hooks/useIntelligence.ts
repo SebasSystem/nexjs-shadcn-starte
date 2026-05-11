@@ -122,10 +122,10 @@ export function useIntelligence(filters: IntelligenceFilters = {}) {
   const stats: IntelligenceStats = useMemo(() => {
     const avg_win_rate =
       battlecards.length > 0
-        ? Math.round(battlecards.reduce((acc, bc) => acc + bc.win_rate, 0) / battlecards.length)
+        ? Math.round(battlecards.reduce((acc, bc) => acc + (bc.win_rate || 0), 0) / battlecards.length)
         : 0;
 
-    const total_lost_amount = lostReasons.reduce((acc, d) => acc + d.amount, 0);
+    const total_lost_amount = lostReasons.reduce((acc, d) => acc + (Number(d.amount) || 0), 0);
 
     const competitorCounts = lostReasons.reduce<Record<string, number>>((acc, d) => {
       if (d.competitor_name) {

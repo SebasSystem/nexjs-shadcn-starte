@@ -52,6 +52,8 @@ export interface LostReason {
   lost_reason_detail: string;
   lost_at: string;
   sales_rep_name: string;
+  entity_type?: string;
+  entity_uid?: string;
 }
 
 // ─── Stats ────────────────────────────────────────────────────────────────────

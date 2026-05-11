@@ -45,7 +45,7 @@ export function LostReasonHeatmap({ data, competitors }: Props) {
   const getCount = (competitorUid: string, reasonKey: string) =>
     cellMap.get(`${competitorUid}-${reasonKey}`) ?? 0;
 
-  const rowIds = [...competitors.map((c) => c.uid), 'none'];
+  const rowIds = [...competitors.slice(0, 10).map((c) => c.uid), 'none'];
   const rowNames: Record<string, string> = {
     ...Object.fromEntries(competitors.map((c) => [c.uid, c.name])),
     none: 'Sin competidor',
