@@ -18,7 +18,7 @@ import type {
 
 export interface DashboardKPIs {
   monthly_target: number;
-  achieved_sales: number;
+  sales_achieved: number;
   projected_commission: number;
   liquidated_commission: number;
 }

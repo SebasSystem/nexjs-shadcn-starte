@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from 'src/shared/components/ui/button';
 import { Checkbox } from 'src/shared/components/ui/checkbox';
@@ -16,12 +17,25 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui/sheet';
 
+import { teamsService } from '../../../settings/services/teams.service';
+import { usersService } from '../../../settings/services/users.service';
 import type { CommissionPlan } from '../../types/commissions.types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   planesDisponibles: CommissionPlan[];
+}
+
+interface TeamOption {
+  uid: string;
+  name: string;
+}
+
+interface VendedorOption {
+  uid: string;
+  name: string;
+  team_uid?: string;
 }
 
 export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesDisponibles }) => {
@@ -33,14 +47,39 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
   const [fechaFin, setFechaFin] = useState('');
   const [guardando, setGuardando] = useState(false);
 
-  // TODO: Conectar con backend cuando los siguientes endpoints estén disponibles
-  // con los permisos adecuados para el rol actual:
-  //   - GET  /teams              → lista de equipos (requiere permiso 'teams.read')
-  //   - GET  /users              → lista de vendedores (requiere permiso 'users.manage')
-  //   - POST /commissions/assignments → crear asignación masiva (requiere 'commissions.manage')
-  // Mientras tanto, los datos son placeholders y la UI es solo demostrativa.
-  const equipos: string[] = [];
-  const vendedoresFiltrados: { id: string; nombre: string; equipo: string }[] = [];
+  // ─── Teams (GET /teams) ─────────────────────────────────────────────────
+  const { data: teamsData } = useQuery({
+    queryKey: ['teams'],
+    queryFn: async () => {
+      const res = await teamsService.getAll();
+      return (res as Record<string, unknown>).data as TeamOption[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+  const equipos = (teamsData ?? []).map((t) => ({ value: t.uid, label: t.name }));
+
+  // ─── Users (GET /users?team_uid=) ───────────────────────────────────────
+  const { data: allUsers } = useQuery({
+    queryKey: ['users', equipoFiltro],
+    queryFn: async () => {
+      const params: Record<string, unknown> = {};
+      if (equipoFiltro) params.team_uid = equipoFiltro;
+      const res = await usersService.getAll(params);
+      return (res as Record<string, unknown>).data as VendedorOption[];
+    },
+    staleTime: 5 * 60 * 1000,
+    enabled: isOpen,
+  });
+
+  const vendedoresFiltrados = useMemo(
+    () =>
+      (allUsers ?? []).map((u) => ({
+        uid: u.uid,
+        nombre: u.name || u.uid,
+        equipo: u.team_uid || '',
+      })),
+    [allUsers]
+  );
 
   const planSeleccionado = planesDisponibles.find((p) => p.uid === planId);
 
@@ -51,7 +90,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
   };
 
   const toggleTodos = () => {
-    const ids = vendedoresFiltrados.map((v) => v.id);
+    const ids = vendedoresFiltrados.map((v) => v.uid);
     const todosSeleccionados = ids.every((id) => selectedVendedores.includes(id));
     if (todosSeleccionados) {
       setSelectedVendedores((prev) => prev.filter((id) => !ids.includes(id)));
@@ -82,12 +121,9 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
 
   const puedeAvanzarPaso1 = selectedVendedores.length > 0;
   const puedeAvanzarPaso2 = !!planId && !!fechaInicio;
-  const nombresSeleccionados: { id: string; nombre: string; equipo: string }[] = [];
-
-  const equipoOptions = [
-    { value: '', label: 'Todos los equipos' },
-    ...equipos.map((eq) => ({ value: eq, label: eq })),
-  ];
+  const nombresSeleccionados = vendedoresFiltrados.filter((v) =>
+    selectedVendedores.includes(v.uid)
+  );
 
   const planOptions = [
     { value: '', label: '-- Seleccionar Plan --' },
@@ -137,14 +173,6 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
-          {/* Banner de funcionalidad en desarrollo */}
-          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            <span className="font-semibold">Funcionalidad en desarrollo</span> — requiere
-            integración con backend. Los endpoints necesarios están documentados en el código fuente
-            (ver TODOs en{' '}
-            <code className="bg-amber-100 px-1 rounded text-xs">bulk-assignment-drawer.tsx</code>).
-          </div>
-
           {/* PASO 1: Seleccionar vendedores */}
           {paso === 1 && (
             <div className="space-y-4">
@@ -152,14 +180,14 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
                 value={equipoFiltro}
                 onChange={(val) => setEquipoFiltro(val as string)}
                 label="Filtrar por equipo"
-                options={equipoOptions}
+                options={equipos}
               />
 
               <div className="border border-border rounded-lg overflow-hidden">
                 <div className="flex items-center gap-3 px-4 py-2.5 bg-muted/40 border-b border-border">
                   <Checkbox
                     id="seleccionarTodos"
-                    checked={vendedoresFiltrados.every((v) => selectedVendedores.includes(v.id))}
+                    checked={vendedoresFiltrados.every((v) => selectedVendedores.includes(v.uid))}
                     onCheckedChange={toggleTodos}
                   />
                   <label
@@ -171,14 +199,14 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
                 </div>
                 {vendedoresFiltrados.map((v) => (
                   <label
-                    key={v.id}
-                    htmlFor={`vend-${v.id}`}
+                    key={v.uid}
+                    htmlFor={`vend-${v.uid}`}
                     className="flex items-center gap-3 px-4 py-3 border-b border-border/40 last:border-0 hover:bg-primary/5 cursor-pointer transition-colors"
                   >
                     <Checkbox
-                      id={`vend-${v.id}`}
-                      checked={selectedVendedores.includes(v.id)}
-                      onCheckedChange={() => toggleVendedor(v.id)}
+                      id={`vend-${v.uid}`}
+                      checked={selectedVendedores.includes(v.uid)}
+                      onCheckedChange={() => toggleVendedor(v.uid)}
                     />
                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
                       {v.nombre.charAt(0)}
@@ -286,7 +314,7 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
                 </p>
                 <div className="space-y-2">
                   {nombresSeleccionados.map((v) => (
-                    <div key={v.id} className="flex items-center gap-3">
+                    <div key={v.uid} className="flex items-center gap-3">
                       <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
                         {v.nombre.charAt(0)}
                       </div>

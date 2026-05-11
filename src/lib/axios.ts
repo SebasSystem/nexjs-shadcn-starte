@@ -185,6 +185,7 @@ export const endpoints = {
     delete: (uid: string) => `/relations/${uid}`,
     byEntity: (type: string, uid: string) => `/relations/${type}/${uid}`,
     hierarchy: (type: string, uid: string) => `/relations/hierarchy/${type}/${uid}`,
+    remove: '/relations/remove',
   },
   contacts: {
     checkDuplicate: '/contacts/check-duplicate',

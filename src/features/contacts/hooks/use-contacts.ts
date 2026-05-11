@@ -188,18 +188,14 @@ export function useContacts() {
     onError: (error) => toast.error(extractApiError(error)),
   });
 
-  // ── Relations — remove (orquestración: GET → find match → DELETE) ───────
+  // ── Relations — remove (POST /relations/remove) ───────────────────────
 
   const removeRelacionMutation = useMutation({
     mutationFn: async ({ aId, bId }: { aId: string; bId: string }) => {
-      const res = await axiosInstance.get(endpoints.relations.byEntity('contact', aId));
-      const relations = res.data?.data ?? res.data ?? [];
-      const match = (relations as Record<string, unknown>[]).find(
-        (r) => r.child_uid === bId || r.parent_uid === bId
-      );
-      if (match?.uid) {
-        await axiosInstance.delete(endpoints.relations.delete(match.uid as string));
-      }
+      await axiosInstance.post(endpoints.relations.remove, {
+        parent_uid: aId,
+        child_uid: bId,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.contacts.list });

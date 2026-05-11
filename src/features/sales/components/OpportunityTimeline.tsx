@@ -39,6 +39,13 @@ const ACTIVITY_ICONS: Record<ActivityType, IconName> = {
   nota: 'MessageSquare',
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  pending: 'pendiente',
+  completed: 'completada',
+  cancelled: 'cancelada',
+  overdue: 'vencida',
+};
+
 export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
   const queryClient = useQueryClient();
   const uid = opportunity.uid;
@@ -154,7 +161,7 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
       date: new Date(a.scheduled_at),
       type: normalizeActivityType(a.type),
       content: a.description,
-      author: a.assigned_to_name || a.owner_user_uid || '',
+      author: a.assigned_to_name || 'Sin asignar',
       status: (a.status as ActivityStatus) || 'pendiente',
     }))
     .sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -289,7 +296,8 @@ export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                       <div className="flex flex-col gap-0.5">
                         <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                          {item.type} {item.status ? `• ${item.status}` : ''}
+                          {item.type}{' '}
+                          {item.status ? `• ${STATUS_LABEL[item.status] || item.status}` : ''}
                         </span>
                         <time className="text-[10px] text-muted-foreground font-mono">
                           {formatDateTime(item.date, {

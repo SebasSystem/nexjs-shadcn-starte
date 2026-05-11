@@ -86,10 +86,12 @@ export const CommissionsDashboardView = () => {
     );
   }
 
-  const porcentajeMeta = Math.min(
-    Math.round((kpis.achieved_sales / kpis.monthly_target) * 100),
-    100
-  );
+  // TODO(backend-pendiente): Backend debe enviar progress_percent ya calculado
+  // en lugar de forzar al frontend a calcular sales_achieved / monthly_target.
+  const porcentajeMeta =
+    kpis.monthly_target > 0
+      ? Math.min(Math.round((kpis.sales_achieved / kpis.monthly_target) * 100), 100)
+      : 0;
 
   return (
     <PageContainer fluid className="pb-10 min-w-0 w-full space-y-6">
@@ -121,7 +123,7 @@ export const CommissionsDashboardView = () => {
           <div
             className={`text-3xl font-bold ${porcentajeMeta >= 50 ? 'text-green-600' : 'text-foreground'}`}
           >
-            ${kpis.achieved_sales.toLocaleString()}
+            ${kpis.sales_achieved.toLocaleString()}
           </div>
           <div className="text-xs text-muted-foreground mt-2 font-medium">
             {porcentajeMeta}% de la meta
@@ -192,7 +194,7 @@ export const CommissionsDashboardView = () => {
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-2 font-medium">
-            ${kpis.achieved_sales.toLocaleString()} / ${kpis.monthly_target.toLocaleString()}
+            ${kpis.sales_achieved.toLocaleString()} / ${kpis.monthly_target.toLocaleString()}
           </p>
         </SectionCard>
 

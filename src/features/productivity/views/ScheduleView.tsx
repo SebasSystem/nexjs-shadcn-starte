@@ -1,9 +1,9 @@
 'use client';
 
-import { format, isPast, isThisWeek, isToday, isTomorrow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { isPast, isThisWeek, isToday, isTomorrow } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
+import { formatDate } from 'src/lib/date';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
@@ -385,8 +385,10 @@ export const ScheduleView = () => {
                                 groupName === 'Vencidas' ? 'text-red-600' : 'text-foreground'
                               }
                             >
-                              {format(new Date(activity.due_date), 'dd MMM yyyy', {
-                                locale: es,
+                              {formatDate(activity.due_date, {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
                               })}
                             </span>
                           </div>
