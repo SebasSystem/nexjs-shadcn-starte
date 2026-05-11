@@ -7,6 +7,7 @@ import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
+import { Switch } from 'src/shared/components/ui/switch';
 import {
   Sheet,
   SheetContent,
@@ -67,6 +68,7 @@ export function AssignmentRuleDrawer({
       description: '',
       user_ids: [],
       geo_mapping: {},
+      enabled: true,
     },
   });
 
@@ -119,6 +121,7 @@ export function AssignmentRuleDrawer({
         description: data.description,
         user_ids: data.user_ids,
         geo_mapping: data.geo_mapping,
+        enabled: data.enabled ?? true,
       });
     } else {
       onCreate({
@@ -127,7 +130,7 @@ export function AssignmentRuleDrawer({
         description: data.description,
         user_ids: data.user_ids,
         geo_mapping: data.geo_mapping,
-        enabled: true,
+        enabled: data.enabled ?? true,
       });
     }
     onClose();
@@ -167,6 +170,14 @@ export function AssignmentRuleDrawer({
             rows={3}
             {...form.register('description')}
           />
+
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Activo</span>
+            <Switch
+              checked={form.watch('enabled') ?? true}
+              onCheckedChange={(v) => form.setValue('enabled', v)}
+            />
+          </div>
 
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">Usuarios asignables</p>
