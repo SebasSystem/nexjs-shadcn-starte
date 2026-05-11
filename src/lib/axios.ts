@@ -219,6 +219,8 @@ export const endpoints = {
     opportunityActivities: (uid: string) => `/opportunities/${uid}/activities`,
     opportunityActivity: (uid: string, activityUid: string) =>
       `/opportunities/${uid}/activities/${activityUid}`,
+    opportunitiesTemplate: '/opportunities/template',
+    opportunitiesImport: '/opportunities/import',
     quotations: '/quotations',
     quotation: (uid: string) => `/quotations/${uid}`,
     quotationPdf: (uid: string) => `/quotations/${uid}/pdf`,

@@ -12,6 +12,7 @@ import {
   NewOpportunityDrawer,
   type NewOpportunityPayload,
 } from '../components/NewOpportunityDrawer';
+import { ImportLeadsDrawer } from '../components/ImportLeadsDrawer';
 import { OpportunityPanel } from '../components/OpportunityPanel';
 import { OutcomeDialog } from '../components/OutcomeDialog';
 import { PipelineChevron } from '../components/PipelineChevron';
@@ -22,10 +23,12 @@ import { usePipeline } from '../hooks/usePipeline';
 
 export function PipelineView() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [importDrawerOpen, setImportDrawerOpen] = useState(false);
   const [pendingMove, setPendingMove] = useState<{ oppUid: string } | null>(null);
   const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
 
-  const { stages, opportunitiesByStage, scoredOpportunities, search, setSearch } = usePipeline();
+  const { stages, opportunitiesByStage, scoredOpportunities, search, setSearch, refresh } =
+    usePipeline();
   const { addOpportunity, moveOpportunity, opportunities } = useSalesContext();
   const { competitors = [] } = useIntelligence();
   const { selectedId, isOpen, openPanel, closePanel, daysInStage, agingLevel, opportunity } =
@@ -77,10 +80,16 @@ export function PipelineView() {
         title="Pipeline Comercial"
         subtitle="Gestiona y visualiza el avance de tus oportunidades de venta"
         action={
-          <Button color="primary" onClick={() => setDrawerOpen(true)}>
-            <Icon name="Plus" size={16} />
-            Nueva Oportunidad
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportDrawerOpen(true)}>
+              <Icon name="Upload" size={16} />
+              Importar
+            </Button>
+            <Button color="primary" onClick={() => setDrawerOpen(true)}>
+              <Icon name="Plus" size={16} />
+              Nueva Oportunidad
+            </Button>
+          </div>
         }
       />
 
@@ -148,6 +157,13 @@ export function PipelineView() {
         competitors={competitors}
         onConfirm={handleOutcomeConfirm}
         onCancel={handleOutcomeCancel}
+      />
+
+      {/* Importar leads */}
+      <ImportLeadsDrawer
+        open={importDrawerOpen}
+        onClose={() => setImportDrawerOpen(false)}
+        onImported={refresh}
       />
     </PageContainer>
   );
