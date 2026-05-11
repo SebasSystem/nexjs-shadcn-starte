@@ -21,6 +21,7 @@ export const AssignmentView = () => {
   const {
     assignments,
     isLoading: isAsigLoading,
+    createAssignment,
     updateAssignment,
     pagination,
   } = useAssignment({
@@ -52,15 +53,25 @@ export const AssignmentView = () => {
   };
 
   const handleSave = async (data: AssignmentForm): Promise<boolean> => {
-    if (selectedAsignacion) {
-      const result = await updateAssignment(selectedAsignacion.uid, {
-        commission_plan_uid: data.plan_uid,
-        starts_at: data.starts_at,
-        ends_at: data.ends_at || undefined,
-      });
-      return !!result;
+    try {
+      if (selectedAsignacion) {
+        await updateAssignment(selectedAsignacion.uid, {
+          commission_plan_uid: data.plan_uid,
+          starts_at: data.starts_at,
+          ends_at: data.ends_at || undefined,
+        });
+      } else {
+        await createAssignment({
+          user_uid: data.user_uid,
+          commission_plan_uid: data.plan_uid,
+          starts_at: data.starts_at,
+          ends_at: data.ends_at || undefined,
+        });
+      }
+      return true;
+    } catch {
+      return false;
     }
-    return false;
   };
 
   return (

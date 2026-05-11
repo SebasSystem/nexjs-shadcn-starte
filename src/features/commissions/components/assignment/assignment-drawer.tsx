@@ -3,9 +3,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import React, { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
+import { usersService } from 'src/features/settings/services/users.service';
 import { Button } from 'src/shared/components/ui/button';
 import { FormInput } from 'src/shared/components/ui/form-input';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import {
   Sheet,
   SheetContent,
@@ -43,6 +46,7 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { isValid, isSubmitting },
   } = useForm<AssignmentForm>({
     resolver: zodResolver(assignmentSchema),
@@ -51,6 +55,17 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
 
   const watchPlanId = useWatch({ control, name: 'plan_uid' });
   const planInfo = planesDisponibles.find((p) => p.uid === watchPlanId);
+
+  const { data: userOptions = [] } = useQuery({
+    queryKey: ['users', 'list'],
+    queryFn: async () => {
+      const res = await usersService.getAll({ per_page: 500 });
+      return (((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>).map(
+        (u) => ({ value: u.uid, label: u.name })
+      );
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   useEffect(() => {
     if (isOpen && asignacion) {
@@ -94,6 +109,15 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
 
         <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
           <div className="py-6 space-y-6">
+            {!asignacion && (
+              <SelectField
+                label="Vendedor"
+                required
+                searchable
+                options={userOptions}
+                onChange={(v) => setValue('user_uid', v as string, { shouldValidate: true })}
+              />
+            )}
             <FormSelectField
               control={control}
               name="plan_uid"

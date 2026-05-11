@@ -51,9 +51,9 @@ export const CustomFieldsView = () => {
   });
 
   const availableModules: { key: CustomFieldModule; label: string }[] =
-    (modulesData as { data?: { key: string; label: string }[] } | undefined)?.data?.map(
-      (m: { key: string; label: string }) => ({
-        key: m.key as CustomFieldModule,
+    (modulesData as { data?: { value: string; label: string }[] } | undefined)?.data?.map(
+      (m: { value: string; label: string }) => ({
+        key: m.value as CustomFieldModule,
         label: m.label,
       })
     ) ??
