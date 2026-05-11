@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { usersService } from 'src/features/settings/services/users.service';
+import { partnersService } from '../services/partners.service';
 import {
   Button,
   Input,
@@ -28,6 +29,7 @@ const STATUS_OPTIONS: { value: PartnerOpportunityStatus; label: string }[] = [
   { value: 'approved', label: 'Aprobada' },
   { value: 'rejected', label: 'Rechazada' },
   { value: 'converted', label: 'Convertida' },
+  { value: 'won', label: 'Ganada' },
   { value: 'lost', label: 'Perdida' },
 ];
 
@@ -91,6 +93,16 @@ function OpportunityForm({
     },
     staleTime: 0,
   });
+
+  const { data: statusOptionsData } = useQuery({
+    queryKey: ['partners', 'opportunities', 'statuses'],
+    queryFn: async () => {
+      return partnersService.opportunities.getStatuses();
+    },
+    staleTime: 0,
+  });
+
+  const resolvedStatusOptions = (statusOptionsData?.length ?? 0) > 0 ? statusOptionsData! : STATUS_OPTIONS;
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -210,7 +222,7 @@ function OpportunityForm({
 
         <SelectField
           label="Estado"
-          options={STATUS_OPTIONS}
+          options={resolvedStatusOptions}
           value={status}
           onChange={(v) => setStatus(v as PartnerOpportunityStatus)}
         />

@@ -44,6 +44,11 @@ export const partnersService = {
     remove: async (uid: string): Promise<void> => {
       await axiosInstance.delete(endpoints.partners.partners.delete(uid));
     },
+
+    getTypes: async (): Promise<{ value: string; label: string }[]> => {
+      const res = await axiosInstance.get(endpoints.partners.partners.types);
+      return (res.data?.data ?? []) as { value: string; label: string }[];
+    },
   },
 
   // ── Opportunities ───────────────────────────────────────────────────────
@@ -96,6 +101,11 @@ export const partnersService = {
       const res = await axiosInstance.post(endpoints.partners.opportunities.convert(uid));
       return (res.data?.data ?? res.data) as PartnerOpportunity;
     },
+
+    getStatuses: async (): Promise<{ value: string; label: string }[]> => {
+      const res = await axiosInstance.get(endpoints.partners.opportunities.statuses);
+      return (res.data?.data ?? []) as { value: string; label: string }[];
+    },
   },
 
   // ── Materials ───────────────────────────────────────────────────────────
@@ -131,6 +141,11 @@ export const partnersService = {
         responseType: 'blob',
       });
       return res.data as Blob;
+    },
+
+    getTypes: async (): Promise<{ value: string; label: string }[]> => {
+      const res = await axiosInstance.get(endpoints.partners.materials.types);
+      return (res.data?.data ?? []) as { value: string; label: string }[];
     },
   },
 };

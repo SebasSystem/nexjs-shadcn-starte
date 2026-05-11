@@ -1,7 +1,9 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { partnersService } from '../services/partners.service';
 import {
   Button,
   Icon,
@@ -38,6 +40,16 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: typeOptionsData } = useQuery({
+    queryKey: ['partner-resources', 'types'],
+    queryFn: async () => {
+      return partnersService.materials.getTypes();
+    },
+    staleTime: 0,
+  });
+
+  const resolvedTypeOptions = (typeOptionsData?.length ?? 0) > 0 ? typeOptionsData! : TYPE_OPTIONS;
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -112,7 +124,7 @@ export function MaterialUploadDrawer({ open, onClose, onUpload }: Props) {
           <SelectField
             label="Tipo *"
             required
-            options={TYPE_OPTIONS}
+            options={resolvedTypeOptions}
             value={type}
             onChange={(v) => setType(v as MaterialType)}
           />

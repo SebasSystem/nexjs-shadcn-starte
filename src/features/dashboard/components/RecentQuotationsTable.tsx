@@ -53,7 +53,7 @@ const COLUMNS = [
       <div className="flex items-center gap-3">
         <Avatar size={32}>
           <AvatarFallback className="text-white text-xs bg-blue-500">
-            {info.getValue().charAt(0).toUpperCase()}
+            {(info.getValue() ?? '—').charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
         <span className="font-medium text-foreground">{info.getValue()}</span>

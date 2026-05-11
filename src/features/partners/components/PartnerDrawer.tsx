@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { partnersService } from '../services/partners.service';
 import {
   Button,
   Input,
@@ -53,10 +55,20 @@ function PartnerForm({ partner, isEdit, onClose, onCreate, onUpdate }: FormProps
   const [region, setRegion] = useState(init ? partner.region : '');
   const [contactName, setContactName] = useState(init ? partner.contact_name : '');
   const [contactEmail, setContactEmail] = useState(init ? partner.contact_email : '');
-  const [phone, setPhone] = useState(init ? (partner.phone ?? '') : '');
-  const [notes, setNotes] = useState(init ? (partner.notes ?? '') : '');
+  const [phone, setPhone] = useState(init ? partner.phone : '');
+  const [notes, setNotes] = useState(init ? partner.notes : '');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { data: typeOptions } = useQuery({
+    queryKey: ['partners', 'types'],
+    queryFn: async () => {
+      return partnersService.partners.getTypes();
+    },
+    staleTime: 0,
+  });
+
+  const resolvedTypeOptions = (typeOptions?.length ?? 0) > 0 ? typeOptions! : TYPE_OPTIONS;
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -127,7 +139,7 @@ function PartnerForm({ partner, isEdit, onClose, onCreate, onUpdate }: FormProps
           <SelectField
             label="Tipo"
             required
-            options={TYPE_OPTIONS}
+            options={resolvedTypeOptions}
             value={type}
             onChange={(v) => setType(v as PartnerType)}
           />
