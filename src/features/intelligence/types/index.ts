@@ -49,7 +49,7 @@ export interface LostReason {
   competitor_name?: string;
   lost_reason_category: LostReasonCategory;
   lost_reason_detail: string;
-  lost_date: string;
+  lost_at: string;
   sales_rep_name: string;
 }
 

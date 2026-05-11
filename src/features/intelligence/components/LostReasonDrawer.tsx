@@ -46,7 +46,7 @@ const DEFAULT_VALUES: LostReasonFormData = {
   competitorId: '',
   lostReasonCategory: '',
   lostReasonDetail: '',
-  lostDate: '',
+  lostDate: new Date().toISOString().split('T')[0],
   salesRepName: '',
 };
 
@@ -104,7 +104,7 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
           competitorId: item.competitor_uid ?? '',
           lostReasonCategory: item.lost_reason_category,
           lostReasonDetail: item.lost_reason_detail,
-          lostDate: item.lost_date,
+          lostDate: item.lost_at,
           salesRepName: item.sales_rep_name,
         });
       } else {
@@ -124,7 +124,7 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
       competitor_name: competitor?.name,
       lost_reason_category: data.lostReasonCategory,
       lost_reason_detail: data.lostReasonDetail,
-      lost_date: data.lostDate,
+      lost_at: data.lostDate,
       sales_rep_name: data.salesRepName,
     };
 

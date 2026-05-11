@@ -123,7 +123,7 @@ export function LostReasonsView() {
           </Badge>
         ),
       }),
-      col.accessor('lost_date', {
+      col.accessor('lost_at', {
         header: 'Fecha',
         cell: (info) => (
           <span className="text-caption text-muted-foreground">{formatDate(info.getValue())}</span>
