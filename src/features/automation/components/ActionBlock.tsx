@@ -51,7 +51,7 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
     append({
       uid: `act-${Date.now()}`,
       sequence: fields.length + 1,
-      type: 'send_notification',
+      type: 'send_email',
       config: {},
     });
   };
@@ -99,7 +99,7 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
                 <SelectField
                   label="Regla de asignación"
                   options={ASSIGNMENT_RULE_OPTIONS}
-                  value={form.watch(`actions.${index}.config.assignment_rule_id`) ?? ''}
+                  value={form.getValues(`actions.${index}.config.assignment_rule_id`) ?? ''}
                   onChange={(v) =>
                     form.setValue(`actions.${index}.config.assignment_rule_id`, v as string)
                   }
@@ -111,7 +111,7 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
                   <SelectField
                     label="Tipo de actividad"
                     options={activityTypeOptions}
-                    value={form.watch(`actions.${index}.config.activity_type`) ?? ''}
+                    value={form.getValues(`actions.${index}.config.activity_type`) ?? ''}
                     onChange={(v) =>
                       form.setValue(`actions.${index}.config.activity_type`, v as string)
                     }
@@ -119,7 +119,7 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
                   <Input
                     label="Notas"
                     placeholder="Descripción de la actividad..."
-                    value={form.watch(`actions.${index}.config.activity_notes`) ?? ''}
+                    value={String(form.getValues(`actions.${index}.config.activity_notes`) ?? '')}
                     onChange={(e) =>
                       form.setValue(`actions.${index}.config.activity_notes`, e.target.value)
                     }
@@ -131,7 +131,7 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
                 <Input
                   label="Etiqueta"
                   placeholder="Ej: linkedin-lead"
-                  value={form.watch(`actions.${index}.config.tag`) ?? ''}
+                  value={String(form.getValues(`actions.${index}.config.tag`) ?? '')}
                   onChange={(e) => form.setValue(`actions.${index}.config.tag`, e.target.value)}
                 />
               )}
@@ -140,8 +140,8 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
                 <div className="space-y-3">
                   <SelectField
                     label="Notificar a"
-                    options={userOptions}
-                    value={form.watch(`actions.${index}.config.notify_user_id`) ?? ''}
+                    options={userOptions ?? []}
+                    value={form.getValues(`actions.${index}.config.notify_user_id`) ?? ''}
                     onChange={(v) =>
                       form.setValue(`actions.${index}.config.notify_user_id`, v as string)
                     }
@@ -149,9 +149,30 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
                   <Input
                     label="Mensaje"
                     placeholder="Ej: Nuevo lead asignado a tu equipo"
-                    value={form.watch(`actions.${index}.config.notification_message`) ?? ''}
+                    value={String(
+                      form.getValues(`actions.${index}.config.notification_message`) ?? ''
+                    )}
                     onChange={(e) =>
                       form.setValue(`actions.${index}.config.notification_message`, e.target.value)
+                    }
+                  />
+                </div>
+              )}
+
+              {actionType === 'create_lead' && (
+                <div className="space-y-3">
+                  <Input
+                    label="Destinatario"
+                    placeholder="Email del destinatario"
+                    value={String(form.getValues(`actions.${index}.config.to`) ?? '')}
+                    onChange={(e) => form.setValue(`actions.${index}.config.to`, e.target.value)}
+                  />
+                  <Input
+                    label="Asunto"
+                    placeholder="Asunto del email"
+                    value={String(form.getValues(`actions.${index}.config.subject`) ?? '')}
+                    onChange={(e) =>
+                      form.setValue(`actions.${index}.config.subject`, e.target.value)
                     }
                   />
                 </div>
@@ -162,7 +183,7 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
                   <Input
                     label="Campo"
                     placeholder="Ej: status"
-                    value={form.watch(`actions.${index}.config.field_name`) ?? ''}
+                    value={String(form.watch(`actions.${index}.config.field_name`) ?? '')}
                     onChange={(e) =>
                       form.setValue(`actions.${index}.config.field_name`, e.target.value)
                     }
@@ -174,6 +195,28 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
                     onChange={(e) =>
                       form.setValue(`actions.${index}.config.field_value`, e.target.value)
                     }
+                  />
+                </div>
+              )}
+
+              {actionType === 'create_task' && (
+                <div className="space-y-3">
+                  <Input
+                    label="Título de la tarea"
+                    placeholder="Ej: Dar seguimiento al lead"
+                    value={String(form.getValues(`actions.${index}.config.title`) ?? '')}
+                    onChange={(e) => form.setValue(`actions.${index}.config.title`, e.target.value)}
+                  />
+                </div>
+              )}
+
+              {actionType === 'send_webhook' && (
+                <div className="space-y-3">
+                  <Input
+                    label="URL del webhook"
+                    placeholder="https://..."
+                    value={String(form.getValues(`actions.${index}.config.url`) ?? '')}
+                    onChange={(e) => form.setValue(`actions.${index}.config.url`, e.target.value)}
                   />
                 </div>
               )}

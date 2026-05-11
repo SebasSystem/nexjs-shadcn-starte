@@ -31,9 +31,12 @@ const automationActionSchema = z.object({
     'create_lead',
     'assign_owner',
     'create_activity',
-    'update_field',
-    'send_notification',
     'apply_tag',
+    'send_notification',
+    'send_email',
+    'update_field',
+    'create_task',
+    'send_webhook',
   ]),
   config: z.object({
     assignment_rule_id: z.string().optional(),
@@ -44,6 +47,10 @@ const automationActionSchema = z.object({
     notification_message: z.string().optional(),
     notify_user_id: z.string().optional(),
     tag: z.string().optional(),
+    to: z.string().optional(),
+    subject: z.string().optional(),
+    title: z.string().optional(),
+    url: z.string().optional(),
   }),
 });
 

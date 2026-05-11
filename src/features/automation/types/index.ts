@@ -87,17 +87,23 @@ export type ActionType =
   | 'create_lead'
   | 'assign_owner'
   | 'create_activity'
-  | 'update_field'
+  | 'apply_tag'
   | 'send_notification'
-  | 'apply_tag';
+  | 'send_email'
+  | 'update_field'
+  | 'create_task'
+  | 'send_webhook';
 
 export const ACTION_TYPE_LABELS: Record<ActionType, string> = {
   create_lead: 'Crear Lead',
   assign_owner: 'Asignar propietario',
   create_activity: 'Crear actividad',
-  update_field: 'Actualizar campo',
-  send_notification: 'Enviar notificación',
   apply_tag: 'Aplicar etiqueta',
+  send_notification: 'Notificación interna',
+  send_email: 'Enviar email',
+  update_field: 'Actualizar campo',
+  create_task: 'Crear tarea',
+  send_webhook: 'Enviar webhook',
 };
 
 export interface AutomationAction {
