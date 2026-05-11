@@ -16,7 +16,7 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import { Badge, Button, ConfirmDialog, Icon } from 'src/shared/components/ui';
+import { Badge, Button, ConfirmDialog, DeleteButton, EditButton, Icon } from 'src/shared/components/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from 'src/shared/components/ui';
 
 import { MilestoneDrawer } from '../components/MilestoneDrawer';
@@ -178,23 +178,17 @@ export function ProjectDetailView({ projectId }: Props) {
       id: 'ms-actions',
       header: '',
       cell: (info) => (
-        <div className="flex items-center gap-2">
-          <button
-            className="text-muted-foreground hover:text-primary transition-colors"
+        <div className="flex items-center gap-1">
+          <EditButton
             onClick={() => {
               setSelectedMilestone(info.row.original);
               setMsDrawerMode('edit');
               setMsDrawerOpen(true);
             }}
-          >
-            <Icon name="Pencil" size={14} />
-          </button>
-          <button
-            className="text-muted-foreground hover:text-error transition-colors"
+          />
+          <DeleteButton
             onClick={() => setDeleteMsDialog({ open: true, uid: info.row.original.uid })}
-          >
-            <Icon name="Trash2" size={14} />
-          </button>
+          />
         </div>
       ),
     }),
