@@ -24,6 +24,10 @@ const TABS: { value: 'ALL' | ContactType; label: string }[] = [
 ];
 
 export const ContactsView = () => {
+  const [tab, setTab] = useState<'ALL' | ContactType>('ALL');
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('ALL');
+
   const {
     contactos,
     isLoading,
@@ -33,27 +37,17 @@ export const ContactsView = () => {
     removeRelacion,
     deleteContacto,
     pagination,
-  } = useContacts();
+  } = useContacts({
+    search: search || undefined,
+    type: tab,
+    status: filterStatus !== 'ALL' ? filterStatus : undefined,
+  });
 
-  const [tab, setTab] = useState<'ALL' | ContactType>('ALL');
-  const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState('ALL');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedContacto, setSelectedContacto] = useState<Contact | null>(null);
 
   const empresas = useMemo(() => contactos.filter((c) => c.type === 'company'), [contactos]);
-
-  const filtered = useMemo(() => {
-    return contactos.filter((c) => {
-      const matchTab = tab === 'ALL' || c.type === tab;
-      const matchStatus = filterStatus === 'ALL' || c.status === filterStatus;
-      const matchSearch =
-        c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.email.toLowerCase().includes(search.toLowerCase());
-      return matchTab && matchStatus && matchSearch;
-    });
-  }, [contactos, tab, search, filterStatus]);
 
   const counts = useMemo(
     () => ({
@@ -175,7 +169,7 @@ export const ContactsView = () => {
         ) : (
           <>
             <ContactsTable
-              contactos={filtered}
+              contactos={contactos}
               onEdit={handleEdit}
               onViewDetail={handleViewDetail}
               onDelete={(c) => deleteContacto(c.uid)}
@@ -186,7 +180,7 @@ export const ContactsView = () => {
               onPageSizeChange={pagination.onChangeRowsPerPage}
             />
             <div className="border-t border-border/40 p-4 text-sm text-muted-foreground">
-              {filtered.length} contacto{filtered.length !== 1 ? 's' : ''}
+              {contactos.length} contacto{contactos.length !== 1 ? 's' : ''}
               {tab !== 'ALL' && ` · ${TABS.find((t) => t.value === tab)?.label}`}
             </div>
           </>

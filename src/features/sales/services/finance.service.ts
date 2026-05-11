@@ -6,6 +6,7 @@ export interface CreateCreditExceptionPayload {
   entity_type: string;
   entity_uid: string;
   credit_limit: number;
+  max_days?: number;
   notes?: string;
 }
 

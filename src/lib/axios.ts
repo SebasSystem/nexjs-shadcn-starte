@@ -222,6 +222,7 @@ export const endpoints = {
     quotations: '/quotations',
     quotation: (uid: string) => `/quotations/${uid}`,
     quotationPdf: (uid: string) => `/quotations/${uid}/pdf`,
+    quotationSend: (uid: string) => `/quotations/${uid}/send`,
     quotationItems: (uid: string) => `/quotations/${uid}/items`,
     quotationItem: (itemUid: string) => `/quotations/items/${itemUid}`,
     quotes: '/quotes',
@@ -365,6 +366,7 @@ export const endpoints = {
     },
   },
   automation: {
+    triggerEvents: '/automation/trigger-events',
     rules: {
       list: '/automation/rules',
       detail: (uid: string) => `/automation/rules/${uid}`,

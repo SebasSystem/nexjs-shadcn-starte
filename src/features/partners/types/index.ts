@@ -66,7 +66,7 @@ export interface PartnerOpportunity {
   client_name: string;
   client_email?: string;
   product: string;
-  estimated_value: number;
+  estimated_value: number | string;
   currency: 'USD' | 'COP' | 'MXN';
   status: PartnerOpportunityStatus;
   registered_date: string;

@@ -13,6 +13,15 @@ export const currencyService = {
     return res.data;
   },
 
+  async upsertRate(data: {
+    from_currency: string;
+    to_currency: string;
+    rate: number;
+  }): Promise<unknown> {
+    const res = await axiosInstance.post(endpoints.sales.currencyRates, data);
+    return res.data;
+  },
+
   async convert(data: CurrencyConvertPayload) {
     const res = await axiosInstance.post(endpoints.sales.currencyConvert, data);
     return res.data.data;

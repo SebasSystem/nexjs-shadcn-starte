@@ -54,7 +54,7 @@ export const productivityService = {
   },
 
   updateActivityStatus: async (uid: string, status: ActivityStatus): Promise<Activity> => {
-    const res = await axiosInstance.patch(endpoints.productivity.activities.update(uid), {
+    const res = await axiosInstance.put(endpoints.productivity.activities.update(uid), {
       status,
     });
     return (res.data?.data ?? res.data) as Activity;

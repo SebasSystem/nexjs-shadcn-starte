@@ -4,6 +4,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { contactsService } from 'src/features/contacts/services/contacts.service';
+import axiosInstance, { endpoints } from 'src/lib/axios';
 import {
   Button,
   ConfirmDialog,
@@ -16,6 +17,7 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
+import { useDebounce } from 'use-debounce';
 
 import type { Project, ProjectPayload, ProjectStatus } from '../types';
 
@@ -52,6 +54,8 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
   const [clientId, setClientId] = useState(init ? project.client_uid : '');
   const [clientSearch, setClientSearch] = useState('');
   const [manager, setManager] = useState(init ? project.manager : '');
+  const [managerSearch, setManagerSearch] = useState('');
+  const [debouncedManagerSearch] = useDebounce(managerSearch, 300);
   const [status, setStatus] = useState<ProjectStatus>(init ? project.status : 'planning');
   const [startDate, setStartDate] = useState(init ? project.start_date : '');
   const [endDate, setEndDate] = useState(init ? project.end_date : '');
@@ -81,6 +85,30 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
         label: a.name,
       })),
     [accountsData]
+  );
+
+  // ── User search (GET /users?search=) for manager selector ─────────────
+  const { data: usersData } = useQuery({
+    queryKey: ['users', 'search', debouncedManagerSearch],
+    queryFn: async () => {
+      const res = await axiosInstance.get(endpoints.users.list, {
+        params: {
+          per_page: 20,
+          ...(debouncedManagerSearch ? { search: debouncedManagerSearch } : {}),
+        },
+      });
+      return (res.data?.data ?? []) as { uid: string; name: string }[];
+    },
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
+  });
+  const userOptions = useMemo(
+    () =>
+      (usersData ?? []).map((u) => ({
+        value: u.name,
+        label: u.name,
+      })),
+    [usersData]
   );
 
   const validate = () => {
@@ -142,7 +170,7 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
         <Input
-          label="Nombre del proyecto *"
+          label="Nombre del proyecto"
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -164,18 +192,23 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
           error={errors.clientId}
         />
 
-        {/* TODO: Replace with backend consultants list */}
-        <Input
-          label="Manager responsable *"
+        <SelectField
+          label="Manager responsable"
           required
+          searchable
+          options={userOptions}
           value={manager}
-          onChange={(e) => setManager(e.target.value)}
-          placeholder="Nombre del manager"
+          onChange={(v) => {
+            setManager(v as string);
+            setErrors((p) => ({ ...p, manager: '' }));
+          }}
+          onSearch={setManagerSearch}
+          placeholder="Seleccioná un manager"
           error={errors.manager}
         />
 
         <SelectField
-          label="Estado *"
+          label="Estado"
           required
           options={STATUS_OPTIONS}
           value={status}
@@ -184,7 +217,7 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
 
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Fecha inicio *"
+            label="Fecha inicio"
             required
             type="date"
             value={startDate}
@@ -192,7 +225,7 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
             error={errors.startDate}
           />
           <Input
-            label="Fin estimado *"
+            label="Fin estimado"
             required
             type="date"
             value={endDate}

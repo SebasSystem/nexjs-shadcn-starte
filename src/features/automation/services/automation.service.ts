@@ -4,6 +4,11 @@ import type { PaginationParams } from 'src/shared/lib/pagination';
 import type { AutomationRule } from '../types';
 
 export const automationService = {
+  async getTriggerEvents(): Promise<unknown> {
+    const res = await axiosInstance.get(endpoints.automation.triggerEvents);
+    return res.data?.data ?? res.data;
+  },
+
   async getAll(params?: PaginationParams): Promise<unknown> {
     const res = await axiosInstance.get(endpoints.automation.rules.list, { params });
     return res.data;

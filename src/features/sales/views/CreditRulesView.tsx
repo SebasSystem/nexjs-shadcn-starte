@@ -1,7 +1,9 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useCallback, useMemo, useState } from 'react';
+import { contactsService } from 'src/features/contacts/services/contacts.service';
 import { formatMoney } from 'src/lib/currency';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
@@ -27,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from 'src/shared/components/ui/select';
+import { SelectField } from 'src/shared/components/ui/select-field';
 import {
   Sheet,
   SheetContent,
@@ -94,16 +97,42 @@ export function CreditRulesView() {
   const [isAdding, setIsAdding] = useState(false);
   const [newEntityType, setNewEntityType] = useState('client');
   const [newEntityUid, setNewEntityUid] = useState('');
+  const [newMaxDays, setNewMaxDays] = useState('');
   const [newCreditLimit, setNewCreditLimit] = useState('');
   const [newNotes, setNewNotes] = useState('');
   const [isSavingNew, setIsSavingNew] = useState(false);
+
+  // ─── Account search for entity selector ──────────────────────────────────────
+  const [accountSearch, setAccountSearch] = useState('');
+
+  const { data: accountOptions = [] } = useQuery({
+    queryKey: ['accounts', 'search', accountSearch],
+    queryFn: async () => {
+      const res = await contactsService.accounts.list(
+        accountSearch ? { search: accountSearch, page: 1, per_page: 25 } : { page: 1, per_page: 25 }
+      );
+      const data = ((res as Record<string, unknown>)?.data ?? []) as Array<{
+        uid: string;
+        name: string;
+        tax_id?: string;
+      }>;
+      return data.map((a) => ({
+        value: a.uid,
+        label: a.tax_id ? `${a.name} (${a.tax_id})` : a.name,
+      }));
+    },
+    enabled: true,
+    staleTime: 30 * 1000,
+  });
 
   const handleOpenAdd = useCallback(() => {
     setIsAdding(true);
     setNewEntityType('client');
     setNewEntityUid('');
+    setNewMaxDays('');
     setNewCreditLimit('');
     setNewNotes('');
+    setAccountSearch('');
   }, []);
 
   const handleCloseAdd = useCallback(() => {
@@ -119,13 +148,14 @@ export function CreditRulesView() {
         entity_type: newEntityType,
         entity_uid: newEntityUid.trim(),
         credit_limit: parseFloat(newCreditLimit),
+        ...(newMaxDays.trim() ? { max_days: parseInt(newMaxDays, 10) } : {}),
         ...(newNotes.trim() ? { notes: newNotes.trim() } : {}),
       });
       setIsAdding(false);
     } finally {
       setIsSavingNew(false);
     }
-  }, [newEntityType, newEntityUid, newCreditLimit, newNotes, createException]);
+  }, [newEntityType, newEntityUid, newMaxDays, newCreditLimit, newNotes, createException]);
 
   const handleSaveEdit = useCallback(async () => {
     if (!editTarget) return;
@@ -133,12 +163,13 @@ export function CreditRulesView() {
     try {
       await updateException(editTarget.uid, {
         credit_limit: parseFloat(editCreditLimit),
+        ...(editMaxDays.trim() ? { max_days: parseInt(editMaxDays, 10) } : {}),
       });
       closeEditDrawer();
     } finally {
       setIsSavingEdit(false);
     }
-  }, [editTarget, editCreditLimit, updateException, closeEditDrawer]);
+  }, [editTarget, editCreditLimit, editMaxDays, updateException, closeEditDrawer]);
 
   const columns = useMemo(
     () => [
@@ -326,7 +357,7 @@ export function CreditRulesView() {
           <SheetHeader>
             <SheetTitle>Nueva excepción de crédito</SheetTitle>
           </SheetHeader>
-          <div className="mt-6 space-y-4">
+          <div className="mt-6 space-y-4 px-6">
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Tipo de entidad</label>
               <Select value={newEntityType} onValueChange={setNewEntityType}>
@@ -341,12 +372,15 @@ export function CreditRulesView() {
               <p className="text-xs text-muted-foreground">Tipo de entidad para la excepción</p>
             </div>
 
-            <Input
-              label="UID de la entidad"
+            <SelectField
+              label="Entidad"
+              options={accountOptions}
               value={newEntityUid}
-              onChange={(e) => setNewEntityUid(e.target.value)}
-              placeholder="UID del cliente o contacto"
-              hint="Identificador único de la entidad en el sistema"
+              onChange={(val) => setNewEntityUid(val as string)}
+              placeholder="Buscar cliente o empresa..."
+              searchable
+              onSearch={setAccountSearch}
+              hint="Seleccioná la entidad a la que aplica la excepción"
             />
 
             <Input
@@ -355,6 +389,14 @@ export function CreditRulesView() {
               value={newCreditLimit}
               onChange={(e) => setNewCreditLimit(e.target.value)}
               hint="Monto máximo de crédito permitido para esta entidad"
+            />
+
+            <Input
+              label="Días máximos de cartera"
+              type="number"
+              value={newMaxDays}
+              onChange={(e) => setNewMaxDays(e.target.value)}
+              hint="Número máximo de días que una factura puede estar pendiente"
             />
 
             <Textarea
@@ -403,7 +445,7 @@ export function CreditRulesView() {
           <SheetHeader>
             <SheetTitle>Editar excepción — {editTarget?.client_name}</SheetTitle>
           </SheetHeader>
-          <div className="mt-6 space-y-4">
+          <div className="mt-6 space-y-4 px-6">
             <Input
               label="Límite de crédito especial"
               type="number"
@@ -417,7 +459,6 @@ export function CreditRulesView() {
               value={editMaxDays}
               onChange={(e) => setEditMaxDays(e.target.value)}
               hint="Número máximo de días que una factura puede estar pendiente"
-              disabled
             />
           </div>
           <SheetFooter className="mt-6">

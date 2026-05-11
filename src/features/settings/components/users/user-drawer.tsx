@@ -155,6 +155,7 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
               control={control}
               name="role_uid"
               label="Rol"
+              searchable
               options={roleOptions}
               placeholder="Seleccionar rol..."
             />
@@ -163,6 +164,7 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
               control={control}
               name="team_uid"
               label="Equipo"
+              searchable
               options={equipoOptions}
             />
 

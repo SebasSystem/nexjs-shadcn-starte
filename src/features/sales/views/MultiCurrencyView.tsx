@@ -1,7 +1,9 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useCallback, useMemo, useState } from 'react';
+import { localizationService } from 'src/features/settings/services/localization.service';
 import { formatMoney, getCurrencyPreferences } from 'src/lib/currency';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
@@ -22,22 +24,28 @@ import { SalesPageSkeleton } from '../components/SalesPageSkeleton';
 import { useCurrencyRates } from '../hooks/useCurrencyRates';
 import type { CurrencyRate } from '../types/sales.types';
 
-// ─── Config ───────────────────────────────────────────────────────────────────
-
-const BASE_CURRENCY_OPTIONS = [
-  { value: 'USD', label: 'USD — Dólar estadounidense' },
-  { value: 'MXN', label: 'MXN — Peso mexicano' },
-  { value: 'EUR', label: 'EUR — Euro' },
-  { value: 'COP', label: 'COP — Peso colombiano' },
-];
-
 const columnHelper = createColumnHelper<CurrencyRate>();
 
 // ─── View ─────────────────────────────────────────────────────────────────────
 
 export function MultiCurrencyView() {
-  const { rates, setRates, isLoading, pagination } = useCurrencyRates();
+  const { rates, setRates, saveRate, isSaving, isLoading, pagination } = useCurrencyRates();
   const [baseCurrency, setBaseCurrency] = useState(() => getCurrencyPreferences('tenant').currency);
+
+  const { data: currencyOptions = [] } = useQuery({
+    queryKey: ['settings', 'localization', 'options', 'currencies'],
+    queryFn: async () => {
+      const res = (await localizationService.getOptions()) as Record<string, unknown>;
+      const data = (res?.data ?? res) as {
+        currencies?: Array<{ code: string; name: string; symbol: string }>;
+      };
+      return (data.currencies ?? []).map((c) => ({
+        value: c.code,
+        label: `${c.code} — ${c.name}`,
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
   const updateRate = useCallback(
     (code: string, value: string) => {
@@ -113,17 +121,25 @@ export function MultiCurrencyView() {
       columnHelper.display({
         id: 'actions',
         header: () => <div className="text-center w-full">Acciones</div>,
-        cell: () => (
-          <div className="flex justify-center">
-            <Button variant="outline" size="sm">
-              <Icon name="Save" size={13} />
-              Guardar
-            </Button>
-          </div>
-        ),
+        cell: (info) => {
+          const row = info.row.original;
+          return (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => saveRate(row.code, row.rate)}
+                disabled={isSaving}
+              >
+                <Icon name="Save" size={13} />
+                Guardar
+              </Button>
+            </div>
+          );
+        },
       }),
     ],
-    [updateRate]
+    [updateRate, saveRate, isSaving]
   );
 
   const { table, dense, onChangeDense } = useTable({
@@ -158,9 +174,10 @@ export function MultiCurrencyView() {
           <div className="flex-1 max-w-xs">
             <SelectField
               label="Moneda principal"
-              options={BASE_CURRENCY_OPTIONS}
+              options={currencyOptions}
               value={baseCurrency}
               onChange={(v) => setBaseCurrency(v as string)}
+              searchable
             />
           </div>
           <Button color="primary">Guardar configuración</Button>

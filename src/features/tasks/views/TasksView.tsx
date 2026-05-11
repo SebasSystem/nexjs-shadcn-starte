@@ -274,6 +274,7 @@ export function TasksView() {
             />
             <SelectField
               label="Asignar a"
+              searchable
               options={[{ value: '', label: 'Sin asignar' }, ...userOptions]}
               value={assignedUserUid}
               onChange={(v) => setAssignedUserUid(v as string)}

@@ -47,9 +47,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const describedBy =
       [hint && hintId, hasError && errorId].filter(Boolean).join(' ') || undefined;
 
-    // React warns when value is null on controlled inputs
+    // React warns when value is null on controlled inputs.
+    // Only normalize when the caller explicitly passed value (even if undefined/null).
+    // Skipping when unset preserves react-hook-form register() compatibility
+    // (register manages the input via ref without setting a value prop).
     const inputProps = { ...props };
-    if (inputProps.value === null || inputProps.value === undefined) {
+    if ('value' in props && (inputProps.value === null || inputProps.value === undefined)) {
       inputProps.value = '';
     }
 

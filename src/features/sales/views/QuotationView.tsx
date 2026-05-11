@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { useProducts } from 'src/features/inventory/hooks/use-products';
+import { quotationService } from 'src/features/sales/services/quotation.service';
 import type { Quotation, QuotationItem } from 'src/features/sales/types/sales.types';
 import { localizationService } from 'src/features/settings/services/localization.service';
 import { formatMoney } from 'src/lib/currency';
@@ -178,12 +179,17 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   const handleSend = async () => {
     if (!quotation) return;
     setIsSending(true);
-    await new Promise((r) => setTimeout(r, 400));
-    const updated = { ...quotation, status: 'sent' as const };
-    setLocalQuotation(updated);
-    saveQuotation(updated);
-    setIsSending(false);
-    toast.success('Cotización enviada al cliente');
+    try {
+      await quotationService.sendPdf(quotation.uid);
+      const updated = { ...quotation, status: 'sent' as const };
+      setLocalQuotation(updated);
+      saveQuotation(updated);
+      toast.success('Cotización enviada al cliente');
+    } catch {
+      toast.error('Error al enviar la cotización');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleReject = () => {
@@ -473,6 +479,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                               label: `${p.name}${p.sku ? ` (${p.sku})` : ''}`,
                             }))}
                             placeholder="Seleccionar producto..."
+                            searchable
                             disabled={!isEditable}
                           />
                         </td>

@@ -45,6 +45,14 @@ export const quotationService = {
     return res.data;
   },
 
+  async sendPdf(
+    uid: string,
+    data?: { to?: string; subject?: string; body?: string }
+  ): Promise<unknown> {
+    const res = await axiosInstance.post(endpoints.sales.quotationSend(uid), data ?? {});
+    return res.data;
+  },
+
   async addItem(uid: string, data: Partial<QuotationItem>): Promise<QuotationItem> {
     const res = await axiosInstance.post(endpoints.sales.quotationItems(uid), data);
     return res.data.data;

@@ -144,8 +144,7 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                 />
 
                 <Input
-                  type="number"
-                  step="any"
+                  type="text"
                   inputMode="decimal"
                   {...register('base_percentage', { valueAsNumber: true })}
                   label="% Base"
@@ -209,8 +208,8 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                     <div className="flex-1">
                       <Input
                         label="Umbral"
-                        type="number"
-                        step="any"
+                        type="text"
+                        inputMode="decimal"
                         size="sm"
                         {...register(`tiers.${index}.threshold`, { valueAsNumber: true })}
                         leftIcon={<span className="text-muted-foreground text-xs">$</span>}
@@ -219,8 +218,8 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
                     <div className="flex-1">
                       <Input
                         label="% Aplicado"
-                        type="number"
-                        step="any"
+                        type="text"
+                        inputMode="decimal"
                         size="sm"
                         {...register(`tiers.${index}.percent`, { valueAsNumber: true })}
                         rightIcon={<span className="text-muted-foreground text-xs">%</span>}

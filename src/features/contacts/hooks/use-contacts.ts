@@ -9,13 +9,7 @@ import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { contactsService } from '../services/contacts.service';
-import type {
-  Contact,
-  ContactPayload,
-  ContactRelation,
-  ContactStatus,
-  ContactType,
-} from '../types/contacts.types';
+import type { Contact, ContactPayload, ContactStatus, ContactType } from '../types/contacts.types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Normalization — maps backend response to Contact type (defense against field
@@ -153,44 +147,71 @@ export async function checkDuplicate(
 // Hook
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useContacts() {
+export function useContacts(filters?: {
+  search?: string;
+  type?: ContactType | 'ALL';
+  status?: string;
+}) {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
+
+  const typeFilter = filters?.type ?? 'ALL';
+  const searchParam = filters?.search || undefined;
+  const statusParam = filters?.status && filters.status !== 'ALL' ? filters.status : undefined;
+
+  const serverParams = {
+    ...pagination.params,
+    ...(searchParam ? { search: searchParam } : {}),
+    ...(statusParam ? { status: statusParam } : {}),
+  };
 
   // ── Merge de /accounts + /contacts ──────────────────────────────────────
   // La lógica de merge vive en el hook, no en el servicio. El servicio solo
   // llama al endpoint correcto y retorna la respuesta raw.
+  // Cuando typeFilter restringe a un tipo, solo consulta el endpoint relevante.
+
+  const needAccounts = typeFilter === 'ALL' || typeFilter === 'company';
+  const needContacts =
+    typeFilter === 'ALL' || typeFilter === 'person' || typeFilter === 'government';
 
   const { data: accountsData, isLoading: isLoadingAccounts } = useQuery({
-    queryKey: [...queryKeys.contacts.list, 'company', pagination.params],
-    queryFn: () => contactsService.accounts.list(pagination.params),
+    queryKey: [...queryKeys.contacts.list, 'company', serverParams],
+    queryFn: () => contactsService.accounts.list(serverParams),
     staleTime: 0,
     placeholderData: keepPreviousData,
+    enabled: needAccounts,
   });
 
   const { data: contactsData, isLoading: isLoadingContacts } = useQuery({
-    queryKey: [...queryKeys.contacts.list, 'contact', pagination.params],
-    queryFn: () => contactsService.contacts.list(pagination.params),
+    queryKey: [...queryKeys.contacts.list, 'contact', serverParams],
+    queryFn: () => contactsService.contacts.list(serverParams),
     staleTime: 0,
     placeholderData: keepPreviousData,
+    enabled: needContacts,
   });
 
-  const companies = (
-    ((accountsData as Record<string, unknown>)?.data ?? []) as Record<string, unknown>[]
-  ).map(normalizeContact);
-  const persons = (
-    ((contactsData as Record<string, unknown>)?.data ?? []) as Record<string, unknown>[]
-  ).map(normalizeContact);
+  const companies = needAccounts
+    ? (((accountsData as Record<string, unknown>)?.data ?? []) as Record<string, unknown>[]).map(
+        normalizeContact
+      )
+    : [];
+  const persons = needContacts
+    ? (((contactsData as Record<string, unknown>)?.data ?? []) as Record<string, unknown>[]).map(
+        normalizeContact
+      )
+    : [];
 
-  // Merge both arrays and extract pagination meta from accounts response
+  // Merge both arrays
   const contactos: Contact[] = [...companies, ...persons];
 
   const isLoading = isLoadingAccounts || isLoadingContacts;
 
-  // Derive pagination from accounts response (dominant endpoint for totals)
-  const accountsMeta = (accountsData as Record<string, unknown>)?.meta;
-  if (accountsMeta) {
-    const meta = extractPaginationMeta(accountsMeta);
+  // Derive pagination from accounts response (dominant endpoint for totals).
+  // When accounts is disabled (e.g. type=person), fall back to contacts meta.
+  const paginationSource = needAccounts ? accountsData : contactsData;
+  const paginationMeta = (paginationSource as Record<string, unknown>)?.meta;
+  if (paginationMeta) {
+    const meta = extractPaginationMeta(paginationMeta);
     if (meta) pagination.setTotal(meta.total);
   }
 

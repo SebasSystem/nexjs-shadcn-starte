@@ -12,6 +12,7 @@ const ROOTS = {
   PROJECTS: '/projects',
   PARTNERS: '/partners',
   INTELLIGENCE: '/intelligence',
+  PROFILE: '/profile',
   AUTOMATION: '/automation',
   EXPENSES: '/expenses',
   PURCHASES: '/purchases',
@@ -140,6 +141,11 @@ export const paths = {
     ruleNew: `${ROOTS.AUTOMATION}/rules/new`,
     ruleEdit: (id: string) => `${ROOTS.AUTOMATION}/rules/${id}/edit`,
     assignment: `${ROOTS.AUTOMATION}/assignment`,
+  },
+
+  // PROFILE
+  profile: {
+    root: ROOTS.PROFILE,
   },
 
   // SETTINGS

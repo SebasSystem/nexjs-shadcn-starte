@@ -115,7 +115,7 @@ function PartnerForm({ partner, isEdit, onClose, onCreate, onUpdate }: FormProps
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
         <Input
-          label="Nombre *"
+          label="Nombre"
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -125,14 +125,14 @@ function PartnerForm({ partner, isEdit, onClose, onCreate, onUpdate }: FormProps
 
         <div className="grid grid-cols-2 gap-3">
           <SelectField
-            label="Tipo *"
+            label="Tipo"
             required
             options={TYPE_OPTIONS}
             value={type}
             onChange={(v) => setType(v as PartnerType)}
           />
           <SelectField
-            label="Estado *"
+            label="Estado"
             required
             options={STATUS_OPTIONS}
             value={status}
@@ -141,7 +141,7 @@ function PartnerForm({ partner, isEdit, onClose, onCreate, onUpdate }: FormProps
         </div>
 
         <Input
-          label="Región *"
+          label="Región"
           required
           value={region}
           onChange={(e) => setRegion(e.target.value)}
@@ -150,7 +150,7 @@ function PartnerForm({ partner, isEdit, onClose, onCreate, onUpdate }: FormProps
         />
 
         <Input
-          label="Nombre del contacto *"
+          label="Nombre del contacto"
           required
           value={contactName}
           onChange={(e) => setContactName(e.target.value)}
@@ -159,7 +159,7 @@ function PartnerForm({ partner, isEdit, onClose, onCreate, onUpdate }: FormProps
         />
 
         <Input
-          label="Email del contacto *"
+          label="Email del contacto"
           required
           type="email"
           value={contactEmail}

@@ -1,9 +1,12 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { useUsers } from 'src/features/automation/hooks/useUsers';
+import { localizationService } from 'src/features/settings/services/localization.service';
 import {
   Button,
   Input,
@@ -35,12 +38,6 @@ const COMPETITOR_OPTIONS_FROM = (competitors: Competitor[]) => [
   ...competitors.map((c) => ({ value: c.uid, label: c.name })),
 ];
 
-const CURRENCY_OPTIONS = [
-  { value: 'USD', label: 'USD' },
-  { value: 'COP', label: 'COP' },
-  { value: 'MXN', label: 'MXN' },
-];
-
 const DEFAULT_VALUES: LostReasonFormData = {
   opportunityName: '',
   clientName: '',
@@ -57,6 +54,25 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
   const isEdit = !!item;
 
   const { lostReasonCategories } = useTenantOptions();
+  const { userOptions } = useUsers();
+
+  const { data: currencyOptions = [] } = useQuery({
+    queryKey: ['settings', 'localization', 'options', 'currencies'],
+    queryFn: async () => {
+      const res = (await localizationService.getOptions()) as Record<string, unknown>;
+      const data = (res?.data ?? res) as { currencies?: Array<{ code: string; name: string }> };
+      return (data.currencies ?? []).map((c) => ({
+        value: c.code,
+        label: `${c.code} - ${c.name}`,
+      }));
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const salesRepOptions = useMemo(
+    () => [{ value: '', label: 'Seleccionar vendedor...' }, ...userOptions],
+    [userOptions]
+  );
 
   const reasonOptions = useMemo(() => {
     const data = lostReasonCategories.data as
@@ -155,8 +171,8 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
               <Input
                 label="Monto"
                 required
-                type="number"
-                min={0}
+                type="text"
+                inputMode="decimal"
                 {...register('amount', { valueAsNumber: true })}
                 placeholder="0"
                 error={errors.amount?.message}
@@ -167,7 +183,7 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
                 render={({ field }) => (
                   <SelectField
                     label="Moneda"
-                    options={CURRENCY_OPTIONS}
+                    options={currencyOptions}
                     value={field.value}
                     onChange={(v) => field.onChange(v as string)}
                   />
@@ -223,12 +239,21 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
               error={errors.lostDate?.message}
             />
 
-            <Input
-              label="Vendedor responsable"
-              required
-              {...register('salesRepName')}
-              placeholder="Nombre del rep"
-              error={errors.salesRepName?.message}
+            <Controller
+              name="salesRepName"
+              control={control}
+              render={({ field }) => (
+                <SelectField
+                  label="Vendedor responsable"
+                  required
+                  searchable
+                  options={salesRepOptions}
+                  value={field.value}
+                  onChange={(v) => field.onChange(v as string)}
+                  placeholder="Seleccionar vendedor..."
+                  error={errors.salesRepName?.message}
+                />
+              )}
             />
           </form>
         </div>

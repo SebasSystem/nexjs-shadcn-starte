@@ -81,11 +81,17 @@ export function HeaderUserButton({ user }: Props) {
           <p className="text-xs text-muted-foreground mt-0.5 truncate">{email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 cursor-pointer text-muted-foreground">
+        <DropdownMenuItem
+          className="gap-2 cursor-pointer text-muted-foreground"
+          onClick={() => router.push(paths.profile.root)}
+        >
           <Icon name="User" size={15} />
           Mi perfil
         </DropdownMenuItem>
-        <DropdownMenuItem className="gap-2 cursor-pointer text-muted-foreground">
+        <DropdownMenuItem
+          className="gap-2 cursor-pointer text-muted-foreground"
+          onClick={() => router.push(paths.settings.localization)}
+        >
           <Icon name="Settings" size={15} />
           Configuración
         </DropdownMenuItem>

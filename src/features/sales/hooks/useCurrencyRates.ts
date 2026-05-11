@@ -1,7 +1,9 @@
 'use client';
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
@@ -12,6 +14,7 @@ import type { CurrencyRate } from '../types/sales.types';
 // TODO: replace local state with optimistic updates via useMutation.
 // The isDirty+localRates pattern duplicates TanStack Query cache.
 export function useCurrencyRates() {
+  const queryClient = useQueryClient();
   const pagination = usePaginationParams();
 
   const {
@@ -41,9 +44,29 @@ export function useCurrencyRates() {
     setLocalRates(next);
   }, []);
 
+  const saveMutation = useMutation({
+    mutationFn: async (rate: { from_currency: string; to_currency: string; rate: number }) =>
+      currencyService.upsertRate(rate),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sales.currencyRates });
+      setIsDirty(false);
+      toast.success('Tasas guardadas');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
+  });
+
+  const saveRate = useCallback(
+    (code: string, rate: number) => {
+      saveMutation.mutate({ from_currency: 'USD', to_currency: code, rate });
+    },
+    [saveMutation]
+  );
+
   return {
     rates,
     setRates,
+    saveRate,
+    isSaving: saveMutation.isPending,
     isLoading,
     error: error ?? null,
     refresh: refetch,

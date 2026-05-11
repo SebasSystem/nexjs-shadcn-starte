@@ -141,7 +141,7 @@ function OpportunityForm({
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
         <SelectField
-          label="Partner *"
+          label="Partner"
           required
           options={activePartners.map((p) => ({ value: p.uid, label: p.name }))}
           value={partnerUid}
@@ -151,7 +151,7 @@ function OpportunityForm({
         />
 
         <Input
-          label="Nombre del cliente *"
+          label="Nombre del cliente"
           required
           value={clientName}
           onChange={(e) => setClientName(e.target.value)}
@@ -168,7 +168,7 @@ function OpportunityForm({
         />
 
         <Input
-          label="Producto / Servicio de interés *"
+          label="Producto / Servicio de interés"
           required
           value={product}
           onChange={(e) => setProduct(e.target.value)}
@@ -178,7 +178,7 @@ function OpportunityForm({
 
         <div className="grid grid-cols-2 gap-3">
           <Input
-            label="Valor estimado *"
+            label="Valor estimado"
             required
             type="number"
             min={0}

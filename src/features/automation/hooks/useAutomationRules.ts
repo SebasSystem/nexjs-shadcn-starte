@@ -27,6 +27,13 @@ export function useAutomationRules() {
     placeholderData: keepPreviousData,
   });
 
+  // Trigger events from backend (replaces hardcoded types)
+  const { data: triggerEventsData } = useQuery({
+    queryKey: [...queryKeys.automation.rules, 'trigger-events'],
+    queryFn: () => automationService.getTriggerEvents(),
+    staleTime: 5 * 60 * 1000, // 5 min — triggers rarely change
+  });
+
   const stats = useMemo(
     () => ({
       activeCount: rules.filter((r) => r.enabled).length,
@@ -70,6 +77,7 @@ export function useAutomationRules() {
     rules,
     isLoading,
     stats,
+    triggerEvents: triggerEventsData as Record<string, unknown> | undefined,
     createRule: async (
       data: Omit<AutomationRule, 'uid' | 'created_at' | 'run_count' | 'last_run_at'>
     ): Promise<boolean> => {

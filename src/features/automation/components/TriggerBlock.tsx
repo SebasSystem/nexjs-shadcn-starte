@@ -2,20 +2,16 @@
 
 import { SectionCard } from 'src/shared/components/layouts/page';
 import { Input } from 'src/shared/components/ui/input';
-import { SelectField } from 'src/shared/components/ui/select-field';
+import { SelectField, type SelectOption } from 'src/shared/components/ui/select-field';
 
 import type { TriggerEvent, TriggerSource } from '../types';
-import { TRIGGER_EVENT_LABELS, TRIGGER_SOURCE_LABELS, TRIGGERS_BY_SOURCE } from '../types';
-
-const SOURCE_OPTIONS = (Object.keys(TRIGGER_SOURCE_LABELS) as TriggerSource[]).map((key) => ({
-  value: key,
-  label: TRIGGER_SOURCE_LABELS[key],
-}));
 
 interface TriggerBlockProps {
   triggerSource: TriggerSource;
   triggerEvent: TriggerEvent;
   daysThreshold?: number;
+  sourceOptions: SelectOption[];
+  eventOptions: SelectOption[];
   onSourceChange: (v: TriggerSource) => void;
   onEventChange: (v: TriggerEvent) => void;
   onDaysThresholdChange?: (v: number | undefined) => void;
@@ -25,15 +21,12 @@ export function TriggerBlock({
   triggerSource,
   triggerEvent,
   daysThreshold,
+  sourceOptions,
+  eventOptions,
   onSourceChange,
   onEventChange,
   onDaysThresholdChange,
 }: TriggerBlockProps) {
-  const eventOptions = TRIGGERS_BY_SOURCE[triggerSource].map((key) => ({
-    value: key,
-    label: TRIGGER_EVENT_LABELS[key],
-  }));
-
   const isTimeBased = triggerSource === 'time';
 
   return (
@@ -44,12 +37,14 @@ export function TriggerBlock({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectField
           label="Fuente"
-          options={SOURCE_OPTIONS}
+          options={sourceOptions}
           value={triggerSource}
           onChange={(v) => {
             const src = v as TriggerSource;
             onSourceChange(src);
-            onEventChange(TRIGGERS_BY_SOURCE[src][0]);
+            // Reset event to first available for the new source
+            const firstEvent = eventOptions[0]?.value as TriggerEvent | undefined;
+            if (firstEvent) onEventChange(firstEvent);
           }}
         />
         <SelectField
