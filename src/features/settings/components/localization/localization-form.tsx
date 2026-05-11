@@ -3,11 +3,11 @@
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import axiosInstance, { endpoints } from 'src/lib/axios';
 import { Button } from 'src/shared/components/ui/button';
 import { FormSelectField } from 'src/shared/components/ui/form-select-field';
 import { Icon } from 'src/shared/components/ui/icon';
 
+import { localizationService } from '../../services/localization.service';
 import type { LocalizationConfig } from '../../types/settings.types';
 
 interface LocalizationOptions {
@@ -27,8 +27,8 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
   const { data: opts } = useQuery<LocalizationOptions>({
     queryKey: ['localization-options'],
     queryFn: async () => {
-      const res = await axiosInstance.get(endpoints.settings.localization.options);
-      return (res.data?.data ?? res.data) as LocalizationOptions;
+      const res = (await localizationService.getOptions()) as Record<string, unknown>;
+      return (res.data ?? res) as LocalizationOptions;
     },
     staleTime: 10 * 60 * 1000,
   });

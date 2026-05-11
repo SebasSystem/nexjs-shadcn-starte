@@ -33,6 +33,12 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
   const [fechaFin, setFechaFin] = useState('');
   const [guardando, setGuardando] = useState(false);
 
+  // TODO: Conectar con backend cuando los siguientes endpoints estén disponibles
+  // con los permisos adecuados para el rol actual:
+  //   - GET  /teams              → lista de equipos (requiere permiso 'teams.read')
+  //   - GET  /users              → lista de vendedores (requiere permiso 'users.manage')
+  //   - POST /commissions/assignments → crear asignación masiva (requiere 'commissions.manage')
+  // Mientras tanto, los datos son placeholders y la UI es solo demostrativa.
   const equipos: string[] = [];
   const vendedoresFiltrados: { id: string; nombre: string; equipo: string }[] = [];
 
@@ -131,6 +137,14 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
+          {/* Banner de funcionalidad en desarrollo */}
+          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <span className="font-semibold">Funcionalidad en desarrollo</span> — requiere
+            integración con backend. Los endpoints necesarios están documentados en el código fuente
+            (ver TODOs en{' '}
+            <code className="bg-amber-100 px-1 rounded text-xs">bulk-assignment-drawer.tsx</code>).
+          </div>
+
           {/* PASO 1: Seleccionar vendedores */}
           {paso === 1 && (
             <div className="space-y-4">

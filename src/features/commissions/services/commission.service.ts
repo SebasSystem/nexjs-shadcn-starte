@@ -11,27 +11,10 @@ import type {
   CreateRulePayload,
   CreateRunPayload,
   CreateTargetPayload,
+  SimulatePayload,
+  SimulateResult,
   UpdateRulePayload,
 } from '../types/commissions.types';
-
-export interface SimulatePayload {
-  plan_uid: string;
-  accumulated_sales: number;
-  hypothetical_sale: number;
-}
-
-export interface SimulateBreakdownItem {
-  tierInfo: string;
-  range_text: string;
-  percent: number;
-  amountInTier: number;
-  commission_generated: number;
-}
-
-export interface SimulateResult {
-  breakdown: SimulateBreakdownItem[];
-  total: number;
-}
 
 export interface DashboardKPIs {
   monthly_target: number;
@@ -81,9 +64,9 @@ export const commissionService = {
     return (res.data?.data ?? res.data) as CommissionRun;
   },
 
-  async payRun(uid: string, paidAt?: string): Promise<CommissionRun> {
+  async payRun(uid: string, paidAt: string): Promise<CommissionRun> {
     const res = await axiosInstance.post(endpoints.commissions.runs.pay(uid), {
-      paid_at: paidAt ?? new Date().toISOString().split('T')[0],
+      paid_at: paidAt,
     });
     return (res.data?.data ?? res.data) as CommissionRun;
   },
@@ -93,6 +76,13 @@ export const commissionService = {
   async simulate(payload: SimulatePayload): Promise<SimulateResult> {
     const res = await axiosInstance.post(endpoints.commissions.simulate, payload);
     return res.data?.data ?? res.data;
+  },
+
+  // ── Periods ────────────────────────────────────────────────────────────────
+
+  async getPeriods(): Promise<string[]> {
+    const res = await axiosInstance.get(endpoints.commissions.periods);
+    return (res.data?.data ?? res.data) as string[];
   },
 
   // ── Dashboard ─────────────────────────────────────────────────────────────

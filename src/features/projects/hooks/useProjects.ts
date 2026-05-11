@@ -1,7 +1,9 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
@@ -13,18 +15,32 @@ import type { MilestonePayload, Project, ProjectPayload, ProjectResourcePayload 
 // Hook
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function useProjects() {
+export interface UseProjectsParams {
+  /** Server-side status filter (backend-supported).
+   *  Maps to ProjectService::getProjects() → ProjectRepository::all() status filter. */
+  status?: string;
+}
+
+export function useProjects(params?: UseProjectsParams) {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
 
+  // Merge external status filter with pagination params (search is already in pagination.params)
+  const queryParams = {
+    ...pagination.params,
+    ...(params?.status ? { status: params.status } : {}),
+  };
+
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: [...queryKeys.projects.list, pagination.params],
+    queryKey: [...queryKeys.projects.list, queryParams],
     queryFn: async () => {
-      const res = await projectsService.list(pagination.params);
+      const res = await projectsService.list(queryParams);
       const meta = extractPaginationMeta(res);
       if (meta) pagination.setTotal(meta.total);
       return ((res as unknown as { data?: Project[] }).data ?? []) as Project[];
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
   // ─── Stats (derived) ────────────────────────────────────────────────────
@@ -44,41 +60,90 @@ export function useProjects() {
 
   // ─── CRUD: Projects ────────────────────────────────────────────────────
 
-  const createProject = async (payload: ProjectPayload): Promise<boolean> => {
-    try {
-      await projectsService.create(payload);
+  const createProjectMutation = useMutation({
+    mutationFn: (payload: ProjectPayload) => projectsService.create(payload),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
-      return true;
-    } catch {
-      return false;
-    }
+      toast.success('Proyecto creado correctamente');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
+  });
+
+  const updateProjectMutation = useMutation({
+    mutationFn: ({ uid, payload }: { uid: string; payload: Partial<ProjectPayload> }) =>
+      projectsService.update(uid, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+      toast.success('Proyecto actualizado correctamente');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: (uid: string) => projectsService.remove(uid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+      toast.success('Proyecto eliminado correctamente');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
+  });
+
+  const createProject = async (payload: ProjectPayload): Promise<boolean> => {
+    await createProjectMutation.mutateAsync(payload);
+    return true;
   };
 
   const updateProject = async (uid: string, payload: Partial<ProjectPayload>): Promise<boolean> => {
-    try {
-      await projectsService.update(uid, payload);
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
-      return true;
-    } catch {
-      return false;
-    }
+    await updateProjectMutation.mutateAsync({ uid, payload });
+    return true;
   };
 
   const deleteProject = async (uid: string): Promise<void> => {
-    await projectsService.remove(uid);
-    queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+    await deleteProjectMutation.mutateAsync(uid);
   };
 
   // ─── Milestones ────────────────────────────────────────────────────────
 
-  const addMilestone = async (projectUid: string, payload: MilestonePayload): Promise<boolean> => {
-    try {
-      await projectsService.addMilestone(projectUid, payload);
+  const addMilestoneMutation = useMutation({
+    mutationFn: ({ projectUid, payload }: { projectUid: string; payload: MilestonePayload }) =>
+      projectsService.addMilestone(projectUid, payload),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
-      return true;
-    } catch {
-      return false;
-    }
+      toast.success('Hito agregado correctamente');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
+  });
+
+  const updateMilestoneMutation = useMutation({
+    mutationFn: ({
+      projectUid,
+      milestoneUid,
+      payload,
+    }: {
+      projectUid: string;
+      milestoneUid: string;
+      payload: Partial<MilestonePayload>;
+    }) => projectsService.updateMilestone(projectUid, milestoneUid, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+      toast.success('Hito actualizado correctamente');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
+  });
+
+  const deleteMilestoneMutation = useMutation({
+    mutationFn: ({ projectUid, milestoneUid }: { projectUid: string; milestoneUid: string }) =>
+      projectsService.removeMilestone(projectUid, milestoneUid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+      toast.success('Hito eliminado correctamente');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
+  });
+
+  const addMilestone = async (projectUid: string, payload: MilestonePayload): Promise<boolean> => {
+    await addMilestoneMutation.mutateAsync({ projectUid, payload });
+    return true;
   };
 
   const updateMilestone = async (
@@ -86,38 +151,51 @@ export function useProjects() {
     milestoneUid: string,
     payload: Partial<MilestonePayload>
   ): Promise<boolean> => {
-    try {
-      await projectsService.updateMilestone(projectUid, milestoneUid, payload);
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
-      return true;
-    } catch {
-      return false;
-    }
+    await updateMilestoneMutation.mutateAsync({ projectUid, milestoneUid, payload });
+    return true;
   };
 
   const deleteMilestone = async (projectUid: string, milestoneUid: string): Promise<void> => {
-    await projectsService.removeMilestone(projectUid, milestoneUid);
-    queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+    await deleteMilestoneMutation.mutateAsync({ projectUid, milestoneUid });
   };
 
   // ─── Resources ─────────────────────────────────────────────────────────
+
+  const addResourceMutation = useMutation({
+    mutationFn: ({
+      projectUid,
+      payload,
+    }: {
+      projectUid: string;
+      payload: ProjectResourcePayload;
+    }) => projectsService.addResource(projectUid, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+      toast.success('Recurso agregado correctamente');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
+  });
+
+  const removeResourceMutation = useMutation({
+    mutationFn: ({ projectUid, resourceUid }: { projectUid: string; resourceUid: string }) =>
+      projectsService.removeResource(projectUid, resourceUid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+      toast.success('Recurso eliminado correctamente');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
+  });
 
   const addResource = async (
     projectUid: string,
     payload: ProjectResourcePayload
   ): Promise<boolean> => {
-    try {
-      await projectsService.addResource(projectUid, payload);
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
-      return true;
-    } catch {
-      return false;
-    }
+    await addResourceMutation.mutateAsync({ projectUid, payload });
+    return true;
   };
 
   const removeResource = async (projectUid: string, resourceUid: string): Promise<void> => {
-    await projectsService.removeResource(projectUid, resourceUid);
-    queryClient.invalidateQueries({ queryKey: queryKeys.projects.list });
+    await removeResourceMutation.mutateAsync({ projectUid, resourceUid });
   };
 
   return {
@@ -140,5 +218,9 @@ export function useProjects() {
       onChangePage: pagination.onChangePage,
       onChangeRowsPerPage: pagination.onChangeRowsPerPage,
     },
+    /** Search term wired to server-side (backend-supported). */
+    search: pagination.search ?? '',
+    onChangeSearch: pagination.onChangeSearch,
+    status: params?.status ?? 'all',
   };
 }

@@ -13,9 +13,14 @@ import {
 } from '../services/assignment.service';
 import type { CommissionAssignment } from '../types/commissions.types';
 
-export const useAssignment = () => {
+export const useAssignment = (filters: { search?: string; team_uid?: string } = {}) => {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
+
+  const filterParams = {
+    ...(filters.search ? { search: filters.search } : {}),
+    ...(filters.team_uid ? { team_uid: filters.team_uid } : {}),
+  };
 
   const {
     data: assignments = [],
@@ -23,9 +28,9 @@ export const useAssignment = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: [...queryKeys.commissions.assignments, pagination.params],
+    queryKey: [...queryKeys.commissions.assignments, pagination.params, filterParams],
     queryFn: async () => {
-      const res = await assignmentService.getAssignments(pagination.params);
+      const res = await assignmentService.getAssignments({ ...pagination.params, ...filterParams });
       const meta = extractPaginationMeta(res as Record<string, unknown>);
       if (meta) pagination.setTotal(meta.total);
       return ((res as Record<string, unknown>).data ?? []) as CommissionAssignment[];

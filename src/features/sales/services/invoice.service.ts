@@ -9,6 +9,11 @@ export const invoiceService = {
     return res.data; // full response — callers extract .data for the array
   },
 
+  async getByQuotation(uid: string): Promise<Invoice[]> {
+    const res = await axiosInstance.get(endpoints.sales.invoicesByQuotation(uid));
+    return res.data.data ?? [];
+  },
+
   async getOne(uid: string): Promise<Invoice> {
     const res = await axiosInstance.get(`${endpoints.sales.financeInvoices}/${uid}`);
     return res.data.data;

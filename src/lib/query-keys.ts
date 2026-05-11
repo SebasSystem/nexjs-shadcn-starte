@@ -20,9 +20,14 @@ export const queryKeys = {
     stages: ['sales', 'stages'] as const,
     opportunities: ['sales', 'opportunities'] as const,
     opportunityList: ['sales', 'opportunities', 'list'] as const,
+    opportunityDetail: (uid: string) => ['sales', 'opportunities', uid] as const,
+    opportunityActivities: (uid: string) => ['sales', 'opportunities', uid, 'activities'] as const,
     board: ['sales', 'board'] as const,
     quotations: ['sales', 'quotations'] as const,
+    quotationsByOpportunity: (uid: string) =>
+      ['sales', 'quotations', 'by-opportunity', uid] as const,
     invoices: ['sales', 'invoices'] as const,
+    invoicesByQuotation: (uid: string) => ['sales', 'invoices', 'by-quotation', uid] as const,
     creditRules: ['sales', 'credit-rules'] as const,
     creditExceptions: ['sales', 'credit-exceptions'] as const,
     currencyRates: ['sales', 'currency-rates'] as const,
@@ -34,6 +39,7 @@ export const queryKeys = {
     roles: ['settings', 'roles'] as const,
     teams: ['settings', 'teams'] as const,
     customFields: ['settings', 'custom-fields'] as const,
+    customFieldsModules: ['settings', 'custom-fields-modules'] as const,
     localization: ['settings', 'localization'] as const,
   },
   projects: {
@@ -82,6 +88,7 @@ export const queryKeys = {
     entries: ['commissions', 'entries'] as const,
     runs: ['commissions', 'runs'] as const,
     dashboard: ['commissions', 'dashboard'] as const,
+    periods: ['commissions', 'periods'] as const,
   },
   reports: {
     sales: (tab: string, filters?: Record<string, string>) =>

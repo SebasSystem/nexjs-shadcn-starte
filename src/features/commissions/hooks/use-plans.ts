@@ -13,9 +13,13 @@ import {
 } from '../services/plans.service';
 import type { CommissionPlan } from '../types/commissions.types';
 
-export const usePlans = () => {
+export const usePlans = (filters: { search?: string } = {}) => {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
+
+  const filterParams = {
+    ...(filters.search ? { search: filters.search } : {}),
+  };
 
   const {
     data: plans = [],
@@ -23,9 +27,9 @@ export const usePlans = () => {
     isError,
     refetch,
   } = useQuery({
-    queryKey: [...queryKeys.commissions.plans, pagination.params],
+    queryKey: [...queryKeys.commissions.plans, pagination.params, filterParams],
     queryFn: async () => {
-      const res = await plansService.getPlans(pagination.params);
+      const res = await plansService.getPlans({ ...pagination.params, ...filterParams });
       const meta = extractPaginationMeta(res as Record<string, unknown>);
       if (meta) pagination.setTotal(meta.total);
       return ((res as Record<string, unknown>).data ?? []) as CommissionPlan[];

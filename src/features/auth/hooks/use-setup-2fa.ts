@@ -55,8 +55,11 @@ export function useSetup2FA(setupToken: string, onComplete: (newToken: string) =
     if (!setupToken) return;
     setIsLoadingQR(true);
     getTwoFactorSetupData(setupToken)
-      .then(async ({ otpauthUrl, secret: s }) => {
-        setSecret(s);
+      .then(async (data) => {
+        const payload = data?.data ?? data;
+        const secretKey = (payload.secret ?? '') as string;
+        const otpauthUrl = payload.otpauth_url as string;
+        setSecret(secretKey);
         const dataUrl = await QRCode.toDataURL(otpauthUrl, { width: 192, margin: 1 });
         setQrDataUrl(dataUrl);
       })
@@ -75,7 +78,10 @@ export function useSetup2FA(setupToken: string, onComplete: (newToken: string) =
     setIsConfirming(true);
     setConfirmError(null);
     try {
-      const { token, recoveryCodes: codes } = await confirmTwoFactorSetup(setupToken, code);
+      const data = await confirmTwoFactorSetup(setupToken, code);
+      const payload = data?.data ?? data;
+      const token = payload.token as string;
+      const codes = (payload.recovery_codes ?? []) as string[];
       setConfirmedToken(token);
       setRecoveryCodes(codes);
       setShowRecoveryCodes(true);

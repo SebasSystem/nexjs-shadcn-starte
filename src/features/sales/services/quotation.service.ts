@@ -3,10 +3,24 @@ import { type PaginationParams } from 'src/shared/lib/pagination';
 
 import type { Quotation, QuotationItem } from '../types/sales.types';
 
+export interface ListQuotationsParams extends PaginationParams {
+  /** Backend-supported: filters by quotation status (draft, sent, approved, rejected, cancelled). */
+  status?: string;
+  /** Backend-supported: filters by linked opportunity uid. */
+  opportunity_uid?: string;
+}
+
 export const quotationService = {
-  async getList(params?: PaginationParams): Promise<Quotation[]> {
+  async getList(params?: ListQuotationsParams): Promise<Quotation[]> {
     const res = await axiosInstance.get(endpoints.sales.quotations, { params });
     return res.data; // full response — callers extract .data for the array
+  },
+
+  async getByOpportunity(uid: string): Promise<Quotation[]> {
+    const res = await axiosInstance.get(endpoints.sales.quotations, {
+      params: { opportunity_uid: uid },
+    });
+    return res.data.data ?? [];
   },
 
   async getOne(uid: string): Promise<Quotation> {

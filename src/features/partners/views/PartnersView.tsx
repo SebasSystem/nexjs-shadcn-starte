@@ -19,6 +19,7 @@ import {
   useTable,
 } from 'src/shared/components/table';
 import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 
 import { PartnerDrawer } from '../components/PartnerDrawer';
 import { usePartners } from '../hooks/usePartners';
@@ -32,27 +33,29 @@ const columnHelper = createColumnHelper<Partner>();
 // ─── Main View ────────────────────────────────────────────────────────────────
 
 export function PartnersView() {
-  const { partners, partnerStats, opportunities, createPartner, updatePartner, pagination } =
-    usePartners();
-
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+
+  const {
+    partners,
+    partnerStats,
+    opportunities,
+    createPartner,
+    updatePartner,
+    removePartner,
+    pagination,
+  } = usePartners({
+    partnerType: filterType !== 'all' ? filterType : undefined,
+    partnerStatus: filterStatus !== 'all' ? filterStatus : undefined,
+  });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit'>('create');
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Partner | null>(null);
 
-  const filtered = useMemo(() => {
-    return partners.filter((p) => {
-      const matchSearch =
-        !search ||
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.region.toLowerCase().includes(search.toLowerCase());
-      const matchType = filterType === 'all' || p.type === filterType;
-      const matchStatus = filterStatus === 'all' || p.status === filterStatus;
-      return matchSearch && matchType && matchStatus;
-    });
-  }, [partners, search, filterType, filterStatus]);
+  // TODO: search — backend PartnerService::getPartners() no acepta param 'search'.
+  // El filtro de búsqueda está deshabilitado hasta que el backend lo implemente.
 
   const openOpps = useMemo(
     () => opportunities.filter((o) => o.status === 'pending' || o.status === 'approved').length,
@@ -113,16 +116,24 @@ export function PartnersView() {
         id: 'actions',
         header: '',
         cell: (info) => (
-          <button
-            className="text-muted-foreground hover:text-primary transition-colors"
-            onClick={() => {
-              setSelectedPartner(info.row.original);
-              setDrawerMode('edit');
-              setDrawerOpen(true);
-            }}
-          >
-            <Icon name="Pencil" size={14} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              className="text-muted-foreground hover:text-primary transition-colors"
+              onClick={() => {
+                setSelectedPartner(info.row.original);
+                setDrawerMode('edit');
+                setDrawerOpen(true);
+              }}
+            >
+              <Icon name="Pencil" size={14} />
+            </button>
+            <button
+              className="text-muted-foreground hover:text-destructive transition-colors"
+              onClick={() => setDeleteTarget(info.row.original)}
+            >
+              <Icon name="Trash2" size={14} />
+            </button>
+          </div>
         ),
       }),
     ],
@@ -130,7 +141,7 @@ export function PartnersView() {
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: filtered,
+    data: partners,
     columns: COLUMNS,
     defaultRowsPerPage: 15,
     total: pagination.total,
@@ -214,6 +225,7 @@ export function PartnersView() {
       {/* Table */}
       <SectionCard noPadding>
         <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+          {/* TODO: search — backend PartnerService::getPartners() no acepta param 'search'. Pendiente backend. */}
           <div className="flex-1 min-w-48">
             <Input
               label="Buscar"
@@ -284,6 +296,24 @@ export function PartnersView() {
         onClose={() => setDrawerOpen(false)}
         onCreate={createPartner}
         onUpdate={updatePartner}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) await removePartner(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar partner?"
+        description={
+          <>
+            Vas a eliminar a <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
+            deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
       />
     </PageContainer>
   );

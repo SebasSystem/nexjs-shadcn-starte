@@ -16,7 +16,7 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import { Badge, Button, Icon } from 'src/shared/components/ui';
+import { Badge, Button, ConfirmDialog, Icon } from 'src/shared/components/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from 'src/shared/components/ui';
 
 import { MilestoneDrawer } from '../components/MilestoneDrawer';
@@ -127,6 +127,14 @@ export function ProjectDetailView({ projectId }: Props) {
   const [msDrawerMode, setMsDrawerMode] = useState<'create' | 'edit'>('create');
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
   const [resDrawerOpen, setResDrawerOpen] = useState(false);
+  const [deleteMsDialog, setDeleteMsDialog] = useState<{ open: boolean; uid: string }>({
+    open: false,
+    uid: '',
+  });
+  const [removeResDialog, setRemoveResDialog] = useState<{ open: boolean; uid: string }>({
+    open: false,
+    uid: '',
+  });
 
   const MS_COLUMNS = [
     msColumnHelper.accessor('name', {
@@ -183,7 +191,7 @@ export function ProjectDetailView({ projectId }: Props) {
           </button>
           <button
             className="text-muted-foreground hover:text-error transition-colors"
-            onClick={() => deleteMilestone(projectId, info.row.original.uid)}
+            onClick={() => setDeleteMsDialog({ open: true, uid: info.row.original.uid })}
           >
             <Icon name="Trash2" size={14} />
           </button>
@@ -370,7 +378,7 @@ export function ProjectDetailView({ projectId }: Props) {
                 <ResourceCard
                   key={res.uid}
                   resource={res}
-                  onRemove={() => removeResource(projectId, res.uid)}
+                  onRemove={() => setRemoveResDialog({ open: true, uid: res.uid })}
                 />
               ))}
             </div>
@@ -413,6 +421,32 @@ export function ProjectDetailView({ projectId }: Props) {
         open={resDrawerOpen}
         onClose={() => setResDrawerOpen(false)}
         onAssign={(resource) => addResource(projectId, resource)}
+      />
+
+      <ConfirmDialog
+        open={deleteMsDialog.open}
+        onClose={() => setDeleteMsDialog({ open: false, uid: '' })}
+        onConfirm={async () => {
+          await deleteMilestone(projectId, deleteMsDialog.uid);
+          setDeleteMsDialog({ open: false, uid: '' });
+        }}
+        title="Eliminar hito"
+        description="¿Estás seguro? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        variant="error"
+      />
+
+      <ConfirmDialog
+        open={removeResDialog.open}
+        onClose={() => setRemoveResDialog({ open: false, uid: '' })}
+        onConfirm={async () => {
+          await removeResource(projectId, removeResDialog.uid);
+          setRemoveResDialog({ open: false, uid: '' });
+        }}
+        title="Remover recurso"
+        description="¿Estás seguro? El recurso será desasignado del proyecto."
+        confirmLabel="Remover"
+        variant="error"
       />
     </PageContainer>
   );

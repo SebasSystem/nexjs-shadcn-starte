@@ -3,6 +3,7 @@
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useState } from 'react';
 import { formatMoney } from 'src/lib/currency';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
@@ -11,10 +12,11 @@ import {
   TableCell,
   TableContainer,
   TableHeadCustom,
+  TablePaginationCustom,
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import { Badge, Button } from 'src/shared/components/ui';
+import { Badge, Button, ConfirmDialog, Icon, Input, SelectField } from 'src/shared/components/ui';
 
 import { usePurchaseOrders } from '../hooks/use-purchase-orders';
 import type { PurchaseOrder, PurchaseOrderStatus } from '../types/purchase-order.types';
@@ -25,15 +27,46 @@ const STATUS_MAP: Record<PurchaseOrderStatus, { label: string; color: string }> 
   approved: { label: 'Aprobada', color: 'bg-blue-50 text-blue-700' },
   ordered: { label: 'Ordenada', color: 'bg-indigo-50 text-indigo-700' },
   partially_received: { label: 'Parcial', color: 'bg-orange-50 text-orange-700' },
+  partial_received: { label: 'Parcialmente Recibido', color: 'bg-blue-50 text-blue-700' },
   received: { label: 'Recibida', color: 'bg-emerald-50 text-emerald-700' },
   closed: { label: 'Cerrada', color: 'bg-gray-200 text-gray-500' },
   cancelled: { label: 'Cancelada', color: 'bg-red-50 text-red-500' },
+  partial_paid: { label: 'Pago parcial', color: 'bg-cyan-50 text-cyan-700' },
+  paid: { label: 'Pagado', color: 'bg-green-50 text-green-700' },
+  overdue: { label: 'Vencido', color: 'bg-red-50 text-red-500' },
 };
+
+// Backend-compatible status filter values.
+// The backend PurchaseOrderService::index() validates against these statuses.
+const BACKEND_STATUS_FILTERS: { value: string; label: string }[] = [
+  { value: 'draft', label: 'Borrador' },
+  { value: 'approved', label: 'Aprobada' },
+  { value: 'partial_received', label: 'Parcial' },
+  { value: 'received', label: 'Recibida' },
+  { value: 'cancelled', label: 'Cancelada' },
+  { value: 'partial_paid', label: 'Pago parcial' },
+  { value: 'paid', label: 'Pagada' },
+  { value: 'overdue', label: 'Vencida' },
+];
 
 const columnHelper = createColumnHelper<PurchaseOrder>();
 
 export function PurchaseOrdersView() {
-  const { orders, approveOrder, receiveOrder } = usePurchaseOrders();
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  const { orders, approveOrder, receiveOrder, pagination, search, onChangeSearch } =
+    usePurchaseOrders({
+      status: filterStatus !== 'all' ? filterStatus : undefined,
+    });
+
+  const [approveDialog, setApproveDialog] = useState<{ open: boolean; uid: string }>({
+    open: false,
+    uid: '',
+  });
+  const [receiveDialog, setReceiveDialog] = useState<{ open: boolean; uid: string }>({
+    open: false,
+    uid: '',
+  });
 
   const COLUMNS = [
     columnHelper.accessor('purchase_number', {
@@ -81,7 +114,7 @@ export function PurchaseOrdersView() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => approveOrder.mutate(o.uid)}
+                onClick={() => setApproveDialog({ open: true, uid: o.uid })}
                 className="text-xs text-success"
               >
                 Aprobar
@@ -91,7 +124,7 @@ export function PurchaseOrdersView() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => receiveOrder.mutate(o.uid)}
+                onClick={() => setReceiveDialog({ open: true, uid: o.uid })}
                 className="text-xs text-primary"
               >
                 Recibir
@@ -102,16 +135,43 @@ export function PurchaseOrdersView() {
       },
     }),
   ];
-  const { table } = useTable({ data: orders, columns: COLUMNS });
+  const { table, dense, onChangeDense } = useTable({
+    data: orders,
+    columns: COLUMNS,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
+  });
 
   return (
     <PageContainer>
       <PageHeader title="Órdenes de Compra" subtitle="Gestión de compras a proveedores" />
       <SectionCard noPadding>
+        {/* Filters bar */}
+        <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+          <div className="flex-1 min-w-48">
+            <Input
+              label="Buscar"
+              placeholder="Buscar por número de OC..."
+              value={search}
+              onChange={(e) => onChangeSearch(e.target.value)}
+              leftIcon={<Icon name="Search" size={15} />}
+            />
+          </div>
+          <SelectField
+            label="Estado"
+            options={[{ value: 'all', label: 'Todos los estados' }, ...BACKEND_STATUS_FILTERS]}
+            value={filterStatus}
+            onChange={(v) => setFilterStatus(v as string)}
+          />
+        </div>
+
         <TableContainer>
           <Table>
             <TableHeadCustom table={table} />
-            <TableBody>
+            <TableBody dense={dense}>
               {table.getRowModel().rows.map((r) => (
                 <TableRow key={r.id}>
                   {r.getVisibleCells().map((c) => (
@@ -124,7 +184,41 @@ export function PurchaseOrdersView() {
             </TableBody>
           </Table>
         </TableContainer>
+        <div className="border-t border-border/40">
+          <TablePaginationCustom
+            table={table}
+            total={pagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
+        </div>
       </SectionCard>
+
+      <ConfirmDialog
+        open={approveDialog.open}
+        onClose={() => setApproveDialog({ open: false, uid: '' })}
+        onConfirm={async () => {
+          await approveOrder.mutateAsync(approveDialog.uid);
+          setApproveDialog({ open: false, uid: '' });
+        }}
+        title="Aprobar orden de compra"
+        description="¿Estás seguro de aprobar esta orden de compra?"
+        confirmLabel="Aprobar"
+        variant="default"
+      />
+
+      <ConfirmDialog
+        open={receiveDialog.open}
+        onClose={() => setReceiveDialog({ open: false, uid: '' })}
+        onConfirm={async () => {
+          await receiveOrder.mutateAsync(receiveDialog.uid);
+          setReceiveDialog({ open: false, uid: '' });
+        }}
+        title="Marcar como recibido"
+        description="¿Confirmás que la orden fue recibida completamente?"
+        confirmLabel="Marcar como recibido"
+        variant="default"
+      />
     </PageContainer>
   );
 }

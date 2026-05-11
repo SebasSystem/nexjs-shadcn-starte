@@ -58,9 +58,13 @@ const TABS: { id: InventoryReportTab; label: string }[] = [
 export function InventoryReportsView() {
   const [activeTab, setActiveTab] = useState<InventoryReportTab>('warehouse');
   const [filters, setFilters] = useState<ReportFilterParams>({ period: 'Este mes' });
+  const [search, setSearch] = useState('');
   const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
-  const { data: reportData, isLoading } = useInventoryReport(activeTab, filters);
+  const { data: reportData, isLoading } = useInventoryReport(activeTab, {
+    ...filters,
+    ...(search ? { search } : {}),
+  });
 
   const doExport = async (type: 'excel' | 'pdf', fields: string[]) => {
     setExportLoading(type);
@@ -230,7 +234,12 @@ export function InventoryReportsView() {
 
         {/* Table */}
         <div className="w-full">
-          <ReportTable columns={columns} data={table_data} />
+          <ReportTable
+            columns={columns}
+            data={table_data}
+            search={search}
+            onSearchChange={setSearch}
+          />
         </div>
       </div>
     );

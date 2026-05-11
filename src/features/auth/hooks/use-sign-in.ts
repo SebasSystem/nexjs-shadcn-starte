@@ -8,7 +8,13 @@ import { getFirstAccessibleRoute } from 'src/shared/auth/route-access';
 import { type SignInFormValues, signInSchema } from '../schemas/sign-in.schema';
 import { signInWithPassword } from '../services/auth.service';
 
-type AuthError = Error & { code?: string; setupToken?: string };
+type BackendErrorBody = {
+  success?: boolean;
+  message?: string;
+  errors?: Record<string, string[]>;
+};
+
+type BackendError = Error & { data?: BackendErrorBody };
 
 export function useSignIn() {
   const { checkUserSession } = useAuthContext();
@@ -23,31 +29,50 @@ export function useSignIn() {
 
   const onSubmit = async (values: SignInFormValues) => {
     try {
-      await signInWithPassword({
+      const data = await signInWithPassword({
         email: values.email,
         password: values.password,
         twoFactorCode: values.twoFactorCode || undefined,
         recoveryCode: values.recoveryCode || undefined,
       });
-      const session = await checkUserSession?.();
-      const target = session ? getFirstAccessibleRoute(session.modules, session.role) : '/';
-      window.location.assign(target);
-    } catch (error) {
-      const err = error as AuthError;
-      // error can be a typed AuthError (our own) or a plain backend response body
-      const body = error as { message?: string; success?: boolean };
-      const message = err?.code
-        ? err.message
-        : body?.message || 'Credenciales incorrectas. Inténtalo de nuevo.';
 
-      if (err?.code === 'TWO_FACTOR_SETUP_REQUIRED') {
+      // Backend may wrap response in { data: {...} } or return payload directly
+      const payload = data?.data ?? data;
+      const { token, user, requires_two_factor_setup } = payload;
+
+      // Account locked check — backend should return 423 but we handle it here defensively
+      if (user?.locked_until) {
+        const lockedDate = new Date(user.locked_until);
+        if (lockedDate > new Date()) {
+          form.setError('root', {
+            message: `Cuenta bloqueada hasta ${lockedDate.toLocaleString('es')}`,
+          });
+          return;
+        }
+      }
+
+      // 2FA setup required — token is temporary, do NOT set as session yet
+      if (requires_two_factor_setup) {
         setNeedsTwoFactorSetup(true);
-        setSetupToken(err.setupToken ?? null);
+        setSetupToken(token ?? null);
         form.clearErrors();
         return;
       }
 
-      if (err?.code === 'TWO_FACTOR_REQUIRED') {
+      if (token) {
+        setSession(token);
+      }
+
+      const session = await checkUserSession?.();
+      const target = session ? getFirstAccessibleRoute(session.modules, session.role) : '/';
+      window.location.assign(target);
+    } catch (error) {
+      const err = error as BackendError;
+      const body = err?.data ?? (error as BackendErrorBody);
+      const message = body?.message || 'Credenciales incorrectas. Inténtalo de nuevo.';
+
+      // Backend signals 2FA required via errors.two_factor_code in error response body
+      if (body?.errors?.two_factor_code) {
         setNeedsTwoFactor(true);
         form.clearErrors();
         return;

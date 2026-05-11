@@ -1,29 +1,20 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
-import { setCurrencyPreferences } from 'src/lib/currency';
 
-import type { LocalizationConfig } from '../types/settings.types';
+// ─── Thin service — only raw API calls, no side-effects ────────────────────
 
 export const localizationService = {
-  async get(): Promise<LocalizationConfig> {
+  async get() {
     const res = await axiosInstance.get(endpoints.settings.localization.get);
-    const payload = res.data?.data ?? res.data;
-    if (payload) {
-      const prefs = { currency: payload.currency, locale: payload.locale };
-      // Set both scopes so platform views (plans, billing) also have currency info
-      setCurrencyPreferences(prefs, 'tenant');
-      setCurrencyPreferences(prefs, 'platform');
-    }
-    return payload;
+    return res.data;
   },
 
-  async update(data: Partial<LocalizationConfig>): Promise<LocalizationConfig> {
+  async getOptions(): Promise<unknown> {
+    const res = await axiosInstance.get(endpoints.settings.localization.options);
+    return res.data;
+  },
+
+  async update(data: Record<string, unknown>) {
     const res = await axiosInstance.put(endpoints.settings.localization.update, data);
-    const payload = res.data?.data ?? res.data;
-    if (payload) {
-      const prefs = { currency: payload.currency, locale: payload.locale };
-      setCurrencyPreferences(prefs, 'tenant');
-      setCurrencyPreferences(prefs, 'platform');
-    }
-    return payload;
+    return res.data;
   },
 };

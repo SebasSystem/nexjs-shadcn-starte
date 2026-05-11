@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import {
   Button,
+  ConfirmDialog,
   Input,
   SelectField,
   Sheet,
@@ -54,6 +55,7 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
   const [description, setDescription] = useState(init ? (project.description ?? '') : '');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -99,9 +101,7 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
 
   const handleCancel = () => {
     if (project && onCancel) {
-      onCancel(project.uid);
-      toast.success('Proyecto cancelado');
-      onClose();
+      setCancelDialogOpen(true);
     }
   };
 
@@ -200,6 +200,20 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
           {loading ? 'Guardando...' : 'Guardar'}
         </Button>
       </SheetFooter>
+      <ConfirmDialog
+        open={cancelDialogOpen}
+        onClose={() => setCancelDialogOpen(false)}
+        onConfirm={() => {
+          if (project) onCancel!(project.uid);
+          toast.success('Proyecto cancelado');
+          setCancelDialogOpen(false);
+          onClose();
+        }}
+        title="Cancelar proyecto"
+        description="¿Estás seguro? El proyecto se cerrará permanentemente. Esta acción no se puede deshacer."
+        confirmLabel="Cancelar proyecto"
+        variant="error"
+      />
     </>
   );
 }

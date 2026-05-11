@@ -2,7 +2,7 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { formatMoney } from 'src/lib/currency';
 import { paths } from 'src/routes/paths';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
@@ -54,25 +54,17 @@ const col = createColumnHelper<Quotation>();
 
 export function QuotationsListView() {
   const router = useRouter();
-  const { quotations, convertQuotationToInvoice, saveQuotation, isLoading, quotationsPagination } =
-    useSalesContext();
-
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-
-  const filtered = useMemo(
-    () =>
-      quotations.filter((q) => {
-        const matchesSearch =
-          !search ||
-          q.quote_number.toLowerCase().includes(search.toLowerCase()) ||
-          q.title.toLowerCase().includes(search.toLowerCase()) ||
-          q.quoteable_uid.toLowerCase().includes(search.toLowerCase());
-        const matchesStatus = !statusFilter || q.status === statusFilter;
-        return matchesSearch && matchesStatus;
-      }),
-    [quotations, search, statusFilter]
-  );
+  const {
+    quotations,
+    convertQuotationToInvoice,
+    saveQuotation,
+    isLoading,
+    quotationSearch,
+    onChangeQuotationSearch,
+    quotationStatus,
+    onChangeQuotationStatus,
+    quotationsPagination,
+  } = useSalesContext();
 
   const columns = useMemo(
     () => [
@@ -175,7 +167,7 @@ export function QuotationsListView() {
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: filtered,
+    data: quotations,
     columns,
     total: quotationsPagination.total,
     pageIndex: quotationsPagination.page - 1,
@@ -193,7 +185,7 @@ export function QuotationsListView() {
     <PageContainer>
       <PageHeader
         title="Cotizaciones"
-        subtitle={`${filtered.length} cotización${filtered.length !== 1 ? 'es' : ''}`}
+        subtitle={`${quotationsPagination.total} cotización${quotationsPagination.total !== 1 ? 'es' : ''}`}
         action={
           <Button color="primary" onClick={() => router.push(paths.sales.pipeline)}>
             <Icon name="Plus" size={16} />
@@ -202,20 +194,20 @@ export function QuotationsListView() {
         }
       />
 
-      {/* Filtros */}
+      {/* Filtros — server-side via backend GET /quotations?search=&status= */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <Input
           label="Buscar"
           placeholder="Buscar por número, título o referencia..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={quotationSearch}
+          onChange={(e) => onChangeQuotationSearch(e.target.value)}
           leftIcon={<Icon name="Search" size={15} />}
           className="sm:max-w-xs"
         />
         <SelectField
           label="Estado"
-          value={statusFilter}
-          onChange={(v) => setStatusFilter(v as string)}
+          value={quotationStatus}
+          onChange={(v) => onChangeQuotationStatus(v as string)}
           options={STATUS_OPTIONS}
           className="sm:w-52"
         />
@@ -233,7 +225,7 @@ export function QuotationsListView() {
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <Icon name="FileText" size={32} className="opacity-30" />
                       <span className="text-sm">
-                        {search || statusFilter
+                        {quotationSearch || quotationStatus
                           ? 'Sin resultados para los filtros aplicados'
                           : 'Aún no hay cotizaciones'}
                       </span>

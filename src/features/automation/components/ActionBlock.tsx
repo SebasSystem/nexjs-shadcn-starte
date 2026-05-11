@@ -10,6 +10,7 @@ import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { useTenantOptions } from 'src/shared/hooks/useTenantOptions';
 
+import { useUsers } from '../hooks/useUsers';
 import type { RuleFormData } from '../schemas/rule.schema';
 import type { ActionType, AssignmentRule } from '../types';
 import { ACTION_TYPE_LABELS } from '../types';
@@ -18,9 +19,6 @@ const ACTION_OPTIONS = (Object.keys(ACTION_TYPE_LABELS) as ActionType[]).map((ke
   value: key,
   label: ACTION_TYPE_LABELS[key],
 }));
-
-// TODO: Replace with backend users list
-const USER_OPTIONS: { value: string; label: string }[] = [];
 
 interface ActionBlockProps {
   form: UseFormReturn<RuleFormData>;
@@ -33,6 +31,7 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
     name: 'actions',
   });
 
+  const { userOptions } = useUsers();
   const { activityTypes } = useTenantOptions();
 
   const activityTypeOptions = useMemo(() => {
@@ -141,7 +140,7 @@ export function ActionBlock({ form, assignmentRules }: ActionBlockProps) {
                 <div className="space-y-3">
                   <SelectField
                     label="Notificar a"
-                    options={USER_OPTIONS}
+                    options={userOptions}
                     value={form.watch(`actions.${index}.config.notify_user_id`) ?? ''}
                     onChange={(v) =>
                       form.setValue(`actions.${index}.config.notify_user_id`, v as string)

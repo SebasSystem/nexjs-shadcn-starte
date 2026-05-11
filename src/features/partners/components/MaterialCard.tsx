@@ -19,9 +19,10 @@ const MATERIAL_ICON_BG: Record<string, string> = {
 
 interface Props {
   material: PortalMaterial;
+  onDelete?: () => void;
 }
 
-export function MaterialCard({ material }: Props) {
+export function MaterialCard({ material, onDelete }: Props) {
   const typeConfig = MATERIAL_TYPE_CONFIG[material.type];
   const iconBg = MATERIAL_ICON_BG[material.type] ?? 'bg-muted text-muted-foreground';
 
@@ -69,6 +70,12 @@ export function MaterialCard({ material }: Props) {
         <Icon name="Download" size={14} />
         Descargar
       </Button>
+      {onDelete && (
+        <Button variant="ghost" size="sm" color="error" className="w-full mt-1" onClick={onDelete}>
+          <Icon name="Trash2" size={14} />
+          Eliminar
+        </Button>
+      )}
     </SectionCard>
   );
 }

@@ -1,27 +1,13 @@
 'use client';
 
-import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePlans } from 'src/features/commissions/hooks/use-plans';
 import { useSimulator } from 'src/features/commissions/hooks/use-simulator';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeadCustom,
-  TableRow,
-  useTable,
-} from 'src/shared/components/table';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-
-import type { SimulateBreakdownItem } from '../services/commission.service';
-
-type TramoDesglose = SimulateBreakdownItem;
-const columnHelper = createColumnHelper<TramoDesglose>();
 
 export const SimulatorView = () => {
   const [acordeonAbierto, setAcordeonAbierto] = useState(false);
@@ -34,8 +20,9 @@ export const SimulatorView = () => {
     setAccumulatedSales,
     hypotheticalSale,
     setHypotheticalSale,
-    breakdown,
     totalCommission,
+    effectivePercentage,
+    tierApplied,
     currentTier,
     isSimulating,
     simulate,
@@ -67,9 +54,10 @@ export const SimulatorView = () => {
 
   // Calcular cuánto falta para el siguiente tramo
   const siguienteTramo = (() => {
-    if (!selectedPlan || !currentTier || selectedPlan.tiers.length <= 1) return null;
+    if (!selectedPlan || selectedPlan.tiers.length <= 1) return null;
     const tiersSorted = [...selectedPlan.tiers].sort((a, b) => a.threshold - b.threshold);
-    const currentIdx = tiersSorted.findIndex((t) => t.threshold === currentTier.amountInTier);
+    // tierApplied is 1-indexed from backend; if 0, we are below the first tier
+    const currentIdx = tierApplied > 0 ? tierApplied - 1 : -1;
     if (currentIdx >= 0 && currentIdx < tiersSorted.length - 1) {
       const next = tiersSorted[currentIdx + 1];
       const falta = next.threshold - accumulatedSales;
@@ -78,62 +66,13 @@ export const SimulatorView = () => {
     return null;
   })();
 
-  const mostrarDesglose = (hypotheticalSale > 0 || accumulatedSales > 0) && breakdown.length > 0;
-
-  const COLUMNS = useMemo(
-    () => [
-      columnHelper.accessor('tierInfo', {
-        header: 'Tramo / Rango',
-        cell: (info) => {
-          const row = info.row.original;
-          const aplica = row.amountInTier > 0;
-          return (
-            <div>
-              <div
-                className={`font-medium ${aplica ? 'text-foreground' : 'text-muted-foreground'}`}
-              >
-                {info.getValue()}
-              </div>
-              <div className="text-xs text-muted-foreground">{row.range_text}</div>
-            </div>
-          );
-        },
-      }),
-      columnHelper.accessor('percent', {
-        header: 'Apl. %',
-        cell: (info) => (
-          <div className="text-center font-medium text-muted-foreground">{info.getValue()}%</div>
-        ),
-      }),
-      columnHelper.accessor('amountInTier', {
-        header: 'Monto en Tramo',
-        cell: (info) => (
-          <div className="text-right text-muted-foreground">
-            ${info.getValue().toLocaleString()}
-          </div>
-        ),
-      }),
-      columnHelper.accessor('commission_generated', {
-        header: 'Comisión',
-        cell: (info) => (
-          <div className="text-right font-bold text-blue-600">
-            ${info.getValue().toLocaleString()}
-          </div>
-        ),
-      }),
-    ],
-    []
-  );
-
-  const { table } = useTable({
-    data: breakdown,
-    columns: COLUMNS,
-    defaultRowsPerPage: 100,
-  });
+  const mostrarResultado = (hypotheticalSale > 0 || accumulatedSales > 0) && totalCommission > 0;
 
   const planOptions = plans
     .filter((p) => p.is_active)
     .map((p) => ({ value: p.uid, label: p.name }));
+
+  const noPlansAvailable = plans.filter((p) => p.is_active).length === 0;
 
   return (
     <PageContainer fluid className="pb-10 min-w-0 w-full space-y-6">
@@ -155,7 +94,9 @@ export const SimulatorView = () => {
               value={planUid}
               onChange={(val) => setPlanUid(val as string)}
               label="Plan de Comisión"
-              options={planOptions}
+              options={
+                noPlansAvailable ? [{ value: '', label: '— No hay planes activos —' }] : planOptions
+              }
             />
 
             <div className="space-y-2">
@@ -174,10 +115,10 @@ export const SimulatorView = () => {
               {currentTier && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg text-sm transition-colors">
                   <span className="text-indigo-500 font-bold">📍</span>
-                  <span className="text-indigo-700 font-medium">
-                    Estás en {currentTier.tierInfo} — {currentTier.percent}% de comisión
+                  <span className="text-indigo-700 font-medium">{currentTier}</span>
+                  <span className="text-indigo-500 text-xs ml-auto">
+                    Comisión efectiva: {effectivePercentage}%
                   </span>
-                  <span className="text-indigo-500 text-xs ml-auto">{currentTier.range_text}</span>
                 </div>
               )}
             </div>
@@ -249,39 +190,31 @@ export const SimulatorView = () => {
 
           <SectionCard noPadding>
             <div className="px-6 py-4 border-b bg-muted/20">
-              <h3 className="text-h6 text-foreground">Desglose por Tramos</h3>
+              <h3 className="text-h6 text-foreground">Resultado de la Simulación</h3>
             </div>
 
-            {mostrarDesglose ? (
-              <div className="w-full overflow-x-auto">
-                <Table>
-                  <TableHeadCustom table={table} />
-                  <TableBody>
-                    {table.getRowModel().rows.map((row) => (
-                      <TableRow key={row.id}>
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id} className="px-6 py-3">
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                    <TableRow className="bg-blue-50/50 border-t-2 border-blue-100 hover:bg-blue-50/50">
-                      <TableCell
-                        colSpan={2}
-                        className="px-6 py-4 font-bold text-foreground text-right"
-                      >
-                        TOTAL
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-right font-medium text-muted-foreground">
-                        ${hypotheticalSale.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="px-6 py-4 text-right font-bold text-blue-600 text-lg">
-                        ${totalCommission.toLocaleString()}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+            {mostrarResultado ? (
+              <div className="px-6 py-5 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Ventas totales</span>
+                  <span className="font-semibold text-foreground">
+                    ${(accumulatedSales + hypotheticalSale).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Tramo aplicado</span>
+                  <span className="font-semibold text-foreground">Tramo {tierApplied || '—'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Porcentaje efectivo</span>
+                  <span className="font-semibold text-foreground">{effectivePercentage}%</span>
+                </div>
+                <div className="border-t pt-3 flex justify-between items-center">
+                  <span className="text-sm font-semibold text-foreground">Comisión generada</span>
+                  <span className="font-bold text-blue-600 text-lg">
+                    ${totalCommission.toLocaleString()}
+                  </span>
+                </div>
               </div>
             ) : (
               <div className="py-12 flex flex-col items-center justify-center text-center">

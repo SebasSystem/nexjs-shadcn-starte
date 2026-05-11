@@ -1,6 +1,6 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
 
-import type { Opportunity } from '../types/sales.types';
+import type { Activity, ActivityPayload, Opportunity } from '../types/sales.types';
 
 export const opportunityService = {
   async getStages() {
@@ -8,7 +8,7 @@ export const opportunityService = {
     return res.data.data;
   },
 
-  async getBoard(params?: { search?: string }) {
+  async getBoard(params?: { search?: string; origin?: string; product?: string }) {
     const res = await axiosInstance.get(endpoints.sales.board, { params });
     return res.data.data;
   },
@@ -35,5 +35,33 @@ export const opportunityService = {
 
   async delete(uid: string): Promise<void> {
     await axiosInstance.delete(endpoints.sales.opportunity(uid));
+  },
+
+  // ─── Activities ──────────────────────────────────────────────────────────────
+
+  async getActivities(uid: string): Promise<Activity[]> {
+    const res = await axiosInstance.get(endpoints.sales.opportunityActivities(uid));
+    return res.data.data;
+  },
+
+  async createActivity(uid: string, payload: ActivityPayload): Promise<Activity> {
+    const res = await axiosInstance.post(endpoints.sales.opportunityActivities(uid), payload);
+    return res.data.data;
+  },
+
+  async updateActivity(
+    uid: string,
+    activityUid: string,
+    payload: Partial<ActivityPayload>
+  ): Promise<Activity> {
+    const res = await axiosInstance.put(
+      endpoints.sales.opportunityActivity(uid, activityUid),
+      payload
+    );
+    return res.data.data;
+  },
+
+  async deleteActivity(uid: string, activityUid: string): Promise<void> {
+    await axiosInstance.delete(endpoints.sales.opportunityActivity(uid, activityUid));
   },
 };

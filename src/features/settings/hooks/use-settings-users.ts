@@ -14,6 +14,16 @@ const EMPTY_USERS: SettingsUser[] = [];
 
 const generatePassword = () => Math.random().toString(36).slice(-10) + 'A1!';
 
+// ─── Business logic moved from users.service ───────────────────────────────
+
+const deriveStatus = (raw: Record<string, unknown>): SettingsUser['status'] =>
+  raw.locked_until && new Date(raw.locked_until as string) > new Date() ? 'INACTIVO' : 'ACTIVO';
+
+const extractPayload = (res: unknown): Record<string, unknown> =>
+  ((res as Record<string, unknown>)?.data ?? res) as Record<string, unknown>;
+
+// ─── Filters ────────────────────────────────────────────────────────────────
+
 interface UserFilters {
   search?: string;
   role_uid?: string;
@@ -53,8 +63,15 @@ export function useSettingsUsers(filters: UserFilters = {}) {
         role_uid?: string;
       }
     ) => {
-      const payload = { ...data, password: data.password || generatePassword() };
-      const newUser = await usersService.create(payload as unknown as SettingsUser);
+      const payload = {
+        name: data.name,
+        email: data.email,
+        password: data.password || generatePassword(),
+        status: data.status,
+      };
+      const res = await usersService.create(payload);
+      const raw = extractPayload(res);
+      const newUser = { ...raw, status: deriveStatus(raw) } as SettingsUser;
       if (data.role_uid) {
         await usersService.assignRole(newUser.uid, data.role_uid as string).catch(() => {});
       }
@@ -72,7 +89,12 @@ export function useSettingsUsers(filters: UserFilters = {}) {
       id: string;
       data: Partial<SettingsUser> & { role_uid?: string };
     }) => {
-      await usersService.update(id, data);
+      const payload = {
+        name: data.name,
+        email: data.email,
+        status: data.status,
+      };
+      await usersService.update(id, payload);
       if (data.role_uid !== undefined) {
         const oldUser = users.find((u) => u.uid === id);
         if (oldUser?.role_uid && oldUser.role_uid !== data.role_uid) {
@@ -91,7 +113,8 @@ export function useSettingsUsers(filters: UserFilters = {}) {
     mutationFn: async (id: string) => {
       const user = users.find((u) => u.uid === id);
       if (!user) throw new Error('Usuario no encontrado');
-      await usersService.toggleStatus(id, user.status);
+      const isActive = user.status !== 'ACTIVO';
+      await usersService.toggleStatus(id, isActive);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.settings.users }),
     onError: (error) => toast.error(extractApiError(error)),
@@ -148,9 +171,13 @@ export function useSettingsUsers(filters: UserFilters = {}) {
 }
 
 export function useUser(uid?: string) {
-  return useQuery({
+  return useQuery<SettingsUser>({
     queryKey: ['user', uid] as const,
-    queryFn: () => usersService.getById(uid!),
+    queryFn: async () => {
+      const res = await usersService.getById(uid!);
+      const raw = extractPayload(res);
+      return { ...raw, status: deriveStatus(raw) } as SettingsUser;
+    },
     enabled: !!uid,
   });
 }

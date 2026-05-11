@@ -50,8 +50,10 @@ export const partnersService = {
   // ── Opportunities ───────────────────────────────────────────────────────
 
   opportunities: {
-    list: async (): Promise<PartnerOpportunity[]> => {
-      const res = await axiosInstance.get(endpoints.partners.opportunities.list);
+    list: async (
+      params?: PaginationParams & { status?: string; partner_uid?: string; search?: string }
+    ): Promise<PartnerOpportunity[]> => {
+      const res = await axiosInstance.get(endpoints.partners.opportunities.list, { params });
       return (res.data?.data ?? res.data ?? []) as PartnerOpportunity[];
     },
 
@@ -100,8 +102,8 @@ export const partnersService = {
   // ── Materials ───────────────────────────────────────────────────────────
 
   materials: {
-    list: async (): Promise<PortalMaterial[]> => {
-      const res = await axiosInstance.get(endpoints.partners.materials.list);
+    list: async (params?: PaginationParams): Promise<PortalMaterial[]> => {
+      const res = await axiosInstance.get(endpoints.partners.materials.list, { params });
       return (res.data?.data ?? res.data ?? []) as PortalMaterial[];
     },
 

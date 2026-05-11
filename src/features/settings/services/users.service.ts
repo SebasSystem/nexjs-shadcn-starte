@@ -1,73 +1,41 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
-import { type PaginationParams } from 'src/shared/lib/pagination';
 
-import type { SettingsUser } from '../types/settings.types';
-
-const deriveStatus = (raw: Record<string, unknown>): SettingsUser['status'] =>
-  raw.locked_until && new Date(raw.locked_until as string) > new Date() ? 'INACTIVO' : 'ACTIVO';
+// ─── Thin service — only raw API calls, no business logic ──────────────────
 
 export const usersService = {
-  async getAll(params?: PaginationParams): Promise<SettingsUser[]> {
+  async getAll(params?: Record<string, unknown>) {
     const res = await axiosInstance.get(endpoints.users.list, { params });
-    return res.data; // full response — callers extract .data for the array
+    return res.data;
   },
 
   // GET /users/{uid}
-  async getById(uid: string): Promise<SettingsUser> {
+  async getById(uid: string) {
     const res = await axiosInstance.get(endpoints.users.show(uid), {
       params: { include: 'role,team' },
     });
-    const payload = res.data?.data ?? res.data;
-    return {
-      ...(payload as Record<string, unknown>),
-      status: deriveStatus(payload as Record<string, unknown>),
-    } as SettingsUser;
+    return res.data;
   },
 
   // POST /users
-  async create(
-    data: Omit<SettingsUser, 'uid' | 'created_at' | 'last_login_at'>
-  ): Promise<SettingsUser> {
-    const res = await axiosInstance.post(endpoints.users.create, {
-      name: data.name,
-      email: data.email,
-      password: (data as Record<string, unknown>).password || undefined,
-      status: data.status,
-    });
-    const payload = res.data?.data ?? res.data;
-    return {
-      ...(payload as Record<string, unknown>),
-      status: deriveStatus(payload as Record<string, unknown>),
-    } as SettingsUser;
+  async create(data: Record<string, unknown>) {
+    const res = await axiosInstance.post(endpoints.users.create, data);
+    return res.data;
   },
 
   // PUT /users/{uid}
-  async update(id: string, data: Partial<SettingsUser>): Promise<SettingsUser> {
-    const res = await axiosInstance.put(endpoints.users.update(id), {
-      name: data.name,
-      email: data.email,
-      status: data.status,
-    });
-    const payload = res.data?.data ?? res.data;
-    return {
-      ...(payload as Record<string, unknown>),
-      status: deriveStatus(payload as Record<string, unknown>),
-    } as SettingsUser;
+  async update(id: string, data: Record<string, unknown>) {
+    const res = await axiosInstance.put(endpoints.users.update(id), data);
+    return res.data;
   },
 
-  async toggleStatus(uid: string, currentStatus: string): Promise<SettingsUser> {
-    const isActive = currentStatus !== 'ACTIVO';
+  async toggleStatus(uid: string, isActive: boolean) {
     const res = await axiosInstance.put(endpoints.users.update(uid), {
       is_active: isActive,
     });
-    const data = res.data?.data ?? res.data;
-    return {
-      ...(data as Record<string, unknown>),
-      status: deriveStatus(data as Record<string, unknown>),
-    } as SettingsUser;
+    return res.data;
   },
 
-  // DELETE /users/{uid} — pending backend routing.
+  // DELETE /users/{uid}
   async delete(id: string): Promise<void> {
     await axiosInstance.delete(endpoints.users.delete(id));
   },
@@ -90,9 +58,8 @@ export const usersService = {
     await axiosInstance.delete(endpoints.users.removePermission(userId, permissionUid));
   },
 
-  async getAccess(userId: string): Promise<string[]> {
+  async getAccess(userId: string) {
     const res = await axiosInstance.get(endpoints.users.access(userId));
-    const payload = res.data?.data ?? res.data;
-    return (payload?.effective_permissions ?? []).map((p: { key: string }) => p.key);
+    return res.data;
   },
 };

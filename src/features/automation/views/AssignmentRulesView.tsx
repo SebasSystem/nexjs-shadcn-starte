@@ -3,19 +3,15 @@
 import { useState } from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import { AssignmentRuleDrawer } from '../components/AssignmentRuleDrawer';
 import { RuleStatusBadge } from '../components/RuleStatusBadge';
 import { useAssignmentRules } from '../hooks/useAssignmentRules';
+import { useUsers } from '../hooks/useUsers';
 import type { AssignmentRule } from '../types';
 import { ASSIGNMENT_RULE_TYPE_LABELS } from '../types';
-
-// TODO: Replace with backend users lookup when available
-function getUserNames(userIds: string[]): string {
-  if (userIds.length === 0) return '—';
-  return userIds.join(', ');
-}
 
 export function AssignmentRulesView() {
   const {
@@ -25,8 +21,10 @@ export function AssignmentRulesView() {
     deleteAssignmentRule,
     isLoading,
   } = useAssignmentRules();
+  const { userMap } = useUsers();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<AssignmentRule | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AssignmentRule | null>(null);
 
   const handleEdit = (rule: AssignmentRule) => {
     setEditingRule(rule);
@@ -105,7 +103,11 @@ export function AssignmentRulesView() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Icon name="Users" size={13} className="shrink-0" />
-                      <span>{getUserNames(rule.user_ids)}</span>
+                      <span>
+                        {rule.user_ids.length === 0
+                          ? '—'
+                          : rule.user_ids.map((id) => userMap.get(id) ?? id).join(', ')}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -122,7 +124,7 @@ export function AssignmentRulesView() {
                       </button>
                       <button
                         title="Eliminar"
-                        onClick={() => deleteAssignmentRule(rule.uid)}
+                        onClick={() => setDeleteTarget(rule)}
                         className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                       >
                         <Icon name="Trash2" size={14} />
@@ -142,6 +144,24 @@ export function AssignmentRulesView() {
         onClose={handleClose}
         onCreate={createAssignmentRule}
         onUpdate={updateAssignmentRule}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) await deleteAssignmentRule(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar regla de asignación?"
+        description={
+          <>
+            Vas a eliminar la regla <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
+            deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
       />
     </PageContainer>
   );

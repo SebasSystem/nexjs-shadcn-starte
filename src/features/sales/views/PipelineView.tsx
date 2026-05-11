@@ -25,11 +25,11 @@ export function PipelineView() {
   const [pendingMove, setPendingMove] = useState<{ oppUid: string } | null>(null);
   const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
 
-  const { stages, opportunitiesByStage, search, setSearch } = usePipeline();
+  const { stages, opportunitiesByStage, scoredOpportunities, search, setSearch } = usePipeline();
   const { addOpportunity, moveOpportunity, opportunities } = useSalesContext();
   const { competitors = [] } = useIntelligence();
-  const { selectedId, isOpen, openPanel, closePanel, daysInStage, agingLevel } =
-    useOpportunityPanel();
+  const { selectedId, isOpen, openPanel, closePanel, daysInStage, agingLevel, opportunity } =
+    useOpportunityPanel(scoredOpportunities);
 
   const pendingOpportunity = pendingMove
     ? opportunities.find((o) => o.uid === pendingMove.oppUid)
@@ -138,6 +138,7 @@ export function PipelineView() {
         daysInStage={daysInStage}
         agingLevel={agingLevel}
         stages={stages}
+        opportunity={opportunity}
       />
 
       {/* Dialog de cierre */}

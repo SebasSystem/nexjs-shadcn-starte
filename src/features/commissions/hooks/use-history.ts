@@ -11,6 +11,8 @@ import type { CommissionRun } from '../types/commissions.types';
 
 interface HistoryFilters {
   status?: string;
+  search?: string;
+  period?: string;
 }
 
 export const useHistory = (filters: HistoryFilters = {}) => {
@@ -19,6 +21,8 @@ export const useHistory = (filters: HistoryFilters = {}) => {
 
   const serverFilters = {
     ...(filters.status ? { status: filters.status.toLowerCase() } : {}),
+    ...(filters.search ? { search: filters.search } : {}),
+    ...(filters.period ? { period: filters.period } : {}),
   };
 
   const {
@@ -47,7 +51,8 @@ export const useHistory = (filters: HistoryFilters = {}) => {
   });
 
   const payMutation = useMutation({
-    mutationFn: (uid: string) => commissionService.payRun(uid),
+    mutationFn: (uid: string) =>
+      commissionService.payRun(uid, new Date().toISOString().split('T')[0]),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commissions.runs });
     },

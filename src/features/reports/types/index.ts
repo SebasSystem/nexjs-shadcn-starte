@@ -40,6 +40,11 @@ export interface ReportFilterParams {
   category?: string;
   start_date?: string;
   end_date?: string;
+  /** TODO(backend-pendiente): Backend ReportService no soporta `search`.
+   *  Cuando se agregue, este campo se enviará al endpoint y el filtrado
+   *  será server-side. Mientras tanto, el search bar existe en la UI
+   *  pero no produce filtrado efectivo. */
+  search?: string;
 }
 
 export interface WarehouseOption {

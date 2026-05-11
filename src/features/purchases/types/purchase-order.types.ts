@@ -4,9 +4,13 @@ export type PurchaseOrderStatus =
   | 'approved'
   | 'ordered'
   | 'partially_received'
+  | 'partial_received'
   | 'received'
   | 'closed'
-  | 'cancelled';
+  | 'cancelled'
+  | 'partial_paid'
+  | 'paid'
+  | 'overdue';
 
 export interface PurchaseOrder {
   uid: string;

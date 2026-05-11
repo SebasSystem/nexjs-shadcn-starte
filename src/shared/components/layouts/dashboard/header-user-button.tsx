@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { signOut } from 'src/features/auth/services/auth.service';
 import { cn } from 'src/lib/utils';
 import { paths } from 'src/routes/paths';
+import { setSession } from 'src/shared/auth/context/jwt/utils';
 import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
 import type { AuthUser } from 'src/shared/auth/types';
 import { Icon } from 'src/shared/components/ui';
@@ -35,7 +36,12 @@ export function HeaderUserButton({ user }: Props) {
   const { checkUserSession } = useAuthContext();
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch {
+      // best-effort — server may already have invalidated the token
+    }
+    setSession(null);
     await checkUserSession?.();
     router.push(paths.auth.jwt.signIn);
   };

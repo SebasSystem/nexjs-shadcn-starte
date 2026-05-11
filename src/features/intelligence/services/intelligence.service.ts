@@ -11,22 +11,14 @@ export const intelligenceService = {
   // ── Battlecards ──────────────────────────────────────────────────────────
 
   battlecards: {
-    getAll: async (params?: PaginationParams): Promise<Battlecard[]> => {
-      try {
-        const res = await axiosInstance.get(endpoints.intelligence.battlecards.list, { params });
-        return res.data; // full response — callers extract .data for the array
-      } catch {
-        return [];
-      }
+    getAll: async (params?: PaginationParams & { search?: string }): Promise<Battlecard[]> => {
+      const res = await axiosInstance.get(endpoints.intelligence.battlecards.list, { params });
+      return res.data; // full response — callers extract .data for the array
     },
 
     getById: async (uid: string): Promise<Battlecard | undefined> => {
-      try {
-        const res = await axiosInstance.get(endpoints.intelligence.battlecards.detail(uid));
-        return (res.data?.data ?? res.data) as Battlecard;
-      } catch {
-        return undefined;
-      }
+      const res = await axiosInstance.get(endpoints.intelligence.battlecards.detail(uid));
+      return (res.data?.data ?? res.data) as Battlecard;
     },
 
     create: async (
@@ -66,13 +58,11 @@ export const intelligenceService = {
   // ── Lost Reasons ─────────────────────────────────────────────────────────
 
   lostReasons: {
-    getAll: async (params?: PaginationParams): Promise<LostReason[]> => {
-      try {
-        const res = await axiosInstance.get(endpoints.intelligence.lostReasons.list, { params });
-        return res.data; // full response — callers extract .data for the array
-      } catch {
-        return [];
-      }
+    getAll: async (
+      params?: PaginationParams & { reason_type?: string; competitor_uid?: string; search?: string }
+    ): Promise<LostReason[]> => {
+      const res = await axiosInstance.get(endpoints.intelligence.lostReasons.list, { params });
+      return res.data; // full response — callers extract .data for the array
     },
 
     create: async (payload: Omit<LostReason, 'uid'>): Promise<LostReason> => {
@@ -101,12 +91,8 @@ export const intelligenceService = {
 
   competitors: {
     getAll: async (params?: PaginationParams): Promise<Competitor[]> => {
-      try {
-        const res = await axiosInstance.get(endpoints.intelligence.competitors.list, { params });
-        return res.data; // full response — callers extract .data for the array
-      } catch {
-        return [];
-      }
+      const res = await axiosInstance.get(endpoints.intelligence.competitors.list, { params });
+      return res.data; // full response — callers extract .data for the array
     },
   },
 };

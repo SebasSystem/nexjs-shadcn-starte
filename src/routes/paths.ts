@@ -24,7 +24,6 @@ export const paths = {
   auth: {
     jwt: {
       signIn: `${ROOTS.AUTH}/login`,
-      signUp: `${ROOTS.AUTH}/register`,
       forgotPassword: `${ROOTS.AUTH}/forgot-password`,
       resetPassword: `${ROOTS.AUTH}/reset-password`,
     },

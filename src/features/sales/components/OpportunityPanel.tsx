@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
@@ -7,6 +8,7 @@ import { useState } from 'react';
 import type { PipelineStage } from 'src/features/sales/types/sales.types';
 import { formatMoney } from 'src/lib/currency';
 import { toDate } from 'src/lib/date';
+import { queryKeys } from 'src/lib/query-keys';
 import { cn } from 'src/lib/utils';
 import { paths } from 'src/routes/paths';
 import { Badge } from 'src/shared/components/ui/badge';
@@ -14,9 +16,10 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Sheet, SheetContent, SheetTitle } from 'src/shared/components/ui/sheet';
 
-import { useSalesContext } from '../context/SalesContext';
 import type { AgingLevel } from '../hooks/useOpportunityPanel';
-import type { Opportunity } from '../types/sales.types';
+import { invoiceService } from '../services/invoice.service';
+import { quotationService } from '../services/quotation.service';
+import type { Invoice, Opportunity, Quotation } from '../types/sales.types';
 import { STATUS_LABELS } from '../types/sales.types';
 import { DealAvatar } from './DealAvatar';
 import { OpportunityQuotationsTab } from './OpportunityQuotationsTab';
@@ -54,10 +57,33 @@ interface InvoiceTabProps {
 
 function InvoiceTab({ opportunity, stages: _stages }: InvoiceTabProps) {
   const router = useRouter();
-  const { invoices } = useSalesContext();
 
-  // Invoices linked via quotation_uid
-  const invoice = invoices.find((inv) => inv.quotation_uid === opportunity.uid);
+  // Fetch quotations linked to this opportunity
+  const { data: linkedQuotations = [] } = useQuery<Quotation[]>({
+    queryKey: queryKeys.sales.quotationsByOpportunity(opportunity.uid),
+    queryFn: () => quotationService.getByOpportunity(opportunity.uid),
+    staleTime: 0,
+  });
+
+  // Fetch invoices for the first linked quotation
+  const firstQuotationUid = linkedQuotations[0]?.uid;
+
+  const { data: quotationInvoices = [], isLoading } = useQuery<Invoice[]>({
+    queryKey: queryKeys.sales.invoicesByQuotation(firstQuotationUid ?? ''),
+    queryFn: () => invoiceService.getByQuotation(firstQuotationUid!),
+    enabled: !!firstQuotationUid,
+    staleTime: 0,
+  });
+
+  const invoice = quotationInvoices[0];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <p className="text-body2 text-muted-foreground">Cargando factura…</p>
+      </div>
+    );
+  }
 
   if (!invoice) {
     return (
@@ -148,9 +174,11 @@ function ResumenTab({ opportunity, stages }: ResumenTabProps) {
   const probability = currentStage?.probability_percent ?? 0;
   const weightedAmount = opportunity.amount * (probability / 100);
 
+  const lostReasons = opportunity.lost_reasons;
+
   return (
     <div className="space-y-5">
-      {/* Lost reason info — future: populated from competitive intelligence API */}
+      {/* Lost reason info — populated from GET /opportunities/{uid} detail */}
       {isLost && (
         <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 space-y-2">
           <div className="flex items-center gap-2">
@@ -159,9 +187,28 @@ function ResumenTab({ opportunity, stages }: ResumenTabProps) {
               Oportunidad perdida
             </span>
           </div>
-          <p className="text-caption text-muted-foreground">
-            La información de pérdida se registra al mover a etapa final.
-          </p>
+          {lostReasons && lostReasons.length > 0 ? (
+            <ul className="space-y-1.5">
+              {lostReasons.map((reason, i) => (
+                <li key={i} className="text-caption text-muted-foreground">
+                  <span className="font-medium text-foreground">{reason.category}</span>
+                  {reason.competitor_name && (
+                    <span className="text-muted-foreground/70">
+                      {' '}
+                      — Competidor: {reason.competitor_name}
+                    </span>
+                  )}
+                  {reason.detail && (
+                    <p className="text-[11px] text-muted-foreground/60 mt-0.5">{reason.detail}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-caption text-muted-foreground">
+              La información de pérdida se registra al mover a etapa final.
+            </p>
+          )}
         </div>
       )}
 
@@ -285,21 +332,19 @@ interface OpportunityPanelProps {
   daysInStage: number;
   agingLevel: AgingLevel;
   stages: PipelineStage[];
+  opportunity: Opportunity | null;
 }
 
 export function OpportunityPanel({
-  opportunityId,
+  opportunityId: _opportunityId,
   isOpen,
   onClose,
   daysInStage,
   agingLevel,
   stages,
+  opportunity,
 }: OpportunityPanelProps) {
   const [activeTab, setActiveTab] = useState<TabId>('resumen');
-  const { opportunities } = useSalesContext();
-  const opportunity = opportunityId
-    ? opportunities.find((o) => o.uid === opportunityId)
-    : undefined;
 
   const agingStyle = AGING_STYLES[agingLevel];
   const currentStage = opportunity

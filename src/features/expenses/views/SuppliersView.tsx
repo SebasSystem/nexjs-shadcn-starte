@@ -14,6 +14,7 @@ import {
 import {
   Badge,
   Button,
+  ConfirmDialog,
   Icon,
   Input,
   Sheet,
@@ -40,6 +41,10 @@ export function SuppliersView() {
   const [taxId, setTaxId] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; uid: string }>({
+    open: false,
+    uid: '',
+  });
 
   const COLUMNS = [
     columnHelper.accessor('name', {
@@ -99,10 +104,7 @@ export function SuppliersView() {
             variant="ghost"
             size="icon-sm"
             className="text-red-500"
-            onClick={() => {
-              if (confirm(`¿Eliminar "${i.row.original.name}"?`))
-                deleteSupplier.mutate(i.row.original.uid);
-            }}
+            onClick={() => setDeleteDialog({ open: true, uid: i.row.original.uid })}
           >
             <Icon name="Trash2" size={14} />
           </Button>
@@ -215,6 +217,18 @@ export function SuppliersView() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+      <ConfirmDialog
+        open={deleteDialog.open}
+        onClose={() => setDeleteDialog({ open: false, uid: '' })}
+        onConfirm={async () => {
+          await deleteSupplier.mutateAsync(deleteDialog.uid);
+          setDeleteDialog({ open: false, uid: '' });
+        }}
+        title="Eliminar proveedor"
+        description="¿Estás seguro? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        variant="error"
+      />
     </PageContainer>
   );
 }

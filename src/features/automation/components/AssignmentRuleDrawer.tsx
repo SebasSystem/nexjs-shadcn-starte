@@ -17,6 +17,7 @@ import {
 } from 'src/shared/components/ui/sheet';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
+import { useUsers } from '../hooks/useUsers';
 import type { AssignmentRuleFormData } from '../schemas/assignment-rule.schema';
 import { assignmentRuleSchema } from '../schemas/assignment-rule.schema';
 import type { AssignmentRule, AssignmentRuleType } from '../types';
@@ -29,6 +30,14 @@ const TYPE_OPTIONS = (Object.keys(ASSIGNMENT_RULE_TYPE_LABELS) as AssignmentRule
   })
 );
 
+/**
+ * Countries list for geographic assignment rules.
+ * TODO: Ideally fetch from `GET /settings/localization/options` or a dedicated
+ * countries endpoint. The backend `SettingsController@localizationOptions` already
+ * returns locale options (currency, date format, etc.). A `countries` field could
+ * be added there. For now, keeping this hardcoded is acceptable — the country list
+ * rarely changes and the endpoint doesn't yet expose a countries array.
+ */
 const GEO_COUNTRIES = ['Colombia', 'México', 'Argentina', 'Perú', 'Chile', 'default'];
 
 interface AssignmentRuleDrawerProps {
@@ -47,6 +56,8 @@ export function AssignmentRuleDrawer({
   onUpdate,
 }: AssignmentRuleDrawerProps) {
   const isEditing = !!item;
+
+  const { userOptions } = useUsers();
 
   const form = useForm<AssignmentRuleFormData>({
     resolver: zodResolver(assignmentRuleSchema),
@@ -151,13 +162,12 @@ export function AssignmentRuleDrawer({
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">Usuarios asignables</p>
             <div className="space-y-2">
-              {/* TODO: Replace with backend users list */}
-              {([] as { id: string; name: string }[]).map((user) => (
+              {userOptions.map((user) => (
                 <label
-                  key={user.id}
+                  key={user.value}
                   className={cn(
                     'flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors',
-                    watchedUserIds.includes(user.id)
+                    watchedUserIds.includes(user.value)
                       ? 'border-primary/40 bg-primary/5'
                       : 'border-border/50 hover:border-border'
                   )}
@@ -165,10 +175,10 @@ export function AssignmentRuleDrawer({
                   <input
                     type="checkbox"
                     className="accent-primary"
-                    checked={watchedUserIds.includes(user.id)}
-                    onChange={() => toggleUser(user.id)}
+                    checked={watchedUserIds.includes(user.value)}
+                    onChange={() => toggleUser(user.value)}
                   />
-                  <span className="text-sm font-medium text-foreground">{user.name}</span>
+                  <span className="text-sm font-medium text-foreground">{user.label}</span>
                 </label>
               ))}
             </div>
@@ -198,14 +208,7 @@ export function AssignmentRuleDrawer({
                           <td className="px-3 py-2 font-medium text-foreground">{country}</td>
                           <td className="px-3 py-2">
                             <SelectField
-                              options={[
-                                { value: '', label: 'Sin asignar' },
-                                /* TODO: Replace with backend users */
-                                ...([] as { id: string; name: string }[]).map((u) => ({
-                                  value: u.id,
-                                  label: u.name,
-                                })),
-                              ]}
+                              options={[{ value: '', label: 'Sin asignar' }, ...userOptions]}
                               value={currentUser}
                               onChange={(v) => {
                                 const current = watchedGeoMapping ?? {};

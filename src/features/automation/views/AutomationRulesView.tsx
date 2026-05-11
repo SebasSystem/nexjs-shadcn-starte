@@ -21,6 +21,7 @@ import {
   useTable,
 } from 'src/shared/components/table';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 
@@ -42,6 +43,7 @@ export function AutomationRulesView() {
   const router = useRouter();
   const { rules, stats, toggleRule, deleteRule, isLoading, pagination } = useAutomationRules();
   const [search, setSearch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<AutomationRule | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -142,7 +144,7 @@ export function AutomationRulesView() {
               </button>
               <button
                 title="Eliminar"
-                onClick={() => deleteRule(rule.uid)}
+                onClick={() => setDeleteTarget(rule)}
                 className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
               >
                 <Icon name="Trash2" size={14} />
@@ -152,7 +154,7 @@ export function AutomationRulesView() {
         },
       }),
     ],
-    [router, toggleRule, deleteRule, columnHelper]
+    [router, toggleRule, columnHelper]
   );
 
   const { table, dense, onChangeDense } = useTable({
@@ -265,6 +267,24 @@ export function AutomationRulesView() {
           </div>
         </SectionCard>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) await deleteRule(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar regla?"
+        description={
+          <>
+            Vas a eliminar la regla <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
+            deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
+      />
     </PageContainer>
   );
 }

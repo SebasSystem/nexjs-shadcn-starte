@@ -16,6 +16,8 @@ export interface Opportunity {
   owner_user_uid: string;
   created_at: string;
   updated_at: string;
+  /** Populated by GET /opportunities/{uid} detail endpoint */
+  lost_reasons?: LostReasonInfo[];
 }
 
 export interface PipelineStage {
@@ -105,16 +107,41 @@ export interface Payment {
 
 // ─── Standalone Types (used by separate endpoints — not embedded in Opportunity) ─
 
-export type ActivityType = 'llamada' | 'email' | 'reunion' | 'demo' | 'seguimiento';
+export type ActivityType = 'llamada' | 'email' | 'reunion' | 'demo' | 'seguimiento' | 'nota';
 export type ActivityStatus = 'pendiente' | 'completada' | 'cancelada';
 
+/** Raw response from GET /opportunities/{uid}/activities (backend Activity model) */
 export interface Activity {
   uid: string;
+  type: string; // backend stores English: note, call, meeting, email, reminder
+  title?: string;
+  description?: string;
+  scheduled_at: string;
+  completed_at?: string;
+  status?: string;
+  priority?: string;
+  owner_user_uid?: string;
+  assigned_to_name?: string;
+  activityable_uid?: string;
+}
+
+/** Maps backend English type → frontend Spanish ActivityType */
+export function normalizeActivityType(type: string): ActivityType {
+  const map: Record<string, ActivityType> = {
+    note: 'nota',
+    call: 'llamada',
+    meeting: 'reunion',
+    email: 'email',
+    reminder: 'seguimiento',
+    task: 'seguimiento',
+  };
+  return map[type] ?? (type as ActivityType);
+}
+
+export interface ActivityPayload {
   type: ActivityType;
+  content: string;
   date: string;
-  responsible: string;
-  status: ActivityStatus;
-  notes?: string;
 }
 
 export interface Note {

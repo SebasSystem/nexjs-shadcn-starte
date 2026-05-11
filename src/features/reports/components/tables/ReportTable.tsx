@@ -1,7 +1,7 @@
 'use client';
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { StockBadge } from 'src/features/inventory/components/StockBadge';
 import { cn } from 'src/lib/utils';
 import { SectionCard } from 'src/shared/components/layouts/page';
@@ -31,18 +31,20 @@ const getCellIcon = (id: string): IconName | undefined => {
   return undefined;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function ReportTable({ data, columns }: { data: any[]; columns: any[] }) {
-  const [search, setSearch] = useState('');
+interface ReportTableProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  columns: any[];
+  /** Search term — lifted to parent so the hook can send it server-side.
+   *  TODO(backend-pendiente): Backend ReportService no soporta `search`.
+   *  El search bar está cableado al hook pero el backend ignora el param.
+   *  Cuando se implemente server-side, el filtrado será automático. */
+  search?: string;
+  onSearchChange?: (value: string) => void;
+}
 
-  const filteredData = useMemo(() => {
-    if (!search) return data;
-    const lower = search.toLowerCase();
-    return data.filter((row) =>
-      Object.values(row).some((val) => String(val).toLowerCase().includes(lower))
-    );
-  }, [data, search]);
-
+export function ReportTable({ data, columns, search = '', onSearchChange }: ReportTableProps) {
   const tanstackColumns = useMemo(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const helper = createColumnHelper<any>();
@@ -95,7 +97,7 @@ export function ReportTable({ data, columns }: { data: any[]; columns: any[] }) 
   }, [columns]);
 
   const { table, dense, onChangeDense } = useTable({
-    data: filteredData,
+    data,
     columns: tanstackColumns,
     defaultRowsPerPage: 10,
   });
@@ -110,7 +112,7 @@ export function ReportTable({ data, columns }: { data: any[]; columns: any[] }) 
           <Input
             placeholder="Buscar..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => onSearchChange?.(e.target.value)}
             leftIcon={<Icon name="Search" size={16} />}
           />
         </div>

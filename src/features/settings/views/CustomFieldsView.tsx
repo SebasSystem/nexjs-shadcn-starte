@@ -1,6 +1,8 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react';
+import { queryKeys } from 'src/lib/query-keys';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
@@ -11,16 +13,16 @@ import { useDebounce } from 'use-debounce';
 import { CustomFieldDrawer } from '../components/custom-fields/custom-field-drawer';
 import { CustomFieldsTable } from '../components/custom-fields/custom-fields-table';
 import { useCustomFields } from '../hooks/use-custom-fields';
+import { customFieldsService } from '../services/custom-fields.service';
 import type { CustomField, CustomFieldModule } from '../types/settings.types';
 
-const MODULE_LABELS: Record<CustomFieldModule, string> = {
+// Fallback labels in case the API doesn't return modules yet
+const FALLBACK_MODULE_LABELS: Record<string, string> = {
   contacts: 'Contactos',
   companies: 'Empresas',
   opportunities: 'Oportunidades',
   products: 'Productos',
 };
-
-const MODULES = Object.keys(MODULE_LABELS) as CustomFieldModule[];
 
 const formatCount = (n: number | undefined) => {
   if (n === undefined || n === 0) return null;
@@ -35,10 +37,38 @@ export const CustomFieldsView = () => {
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebounce(search, 400);
 
-  const { fields, isLoading, createField, updateField, deleteField, pagination } = useCustomFields({
-    module: filterModule,
-    search: debouncedSearch || undefined,
+  const { fields, isLoading, createField, updateField, deleteField, pagination, moduleTotals } =
+    useCustomFields({
+      module: filterModule,
+      search: debouncedSearch || undefined,
+    });
+
+  // Fetch available modules from backend (replaces hardcoded MODULES)
+  const { data: modulesData } = useQuery({
+    queryKey: queryKeys.settings.customFieldsModules,
+    queryFn: () => customFieldsService.getModules(),
+    staleTime: 10 * 60 * 1000,
   });
+
+  const availableModules: { key: CustomFieldModule; label: string }[] =
+    (modulesData as { data?: { key: string; label: string }[] } | undefined)?.data?.map(
+      (m: { key: string; label: string }) => ({
+        key: m.key as CustomFieldModule,
+        label: m.label,
+      })
+    ) ??
+    Object.keys(FALLBACK_MODULE_LABELS).map((k) => ({
+      key: k as CustomFieldModule,
+      label: FALLBACK_MODULE_LABELS[k],
+    }));
+
+  // Totals from meta.totals — shows real counts from backend for all modules
+  const totalAll = moduleTotals
+    ? moduleTotals.contacts +
+      moduleTotals.companies +
+      moduleTotals.opportunities +
+      moduleTotals.products
+    : pagination.total;
 
   const handleOpenNew = () => {
     setSelectedField(null);
@@ -98,20 +128,31 @@ export const CustomFieldsView = () => {
                 : 'bg-muted text-muted-foreground'
             }`}
           >
-            {formatCount(pagination.total)}
+            {formatCount(totalAll)}
           </span>
         </button>
-        {MODULES.map((mod) => (
+        {availableModules.map((mod) => (
           <button
-            key={mod}
-            onClick={() => setFilterModule(mod)}
+            key={mod.key}
+            onClick={() => setFilterModule(mod.key)}
             className={`px-4 py-2.5 text-sm font-medium transition-colors relative cursor-pointer ${
-              filterModule === mod
+              filterModule === mod.key
                 ? 'text-blue-600 border-b-2 border-blue-600 -mb-px'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            {MODULE_LABELS[mod]}
+            {mod.label}
+            {moduleTotals && (
+              <span
+                className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
+                  filterModule === mod.key
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                {formatCount(moduleTotals[mod.key])}
+              </span>
+            )}
           </button>
         ))}
       </div>

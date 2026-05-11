@@ -1,6 +1,8 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
@@ -20,36 +22,51 @@ export function useSegments() {
       if (meta) pagination.setTotal(meta.total);
       return (res as unknown as { data?: Segment[] }).data ?? ([] as Segment[]);
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (payload: SegmentPayload) => segmentsService.create(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.segments.list });
+      toast.success('Segmento creado correctamente');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ uid, payload }: { uid: string; payload: Partial<SegmentPayload> }) =>
+      segmentsService.update(uid, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.segments.list });
+      toast.success('Segmento actualizado correctamente');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (uid: string) => segmentsService.remove(uid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.segments.list });
+      toast.success('Segmento eliminado correctamente');
+    },
+    onError: (error) => toast.error(extractApiError(error)),
   });
 
   const createSegment = async (payload: SegmentPayload): Promise<boolean> => {
-    try {
-      await segmentsService.create(payload);
-      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.segments.list });
-      return true;
-    } catch {
-      return false;
-    }
+    await createMutation.mutateAsync(payload);
+    return true;
   };
 
   const updateSegment = async (uid: string, payload: Partial<SegmentPayload>): Promise<boolean> => {
-    try {
-      await segmentsService.update(uid, payload);
-      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.segments.list });
-      return true;
-    } catch {
-      return false;
-    }
+    await updateMutation.mutateAsync({ uid, payload });
+    return true;
   };
 
   const deleteSegment = async (uid: string): Promise<boolean> => {
-    try {
-      await segmentsService.remove(uid);
-      queryClient.invalidateQueries({ queryKey: queryKeys.contacts.segments.list });
-      return true;
-    } catch {
-      return false;
-    }
+    await deleteMutation.mutateAsync(uid);
+    return true;
   };
 
   return {

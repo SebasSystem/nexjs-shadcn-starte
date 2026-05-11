@@ -25,6 +25,7 @@ export interface CostCenter {
 export interface Expense {
   uid: string;
   expense_number: string;
+  title: string;
   description: string;
   amount: number;
   expense_date: string;
@@ -37,6 +38,7 @@ export interface Expense {
 }
 
 export interface ExpensePayload {
+  title: string;
   description: string;
   amount: number;
   expense_date: string;

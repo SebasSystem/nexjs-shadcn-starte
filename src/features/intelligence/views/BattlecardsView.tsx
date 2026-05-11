@@ -1,23 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { PageContainer, PageHeader, StatsCard } from 'src/shared/components/layouts/page';
-import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+import { Button, Icon, Input } from 'src/shared/components/ui';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { PaginationBar } from 'src/shared/components/ui/PaginationBar';
 
 import { BattlecardCard } from '../components/BattlecardCard';
 import { BattlecardDrawer } from '../components/BattlecardDrawer';
 import { useIntelligence } from '../hooks/useIntelligence';
-import type { Battlecard, CompetitorTier } from '../types';
-import { COMPETITOR_TIER_CONFIG } from '../types';
-
-const TIER_OPTIONS = [
-  { value: '', label: 'Todos los tiers' },
-  ...Object.entries(COMPETITOR_TIER_CONFIG).map(([value, config]) => ({
-    value,
-    label: config.label,
-  })),
-];
+import type { Battlecard } from '../types';
 
 export function BattlecardsView() {
   const {
@@ -30,27 +22,11 @@ export function BattlecardsView() {
     battlecardsPagination,
   } = useIntelligence();
 
-  const [search, setSearch] = useState('');
-  const [tierFilter, setTierFilter] = useState('');
+  // TODO: tier filter — backend battlecards() acepta competitor_uid pero no filtra
+  // por tier del competidor. Requiere join con competitors table en backend.
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<Battlecard | null>(null);
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return battlecards.filter((bc) => {
-      const matchesSearch =
-        !q || bc.competitor_name.toLowerCase().includes(q) || bc.summary.toLowerCase().includes(q);
-
-      if (!matchesSearch) return false;
-
-      if (tierFilter) {
-        const competitor = competitors.find((c) => c.uid === bc.competitor_uid);
-        return competitor?.tier === (tierFilter as CompetitorTier);
-      }
-
-      return true;
-    });
-  }, [battlecards, competitors, search, tierFilter]);
+  const [deleteTarget, setDeleteTarget] = useState<Battlecard | null>(null);
 
   const handleEdit = (bc: Battlecard) => {
     setEditing(bc);
@@ -104,31 +80,21 @@ export function BattlecardsView() {
         />
       </div>
 
-      {/* Filtros */}
+      {/* Filters — search is server-side via battlecardsPagination */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex-1 min-w-[220px]">
           <Input
             label="Buscar"
             placeholder="Buscar competidor..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={battlecardsPagination.search ?? ''}
+            onChange={(e) => battlecardsPagination.onChangeSearch(e.target.value)}
             leftIcon={<Icon name="Search" size={15} />}
-          />
-        </div>
-        <div className="min-w-[180px]">
-          <SelectField
-            label="Tier"
-            options={TIER_OPTIONS}
-            value={tierFilter}
-            onChange={(v) => setTierFilter(v as string)}
-            placeholder="Todos los tiers"
-            clearable
           />
         </div>
       </div>
 
       {/* Grid de cards */}
-      {filtered.length === 0 ? (
+      {battlecards.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-full bg-muted/50 flex items-center justify-center mb-3">
             <Icon name="Swords" size={26} className="text-muted-foreground" />
@@ -141,12 +107,12 @@ export function BattlecardsView() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {filtered.map((bc) => (
+            {battlecards.map((bc) => (
               <BattlecardCard
                 key={bc.uid}
                 battlecard={bc}
                 onEdit={handleEdit}
-                onDelete={deleteBattlecard}
+                onDelete={() => setDeleteTarget(bc)}
               />
             ))}
           </div>
@@ -165,6 +131,24 @@ export function BattlecardsView() {
         onClose={handleClose}
         onCreate={createBattlecard}
         onUpdate={updateBattlecard}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) await deleteBattlecard(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar battlecard?"
+        description={
+          <>
+            Vas a eliminar la battlecard de <strong>{deleteTarget?.competitor_name}</strong>. Esta
+            acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
       />
     </PageContainer>
   );

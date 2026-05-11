@@ -1,10 +1,21 @@
 import axiosInstance, { endpoints } from 'src/lib/axios';
+import type { PaginationParams } from 'src/shared/lib/pagination';
 
 import type { PurchaseOrder, PurchaseOrderPayload } from '../types/purchase-order.types';
 
+export interface ListPurchaseOrdersParams extends PaginationParams {
+  /** Backend-supported: filters by purchase order status.
+   *  Valid values (backend): draft, approved, partial_received, received,
+   *  cancelled, partial_paid, paid, overdue.
+   *  Search is also backend-supported via the `search` field (inherited from PaginationParams). */
+  status?: string;
+}
+
 export const purchaseOrderService = {
-  async list(): Promise<{ data: PurchaseOrder[] }> {
-    const res = await axiosInstance.get(endpoints.purchases.list);
+  async list(
+    params?: ListPurchaseOrdersParams
+  ): Promise<{ data: PurchaseOrder[]; meta?: unknown }> {
+    const res = await axiosInstance.get(endpoints.purchases.list, { params });
     return res.data;
   },
   async get(uid: string): Promise<PurchaseOrder> {

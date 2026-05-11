@@ -130,3 +130,19 @@ export interface CreateRunPayload {
   period: string;
   total_sales: number;
 }
+
+// ─── Simulate ────────────────────────────────────────────────────────────────
+
+export interface SimulatePayload {
+  plan_uid: string;
+  total_sales: number;
+  margin_amount?: number;
+}
+
+export interface SimulateResult {
+  plan_uid: string;
+  total_sales: number;
+  commission_amount: number;
+  effective_percentage: number;
+  tier_applied: number;
+}

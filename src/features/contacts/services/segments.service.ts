@@ -10,14 +10,10 @@ export const segmentsService = {
     return res.data;
   },
 
-  /** Fetches a single segment by uid */
-  getById: async (uid: string): Promise<Segment | undefined> => {
-    try {
-      const res = await axiosInstance.get(endpoints.contacts.segments.detail(uid));
-      return (res.data?.data ?? res.data) as Segment;
-    } catch {
-      return undefined;
-    }
+  /** Fetches a single segment by uid — lets errors propagate (hook handles onError) */
+  getById: async (uid: string): Promise<Segment> => {
+    const res = await axiosInstance.get(endpoints.contacts.segments.detail(uid));
+    return (res.data?.data ?? res.data) as Segment;
   },
 
   /** Creates a new segment */

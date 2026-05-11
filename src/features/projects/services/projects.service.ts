@@ -10,9 +10,14 @@ import type {
   ProjectResourcePayload,
 } from '../types';
 
+export interface ListProjectsParams extends PaginationParams {
+  /** Backend-supported: filters by project status (pending, active, completed, etc.) */
+  status?: string;
+}
+
 export const projectsService = {
-  /** Fetches all projects */
-  list: async (params?: PaginationParams): Promise<Project[]> => {
+  /** Fetches projects with optional server-side filters */
+  list: async (params?: ListProjectsParams): Promise<Project[]> => {
     const res = await axiosInstance.get(endpoints.projects.list, { params });
     return res.data; // full response — callers extract .data for the array
   },

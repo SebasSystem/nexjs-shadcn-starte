@@ -1,7 +1,7 @@
 'use client';
 
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createContext, type ReactNode, useCallback, useContext } from 'react';
+import { createContext, type ReactNode, useCallback, useContext, useState } from 'react';
 import { toast } from 'sonner';
 import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
@@ -34,6 +34,11 @@ interface SalesContextValue {
   refreshQuotations: () => Promise<void>;
   refreshInvoices: () => Promise<void>;
 
+  /** Quotations server-side filters */
+  quotationSearch: string;
+  onChangeQuotationSearch: (search: string) => void;
+  quotationStatus: string;
+  onChangeQuotationStatus: (status: string) => void;
   quotationsPagination: {
     page: number;
     rowsPerPage: number;
@@ -41,6 +46,11 @@ interface SalesContextValue {
     onChangePage: (page: number) => void;
     onChangeRowsPerPage: (size: number) => void;
   };
+  /** Invoices server-side filters */
+  invoiceSearch: string;
+  onChangeInvoiceSearch: (search: string) => void;
+  invoiceStatus: string;
+  onChangeInvoiceStatus: (status: string) => void;
   invoicesPagination: {
     page: number;
     rowsPerPage: number;
@@ -61,6 +71,10 @@ export function SalesProvider({ children }: { children: ReactNode }) {
   const quotationsPagination = usePaginationParams();
   const invoicesPagination = usePaginationParams();
 
+  // Server-side filter state — status is NOT part of PaginationParams
+  const [quotationStatus, setQuotationStatus] = useState('');
+  const [invoiceStatus, setInvoiceStatus] = useState('');
+
   const {
     data: opportunities = [],
     isLoading: oppsLoading,
@@ -74,10 +88,16 @@ export function SalesProvider({ children }: { children: ReactNode }) {
     staleTime: 0,
   });
 
+  // Merge server-side status filter with pagination params (which already includes search)
+  const quotationQueryParams = {
+    ...quotationsPagination.params,
+    ...(quotationStatus ? { status: quotationStatus } : {}),
+  };
+
   const { data: quotations = [], isLoading: quotesLoading } = useQuery({
-    queryKey: [...queryKeys.sales.quotations, quotationsPagination.params],
+    queryKey: [...queryKeys.sales.quotations, quotationQueryParams],
     queryFn: async () => {
-      const res = await quotationService.getList(quotationsPagination.params);
+      const res = await quotationService.getList(quotationQueryParams);
       const meta = extractPaginationMeta(res as unknown as Record<string, unknown>);
       if (meta) quotationsPagination.setTotal(meta.total);
       return ((res as unknown as { data?: Quotation[] }).data ?? []) as Quotation[];
@@ -86,10 +106,16 @@ export function SalesProvider({ children }: { children: ReactNode }) {
     placeholderData: keepPreviousData,
   });
 
+  // Merge server-side status filter with pagination params
+  const invoiceQueryParams = {
+    ...invoicesPagination.params,
+    ...(invoiceStatus ? { status: invoiceStatus } : {}),
+  };
+
   const { data: invoices = [], isLoading: invsLoading } = useQuery({
-    queryKey: [...queryKeys.sales.invoices, invoicesPagination.params],
+    queryKey: [...queryKeys.sales.invoices, invoiceQueryParams],
     queryFn: async () => {
-      const res = await invoiceService.getList(invoicesPagination.params);
+      const res = await invoiceService.getList(invoiceQueryParams);
       const meta = extractPaginationMeta(res as unknown as Record<string, unknown>);
       if (meta) invoicesPagination.setTotal(meta.total);
       return ((res as unknown as { data?: Invoice[] }).data ?? []) as Invoice[];
@@ -212,6 +238,10 @@ export function SalesProvider({ children }: { children: ReactNode }) {
         refreshOpportunities,
         refreshQuotations,
         refreshInvoices,
+        quotationSearch: quotationsPagination.search ?? '',
+        onChangeQuotationSearch: quotationsPagination.onChangeSearch,
+        quotationStatus,
+        onChangeQuotationStatus: setQuotationStatus,
         quotationsPagination: {
           page: quotationsPagination.page,
           rowsPerPage: quotationsPagination.rowsPerPage,
@@ -219,6 +249,10 @@ export function SalesProvider({ children }: { children: ReactNode }) {
           onChangePage: quotationsPagination.onChangePage,
           onChangeRowsPerPage: quotationsPagination.onChangeRowsPerPage,
         },
+        invoiceSearch: invoicesPagination.search ?? '',
+        onChangeInvoiceSearch: invoicesPagination.onChangeSearch,
+        invoiceStatus,
+        onChangeInvoiceStatus: setInvoiceStatus,
         invoicesPagination: {
           page: invoicesPagination.page,
           rowsPerPage: invoicesPagination.rowsPerPage,

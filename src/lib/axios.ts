@@ -63,11 +63,9 @@ export const endpoints = {
     me: '/me',
     init: '/auth/init',
     logout: '/logout',
-    register: '/auth/register',
     forgotPassword: '/forgot-password',
     resetPassword: '/reset-password',
-    /** @deprecated Use init() instead — single call to /auth/init */
-    userAccess: (uid: string) => `/users/${uid}/access`,
+    userAccess: (uid: string) => `/users/${uid}/access`, // unused — kept for reference
     twoFactor: {
       setup: '/2fa/setup', // GET → { secret, otpauth_url }
       confirm: '/2fa/confirm', // POST { code } → { token, recovery_codes[] }
@@ -179,6 +177,15 @@ export const endpoints = {
       options: '/settings/localization/options',
     },
   },
+  relations: {
+    list: '/relations',
+    listWithEntities: '/relations/with-entities',
+    create: '/relations',
+    detail: (uid: string) => `/relations/${uid}`,
+    delete: (uid: string) => `/relations/${uid}`,
+    byEntity: (type: string, uid: string) => `/relations/${type}/${uid}`,
+    hierarchy: (type: string, uid: string) => `/relations/hierarchy/${type}/${uid}`,
+  },
   contacts: {
     checkDuplicate: '/contacts/check-duplicate',
     accounts: {
@@ -208,6 +215,9 @@ export const endpoints = {
     board: '/opportunities/board',
     opportunities: '/opportunities',
     opportunity: (uid: string) => `/opportunities/${uid}`,
+    opportunityActivities: (uid: string) => `/opportunities/${uid}/activities`,
+    opportunityActivity: (uid: string, activityUid: string) =>
+      `/opportunities/${uid}/activities/${activityUid}`,
     quotations: '/quotations',
     quotation: (uid: string) => `/quotations/${uid}`,
     quotationPdf: (uid: string) => `/quotations/${uid}/pdf`,
@@ -217,6 +227,7 @@ export const endpoints = {
     quote: (uid: string) => `/quotes/${uid}`,
     financeDashboard: '/finance/dashboard',
     financeInvoices: '/finance/invoices',
+    invoicesByQuotation: (uid: string) => `/invoices?quotation_uid=${uid}`,
     financePayments: '/finance/payments',
     financeAlerts: '/finance/alerts',
     creditSummary: (type: string, uid: string) => `/finance/credit/${type}/${uid}`,
@@ -228,6 +239,7 @@ export const endpoints = {
     currencyConvert: '/currency/convert',
     paymentHistory: (invoiceUid: string) => `/payments/${invoiceUid}`,
     financeSyncOverdue: '/finance/sync-overdue',
+    lostReasonsByOpportunity: (uid: string) => `/lost-reasons?opportunity_uid=${uid}`,
   },
   projects: {
     list: '/projects',
@@ -403,6 +415,8 @@ export const endpoints = {
       pay: (uid: string) => `/commissions/runs/${uid}/pay`,
     },
     simulate: '/commissions/simulate',
+    historyPdf: '/commissions/history/pdf',
+    periods: '/commissions/periods',
     dashboard: (userUid: string) => `/commissions/dashboard/${userUid}`,
     mySummary: '/commissions/my-summary',
   },

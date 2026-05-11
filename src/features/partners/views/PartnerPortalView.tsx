@@ -9,31 +9,31 @@ import {
   StatsCard,
 } from 'src/shared/components/layouts/page';
 import { Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 
 import { MaterialCard } from '../components/MaterialCard';
 import { MaterialUploadDrawer } from '../components/MaterialUploadDrawer';
 import { usePartners } from '../hooks/usePartners';
+import type { PortalMaterial } from '../types';
 import { MATERIAL_TYPE_CONFIG } from '../types';
 
 // ─── Main View ────────────────────────────────────────────────────────────────
 
 export function PartnerPortalView() {
-  const { materials, materialStats, createMaterial } = usePartners();
+  const { materials, materialStats, materialPagination, createMaterial, removeMaterial } =
+    usePartners();
 
-  const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<PortalMaterial | null>(null);
 
+  // Only type filter remains client-side (backend doesn't support ?type= yet)
   const filtered = useMemo(() => {
     return materials.filter((m) => {
-      const matchSearch =
-        !search ||
-        m.title.toLowerCase().includes(search.toLowerCase()) ||
-        m.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()));
       const matchType = filterType === 'all' || m.type === filterType;
-      return matchSearch && matchType;
+      return matchType;
     });
-  }, [materials, search, filterType]);
+  }, [materials, filterType]);
 
   const statsCards = [
     {
@@ -98,8 +98,8 @@ export function PartnerPortalView() {
             <Input
               label="Buscar"
               placeholder="Buscar por título o tags..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={materialPagination.search ?? ''}
+              onChange={(e) => materialPagination.onChangeSearch(e.target.value)}
               leftIcon={<Icon name="Search" size={15} />}
             />
           </div>
@@ -130,7 +130,11 @@ export function PartnerPortalView() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((material) => (
-              <MaterialCard key={material.uid} material={material} />
+              <MaterialCard
+                key={material.uid}
+                material={material}
+                onDelete={() => setDeleteTarget(material)}
+              />
             ))}
           </div>
         )}
@@ -140,6 +144,23 @@ export function PartnerPortalView() {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onUpload={createMaterial}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) await removeMaterial(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar material?"
+        description={
+          <>
+            Vas a eliminar <strong>{deleteTarget?.title}</strong>. Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
       />
     </PageContainer>
   );

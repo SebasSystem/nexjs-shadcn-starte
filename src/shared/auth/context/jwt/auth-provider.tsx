@@ -10,6 +10,7 @@ import { isValidToken, setSession } from './utils';
 
 type Props = { children: ReactNode };
 
+/** Fallback: derive permissions from modules when backend doesn't return them yet */
 function derivePermissions(modules: Module[]): string[] {
   return modules.flatMap((m) => m.permissions.map((p) => `${m.key}.${p}`));
 }
@@ -31,7 +32,8 @@ export function AuthProvider({ children }: Props) {
         setSession(accessToken);
 
         const data = await init();
-        const { user, modules, localization: loc } = data;
+        const payload = data?.data ?? data;
+        const { user, modules, localization: loc, permissions: permsPayload } = payload;
 
         if (user) {
           // Set currency preferences from auth/init localization
@@ -41,7 +43,11 @@ export function AuthProvider({ children }: Props) {
             setCurrencyPreferences(prefs, 'platform');
           }
 
-          const permissions = derivePermissions(modules);
+          // Prefer backend-provided permissions (GET /auth/init now includes them).
+          // Fall back to deriving from modules if the backend hasn't been deployed yet.
+          const permissions: string[] = permsPayload?.effective?.length
+            ? permsPayload.effective
+            : derivePermissions(modules);
 
           setState({
             user: {

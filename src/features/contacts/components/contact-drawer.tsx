@@ -110,13 +110,16 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
 
   const checkDuplicate = useCallback(async () => {
     if (!email || email.length < 5) return;
-    const { emailDuplicate, taxIdDuplicate } = await contactsService.checkDuplicate(
+    const raw = await contactsService.checkDuplicate({
       email,
-      type === 'company' ? taxId : undefined,
-      contacto?.uid
-    );
-    if (emailDuplicate) setDuplicateWarning('Ya existe un contacto con este email.');
-    else if (taxIdDuplicate) setDuplicateWarning('Ya existe una empresa con este NIT.');
+      tax_id: type === 'company' ? (taxId ?? null) : null,
+      exclude_uid: contacto?.uid ?? null,
+    });
+    const data = raw as Record<string, unknown>;
+    const emailDup = (data.email_duplicate as boolean) ?? false;
+    const taxIdDup = (data.tax_id_duplicate as boolean) ?? false;
+    if (emailDup) setDuplicateWarning('Ya existe un contacto con este email.');
+    else if (taxIdDup) setDuplicateWarning('Ya existe una empresa con este NIT.');
     else setDuplicateWarning(null);
   }, [email, taxId, type, contacto?.uid]);
 

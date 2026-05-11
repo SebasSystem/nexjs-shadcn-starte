@@ -21,6 +21,7 @@ import {
   useTable,
 } from 'src/shared/components/table';
 import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 
 import { PartnerOpportunityDrawer } from '../components/PartnerOpportunityDrawer';
 import { usePartners } from '../hooks/usePartners';
@@ -34,6 +35,9 @@ const columnHelper = createColumnHelper<PartnerOpportunity>();
 // ─── Main View ────────────────────────────────────────────────────────────────
 
 export function PartnerOpportunitiesView() {
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPartner, setFilterPartner] = useState('all');
+
   const {
     opportunities,
     partners,
@@ -43,27 +47,16 @@ export function PartnerOpportunitiesView() {
     approveOpportunity,
     rejectOpportunity,
     convertOpportunity,
-  } = usePartners();
-
-  const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterPartner, setFilterPartner] = useState('all');
+    removeOpportunity,
+    oppPagination,
+  } = usePartners({
+    oppStatus: filterStatus !== 'all' ? filterStatus : undefined,
+    oppPartnerUid: filterPartner !== 'all' ? filterPartner : undefined,
+  });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit'>('create');
   const [selectedOpp, setSelectedOpp] = useState<PartnerOpportunity | null>(null);
-
-  const filtered = useMemo(() => {
-    return opportunities.filter((o) => {
-      const matchSearch =
-        !search ||
-        o.partner_name.toLowerCase().includes(search.toLowerCase()) ||
-        o.client_name.toLowerCase().includes(search.toLowerCase()) ||
-        o.product.toLowerCase().includes(search.toLowerCase());
-      const matchStatus = filterStatus === 'all' || o.status === filterStatus;
-      const matchPartner = filterPartner === 'all' || o.partner_uid === filterPartner;
-      return matchSearch && matchStatus && matchPartner;
-    });
-  }, [opportunities, search, filterStatus, filterPartner]);
+  const [deleteTarget, setDeleteTarget] = useState<PartnerOpportunity | null>(null);
 
   const COLUMNS = useMemo(
     () => [
@@ -187,6 +180,12 @@ export function PartnerOpportunitiesView() {
               >
                 <Icon name="Pencil" size={14} />
               </button>
+              <button
+                className="text-muted-foreground hover:text-destructive transition-colors ml-1"
+                onClick={() => setDeleteTarget(info.row.original)}
+              >
+                <Icon name="Trash2" size={14} />
+              </button>
             </div>
           );
         },
@@ -196,9 +195,13 @@ export function PartnerOpportunitiesView() {
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: filtered,
+    data: opportunities,
     columns: COLUMNS,
-    defaultRowsPerPage: 15,
+    total: oppPagination.total,
+    pageIndex: oppPagination.page - 1,
+    pageSize: oppPagination.rowsPerPage,
+    onPageChange: (pi: number) => oppPagination.onChangePage(pi + 1),
+    onPageSizeChange: oppPagination.onChangeRowsPerPage,
   });
 
   const statsCards = [
@@ -298,8 +301,8 @@ export function PartnerOpportunitiesView() {
             <Input
               label="Buscar"
               placeholder="Buscar por partner, cliente o producto..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={oppPagination.search ?? ''}
+              onChange={(e) => oppPagination.onChangeSearch(e.target.value)}
               leftIcon={<Icon name="Search" size={15} />}
             />
           </div>
@@ -360,6 +363,24 @@ export function PartnerOpportunitiesView() {
         }}
         onCreate={createOpportunity}
         onUpdate={updateOpportunity}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) await removeOpportunity(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar oportunidad?"
+        description={
+          <>
+            Vas a eliminar la oportunidad de <strong>{deleteTarget?.client_name}</strong> con{' '}
+            <strong>{deleteTarget?.partner_name}</strong>. Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
       />
     </PageContainer>
   );

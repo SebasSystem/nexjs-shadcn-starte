@@ -4,6 +4,11 @@ import type { PaginationParams } from 'src/shared/lib/pagination';
 import type { CustomField } from '../types/settings.types';
 
 export const customFieldsService = {
+  async getModules(): Promise<unknown> {
+    const res = await axiosInstance.get(endpoints.settings.customFields.modules);
+    return res.data;
+  },
+
   async getAll(
     params?: PaginationParams & { entity_type?: string; search?: string }
   ): Promise<unknown> {

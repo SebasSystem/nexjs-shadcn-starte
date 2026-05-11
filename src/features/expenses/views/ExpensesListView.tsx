@@ -12,11 +12,13 @@ import {
   TableCell,
   TableContainer,
   TableHeadCustom,
+  TablePaginationCustom,
   TableRow,
   useTable,
 } from 'src/shared/components/table';
 import {
   Button,
+  ConfirmDialog,
   Icon,
   Input,
   SelectField,
@@ -38,13 +40,23 @@ import type { Expense, ExpensePayload } from '../types/expenses.types';
 const columnHelper = createColumnHelper<Expense>();
 
 export function ExpensesListView() {
-  const { expenses, createExpense, updateExpense, deleteExpense } = useExpenses();
+  const [statusFilter, setStatusFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [supplierFilter, setSupplierFilter] = useState('');
+  const [costCenterFilter, setCostCenterFilter] = useState('');
+  const { expenses, createExpense, updateExpense, deleteExpense, pagination } = useExpenses({
+    status: statusFilter || undefined,
+    category_uid: categoryFilter || undefined,
+    supplier_uid: supplierFilter || undefined,
+    cost_center_uid: costCenterFilter || undefined,
+  });
   const { categories } = useExpenseCategories();
   const { suppliers } = useSuppliers();
   const { costCenters } = useCostCenters();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [expenseDate, setExpenseDate] = useState('');
@@ -52,15 +64,23 @@ export function ExpensesListView() {
   const [supplierUid, setSupplierUid] = useState('');
   const [costCenterUid, setCostCenterUid] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; uid: string }>({
+    open: false,
+    uid: '',
+  });
 
   const COLUMNS = [
     columnHelper.accessor('expense_number', {
       header: 'N°',
       cell: (i) => <span className="font-mono text-xs text-muted-foreground">{i.getValue()}</span>,
     }),
+    columnHelper.accessor('title', {
+      header: 'Título',
+      cell: (i) => <span className="font-medium text-foreground">{i.getValue()}</span>,
+    }),
     columnHelper.accessor('description', {
       header: 'Descripción',
-      cell: (i) => <span className="font-medium text-foreground">{i.getValue()}</span>,
+      cell: (i) => <span className="text-sm text-muted-foreground">{i.getValue()}</span>,
     }),
     columnHelper.accessor('amount', {
       header: 'Monto',
@@ -91,6 +111,7 @@ export function ExpensesListView() {
             onClick={() => {
               const e = i.row.original;
               setEditing(e);
+              setTitle(e.title || '');
               setDescription(e.description);
               setAmount(String(e.amount));
               setExpenseDate(e.expense_date?.substring(0, 10) || '');
@@ -106,9 +127,7 @@ export function ExpensesListView() {
             variant="ghost"
             size="icon-sm"
             className="text-red-500"
-            onClick={() => {
-              if (confirm('¿Eliminar?')) deleteExpense.mutate(i.row.original.uid);
-            }}
+            onClick={() => setDeleteDialog({ open: true, uid: i.row.original.uid })}
           >
             <Icon name="Trash2" size={14} />
           </Button>
@@ -117,13 +136,22 @@ export function ExpensesListView() {
     }),
   ];
 
-  const { table } = useTable({ data: expenses, columns: COLUMNS });
+  const { table, dense, onChangeDense } = useTable({
+    data: expenses,
+    columns: COLUMNS,
+    total: pagination.total,
+    pageIndex: pagination.page - 1,
+    pageSize: pagination.rowsPerPage,
+    onPageChange: (pi: number) => pagination.onChangePage(pi + 1),
+    onPageSizeChange: pagination.onChangeRowsPerPage,
+  });
 
   async function handleSave() {
-    if (!description.trim() || !amount) return;
+    if (!title.trim() || !description.trim() || !amount) return;
     setSaving(true);
     try {
       const payload: ExpensePayload = {
+        title: title.trim(),
         description: description.trim(),
         amount: Number(amount),
         expense_date: expenseDate || new Date().toISOString().substring(0, 10),
@@ -144,6 +172,7 @@ export function ExpensesListView() {
 
   function openCreate() {
     setEditing(null);
+    setTitle('');
     setDescription('');
     setAmount('');
     setExpenseDate('');
@@ -165,6 +194,57 @@ export function ExpensesListView() {
           </Button>
         }
       />
+      {/* Filters — server-side via useExpenses */}
+      <div className="flex flex-wrap items-end gap-3 px-5 py-4">
+        <div className="flex-1 min-w-[200px]">
+          <Input
+            label="Buscar"
+            placeholder="Buscar gastos..."
+            value={pagination.search ?? ''}
+            onChange={(e) => pagination.onChangeSearch(e.target.value)}
+            leftIcon={<Icon name="Search" size={15} />}
+          />
+        </div>
+        <SelectField
+          label="Estado"
+          options={[
+            { value: '', label: 'Todos los estados' },
+            { value: 'draft', label: 'Borrador' },
+            { value: 'submitted', label: 'Enviado' },
+            { value: 'approved', label: 'Aprobado' },
+            { value: 'paid', label: 'Pagado' },
+          ]}
+          value={statusFilter}
+          onChange={(v) => setStatusFilter(v as string)}
+        />
+        <SelectField
+          label="Categoría"
+          options={[
+            { value: '', label: 'Todas las categorías' },
+            ...categories.map((c) => ({ value: c.uid, label: c.name })),
+          ]}
+          value={categoryFilter}
+          onChange={(v) => setCategoryFilter(v as string)}
+        />
+        <SelectField
+          label="Proveedor"
+          options={[
+            { value: '', label: 'Todos los proveedores' },
+            ...suppliers.map((s) => ({ value: s.uid, label: s.name })),
+          ]}
+          value={supplierFilter}
+          onChange={(v) => setSupplierFilter(v as string)}
+        />
+        <SelectField
+          label="Centro de Costo"
+          options={[
+            { value: '', label: 'Todos los centros' },
+            ...costCenters.map((cc) => ({ value: cc.uid, label: cc.name })),
+          ]}
+          value={costCenterFilter}
+          onChange={(v) => setCostCenterFilter(v as string)}
+        />
+      </div>
       <SectionCard noPadding>
         <TableContainer>
           <Table>
@@ -182,6 +262,14 @@ export function ExpensesListView() {
             </TableBody>
           </Table>
         </TableContainer>
+        <div className="border-t border-border/40">
+          <TablePaginationCustom
+            table={table}
+            total={pagination.total}
+            dense={dense}
+            onChangeDense={onChangeDense}
+          />
+        </div>
       </SectionCard>
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
         <SheetContent className="sm:max-w-md">
@@ -189,6 +277,12 @@ export function ExpensesListView() {
             <SheetTitle>{editing ? 'Editar Gasto' : 'Nuevo Gasto'}</SheetTitle>
           </SheetHeader>
           <div className="space-y-4 py-6">
+            <Input
+              label="Título"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Ej: Pago de servicios"
+            />
             <Input
               label="Descripción"
               value={description}
@@ -243,13 +337,25 @@ export function ExpensesListView() {
             <Button
               color="primary"
               onClick={handleSave}
-              disabled={saving || !description.trim() || !amount}
+              disabled={saving || !title.trim() || !description.trim() || !amount}
             >
               {saving ? 'Guardando...' : editing ? 'Actualizar' : 'Crear'}
             </Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>
+      <ConfirmDialog
+        open={deleteDialog.open}
+        onClose={() => setDeleteDialog({ open: false, uid: '' })}
+        onConfirm={async () => {
+          await deleteExpense.mutateAsync(deleteDialog.uid);
+          setDeleteDialog({ open: false, uid: '' });
+        }}
+        title="Eliminar gasto"
+        description="¿Estás seguro? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        variant="error"
+      />
     </PageContainer>
   );
 }

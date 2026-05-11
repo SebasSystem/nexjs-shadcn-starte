@@ -1,6 +1,7 @@
 'use client';
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
@@ -10,6 +11,13 @@ import { extractPaginationMeta } from 'src/shared/lib/pagination';
 import { customFieldsService } from '../services/custom-fields.service';
 import type { CustomField, CustomFieldModule } from '../types/settings.types';
 
+export interface ModuleTotals {
+  contacts: number;
+  companies: number;
+  opportunities: number;
+  products: number;
+}
+
 interface CustomFieldFilters {
   module?: CustomFieldModule | 'ALL';
   search?: string;
@@ -18,6 +26,7 @@ interface CustomFieldFilters {
 export function useCustomFields(filters: CustomFieldFilters = {}) {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
+  const [moduleTotals, setModuleTotals] = useState<ModuleTotals | null>(null);
 
   const entity_type = filters.module && filters.module !== 'ALL' ? filters.module : undefined;
 
@@ -33,9 +42,15 @@ export function useCustomFields(filters: CustomFieldFilters = {}) {
     placeholderData: keepPreviousData,
     queryFn: async () => {
       const res = await customFieldsService.getAll(queryParams);
-      const meta = extractPaginationMeta(res as Record<string, unknown>);
+      const raw = res as Record<string, unknown>;
+      const meta = extractPaginationMeta(raw);
       if (meta) pagination.setTotal(meta.total);
-      return ((res as Record<string, unknown>).data ?? []) as CustomField[];
+      // Extract meta.totals if present (backend returns totals for all modules)
+      const totals = (raw.meta as Record<string, unknown> | undefined)?.totals as
+        | ModuleTotals
+        | undefined;
+      if (totals) setModuleTotals(totals);
+      return (raw.data ?? []) as CustomField[];
     },
   });
 
@@ -61,6 +76,7 @@ export function useCustomFields(filters: CustomFieldFilters = {}) {
   return {
     fields,
     isLoading,
+    moduleTotals,
     createField: async (data: Omit<CustomField, 'uid' | 'created_at'>): Promise<boolean> => {
       await createMutation.mutateAsync(data);
       return true;

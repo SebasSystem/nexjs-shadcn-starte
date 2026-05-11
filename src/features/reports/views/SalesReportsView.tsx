@@ -46,9 +46,13 @@ const TABS: { id: SalesReportTab; label: string }[] = [
 export function SalesReportsView() {
   const [activeTab, setActiveTab] = useState<SalesReportTab>('status');
   const [filters, setFilters] = useState<ReportFilterParams>({ period: 'Este mes' });
+  const [search, setSearch] = useState('');
   const [exportLoading, setExportLoading] = useState<'excel' | 'pdf' | null>(null);
 
-  const { data: reportData, isLoading } = useSalesReport(activeTab, filters);
+  const { data: reportData, isLoading } = useSalesReport(activeTab, {
+    ...filters,
+    ...(search ? { search } : {}),
+  });
 
   const doExport = async (type: 'excel' | 'pdf', fields: string[]) => {
     setExportLoading(type);
@@ -212,7 +216,12 @@ export function SalesReportsView() {
 
         {/* Table */}
         <div className="w-full">
-          <ReportTable columns={columns} data={table_data} />
+          <ReportTable
+            columns={columns}
+            data={table_data}
+            search={search}
+            onSearchChange={setSearch}
+          />
         </div>
       </div>
     );

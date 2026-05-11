@@ -49,24 +49,17 @@ function getProgressColor(progress: number, status: ProjectStatus) {
 
 export function ProjectsView() {
   const router = useRouter();
-  const { projects, stats, createProject, updateProject, pagination } = useProjects();
-
-  const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<'create' | 'edit'>('create');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  const filtered = useMemo(() => {
-    return projects.filter((p) => {
-      const matchSearch =
-        !search ||
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.client_name.toLowerCase().includes(search.toLowerCase());
-      const matchStatus = filterStatus === 'all' || p.status === filterStatus;
-      return matchSearch && matchStatus;
+  // Pass status to hook → filters server-side via ProjectService.
+  // 'all' means no filter; the hook omits the param when status === 'all'.
+  const { projects, stats, createProject, updateProject, pagination, search, onChangeSearch } =
+    useProjects({
+      status: filterStatus !== 'all' ? filterStatus : undefined,
     });
-  }, [projects, search, filterStatus]);
 
   const COLUMNS = useMemo(
     () => [
@@ -149,7 +142,7 @@ export function ProjectsView() {
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: filtered,
+    data: projects,
     columns: COLUMNS,
     total: pagination.total,
     pageIndex: pagination.page - 1,
@@ -244,7 +237,7 @@ export function ProjectsView() {
               label="Buscar"
               placeholder="Buscar por proyecto o cliente..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => onChangeSearch(e.target.value)}
               leftIcon={<Icon name="Search" size={15} />}
             />
           </div>

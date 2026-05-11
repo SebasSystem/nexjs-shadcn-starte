@@ -1,14 +1,16 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { formatMoney } from 'src/lib/currency';
+import { queryKeys } from 'src/lib/query-keys';
 import { paths } from 'src/routes/paths';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 
-import { useSalesContext } from '../context/SalesContext';
-import type { Opportunity, PipelineStage } from '../types/sales.types';
+import { quotationService } from '../services/quotation.service';
+import type { Opportunity, PipelineStage, Quotation } from '../types/sales.types';
 import { STATUS_LABELS } from '../types/sales.types';
 
 const STATUS_COLOR: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info'> = {
@@ -26,10 +28,23 @@ interface OpportunityQuotationsTabProps {
 
 export function OpportunityQuotationsTab({ opportunity, stages }: OpportunityQuotationsTabProps) {
   const router = useRouter();
-  const { quotations } = useSalesContext();
-  const linked = quotations.filter((q) => q.quoteable_uid === opportunity.uid);
+
+  const { data: linked = [], isLoading } = useQuery<Quotation[]>({
+    queryKey: queryKeys.sales.quotationsByOpportunity(opportunity.uid),
+    queryFn: () => quotationService.getByOpportunity(opportunity.uid),
+    staleTime: 0,
+  });
+
   const currentStage = stages.find((s) => s.uid === opportunity.stage_uid);
   const isTerminal = currentStage?.is_won || currentStage?.is_lost;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <p className="text-body2 text-muted-foreground">Cargando cotizaciones…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">

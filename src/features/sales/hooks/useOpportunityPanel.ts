@@ -6,11 +6,11 @@ import { diffDays } from 'src/lib/date';
 import { queryKeys } from 'src/lib/query-keys';
 
 import { opportunityService } from '../services/opportunity.service';
-import type { PipelineStage } from '../types/sales.types';
+import type { Opportunity, PipelineStage } from '../types/sales.types';
 
 export type AgingLevel = 'normal' | 'warning' | 'risk' | 'stalled';
 
-export function useOpportunityPanel() {
+export function useOpportunityPanel(opportunities: Opportunity[] = []) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: stages = [] } = useQuery<PipelineStage[]>({
@@ -19,16 +19,22 @@ export function useOpportunityPanel() {
     staleTime: 0,
   });
 
-  const {
-    data: opportunity = null,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: [...queryKeys.sales.opportunityList, selectedId],
+  // GET /opportunities/{uid} — detail con lost_reasons, owner, etc.
+  const { data: detailedOpportunity } = useQuery<Opportunity>({
+    queryKey: queryKeys.sales.opportunityDetail(selectedId!),
     queryFn: () => opportunityService.getOne(selectedId!),
     enabled: !!selectedId,
     staleTime: 0,
   });
+
+  // Búsqueda local como fallback rápido mientras carga el detalle
+  const opportunity = useMemo(() => {
+    if (!selectedId) return null;
+    // Preferir datos del endpoint detalle (tiene lost_reasons, etc.)
+    if (detailedOpportunity) return detailedOpportunity;
+    // Fallback: buscar en los datos del board ya cargados
+    return opportunities.find((o) => o.uid === selectedId) ?? null;
+  }, [selectedId, opportunities, detailedOpportunity]);
 
   // ─── Derived values ─────────────────────────────────────────────────────────
 
@@ -65,7 +71,5 @@ export function useOpportunityPanel() {
     weightedAmount,
     daysInStage,
     agingLevel,
-    isLoading,
-    error: error ?? null,
   };
 }

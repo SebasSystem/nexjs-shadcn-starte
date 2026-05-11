@@ -15,15 +15,22 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 
 export const AssignmentView = () => {
-  const { assignments, isLoading: isAsigLoading, updateAssignment, pagination } = useAssignment();
+  // States for filters
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const {
+    assignments,
+    isLoading: isAsigLoading,
+    updateAssignment,
+    pagination,
+  } = useAssignment({
+    search: searchTerm || undefined,
+  });
   const { plans } = usePlans();
 
   const [selectedAsignacion, setSelectedAsignacion] = useState<CommissionAssignment | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isMasivaOpen, setIsMasivaOpen] = useState(false);
-
-  // States for arbitrary visual filters
-  const [searchTerm, setSearchTerm] = useState('');
   const [toggleTarget, setToggleTarget] = useState<{ uid: string; newActive: boolean } | null>(
     null
   );
@@ -56,11 +63,6 @@ export const AssignmentView = () => {
     return false;
   };
 
-  const filteredAsignaciones = assignments.filter((a) => {
-    const matchName = a.user_name.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchName;
-  });
-
   return (
     <PageContainer fluid className="pb-10 min-w-0 w-full space-y-6">
       <PageHeader
@@ -89,7 +91,7 @@ export const AssignmentView = () => {
         </div>
 
         <AssignmentsTable
-          asignaciones={filteredAsignaciones}
+          asignaciones={assignments}
           isLoading={isAsigLoading}
           onEdit={handleEdit}
           onToggleStatus={handleToggleStatus}

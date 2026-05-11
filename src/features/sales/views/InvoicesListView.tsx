@@ -2,7 +2,7 @@
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { endpoints } from 'src/lib/axios';
 import { formatMoney } from 'src/lib/currency';
 import { formatDate } from 'src/lib/date';
@@ -78,24 +78,15 @@ const col = createColumnHelper<Invoice>();
 
 export function InvoicesListView() {
   const router = useRouter();
-  const { invoices, isLoading, invoicesPagination } = useSalesContext();
-
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-
-  const filtered = useMemo(
-    () =>
-      invoices.filter((inv) => {
-        const matchesSearch =
-          !search ||
-          inv.invoice_number.toLowerCase().includes(search.toLowerCase()) ||
-          inv.quotation_uid.toLowerCase().includes(search.toLowerCase()) ||
-          inv.uid.toLowerCase().includes(search.toLowerCase());
-        const matchesStatus = !statusFilter || getEffectiveStatus(inv) === statusFilter;
-        return matchesSearch && matchesStatus;
-      }),
-    [invoices, search, statusFilter]
-  );
+  const {
+    invoices,
+    isLoading,
+    invoiceSearch,
+    onChangeInvoiceSearch,
+    invoiceStatus,
+    onChangeInvoiceStatus,
+    invoicesPagination,
+  } = useSalesContext();
 
   const overdueCount = useMemo(() => invoices.filter(isOverdue).length, [invoices]);
   const pendingBalance = useMemo(
@@ -206,7 +197,7 @@ export function InvoicesListView() {
   );
 
   const { table, dense, onChangeDense } = useTable({
-    data: filtered,
+    data: invoices,
     columns,
     total: invoicesPagination.total,
     pageIndex: invoicesPagination.page - 1,
@@ -219,7 +210,7 @@ export function InvoicesListView() {
     await downloadExport({
       endpoint: endpoints.invoicesExport,
       format,
-      filters: { status: statusFilter || undefined, search },
+      filters: { status: invoiceStatus || undefined, search: invoiceSearch || undefined },
       filename: `facturas.${format === 'excel' ? 'xlsx' : 'pdf'}`,
     });
   };
@@ -231,7 +222,7 @@ export function InvoicesListView() {
     <PageContainer>
       <PageHeader
         title="Facturas"
-        subtitle={`${filtered.length} factura${filtered.length !== 1 ? 's' : ''}`}
+        subtitle={`${invoicesPagination.total} factura${invoicesPagination.total !== 1 ? 's' : ''}`}
         action={
           <div className="flex items-center gap-2">
             <ExportDropdown onExport={handleExport} />
@@ -257,20 +248,20 @@ export function InvoicesListView() {
         </div>
       )}
 
-      {/* Filtros */}
+      {/* Filtros — server-side via backend GET /finance/invoices?search=&status= */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <Input
           label="Buscar"
           placeholder="Buscar por número, cotización o referencia..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={invoiceSearch}
+          onChange={(e) => onChangeInvoiceSearch(e.target.value)}
           leftIcon={<Icon name="Search" size={15} />}
           className="sm:max-w-xs"
         />
         <SelectField
           label="Estado"
-          value={statusFilter}
-          onChange={(v) => setStatusFilter(v as string)}
+          value={invoiceStatus}
+          onChange={(v) => onChangeInvoiceStatus(v as string)}
           options={STATUS_OPTIONS}
           className="sm:w-52"
         />
@@ -288,7 +279,7 @@ export function InvoicesListView() {
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <Icon name="FileText" size={32} className="opacity-30" />
                       <span className="text-sm">
-                        {search || statusFilter
+                        {invoiceSearch || invoiceStatus
                           ? 'Sin resultados para los filtros aplicados'
                           : 'Aún no hay facturas'}
                       </span>

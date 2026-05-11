@@ -1,5 +1,5 @@
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { formatDate } from 'src/lib/date';
 import {
   Table,
@@ -13,6 +13,7 @@ import {
 } from 'src/shared/components/table';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import type { Segment } from '../../types/segments.types';
@@ -42,6 +43,8 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
   onPageChange,
   onPageSizeChange,
 }) => {
+  const [deleteUid, setDeleteUid] = useState<string | null>(null);
+
   const COLUMNS = useMemo(
     () => [
       columnHelper.accessor('name', {
@@ -130,7 +133,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 hover:text-red-600 hover:bg-red-50"
-              onClick={() => onDelete(info.row.original.uid)}
+              onClick={() => setDeleteUid(info.row.original.uid)}
             >
               <Icon name="Trash2" className="h-4 w-4" />
             </Button>
@@ -138,7 +141,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
         ),
       }),
     ],
-    [onEdit, onDelete, onView]
+    [onEdit, onView]
   );
 
   const { table, dense, onChangeDense } = useTable({
@@ -178,6 +181,19 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
           onChangeDense={onChangeDense}
         />
       </div>
+
+      <ConfirmDialog
+        open={!!deleteUid}
+        onClose={() => setDeleteUid(null)}
+        onConfirm={() => {
+          if (deleteUid) onDelete(deleteUid);
+          setDeleteUid(null);
+        }}
+        title="¿Eliminar segmento?"
+        description="Esta acción no se puede deshacer. Los contactos no serán eliminados, solo el segmento."
+        confirmLabel="Eliminar"
+        variant="error"
+      />
     </div>
   );
 };

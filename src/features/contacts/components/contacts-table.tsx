@@ -1,7 +1,7 @@
 'use client';
 
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -14,6 +14,7 @@ import {
 } from 'src/shared/components/table';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Button } from 'src/shared/components/ui/button';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -74,6 +75,8 @@ export function ContactsTable({
   onPageChange,
   onPageSizeChange,
 }: ContactsTableProps) {
+  const [deleteTarget, setDeleteTarget] = useState<Contact | null>(null);
+
   const COLUMNS = useMemo(
     () => [
       columnHelper.accessor('name', {
@@ -160,7 +163,7 @@ export function ContactsTable({
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="text-red-600 cursor-pointer"
-                    onClick={() => onDelete(c)}
+                    onClick={() => setDeleteTarget(c)}
                   >
                     Eliminar
                   </DropdownMenuItem>
@@ -171,7 +174,7 @@ export function ContactsTable({
         },
       }),
     ],
-    [onEdit, onViewDetail, onDelete]
+    [onEdit, onViewDetail]
   );
 
   const { table, dense, onChangeDense } = useTable({
@@ -220,6 +223,24 @@ export function ContactsTable({
           total={total}
         />
       </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) onDelete(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar contacto?"
+        description={
+          <>
+            Vas a eliminar a <strong>{deleteTarget?.name}</strong>. Esta acción no se puede
+            deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
+      />
     </div>
   );
 }

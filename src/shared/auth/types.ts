@@ -35,3 +35,24 @@ export type AuthContextValue = {
   hasPermission: (key: string) => boolean;
   checkUserSession: () => Promise<{ permissions: string[]; modules: Module[]; role?: string }>;
 };
+
+// ─── Auth/Init response (POST /auth/init — PlatformInitService::init()) ──────
+
+/** Shape of `permissions` in the POST /auth/init response */
+export type InitPermissions = {
+  effective: string[];
+};
+
+/** Full payload shape returned by POST /auth/init */
+export type InitPayload = {
+  user: NonNullable<UserType> & { uid: string }; // user is guaranteed present on success
+  tenant?: Record<string, unknown>;
+  modules: Module[];
+  localization?: {
+    currency?: string;
+    locale?: string;
+    timezone?: string;
+    [key: string]: unknown;
+  };
+  permissions: InitPermissions;
+};

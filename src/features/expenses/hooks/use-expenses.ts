@@ -1,7 +1,9 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { usePaginationParams } from 'src/shared/hooks/use-pagination';
+import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 import { expensesService } from '../services/expenses.service';
 import type {
@@ -20,14 +22,23 @@ const KEYS = {
 
 // ─── Categories ─────────────────────────────────────────────────────────────
 
-export function useExpenseCategories() {
+export function useExpenseCategories(search?: string) {
   const qc = useQueryClient();
   const { data = [], isLoading } = useQuery({
-    queryKey: KEYS.categories,
-    queryFn: () => expensesService.listCategories(),
+    queryKey: [...KEYS.categories, search],
+    queryFn: async () => {
+      const res = await expensesService.listCategories(search ? { search } : undefined);
+      return ((res as Record<string, unknown>).data ??
+        []) as import('../types/expenses.types').ExpenseCategory[];
+    },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
   const create = useMutation({
-    mutationFn: (p: CategoryPayload) => expensesService.createCategory(p),
+    mutationFn: (p: CategoryPayload) =>
+      expensesService.createCategory(p) as Promise<
+        import('../types/expenses.types').ExpenseCategory
+      >,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.categories });
       toast.success('Categoría creada');
@@ -36,7 +47,9 @@ export function useExpenseCategories() {
   });
   const update = useMutation({
     mutationFn: ({ uid, payload }: { uid: string; payload: Partial<CategoryPayload> }) =>
-      expensesService.updateCategory(uid, payload),
+      expensesService.updateCategory(uid, payload) as Promise<
+        import('../types/expenses.types').ExpenseCategory
+      >,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.categories });
       toast.success('Categoría actualizada');
@@ -62,14 +75,21 @@ export function useExpenseCategories() {
 
 // ─── Suppliers ──────────────────────────────────────────────────────────────
 
-export function useSuppliers() {
+export function useSuppliers(search?: string) {
   const qc = useQueryClient();
   const { data = [], isLoading } = useQuery({
-    queryKey: KEYS.suppliers,
-    queryFn: () => expensesService.listSuppliers(),
+    queryKey: [...KEYS.suppliers, search],
+    queryFn: async () => {
+      const res = await expensesService.listSuppliers(search ? { search } : undefined);
+      return ((res as Record<string, unknown>).data ??
+        []) as import('../types/expenses.types').Supplier[];
+    },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
   const create = useMutation({
-    mutationFn: (p: SupplierPayload) => expensesService.createSupplier(p),
+    mutationFn: (p: SupplierPayload) =>
+      expensesService.createSupplier(p) as Promise<import('../types/expenses.types').Supplier>,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.suppliers });
       toast.success('Proveedor creado');
@@ -78,7 +98,9 @@ export function useSuppliers() {
   });
   const update = useMutation({
     mutationFn: ({ uid, payload }: { uid: string; payload: Partial<SupplierPayload> }) =>
-      expensesService.updateSupplier(uid, payload),
+      expensesService.updateSupplier(uid, payload) as Promise<
+        import('../types/expenses.types').Supplier
+      >,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.suppliers });
       toast.success('Proveedor actualizado');
@@ -104,14 +126,21 @@ export function useSuppliers() {
 
 // ─── Cost Centers ───────────────────────────────────────────────────────────
 
-export function useCostCenters() {
+export function useCostCenters(search?: string) {
   const qc = useQueryClient();
   const { data = [], isLoading } = useQuery({
-    queryKey: KEYS.costCenters,
-    queryFn: () => expensesService.listCostCenters(),
+    queryKey: [...KEYS.costCenters, search],
+    queryFn: async () => {
+      const res = await expensesService.listCostCenters(search ? { search } : undefined);
+      return ((res as Record<string, unknown>).data ??
+        []) as import('../types/expenses.types').CostCenter[];
+    },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
   const create = useMutation({
-    mutationFn: (p: CostCenterPayload) => expensesService.createCostCenter(p),
+    mutationFn: (p: CostCenterPayload) =>
+      expensesService.createCostCenter(p) as Promise<import('../types/expenses.types').CostCenter>,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.costCenters });
       toast.success('Centro de costo creado');
@@ -120,7 +149,9 @@ export function useCostCenters() {
   });
   const update = useMutation({
     mutationFn: ({ uid, payload }: { uid: string; payload: Partial<CostCenterPayload> }) =>
-      expensesService.updateCostCenter(uid, payload),
+      expensesService.updateCostCenter(uid, payload) as Promise<
+        import('../types/expenses.types').CostCenter
+      >,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.costCenters });
       toast.success('Centro de costo actualizado');
@@ -146,17 +177,40 @@ export function useCostCenters() {
 
 // ─── Expenses ───────────────────────────────────────────────────────────────
 
-export function useExpenses() {
+export function useExpenses(
+  filters: {
+    status?: string;
+    category_uid?: string;
+    supplier_uid?: string;
+    cost_center_uid?: string;
+  } = {}
+) {
   const qc = useQueryClient();
+  const pagination = usePaginationParams();
+
+  const serverParams = {
+    ...pagination.params,
+    ...(filters.status ? { status: filters.status } : {}),
+    ...(filters.category_uid ? { category_uid: filters.category_uid } : {}),
+    ...(filters.supplier_uid ? { supplier_uid: filters.supplier_uid } : {}),
+    ...(filters.cost_center_uid ? { cost_center_uid: filters.cost_center_uid } : {}),
+  };
+
   const { data = [], isLoading } = useQuery({
-    queryKey: KEYS.expenses,
+    queryKey: [...KEYS.expenses, serverParams],
     queryFn: async () => {
-      const res = await expensesService.list();
-      return (res.data ?? []) as import('../types/expenses.types').Expense[];
+      const res = await expensesService.list(serverParams);
+      const meta = extractPaginationMeta(res as Record<string, unknown>);
+      if (meta) pagination.setTotal(meta.total);
+      return ((res as Record<string, unknown>).data ??
+        []) as import('../types/expenses.types').Expense[];
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
   const create = useMutation({
-    mutationFn: (p: ExpensePayload) => expensesService.create(p),
+    mutationFn: (p: ExpensePayload) =>
+      expensesService.create(p) as Promise<import('../types/expenses.types').Expense>,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.expenses });
       toast.success('Gasto registrado');
@@ -165,7 +219,7 @@ export function useExpenses() {
   });
   const update = useMutation({
     mutationFn: ({ uid, payload }: { uid: string; payload: Partial<ExpensePayload> }) =>
-      expensesService.update(uid, payload),
+      expensesService.update(uid, payload) as Promise<import('../types/expenses.types').Expense>,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEYS.expenses });
       toast.success('Gasto actualizado');
@@ -186,5 +240,14 @@ export function useExpenses() {
     createExpense: create,
     updateExpense: update,
     deleteExpense: remove,
+    pagination: {
+      page: pagination.page,
+      rowsPerPage: pagination.rowsPerPage,
+      total: pagination.total,
+      search: pagination.search,
+      onChangeSearch: pagination.onChangeSearch,
+      onChangePage: pagination.onChangePage,
+      onChangeRowsPerPage: pagination.onChangeRowsPerPage,
+    },
   };
 }

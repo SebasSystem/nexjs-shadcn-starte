@@ -1,9 +1,12 @@
 'use client';
 
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import type { ActivityType, Opportunity } from 'src/features/sales/types/sales.types';
+import { toast } from 'sonner';
+import type { Opportunity } from 'src/features/sales/types/sales.types';
+import { extractApiError } from 'src/lib/api-errors';
+import { formatDateTime } from 'src/lib/date';
+import { queryKeys } from 'src/lib/query-keys';
 import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
 import {
@@ -19,11 +22,15 @@ import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
+import { opportunityService } from '../services/opportunity.service';
+import type { Activity, ActivityStatus, ActivityType } from '../types/sales.types';
+import { normalizeActivityType } from '../types/sales.types';
+
 interface OpportunityTimelineProps {
   opportunity: Opportunity;
 }
 
-const ACTIVITY_ICONS: Record<ActivityType | 'nota', IconName> = {
+const ACTIVITY_ICONS: Record<ActivityType, IconName> = {
   llamada: 'Phone',
   email: 'Mail',
   reunion: 'CalendarDays',
@@ -32,31 +39,12 @@ const ACTIVITY_ICONS: Record<ActivityType | 'nota', IconName> = {
   nota: 'MessageSquare',
 };
 
-// ─── Local state types (replaces embedded notes/activities on Opportunity) ─────
+export function OpportunityTimeline({ opportunity }: OpportunityTimelineProps) {
+  const queryClient = useQueryClient();
+  const uid = opportunity.uid;
 
-interface LocalNote {
-  id: string;
-  content: string;
-  author: string;
-  createdAt: string;
-}
-
-interface LocalActivity {
-  id: string;
-  type: ActivityType;
-  date: string;
-  responsible: string;
-  status: 'pendiente' | 'completada' | 'cancelada';
-  notes?: string;
-}
-
-export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTimelineProps) {
-  // ─── Local state (frontend-only — backend API integration coming soon) ────
-  const [notes, setNotes] = useState<LocalNote[]>([]);
-  const [activities, setActivities] = useState<LocalActivity[]>([]);
   const [activeTab, setActiveTab] = useState<'nota' | 'actividad'>('nota');
   const [newNote, setNewNote] = useState('');
-
   const [newActivity, setNewActivity] = useState({
     type: 'llamada' as ActivityType,
     date: '',
@@ -65,91 +53,111 @@ export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTi
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
-  const [deleteItem, setDeleteItem] = useState<{ id: string; type: ActivityType | 'nota' } | null>(
-    null
-  );
+  const [deleteItem, setDeleteItem] = useState<{
+    uid: string;
+    type: ActivityType;
+  } | null>(null);
+
+  // ─── Query: fetch activities from backend ────────────────────────────────────
+
+  const { data: activities = [], isLoading } = useQuery<Activity[]>({
+    queryKey: queryKeys.sales.opportunityActivities(uid),
+    queryFn: () => opportunityService.getActivities(uid),
+    staleTime: 0,
+  });
+
+  // ─── Create mutation ─────────────────────────────────────────────────────────
+
+  const createMutation = useMutation({
+    mutationFn: (payload: { type: ActivityType; content: string; date: string }) =>
+      opportunityService.createActivity(uid, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sales.opportunityActivities(uid) });
+    },
+    onError: (error) => {
+      toast.error(extractApiError(error));
+    },
+  });
+
+  // ─── Update mutation ─────────────────────────────────────────────────────────
+
+  const updateMutation = useMutation({
+    mutationFn: (payload: { activityUid: string; content: string }) =>
+      opportunityService.updateActivity(uid, payload.activityUid, {
+        content: payload.content,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sales.opportunityActivities(uid) });
+    },
+    onError: (error) => {
+      toast.error(extractApiError(error));
+    },
+  });
+
+  // ─── Delete mutation ─────────────────────────────────────────────────────────
+
+  const deleteMutation = useMutation({
+    mutationFn: (activityUid: string) => opportunityService.deleteActivity(uid, activityUid),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sales.opportunityActivities(uid) });
+    },
+    onError: (error) => {
+      toast.error(extractApiError(error));
+    },
+  });
+
+  // ─── Handlers ────────────────────────────────────────────────────────────────
 
   const startEdit = (id: string, content: string | undefined) => {
     setEditingId(id);
     setEditingContent(content || '');
   };
 
-  const handleUpdate = (item: { id: string; type: ActivityType | 'nota' }) => {
-    if (!editingContent.trim() && item.type === 'nota') return;
-
-    if (item.type === 'nota') {
-      setNotes((prev) =>
-        prev.map((n) => (n.id === item.id ? { ...n, content: editingContent.trim() } : n))
-      );
-    } else {
-      setActivities((prev) =>
-        prev.map((a) =>
-          a.id === item.id ? { ...a, notes: editingContent.trim() || undefined } : a
-        )
-      );
-    }
+  const handleUpdate = (activityUid: string) => {
+    if (!editingContent.trim()) return;
+    updateMutation.mutate({ activityUid, content: editingContent.trim() });
     setEditingId(null);
   };
 
   const confirmDelete = () => {
     if (deleteItem) {
-      if (deleteItem.type === 'nota') {
-        setNotes((prev) => prev.filter((n) => n.id !== deleteItem.id));
-      } else {
-        setActivities((prev) => prev.filter((a) => a.id !== deleteItem.id));
-      }
+      deleteMutation.mutate(deleteItem.uid);
       setDeleteItem(null);
     }
   };
 
   const handleAddNote = () => {
     if (!newNote.trim()) return;
-    setNotes((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        content: newNote.trim(),
-        author: 'Admin',
-        createdAt: new Date().toISOString(),
-      },
-    ]);
+    createMutation.mutate({
+      type: 'nota',
+      content: newNote.trim(),
+      date: new Date().toISOString(),
+    });
     setNewNote('');
   };
 
   const handleAddActivity = () => {
     if (!newActivity.date) return;
-    setActivities((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        type: newActivity.type,
-        date: new Date(newActivity.date).toISOString(),
-        responsible: 'Admin',
-        status: 'pendiente',
-        notes: newActivity.notes.trim() || undefined,
-      },
-    ]);
+    createMutation.mutate({
+      type: newActivity.type,
+      content: newActivity.notes.trim() || '',
+      date: new Date(newActivity.date).toISOString(),
+    });
     setNewActivity({ type: 'llamada', date: '', notes: '' });
   };
 
-  // Merge and sort notes and activities
-  const timelineItems = [
-    ...notes.map((n) => ({
-      id: n.id,
-      date: new Date(n.createdAt),
-      type: 'nota' as const,
-      content: n.content,
-      author: n.author,
-    })),
-    ...activities.map((a) => ({
-      id: a.id,
-      date: new Date(a.date),
-      type: a.type as ActivityType | 'nota',
-      content: a.notes,
-      author: a.responsible,
-      status: a.status,
-    })),
-  ].sort((a, b) => b.date.getTime() - a.date.getTime());
+  // ─── Build timeline items from API data ─────────────────────────────────────
+
+  const timelineItems = activities
+    .map((a) => ({
+      uid: a.uid,
+      date: new Date(a.scheduled_at),
+      type: normalizeActivityType(a.type),
+      content: a.description,
+      author: a.assigned_to_name || a.owner_user_uid || '',
+      status: (a.status as ActivityStatus) || 'pendiente',
+    }))
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
 
   return (
     <div className="bg-card rounded-xl border border-border/50 shadow-card overflow-hidden">
@@ -191,7 +199,11 @@ export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTi
               className="bg-background"
             />
             <div className="flex justify-end">
-              <Button size="sm" onClick={handleAddNote} disabled={!newNote.trim()}>
+              <Button
+                size="sm"
+                onClick={handleAddNote}
+                disabled={!newNote.trim() || createMutation.isPending}
+              >
                 Guardar Nota
               </Button>
             </div>
@@ -231,7 +243,7 @@ export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTi
                 size="sm"
                 color="primary"
                 onClick={handleAddActivity}
-                disabled={!newActivity.date}
+                disabled={!newActivity.date || createMutation.isPending}
               >
                 Programar Actividad
               </Button>
@@ -246,7 +258,9 @@ export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTi
           Historial y Seguimiento
         </h3>
 
-        {timelineItems.length === 0 ? (
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground text-center py-6">Cargando historial…</p>
+        ) : timelineItems.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-6">No hay historial aún.</p>
         ) : (
           <div className="space-y-6 relative before:absolute before:top-0 before:bottom-0 before:left-5 before:w-0.5 before:-translate-x-1/2 before:bg-gradient-to-b before:from-transparent before:via-border/60 before:to-transparent">
@@ -255,7 +269,7 @@ export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTi
               const isNote = item.type === 'nota';
 
               return (
-                <div key={item.id} className="relative flex items-start gap-4 group">
+                <div key={item.uid} className="relative flex items-start gap-4 group">
                   {/* Icon */}
                   <div
                     className={cn(
@@ -263,7 +277,7 @@ export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTi
                       isNote ? 'bg-primary/10 text-primary' : 'bg-indigo-500/10 text-indigo-500'
                     )}
                   >
-                    {'status' in item && (item as { status?: string }).status === 'completada' ? (
+                    {item.status === 'completada' ? (
                       <Icon name="Check" size={16} />
                     ) : (
                       <Icon name={activityIcon} size={16} />
@@ -275,27 +289,29 @@ export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTi
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                       <div className="flex flex-col gap-0.5">
                         <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                          {item.type}{' '}
-                          {'status' in item && (item as { status?: string }).status
-                            ? `• ${(item as { status?: string }).status}`
-                            : ''}
+                          {item.type} {item.status ? `• ${item.status}` : ''}
                         </span>
                         <time className="text-[10px] text-muted-foreground font-mono">
-                          {format(item.date, 'd MMM, HH:mm', { locale: es })}
+                          {formatDateTime(item.date, {
+                            month: 'short',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
                         </time>
                       </div>
 
                       {/* Actions on hover */}
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
-                          onClick={() => startEdit(item.id, item.content)}
+                          onClick={() => startEdit(item.uid, item.content)}
                           className="p-1 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded transition-colors"
                           title="Editar"
                         >
                           <Icon name="Edit2" size={12} />
                         </button>
                         <button
-                          onClick={() => setDeleteItem({ id: item.id, type: item.type })}
+                          onClick={() => setDeleteItem({ uid: item.uid, type: item.type })}
                           className="p-1 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
                           title="Eliminar"
                         >
@@ -304,7 +320,7 @@ export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTi
                       </div>
                     </div>
 
-                    {editingId === item.id ? (
+                    {editingId === item.uid ? (
                       <div className="mt-2">
                         <Textarea
                           value={editingContent}
@@ -324,7 +340,8 @@ export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTi
                           <Button
                             size="sm"
                             color="primary"
-                            onClick={() => handleUpdate(item)}
+                            onClick={() => handleUpdate(item.uid)}
+                            disabled={updateMutation.isPending}
                             className="h-7 text-xs px-2"
                           >
                             <Icon name="Check" size={12} className="mr-1" /> Guardar
@@ -365,7 +382,7 @@ export function OpportunityTimeline({ opportunity: _opportunity }: OpportunityTi
             <Button variant="outline" onClick={() => setDeleteItem(null)}>
               Cancelar
             </Button>
-            <Button color="error" onClick={confirmDelete}>
+            <Button color="error" onClick={confirmDelete} disabled={deleteMutation.isPending}>
               Eliminar
             </Button>
           </DialogFooter>

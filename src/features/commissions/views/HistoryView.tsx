@@ -1,10 +1,14 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import React, { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useHistory } from 'src/features/commissions/hooks/use-history';
+import { commissionService } from 'src/features/commissions/services/commission.service';
 import type { CommissionRun } from 'src/features/commissions/types/commissions.types';
+import axiosInstance, { endpoints } from 'src/lib/axios';
+import { queryKeys } from 'src/lib/query-keys';
 import { cn } from 'src/lib/utils';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import {
@@ -50,7 +54,24 @@ export const HistoryView = () => {
 
   const { runs, isLoading, bulkApprove, bulkPay, pagination } = useHistory({
     status: estadoFilter || undefined,
+    search: searchTerm || undefined,
+    period: periodoFilter || undefined,
   });
+
+  // Fetch available periods from backend instead of hardcoded array
+  const { data: availablePeriods = [] } = useQuery({
+    queryKey: queryKeys.commissions.periods,
+    queryFn: () => commissionService.getPeriods(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const periodOptions = useMemo(
+    () => [
+      { value: '', label: 'Todos los periodos' },
+      ...availablePeriods.map((p: string) => ({ value: p, label: p })),
+    ],
+    [availablePeriods]
+  );
 
   // Mini-modal PDF
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
@@ -80,11 +101,58 @@ export const HistoryView = () => {
 
   const handleGenerarPDF = async () => {
     setPdfGenerando(true);
-    await new Promise((r) => setTimeout(r, 2000));
-    setPdfGenerando(false);
-    setPdfModalOpen(false);
-    toast.success('Reporte listo. [Descargar PDF]');
+    try {
+      const response = await axiosInstance.get(endpoints.commissions.historyPdf, {
+        params: {
+          period: pdfPeriodo,
+          detalle_ventas: pdfOpciones.detalleVentas ? 1 : 0,
+          desglose_tramos: pdfOpciones.desgloseTramos ? 1 : 0,
+          resumen_ejecutivo: pdfOpciones.resumenEjecutivo ? 1 : 0,
+        },
+        responseType: 'blob',
+      });
+
+      const blob = response.data as Blob;
+
+      // If backend returned JSON error instead of PDF binary
+      if (blob.type.includes('json')) {
+        const text = await blob.text();
+        let message = 'Error al generar el PDF';
+        try {
+          const parsed = JSON.parse(text);
+          message = parsed?.message || message;
+        } catch {
+          /* ignore parse error */
+        }
+        throw new Error(message);
+      }
+
+      const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `reporte-comisiones-${pdfPeriodo}.pdf`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      toast.success('Reporte PDF descargado');
+      setPdfModalOpen(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al generar el PDF';
+      toast.error(message);
+    } finally {
+      setPdfGenerando(false);
+    }
   };
+
+  const periodosDisponibles = useMemo(() => {
+    const unique = Array.from(new Set(runs.map((r) => r.period)))
+      .sort()
+      .reverse();
+    return unique;
+  }, [runs]);
 
   const allSelected = runs.length > 0 && selectedIds.length === runs.length;
 
@@ -197,16 +265,8 @@ export const HistoryView = () => {
     [selectedIds, allSelected, expandedId, handleSelectAll]
   );
 
-  const filteredRuns = useMemo(() => {
-    return runs.filter((r) => {
-      const matchSearch = r.user_name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchPeriodo = periodoFilter ? r.period === periodoFilter : true;
-      return matchSearch && matchPeriodo;
-    });
-  }, [runs, searchTerm, periodoFilter]);
-
   const { table, dense, onChangeDense } = useTable({
-    data: filteredRuns,
+    data: runs,
     columns: COLUMNS,
     defaultRowsPerPage: 10,
     total: pagination.total,
@@ -294,11 +354,7 @@ export const HistoryView = () => {
             label="Periodo"
             value={periodoFilter}
             onChange={(val) => setPeriodoFilter(val as string)}
-            options={[
-              { value: '', label: 'Todos los periodos' },
-              { value: 'Febrero 2025', label: 'Febrero 2025' },
-              { value: 'Enero 2025', label: 'Enero 2025' },
-            ]}
+            options={periodOptions}
           />
           <SelectField
             label="Estado"
@@ -469,8 +525,10 @@ export const HistoryView = () => {
                 onChange={(val) => setPdfPeriodo(val as string)}
                 label="Periodo"
                 options={[
-                  { value: 'febrero-2025', label: 'Febrero 2025' },
-                  { value: 'enero-2025', label: 'Enero 2025' },
+                  ...periodosDisponibles.map((p) => ({
+                    value: p.toLowerCase().replace(/\s+/g, '-'),
+                    label: p,
+                  })),
                   { value: 'todos', label: 'Todos los periodos' },
                 ]}
               />

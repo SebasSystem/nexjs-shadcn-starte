@@ -215,13 +215,9 @@ function CredentialsStep({
       </Form>
 
       <div className="mt-5 text-center">
-        <span className="text-[13px] text-slate-500">¿No tenés cuenta? </span>
-        <Link
-          href={paths.auth.jwt.signUp}
-          className="text-[13px] font-semibold text-indigo-600 hover:underline"
-        >
-          Registrate
-        </Link>
+        <span className="text-[13px] text-slate-500">
+          La creación de cuentas es gestionada por el administrador.
+        </span>
       </div>
     </>
   );

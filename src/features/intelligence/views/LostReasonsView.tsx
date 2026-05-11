@@ -21,6 +21,7 @@ import {
   useTable,
 } from 'src/shared/components/table';
 import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { useTenantOptions } from 'src/shared/hooks/useTenantOptions';
 
 import { LostReasonDrawer } from '../components/LostReasonDrawer';
@@ -30,6 +31,9 @@ import type { LostReason } from '../types';
 const col = createColumnHelper<LostReason>();
 
 export function LostReasonsView() {
+  const [reasonFilter, setReasonFilter] = useState('');
+  const [competitorFilter, setCompetitorFilter] = useState('');
+
   const {
     lostReasons,
     stats,
@@ -39,13 +43,13 @@ export function LostReasonsView() {
     updateLostReason,
     deleteLostReason,
     lostReasonsPagination: pagination,
-  } = useIntelligence();
-
-  const [search, setSearch] = useState('');
-  const [reasonFilter, setReasonFilter] = useState('');
-  const [competitorFilter, setCompetitorFilter] = useState('');
+  } = useIntelligence({
+    lostReasonType: reasonFilter || undefined,
+    lostReasonCompetitorUid: competitorFilter || undefined,
+  });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<LostReason | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<LostReason | null>(null);
 
   const { lostReasonCategories } = useTenantOptions();
 
@@ -151,7 +155,7 @@ export function LostReasonsView() {
               color="error"
               onClick={(e) => {
                 e.stopPropagation();
-                deleteLostReason(row.original.uid);
+                setDeleteTarget(row.original);
               }}
             >
               <Icon name="Trash2" size={14} />
@@ -160,29 +164,11 @@ export function LostReasonsView() {
         ),
       }),
     ],
-    [deleteLostReason, reasonLabels]
+    [reasonLabels]
   );
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return lostReasons.filter((d) => {
-      if (
-        q &&
-        !d.opportunity_name.toLowerCase().includes(q) &&
-        !d.client_name.toLowerCase().includes(q)
-      )
-        return false;
-      if (reasonFilter && d.lost_reason_category !== reasonFilter) return false;
-      if (competitorFilter) {
-        if (competitorFilter === 'none' && d.competitor_uid) return false;
-        if (competitorFilter !== 'none' && d.competitor_uid !== competitorFilter) return false;
-      }
-      return true;
-    });
-  }, [lostReasons, search, reasonFilter, competitorFilter]);
-
   const { table, dense, onChangeDense } = useTable({
-    data: filtered,
+    data: lostReasons,
     columns,
     total: pagination.total,
     pageIndex: pagination.page - 1,
@@ -248,8 +234,8 @@ export function LostReasonsView() {
           <Input
             label="Buscar"
             placeholder="Buscar deal o cliente..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={pagination.search ?? ''}
+            onChange={(e) => pagination.onChangeSearch(e.target.value)}
             leftIcon={<Icon name="Search" size={15} />}
           />
         </div>
@@ -321,6 +307,24 @@ export function LostReasonsView() {
         onClose={handleClose}
         onCreate={createLostReason}
         onUpdate={updateLostReason}
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (deleteTarget) await deleteLostReason(deleteTarget.uid);
+          setDeleteTarget(null);
+        }}
+        title="¿Eliminar razón de pérdida?"
+        description={
+          <>
+            Vas a eliminar la razón de pérdida de <strong>{deleteTarget?.opportunity_name}</strong>.
+            Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        variant="error"
       />
     </PageContainer>
   );

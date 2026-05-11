@@ -13,6 +13,7 @@ import {
 } from 'src/shared/components/table';
 import {
   Button,
+  ConfirmDialog,
   Icon,
   Input,
   Sheet,
@@ -35,6 +36,10 @@ export function ExpenseCategoriesView() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; uid: string }>({
+    open: false,
+    uid: '',
+  });
 
   const COLUMNS = [
     columnHelper.accessor('name', {
@@ -67,10 +72,7 @@ export function ExpenseCategoriesView() {
             variant="ghost"
             size="icon-sm"
             className="text-red-500"
-            onClick={() => {
-              if (confirm(`¿Eliminar "${i.row.original.name}"?`))
-                deleteCategory.mutate(i.row.original.uid);
-            }}
+            onClick={() => setDeleteDialog({ open: true, uid: i.row.original.uid })}
           >
             <Icon name="Trash2" size={14} />
           </Button>
@@ -163,6 +165,18 @@ export function ExpenseCategoriesView() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+      <ConfirmDialog
+        open={deleteDialog.open}
+        onClose={() => setDeleteDialog({ open: false, uid: '' })}
+        onConfirm={async () => {
+          await deleteCategory.mutateAsync(deleteDialog.uid);
+          setDeleteDialog({ open: false, uid: '' });
+        }}
+        title="Eliminar categoría"
+        description="¿Estás seguro? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        variant="error"
+      />
     </PageContainer>
   );
 }

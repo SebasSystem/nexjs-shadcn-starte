@@ -11,6 +11,8 @@ import type { Opportunity, PipelineStage } from '../types/sales.types';
 export function usePipeline() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [origin, setOrigin] = useState<string | undefined>(undefined);
+  const [product, setProduct] = useState<string | undefined>(undefined);
 
   const {
     data: stages = [] as PipelineStage[],
@@ -27,9 +29,13 @@ export function usePipeline() {
     isLoading: oppsLoading,
     error: oppsError,
   } = useQuery<Opportunity[]>({
-    queryKey: [...queryKeys.sales.board, search],
+    queryKey: [...queryKeys.sales.board, search, origin, product],
     queryFn: async () => {
-      const boardData = await opportunityService.getBoard(search ? { search } : undefined);
+      const params: { search?: string; origin?: string; product?: string } = {};
+      if (search) params.search = search;
+      if (origin) params.origin = origin;
+      if (product) params.product = product;
+      const boardData = await opportunityService.getBoard(params);
       // Backend returns { stages: [{ stage, summary, items: [...] }], pagination }
       if (boardData?.stages) {
         return (boardData.stages as Array<{ items?: Array<Record<string, unknown>> }>)
@@ -109,9 +115,14 @@ export function usePipeline() {
   return {
     stages,
     opportunitiesByStage,
+    scoredOpportunities,
     metrics,
     search,
     setSearch,
+    origin,
+    setOrigin,
+    product,
+    setProduct,
     isLoading,
     error: (error ?? null) as Error | null,
     refresh: () => {

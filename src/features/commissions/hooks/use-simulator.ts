@@ -3,44 +3,45 @@
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 
-import { commissionService, type SimulateBreakdownItem } from '../services/commission.service';
+import { commissionService } from '../services/commission.service';
+import type { SimulateResult } from '../types/commissions.types';
 
 export const useSimulator = () => {
-  // NOTE: 'plan-1' is a placeholder. Ideally the first plan from the
-  // active commission plans list should be used. See required-backend-v2/
-  const [planUid, setPlanUid] = useState<string>('plan-1');
+  // planUid is set by the view (SimulatorView) via useEffect from usePlans().
+  // If no active plan exists, the view shows "Selecciona un plan" and the
+  // simulate() call is guarded against empty planUid.
+  const [planUid, setPlanUid] = useState<string>('');
   const [accumulatedSales, setAccumulatedSales] = useState<number>(0);
   const [hypotheticalSale, setHypotheticalSale] = useState<number>(0);
+  const [marginAmount, setMarginAmount] = useState<number | undefined>(undefined);
 
   const simulateMutation = useMutation({
     mutationFn: () =>
       commissionService.simulate({
         plan_uid: planUid,
-        accumulated_sales: accumulatedSales,
-        hypothetical_sale: hypotheticalSale,
+        total_sales: accumulatedSales + hypotheticalSale,
+        ...(marginAmount !== undefined && marginAmount > 0 ? { margin_amount: marginAmount } : {}),
       }),
   });
 
-  const breakdown: SimulateBreakdownItem[] = simulateMutation.data?.breakdown ?? [];
-  const totalCommission = simulateMutation.data?.total ?? 0;
+  const result: SimulateResult | null = simulateMutation.data ?? null;
+  const totalCommission = result?.commission_amount ?? 0;
+  const effectivePercentage = result?.effective_percentage ?? 0;
+  const tierApplied = result?.tier_applied ?? 0;
 
-  // Derive current tier from accumulated sales against breakdown
-  const currentTier = (() => {
-    if (!accumulatedSales || accumulatedSales <= 0 || !breakdown.length) return null;
-    for (let i = breakdown.length - 1; i >= 0; i--) {
-      if (breakdown[i].amountInTier > 0) return { ...breakdown[i], index: i + 1 };
-    }
-    return { ...breakdown[0], index: 1 };
-  })();
+  // Derive current tier from accumulated sales and the tier returned by backend
+  const currentTier = tierApplied > 0 ? `Tramo ${tierApplied} (${effectivePercentage}%)` : null;
 
   const resetForm = () => {
     setAccumulatedSales(0);
     setHypotheticalSale(0);
+    setMarginAmount(undefined);
     simulateMutation.reset();
   };
 
   // Trigger simulation when params change
   const simulate = () => {
+    if (!planUid) return; // No plan selected yet — wait for view to set it
     if (hypotheticalSale > 0 || accumulatedSales > 0) {
       simulateMutation.mutate();
     }
@@ -53,8 +54,11 @@ export const useSimulator = () => {
     setAccumulatedSales,
     hypotheticalSale,
     setHypotheticalSale,
-    breakdown,
+    marginAmount,
+    setMarginAmount,
     totalCommission,
+    effectivePercentage,
+    tierApplied,
     currentTier,
     isSimulating: simulateMutation.isPending,
     simulate,

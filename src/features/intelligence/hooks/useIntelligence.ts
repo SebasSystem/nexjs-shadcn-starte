@@ -1,7 +1,9 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
+import { extractApiError } from 'src/lib/api-errors';
 import { queryKeys } from 'src/lib/query-keys';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { useTenantOptions } from 'src/shared/hooks/useTenantOptions';
@@ -17,7 +19,12 @@ import type {
   LostReasonCategory,
 } from '../types';
 
-export function useIntelligence() {
+interface IntelligenceFilters {
+  lostReasonType?: string;
+  lostReasonCompetitorUid?: string;
+}
+
+export function useIntelligence(filters: IntelligenceFilters = {}) {
   const queryClient = useQueryClient();
 
   // ─── Tenant-driven categories (fetched from backend) ──────────────────────
@@ -37,7 +44,7 @@ export function useIntelligence() {
 
   // ─── Queries ──────────────────────────────────────────────────────────────
 
-  const { data: battlecards = [] } = useQuery({
+  const { data: battlecards = [], error: battlecardsError } = useQuery({
     queryKey: [...queryKeys.intelligence.battlecards, battlecardsPagination.params],
     queryFn: async () => {
       const res = await intelligenceService.battlecards.getAll(battlecardsPagination.params);
@@ -45,19 +52,29 @@ export function useIntelligence() {
       if (meta) battlecardsPagination.setTotal(meta.total);
       return ((res as unknown as { data?: Battlecard[] }).data ?? []) as Battlecard[];
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
-  const { data: lostReasons = [] } = useQuery({
-    queryKey: [...queryKeys.intelligence.lostReasons, lostReasonsPagination.params],
+  const lostReasonsServerParams = {
+    ...lostReasonsPagination.params,
+    ...(filters.lostReasonType ? { reason_type: filters.lostReasonType } : {}),
+    ...(filters.lostReasonCompetitorUid ? { competitor_uid: filters.lostReasonCompetitorUid } : {}),
+  };
+
+  const { data: lostReasons = [], error: lostReasonsError } = useQuery({
+    queryKey: [...queryKeys.intelligence.lostReasons, lostReasonsServerParams],
     queryFn: async () => {
-      const res = await intelligenceService.lostReasons.getAll(lostReasonsPagination.params);
+      const res = await intelligenceService.lostReasons.getAll(lostReasonsServerParams);
       const meta = extractPaginationMeta(res);
       if (meta) lostReasonsPagination.setTotal(meta.total);
       return ((res as unknown as { data?: LostReason[] }).data ?? []) as LostReason[];
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
-  const { data: competitors = [] } = useQuery({
+  const { data: competitors = [], error: competitorsError } = useQuery({
     queryKey: [...queryKeys.intelligence.competitors, competitorsPagination.params],
     queryFn: async () => {
       const res = await intelligenceService.competitors.getAll(competitorsPagination.params);
@@ -65,9 +82,29 @@ export function useIntelligence() {
       if (meta) competitorsPagination.setTotal(meta.total);
       return ((res as unknown as { data?: Competitor[] }).data ?? []) as Competitor[];
     },
+    staleTime: 0,
+    placeholderData: keepPreviousData,
   });
 
+  // ─── Error toasts (React Query v5: no onError on useQuery) ─────────────────
+
+  useEffect(() => {
+    if (battlecardsError) toast.error(extractApiError(battlecardsError));
+  }, [battlecardsError]);
+
+  useEffect(() => {
+    if (lostReasonsError) toast.error(extractApiError(lostReasonsError));
+  }, [lostReasonsError]);
+
+  useEffect(() => {
+    if (competitorsError) toast.error(extractApiError(competitorsError));
+  }, [competitorsError]);
+
   // ─── Stats ─────────────────────────────────────────────────────────────────
+  // TODO: Backend tiene CompetitiveIntelligenceService::lostReasonsReport()
+  // que devuelve summary, by_reason_type, by_competitor. Pero no existe un
+  // endpoint unificado de stats para battlecards + lost reasons + competitors.
+  // Evaluar crear /competitive-intelligence/stats en backend.
 
   const stats: IntelligenceStats = useMemo(() => {
     const avg_win_rate =
@@ -226,6 +263,8 @@ export function useIntelligence() {
       page: battlecardsPagination.page,
       rowsPerPage: battlecardsPagination.rowsPerPage,
       total: battlecardsPagination.total,
+      search: battlecardsPagination.search,
+      onChangeSearch: battlecardsPagination.onChangeSearch,
       onChangePage: battlecardsPagination.onChangePage,
       onChangeRowsPerPage: battlecardsPagination.onChangeRowsPerPage,
     },
@@ -233,6 +272,8 @@ export function useIntelligence() {
       page: lostReasonsPagination.page,
       rowsPerPage: lostReasonsPagination.rowsPerPage,
       total: lostReasonsPagination.total,
+      search: lostReasonsPagination.search,
+      onChangeSearch: lostReasonsPagination.onChangeSearch,
       onChangePage: lostReasonsPagination.onChangePage,
       onChangeRowsPerPage: lostReasonsPagination.onChangeRowsPerPage,
     },
