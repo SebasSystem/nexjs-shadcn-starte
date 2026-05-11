@@ -371,6 +371,9 @@ export const endpoints = {
     },
     competitors: {
       list: '/competitive-intelligence/competitors',
+      store: '/competitive-intelligence/competitors',
+      update: (uid: string) => `/competitive-intelligence/competitors/${uid}`,
+      delete: (uid: string) => `/competitive-intelligence/competitors/${uid}`,
     },
   },
   automation: {

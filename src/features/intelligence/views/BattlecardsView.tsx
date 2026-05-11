@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { PageContainer, PageHeader, StatsCard } from 'src/shared/components/layouts/page';
 import { Button, Icon, Input } from 'src/shared/components/ui';
@@ -44,10 +45,18 @@ export function BattlecardsView() {
         title="Battlecards"
         subtitle={`${battlecards.length} competidores mapeados`}
         action={
-          <Button color="primary" onClick={() => setDrawerOpen(true)}>
-            <Icon name="Plus" size={16} />
-            Nueva battlecard
-          </Button>
+          <div className="flex gap-2">
+            <Link href="/intelligence/competitors">
+              <Button variant="outline">
+                <Icon name="Users" size={16} />
+                Competidores
+              </Button>
+            </Link>
+            <Button color="primary" onClick={() => setDrawerOpen(true)}>
+              <Icon name="Plus" size={16} />
+              Nueva battlecard
+            </Button>
+          </div>
         }
       />
 

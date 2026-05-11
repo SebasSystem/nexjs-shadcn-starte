@@ -3,6 +3,16 @@ import { type PaginationParams } from 'src/shared/lib/pagination';
 
 import type { Battlecard, Competitor, LostReason } from '../types';
 
+export interface CreateCompetitorPayload {
+  name: string;
+  key: string;
+  website?: string;
+  strengths?: string[];
+  weaknesses?: string[];
+  notes?: string;
+  is_active?: boolean;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Service
 // ─────────────────────────────────────────────────────────────────────────────
@@ -93,6 +103,17 @@ export const intelligenceService = {
     getAll: async (params?: PaginationParams): Promise<Competitor[]> => {
       const res = await axiosInstance.get(endpoints.intelligence.competitors.list, { params });
       return res.data; // full response — callers extract .data for the array
+    },
+    create: async (data: CreateCompetitorPayload): Promise<Competitor> => {
+      const res = await axiosInstance.post(endpoints.intelligence.competitors.store, data);
+      return res.data?.data ?? res.data;
+    },
+    update: async (uid: string, data: Partial<CreateCompetitorPayload>): Promise<Competitor> => {
+      const res = await axiosInstance.put(endpoints.intelligence.competitors.update(uid), data);
+      return res.data?.data ?? res.data;
+    },
+    delete: async (uid: string): Promise<void> => {
+      await axiosInstance.delete(endpoints.intelligence.competitors.delete(uid));
     },
   },
 };
