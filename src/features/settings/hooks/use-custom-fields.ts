@@ -43,12 +43,16 @@ export function useCustomFields(filters: CustomFieldFilters = {}) {
     queryFn: async () => {
       const res = await customFieldsService.getAll(queryParams);
       const raw = res as Record<string, unknown>;
+      // Backend may return { items, totals } inside data OR data as array with totals in meta
+      const data = raw;
+      const items = (data.items ?? data.data ?? []) as CustomField[];
+      const totals = (data.totals ?? (data.meta as Record<string, unknown> | undefined)?.totals) as
+        | ModuleTotals
+        | undefined;
+      if (totals) setModuleTotals(totals);
       const meta = extractPaginationMeta(raw);
       if (meta) pagination.setTotal(meta.total);
-      // Extract totals from backend response (totals is at data level, not meta)
-      const totals = (raw as Record<string, unknown>).totals as ModuleTotals | undefined;
-      if (totals) setModuleTotals(totals);
-      return ((raw as Record<string, unknown>).items ?? []) as CustomField[];
+      return items;
     },
   });
 

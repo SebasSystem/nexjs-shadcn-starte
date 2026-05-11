@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { usersService } from 'src/features/settings/services/users.service';
 import {
   Button,
   Input,
@@ -42,18 +44,29 @@ function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
   const init = isEdit && milestone;
   const [name, setName] = useState(init ? milestone.name : '');
   const [description, setDescription] = useState(init ? (milestone.description ?? '') : '');
-  const [assignedTo, setAssignedTo] = useState(
-    init ? (milestone.assigned_to_name ?? milestone.assigned_to_uid) : ''
+  const [assignedToUid, setAssignedToUid] = useState(
+    init ? (milestone.assigned_to_uid ?? '') : ''
   );
   const [dueDate, setDueDate] = useState(init ? milestone.due_date : '');
   const [status, setStatus] = useState<MilestoneStatus>(init ? milestone.status : 'pending');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const { data: userOptions = [] } = useQuery({
+    queryKey: ['users', 'list'],
+    queryFn: async () => {
+      const res = await usersService.getAll({ per_page: 500 });
+      return (((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>).map(
+        (u) => ({ value: u.uid, label: u.name })
+      );
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = 'El nombre es requerido';
-    if (!assignedTo.trim()) errs.assignedTo = 'El responsable es requerido';
+    if (!assignedToUid) errs.assignedTo = 'El responsable es requerido';
     if (!dueDate) errs.dueDate = 'La fecha límite es requerida';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -68,8 +81,8 @@ function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
       description,
       due_date: dueDate,
       status,
-      assigned_to_uid: assignedTo,
-      assigned_to_name: assignedTo,
+      assigned_to_uid: assignedToUid,
+      assigned_to_name: userOptions.find((u) => u.value === assignedToUid)?.label ?? '',
     };
 
     const ok = await onSave(payload);
@@ -88,7 +101,7 @@ function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
 
       <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
         <Input
-          label="Nombre del hito *"
+          label="Nombre del hito"
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -104,12 +117,13 @@ function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
           rows={2}
         />
 
-        <Input
-          label="Responsable *"
+        <SelectField
+          label="Responsable"
           required
-          value={assignedTo}
-          onChange={(e) => setAssignedTo(e.target.value)}
-          placeholder="Nombre del responsable"
+          searchable
+          options={userOptions}
+          value={assignedToUid}
+          onChange={(v) => setAssignedToUid(v as string)}
           error={errors.assignedTo}
         />
 

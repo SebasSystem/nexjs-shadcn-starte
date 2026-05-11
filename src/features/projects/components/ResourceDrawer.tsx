@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { usersService } from 'src/features/settings/services/users.service';
 import { cn } from 'src/lib/utils';
 import {
   Button,
@@ -37,9 +39,16 @@ export function ResourceDrawer({ open, onClose, onAssign }: Props) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // TODO: Replace with backend consultants lookup
-  const MOCK_CONSULTANTS: { name: string; email: string }[] = [];
-  const consultant = MOCK_CONSULTANTS.find((c) => c.name === selectedConsultant);
+  const { data: userOptions = [] } = useQuery({
+    queryKey: ['users', 'list'],
+    queryFn: async () => {
+      const res = await usersService.getAll({ per_page: 500 });
+      return (((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>).map(
+        (u) => ({ value: u.uid, label: u.name })
+      );
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const reset = () => {
     setSelectedConsultant('');
@@ -66,10 +75,11 @@ export function ResourceDrawer({ open, onClose, onAssign }: Props) {
     if (!validate()) return;
     setLoading(true);
 
+    const selectedUser = userOptions.find((u) => u.value === selectedConsultant);
     const payload: ProjectResourcePayload = {
-      name: selectedConsultant,
+      name: selectedUser?.label ?? '',
       role,
-      email: consultant?.email ?? '',
+      email: '',
       start_date: startDate,
       end_date: endDate || undefined,
     };
@@ -91,26 +101,18 @@ export function ResourceDrawer({ open, onClose, onAssign }: Props) {
 
         <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
           <SelectField
-            label="Persona *"
+            label="Persona"
             required
-            options={MOCK_CONSULTANTS.map((c) => ({ value: c.name, label: c.name }))}
+            searchable
+            options={userOptions}
             value={selectedConsultant}
             onChange={(v) => setSelectedConsultant(v as string)}
             placeholder="Seleccioná un consultor/técnico"
             error={errors.consultant}
           />
 
-          {consultant && (
-            <Input
-              label="Email"
-              value={consultant.email}
-              readOnly
-              className={cn('bg-muted/30 cursor-default')}
-            />
-          )}
-
           <SelectField
-            label="Rol en el proyecto *"
+            label="Rol en el proyecto"
             required
             options={ROLE_OPTIONS}
             value={role}
