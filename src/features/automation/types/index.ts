@@ -147,6 +147,7 @@ export interface AssignmentRule {
   name: string;
   type: AssignmentRuleType;
   enabled: boolean;
+  is_active: boolean;
   description?: string;
   user_ids: string[];
   geo_mapping?: Record<string, string[]>;

@@ -68,7 +68,7 @@ export function AssignmentRuleDrawer({
       description: '',
       user_ids: [],
       geo_mapping: {},
-      enabled: true,
+      is_active: true,
     },
   });
 
@@ -80,6 +80,7 @@ export function AssignmentRuleDrawer({
         description: item.description ?? '',
         user_ids: item.user_ids,
         geo_mapping: item.geo_mapping ?? {},
+        is_active: item.is_active ?? true,
       });
     } else {
       form.reset({
@@ -121,7 +122,8 @@ export function AssignmentRuleDrawer({
         description: data.description,
         user_ids: data.user_ids,
         geo_mapping: data.geo_mapping,
-        enabled: data.enabled ?? true,
+        is_active: data.is_active ?? true,
+        enabled: data.is_active ?? true,
       });
     } else {
       onCreate({
@@ -130,7 +132,8 @@ export function AssignmentRuleDrawer({
         description: data.description,
         user_ids: data.user_ids,
         geo_mapping: data.geo_mapping,
-        enabled: data.enabled ?? true,
+        is_active: data.is_active ?? true,
+        enabled: data.is_active ?? true,
       });
     }
     onClose();
@@ -174,8 +177,8 @@ export function AssignmentRuleDrawer({
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Activo</span>
             <Switch
-              checked={form.watch('enabled') ?? true}
-              onCheckedChange={(v) => form.setValue('enabled', v)}
+              checked={form.watch('is_active') ?? true}
+              onCheckedChange={(v) => form.setValue('is_active', v)}
             />
           </div>
 

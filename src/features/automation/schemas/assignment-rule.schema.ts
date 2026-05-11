@@ -7,6 +7,7 @@ export const assignmentRuleSchema = z.object({
   user_ids: z.array(z.string()),
   geo_mapping: z.record(z.string(), z.array(z.string())).optional(),
   enabled: z.boolean().optional(),
+  is_active: z.boolean().optional(),
 });
 
 export type AssignmentRuleFormData = z.infer<typeof assignmentRuleSchema>;
