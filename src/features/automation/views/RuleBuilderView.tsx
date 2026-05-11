@@ -2,8 +2,10 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useMemo, useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
+import axiosInstance, { endpoints } from 'src/lib/axios';
 import { paths } from 'src/routes/paths';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Button } from 'src/shared/components/ui/button';
@@ -73,6 +75,38 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
   const triggerSource = useWatch({ control: form.control, name: 'trigger_source' });
   const triggerEvent = useWatch({ control: form.control, name: 'trigger_event' });
   const daysThreshold = useWatch({ control: form.control, name: 'trigger_config.days_threshold' });
+
+  // ── Trigger options from backend ──────────────────────────────────────────
+  const { data: triggerEventsData } = useQuery({
+    queryKey: ['automation', 'trigger-events'],
+    queryFn: async () => {
+      const res = await axiosInstance.get(endpoints.automation.triggerEvents);
+      return (res.data?.data ?? res.data) as {
+        sources?: Record<string, string>;
+        events?: Record<string, string>;
+        mappings?: Record<string, string[]>;
+      };
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const sourceOptions = useMemo(() => {
+    if (triggerEventsData?.sources) {
+      return Object.entries(triggerEventsData.sources).map(([value, label]) => ({ value, label }));
+    }
+    return [];
+  }, [triggerEventsData]);
+
+  const eventOptions = useMemo(() => {
+    const src = (triggerSource as string) || 'crm';
+    if (triggerEventsData?.mappings?.[src]) {
+      return triggerEventsData.mappings[src].map((key: string) => ({
+        value: key,
+        label: triggerEventsData.events?.[key] ?? key,
+      }));
+    }
+    return [];
+  }, [triggerEventsData, triggerSource]);
 
   const onSubmit = form.handleSubmit((data) => {
     if (isEditing && ruleId) {
