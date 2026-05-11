@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import axiosInstance, { endpoints } from 'src/lib/axios';
 import { extractApiError } from 'src/lib/api-errors';
+import axiosInstance, { endpoints } from 'src/lib/axios';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import {

@@ -16,7 +16,14 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import { Badge, Button, ConfirmDialog, DeleteButton, EditButton, Icon } from 'src/shared/components/ui';
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  DeleteButton,
+  EditButton,
+  Icon,
+} from 'src/shared/components/ui';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from 'src/shared/components/ui';
 
 import { MilestoneDrawer } from '../components/MilestoneDrawer';

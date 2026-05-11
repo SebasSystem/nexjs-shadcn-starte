@@ -1,9 +1,8 @@
 'use client';
 
-import { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { partnersService } from '../services/partners.service';
 import {
   Button,
   Icon,
@@ -17,6 +16,7 @@ import {
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 
+import { partnersService } from '../services/partners.service';
 import type { MaterialType } from '../types';
 
 const TYPE_OPTIONS: { value: MaterialType; label: string }[] = [

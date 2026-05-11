@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { usersService } from 'src/features/settings/services/users.service';
 import {
@@ -44,9 +44,7 @@ function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
   const init = isEdit && milestone;
   const [name, setName] = useState(init ? milestone.name : '');
   const [description, setDescription] = useState(init ? (milestone.description ?? '') : '');
-  const [assignedToUid, setAssignedToUid] = useState(
-    init ? (milestone.assigned_to_uid ?? '') : ''
-  );
+  const [assignedToUid, setAssignedToUid] = useState(init ? (milestone.assigned_to_uid ?? '') : '');
   const [dueDate, setDueDate] = useState(init ? milestone.due_date : '');
   const [status, setStatus] = useState<MilestoneStatus>(init ? milestone.status : 'pending');
   const [loading, setLoading] = useState(false);
@@ -56,9 +54,9 @@ function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
     queryKey: ['users', 'list'],
     queryFn: async () => {
       const res = await usersService.getAll({ per_page: 500 });
-      return (((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>).map(
-        (u) => ({ value: u.uid, label: u.name })
-      );
+      return (
+        ((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>
+      ).map((u) => ({ value: u.uid, label: u.name }));
     },
     staleTime: 0,
   });

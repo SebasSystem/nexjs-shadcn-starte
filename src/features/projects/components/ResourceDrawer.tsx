@@ -1,11 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { usersService } from 'src/features/settings/services/users.service';
-import { projectsService } from '../services/projects.service';
-import { cn } from 'src/lib/utils';
 import {
   Button,
   Input,
@@ -17,6 +15,8 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui';
 
+import { projectsService } from '../services/projects.service';
+import { projectsService } from '../services/projects.service';
 import type { ProjectResourcePayload, ResourceRole } from '../types';
 
 const ROLE_OPTIONS: { value: ResourceRole; label: string }[] = [
@@ -44,9 +44,9 @@ export function ResourceDrawer({ open, onClose, onAssign }: Props) {
     queryKey: ['users', 'list'],
     queryFn: async () => {
       const res = await usersService.getAll({ per_page: 500 });
-      return (((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>).map(
-        (u) => ({ value: u.uid, label: u.name })
-      );
+      return (
+        ((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>
+      ).map((u) => ({ value: u.uid, label: u.name }));
     },
     staleTime: 0,
   });

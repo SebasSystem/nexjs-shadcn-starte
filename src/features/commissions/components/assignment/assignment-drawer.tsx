@@ -1,9 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import React, { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { useQuery } from '@tanstack/react-query';
 import { usersService } from 'src/features/settings/services/users.service';
 import { Button } from 'src/shared/components/ui/button';
 import { FormInput } from 'src/shared/components/ui/form-input';
@@ -60,9 +60,9 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
     queryKey: ['users', 'list'],
     queryFn: async () => {
       const res = await usersService.getAll({ per_page: 500 });
-      return (((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>).map(
-        (u) => ({ value: u.uid, label: u.name })
-      );
+      return (
+        ((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>
+      ).map((u) => ({ value: u.uid, label: u.name }));
     },
     staleTime: 0,
   });

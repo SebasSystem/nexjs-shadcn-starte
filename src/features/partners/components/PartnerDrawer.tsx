@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import { partnersService } from '../services/partners.service';
 import {
   Button,
   Input,
@@ -16,6 +15,7 @@ import {
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 
+import { partnersService } from '../services/partners.service';
 import type { Partner, PartnerPayload, PartnerStatus, PartnerType } from '../types';
 
 const TYPE_OPTIONS: { value: PartnerType; label: string }[] = [

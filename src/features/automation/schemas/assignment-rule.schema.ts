@@ -6,7 +6,6 @@ export const assignmentRuleSchema = z.object({
   description: z.string().optional(),
   user_ids: z.array(z.string()),
   geo_mapping: z.record(z.string(), z.array(z.string())).optional(),
-  enabled: z.boolean().optional(),
   is_active: z.boolean().optional(),
 });
 

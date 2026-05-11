@@ -2,8 +2,8 @@
 
 import { Accordion as AccordionPrimitive } from 'radix-ui';
 import React, { useMemo, useState } from 'react';
-import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
 import { cn } from 'src/lib/utils';
+import { useAuthContext } from 'src/shared/auth/hooks/use-auth-context';
 import { Accordion, AccordionContent, AccordionItem } from 'src/shared/components/ui/accordion';
 import { Button } from 'src/shared/components/ui/button';
 import { Checkbox } from 'src/shared/components/ui/checkbox';
@@ -181,7 +181,10 @@ export const RoleDrawer: React.FC<RoleDrawerProps> = ({ isOpen, onClose, role, o
                   </span>
                   <label className="flex items-center gap-1.5 cursor-pointer">
                     <Checkbox
-                      checked={allowedPermissions.length > 0 && selectedUids.length === allowedPermissions.length}
+                      checked={
+                        allowedPermissions.length > 0 &&
+                        selectedUids.length === allowedPermissions.length
+                      }
                       onCheckedChange={(checked) =>
                         setSelectedUids(checked ? allowedPermissions.map((p) => p.uid) : [])
                       }

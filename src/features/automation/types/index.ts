@@ -146,7 +146,6 @@ export interface AssignmentRule {
   uid: string;
   name: string;
   type: AssignmentRuleType;
-  enabled: boolean;
   is_active: boolean;
   description?: string;
   user_ids: string[];

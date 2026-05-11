@@ -1,8 +1,8 @@
 import { toast } from 'sonner';
 import { formatDate } from 'src/lib/date';
 import { cn } from 'src/lib/utils';
-import { Badge, Button, Icon } from 'src/shared/components/ui';
 import { SectionCard } from 'src/shared/components/layouts/page';
+import { Badge, Button, Icon } from 'src/shared/components/ui';
 
 import { partnersService } from '../services/partners.service';
 import type { PortalMaterial } from '../types';

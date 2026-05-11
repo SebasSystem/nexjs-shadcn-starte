@@ -94,6 +94,6 @@ export const projectsService = {
   /** Fetches available resource roles for assignment */
   getResourceRoles: async (): Promise<{ value: string; label: string }[]> => {
     const res = await axiosInstance.get(endpoints.projects.resourceRoles);
-    return ((res.data?.data ?? []) as Array<{ value: string; label: string }>);
+    return (res.data?.data ?? []) as Array<{ value: string; label: string }>;
   },
 };

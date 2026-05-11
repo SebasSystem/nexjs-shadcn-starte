@@ -1,14 +1,13 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
-import { Switch } from 'src/shared/components/ui/switch';
 import {
   Sheet,
   SheetContent,
@@ -17,6 +16,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from 'src/shared/components/ui/sheet';
+import { Switch } from 'src/shared/components/ui/switch';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
 import { useUsers } from '../hooks/useUsers';
@@ -95,45 +95,27 @@ export function AssignmentRuleDrawer({
   const watchedType = useWatch({ control: form.control, name: 'type' });
   const watchedUserIds = useWatch({ control: form.control, name: 'user_ids' });
   const watchedGeoMapping = useWatch({ control: form.control, name: 'geo_mapping' });
+  const watchedIsActive = useWatch({ control: form.control, name: 'is_active' });
 
-  const toggleUser = (userId: string, userName?: string) => {
+  const toggleUser = (userId: string) => {
     const current = watchedUserIds;
     const next = current.includes(userId)
       ? current.filter((id) => id !== userId)
       : [...current, userId];
     form.setValue('user_ids', next);
-    // Track name for chip display
-    if (userName && !current.includes(userId)) {
-      setSelectedUsers((prev) => new Map(prev).set(userId, userName));
-    }
-    if (!next.includes(userId)) {
-      setSelectedUsers((prev) => {
-        const nextMap = new Map(prev);
-        nextMap.delete(userId);
-        return nextMap;
-      });
-    }
   };
 
   const [userSearch, setUserSearch] = useState('');
 
   const { userOptions } = useUsers(userSearch);
 
-  // Local map of selected users for chip display
-  const [selectedUsers, setSelectedUsers] = useState<Map<string, string>>(new Map());
-
-  // Sync selected users when userOptions load
-  useEffect(() => {
-    if (userOptions.length > 0) {
-      setSelectedUsers((prev) => {
-        const next = new Map(prev);
-        watchedUserIds.forEach((uid) => {
-          const user = userOptions.find((u) => u.value === uid);
-          if (user && !next.has(uid)) next.set(uid, user.label);
-        });
-        return next;
-      });
-    }
+  // Derive selected users map from userOptions (no state, no useEffect)
+  const selectedUsers = useMemo(() => {
+    const map = new Map<string, string>();
+    userOptions.forEach((u) => {
+      if (watchedUserIds.includes(u.value)) map.set(u.value, u.label);
+    });
+    return map;
   }, [userOptions, watchedUserIds]);
 
   const handleSubmit = form.handleSubmit((data) => {
@@ -145,7 +127,6 @@ export function AssignmentRuleDrawer({
         user_ids: data.user_ids,
         geo_mapping: data.geo_mapping,
         is_active: data.is_active ?? true,
-        enabled: data.is_active ?? true,
       });
     } else {
       onCreate({
@@ -155,7 +136,6 @@ export function AssignmentRuleDrawer({
         user_ids: data.user_ids,
         geo_mapping: data.geo_mapping,
         is_active: data.is_active ?? true,
-        enabled: data.is_active ?? true,
       });
     }
     onClose();
@@ -199,7 +179,7 @@ export function AssignmentRuleDrawer({
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Activo</span>
             <Switch
-              checked={form.watch('is_active') ?? true}
+              checked={watchedIsActive ?? true}
               onCheckedChange={(v) => form.setValue('is_active', v)}
             />
           </div>
@@ -240,7 +220,7 @@ export function AssignmentRuleDrawer({
                     type="checkbox"
                     className="accent-primary rounded"
                     checked={watchedUserIds.includes(user.value)}
-                    onChange={() => toggleUser(user.value, user.label)}
+                    onChange={() => toggleUser(user.value)}
                   />
                   <span className="text-sm">{user.label}</span>
                 </label>

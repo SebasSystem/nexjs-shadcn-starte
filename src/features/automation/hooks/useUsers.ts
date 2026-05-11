@@ -13,7 +13,10 @@ const PER_PAGE = 25;
 
 export function useUsers(search = '') {
   const { data } = useQuery({
-    queryKey: [...queryKeys.settings.users, { per_page: PER_PAGE, search: search || undefined }] as const,
+    queryKey: [
+      ...queryKeys.settings.users,
+      { per_page: PER_PAGE, search: search || undefined },
+    ] as const,
     staleTime: 0,
     queryFn: async () => {
       const params: Record<string, unknown> = { per_page: PER_PAGE };
