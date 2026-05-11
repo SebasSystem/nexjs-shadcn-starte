@@ -140,6 +140,6 @@ export function usePermissions() {
   return useQuery({
     queryKey: queryKeys.rbac.permissions,
     queryFn: () => rolesService.getPermissions(),
-    staleTime: 10 * 60 * 1000,
+    staleTime: 0,
   });
 }

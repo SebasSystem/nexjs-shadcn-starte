@@ -25,7 +25,7 @@ const FALLBACK_MODULE_LABELS: Record<string, string> = {
 };
 
 const formatCount = (n: number | undefined) => {
-  if (n === undefined || n === 0) return null;
+  if (n === undefined) return null;
   return n > 999 ? '+999' : String(n);
 };
 

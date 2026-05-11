@@ -31,7 +31,7 @@ export function useAutomationRules() {
   const { data: triggerEventsData } = useQuery({
     queryKey: [...queryKeys.automation.rules, 'trigger-events'],
     queryFn: () => automationService.getTriggerEvents(),
-    staleTime: 5 * 60 * 1000, // 5 min — triggers rarely change
+    staleTime: 0,
   });
 
   const stats = useMemo(
