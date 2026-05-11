@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { contactsService } from 'src/features/contacts/services/contacts.service';
 import { formatMoney } from 'src/lib/currency';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
@@ -56,9 +56,17 @@ export function CreditRulesView() {
     deleteException,
   } = useCreditRules();
 
-  const [maxDays, setMaxDays] = useState(() => (rules ? String(rules.max_days) : ''));
-  const [maxAmount, setMaxAmount] = useState(() => (rules ? String(rules.max_amount) : ''));
-  const [autoBlock, setAutoBlock] = useState(() => (rules ? rules.auto_block : true));
+  const [maxDays, setMaxDays] = useState('');
+  const [maxAmount, setMaxAmount] = useState('');
+  const [autoBlock, setAutoBlock] = useState(true);
+
+  useEffect(() => {
+    if (rules) {
+      setMaxDays(String(rules.max_days ?? ''));
+      setMaxAmount(String(rules.max_amount ?? ''));
+      setAutoBlock(rules.auto_block ?? true);
+    }
+  }, [rules]);
 
   // ─── Delete confirmation state ────────────────────────────────────────────────
   const [deleteTarget, setDeleteTarget] = useState<CreditException | null>(null);
@@ -147,6 +155,8 @@ export function CreditRulesView() {
       await createException({
         entity_type: newEntityType,
         entity_uid: newEntityUid.trim(),
+        client_uid: newEntityUid.trim(),
+        is_active: true,
         credit_limit: parseFloat(newCreditLimit),
         ...(newMaxDays.trim() ? { max_days: parseInt(newMaxDays, 10) } : {}),
         ...(newNotes.trim() ? { notes: newNotes.trim() } : {}),

@@ -12,10 +12,10 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
+import { DeleteButton, EditButton, Icon } from 'src/shared/components/ui';
 import { Badge } from 'src/shared/components/ui/badge';
 import { Button } from 'src/shared/components/ui/button';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
-import { DeleteButton, EditButton, Icon } from 'src/shared/components/ui';
 
 import type { Segment } from '../../types/segments.types';
 
@@ -150,7 +150,7 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
 
   return (
     <div className="w-full">
-      <TableContainer className="relative min-h-[300px]">
+      <TableContainer className="relative">
         <Table>
           <TableHeadCustom table={table} />
           <TableBody dense={dense}>

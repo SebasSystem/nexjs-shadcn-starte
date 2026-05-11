@@ -1,10 +1,19 @@
 'use client';
 
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { usersService } from 'src/features/settings/services/users.service';
-import { Button, Input, SelectField, Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from 'src/shared/components/ui';
+import {
+  Button,
+  Input,
+  SelectField,
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
 
 import type {
@@ -76,9 +85,9 @@ function OpportunityForm({
     queryKey: ['users', 'list'],
     queryFn: async () => {
       const res = await usersService.getAll({ per_page: 500 });
-      return (((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>).map(
-        (u) => ({ value: u.uid, label: u.name })
-      );
+      return (
+        ((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>
+      ).map((u) => ({ value: u.uid, label: u.name }));
     },
     staleTime: 5 * 60 * 1000,
   });

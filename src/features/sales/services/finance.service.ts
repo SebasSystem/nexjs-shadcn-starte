@@ -5,6 +5,8 @@ import type { CreditException, CreditRuleSettings } from '../types/sales.types';
 export interface CreateCreditExceptionPayload {
   entity_type: string;
   entity_uid: string;
+  client_uid: string;
+  is_active: boolean;
   credit_limit: number;
   max_days?: number;
   notes?: string;

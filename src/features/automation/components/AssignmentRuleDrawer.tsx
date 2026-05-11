@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { cn } from 'src/lib/utils';
 import { Button } from 'src/shared/components/ui/button';
@@ -102,6 +102,15 @@ export function AssignmentRuleDrawer({
     form.setValue('user_ids', next);
   };
 
+  const [userSearch, setUserSearch] = useState('');
+  const filteredUsers = useMemo(
+    () =>
+      userSearch
+        ? userOptions.filter((u) => u.label.toLowerCase().includes(userSearch.toLowerCase()))
+        : userOptions,
+    [userOptions, userSearch]
+  );
+
   const handleSubmit = form.handleSubmit((data) => {
     if (isEditing && item) {
       onUpdate(item.uid, {
@@ -161,8 +170,13 @@ export function AssignmentRuleDrawer({
 
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">Usuarios asignables</p>
-            <div className="space-y-2">
-              {userOptions.map((user) => (
+            <Input
+              placeholder="Buscar usuario..."
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+            />
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {filteredUsers.map((user) => (
                 <label
                   key={user.value}
                   className={cn(

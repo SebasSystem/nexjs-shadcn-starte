@@ -80,7 +80,7 @@ export function usePartners(filters: PartnersFilters = {}) {
       const res = await partnersService.materials.list(materialPagination.params);
       const meta = extractPaginationMeta(res as unknown as Record<string, unknown>);
       if (meta) materialPagination.setTotal(meta.total);
-      return ((res as unknown as Record<string, unknown>).data ?? []) as PortalMaterial[];
+      return res as unknown as PortalMaterial[];
     },
     staleTime: 0,
     placeholderData: keepPreviousData,
