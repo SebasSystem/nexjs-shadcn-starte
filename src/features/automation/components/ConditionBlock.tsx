@@ -30,10 +30,10 @@ interface ConditionBlockProps {
 export function ConditionBlock({ form, groupIndex }: ConditionBlockProps) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: `condition_groups.${groupIndex}.conditions`,
+    name: `conditions.${groupIndex}.conditions`,
   });
 
-  const logic = form.watch(`condition_groups.${groupIndex}.logic`);
+  const logic = form.watch(`conditions.${groupIndex}.logic`);
 
   const handleAddCondition = () => {
     append({
@@ -45,7 +45,7 @@ export function ConditionBlock({ form, groupIndex }: ConditionBlockProps) {
   };
 
   const toggleLogic = () => {
-    form.setValue(`condition_groups.${groupIndex}.logic`, logic === 'AND' ? 'OR' : 'AND');
+    form.setValue(`conditions.${groupIndex}.logic`, logic === 'AND' ? 'OR' : 'AND');
   };
 
   return (
@@ -78,9 +78,7 @@ export function ConditionBlock({ form, groupIndex }: ConditionBlockProps) {
         )}
 
         {fields.map((field, index) => {
-          const operator = form.watch(
-            `condition_groups.${groupIndex}.conditions.${index}.operator`
-          );
+          const operator = form.watch(`conditions.${groupIndex}.conditions.${index}.operator`);
           const hideValue = VALUELESS_OPERATORS.includes(operator as ConditionOperator);
 
           return (
@@ -96,10 +94,10 @@ export function ConditionBlock({ form, groupIndex }: ConditionBlockProps) {
                 <Input
                   label="Campo"
                   placeholder="Campo (ej: source)"
-                  value={form.watch(`condition_groups.${groupIndex}.conditions.${index}.field`)}
+                  value={form.watch(`conditions.${groupIndex}.conditions.${index}.field`)}
                   onChange={(e) =>
                     form.setValue(
-                      `condition_groups.${groupIndex}.conditions.${index}.field`,
+                      `conditions.${groupIndex}.conditions.${index}.field`,
                       e.target.value
                     )
                   }
@@ -110,7 +108,7 @@ export function ConditionBlock({ form, groupIndex }: ConditionBlockProps) {
                   value={operator}
                   onChange={(v) =>
                     form.setValue(
-                      `condition_groups.${groupIndex}.conditions.${index}.operator`,
+                      `conditions.${groupIndex}.conditions.${index}.operator`,
                       v as ConditionOperator
                     )
                   }
@@ -120,11 +118,11 @@ export function ConditionBlock({ form, groupIndex }: ConditionBlockProps) {
                     label="Valor"
                     placeholder="Valor"
                     value={String(
-                      form.watch(`condition_groups.${groupIndex}.conditions.${index}.value`) ?? ''
+                      form.watch(`conditions.${groupIndex}.conditions.${index}.value`) ?? ''
                     )}
                     onChange={(e) =>
                       form.setValue(
-                        `condition_groups.${groupIndex}.conditions.${index}.value`,
+                        `conditions.${groupIndex}.conditions.${index}.value`,
                         e.target.value
                       )
                     }

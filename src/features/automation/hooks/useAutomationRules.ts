@@ -38,18 +38,21 @@ export function useAutomationRules() {
     () => ({
       activeCount: rules.filter((r) => r.is_active).length,
       inactiveCount: rules.filter((r) => !r.is_active).length,
-      totalRuns: rules.reduce((sum, r) => sum + r.run_count, 0),
+      totalRuns: rules.reduce((sum, r) => sum + r.execution_count, 0),
       lastRun: rules
-        .filter((r) => r.last_run_at)
-        .sort((a, b) => new Date(b.last_run_at!).getTime() - new Date(a.last_run_at!).getTime())[0]
-        ?.last_run_at,
+        .filter((r) => r.last_executed_at)
+        .sort(
+          (a, b) =>
+            new Date(b.last_executed_at!).getTime() - new Date(a.last_executed_at!).getTime()
+        )[0]?.last_executed_at,
     }),
     [rules]
   );
 
   const createMutation = useMutation({
-    mutationFn: (data: Omit<AutomationRule, 'uid' | 'created_at' | 'run_count' | 'last_run_at'>) =>
-      automationService.create(data),
+    mutationFn: (
+      data: Omit<AutomationRule, 'uid' | 'created_at' | 'execution_count' | 'last_executed_at'>
+    ) => automationService.create(data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.automation.rules }),
     onError: (error) => toast.error(extractApiError(error)),
   });
@@ -79,7 +82,7 @@ export function useAutomationRules() {
     stats,
     triggerEvents: triggerEventsData as Record<string, unknown> | undefined,
     createRule: async (
-      data: Omit<AutomationRule, 'uid' | 'created_at' | 'run_count' | 'last_run_at'>
+      data: Omit<AutomationRule, 'uid' | 'created_at' | 'execution_count' | 'last_executed_at'>
     ): Promise<boolean> => {
       await createMutation.mutateAsync(data);
       return true;

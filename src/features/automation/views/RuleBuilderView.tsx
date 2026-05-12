@@ -51,7 +51,7 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
       trigger_source: 'crm',
       trigger_event: 'lead_created',
       trigger_config: {},
-      condition_groups: [
+      conditions: [
         {
           uid: `grp-${defaultGroupId}`,
           logic: 'AND',
@@ -59,6 +59,8 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
         },
       ],
       actions: [],
+      logic: 'AND',
+      is_active: true,
     },
   });
 
@@ -70,11 +72,13 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
         trigger_source: existingRule.trigger_source ?? 'crm',
         trigger_event: existingRule.trigger_event ?? 'lead_created',
         trigger_config: existingRule.trigger_config ?? {},
-        condition_groups:
-          (existingRule.condition_groups?.length ?? 0) > 0
-            ? existingRule.condition_groups
+        conditions:
+          (existingRule.conditions?.length ?? 0) > 0
+            ? existingRule.conditions
             : [{ uid: `grp-${defaultGroupId}`, logic: 'AND', conditions: [] }],
         actions: existingRule.actions ?? [],
+        logic: (existingRule.logic as 'AND' | 'OR') ?? 'AND',
+        is_active: existingRule.is_active ?? true,
       });
       conditionGroupInitialized.current = true;
     }
@@ -124,8 +128,10 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
         trigger_source: data.trigger_source,
         trigger_event: data.trigger_event,
         trigger_config: data.trigger_config,
-        condition_groups: data.condition_groups,
+        conditions: data.conditions,
         actions: data.actions,
+        logic: data.logic ?? 'AND',
+        is_active: data.is_active ?? true,
       });
     } else {
       createRule({
@@ -134,9 +140,10 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
         trigger_source: data.trigger_source,
         trigger_event: data.trigger_event,
         trigger_config: data.trigger_config,
-        condition_groups: data.condition_groups,
+        conditions: data.conditions,
         actions: data.actions,
-        enabled: true,
+        logic: data.logic ?? 'AND',
+        is_active: true,
       });
     }
     router.push(paths.automation.rules);

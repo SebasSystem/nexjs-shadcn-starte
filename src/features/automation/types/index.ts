@@ -126,19 +126,18 @@ export interface AutomationRule {
   uid: string;
   name: string;
   description?: string;
-  enabled: boolean;
-  is_active?: boolean;
+  is_active: boolean;
   trigger_source: TriggerSource;
   trigger_event: TriggerEvent;
   trigger_config?: {
     days_threshold?: number;
     stage_id?: string;
   };
-  condition_groups: ConditionGroup[];
+  conditions: ConditionGroup[];
   actions: AutomationAction[];
-  run_count: number;
-  execution_count?: number;
-  last_run_at?: string;
+  logic?: string;
+  execution_count: number;
+  last_executed_at?: string;
   created_at: string;
 }
 

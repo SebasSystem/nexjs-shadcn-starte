@@ -111,7 +111,7 @@ export function AutomationRulesView() {
         header: 'Estado',
         cell: (info) => <RuleStatusBadge enabled={info.row.original.is_active ?? false} />,
       }),
-      columnHelper.accessor('last_run_at', {
+      columnHelper.accessor('last_executed_at', {
         header: 'Última ej.',
         cell: (info) => (
           <span className="text-sm text-muted-foreground">{formatDate(info.getValue())}</span>

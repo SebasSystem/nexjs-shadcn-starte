@@ -20,7 +20,7 @@ export const automationService = {
   },
 
   async create(
-    data: Omit<AutomationRule, 'uid' | 'created_at' | 'run_count' | 'last_run_at'>
+    data: Omit<AutomationRule, 'uid' | 'created_at' | 'execution_count' | 'last_executed_at'>
   ): Promise<AutomationRule> {
     const res = await axiosInstance.post(endpoints.automation.rules.create, data);
     return res.data?.data ?? res.data;

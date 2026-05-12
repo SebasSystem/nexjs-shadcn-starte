@@ -83,8 +83,10 @@ export const ruleSchema = z.object({
       stage_id: z.string().optional(),
     })
     .optional(),
-  condition_groups: z.array(conditionGroupSchema),
+  conditions: z.array(conditionGroupSchema),
   actions: z.array(automationActionSchema),
+  logic: z.enum(['AND', 'OR']).optional(),
+  is_active: z.boolean().optional(),
 });
 
 export type RuleFormData = z.infer<typeof ruleSchema>;

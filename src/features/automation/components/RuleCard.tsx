@@ -43,7 +43,7 @@ export function RuleCard({ rule, onToggle, onDelete }: RuleCardProps) {
             <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{rule.description}</p>
           )}
         </div>
-        <RuleStatusBadge enabled={rule.enabled} className="shrink-0" />
+        <RuleStatusBadge enabled={rule.is_active} className="shrink-0" />
       </div>
 
       <div className="space-y-1.5 mb-3">
@@ -62,12 +62,11 @@ export function RuleCard({ rule, onToggle, onDelete }: RuleCardProps) {
         </div>
         <div className="flex items-center gap-2 text-xs">
           <span className="text-muted-foreground">Ejecuciones:</span>
-          <span className="font-medium text-foreground">{rule.run_count}</span>
-          {rule.last_run_at && (
-            <>
-              <span className="text-muted-foreground">·</span>
-              <span className="text-muted-foreground">Último: {formatDate(rule.last_run_at)}</span>
-            </>
+          <span className="font-medium text-foreground">{rule.execution_count}</span>
+          {rule.last_executed_at && (
+            <span className="text-muted-foreground">
+              Último: {formatDate(rule.last_executed_at)}
+            </span>
           )}
         </div>
       </div>
@@ -89,7 +88,7 @@ export function RuleCard({ rule, onToggle, onDelete }: RuleCardProps) {
           onClick={() => onToggle(rule.uid)}
         >
           <Icon name="Power" size={12} />
-          {rule.enabled ? 'Pausar' : 'Activar'}
+          {rule.is_active ? 'Pausar' : 'Activar'}
         </Button>
         <Button
           variant="outline"
