@@ -58,7 +58,10 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
     },
     staleTime: 0,
   });
-  const equipos = [{ value: '', label: 'Todos los equipos' }, ...(teamsData ?? []).map((t) => ({ value: t.uid, label: t.name }))];
+  const equipos = [
+    { value: '', label: 'Todos los equipos' },
+    ...(teamsData ?? []).map((t) => ({ value: t.uid, label: t.name })),
+  ];
 
   // ─── Users with server-side search ───────────────────────────────────────
   const { data: allUsers } = useQuery({

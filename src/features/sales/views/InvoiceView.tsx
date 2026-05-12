@@ -1,10 +1,10 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import type { Payment } from 'src/features/sales/types/sales.types';
 import { endpoints } from 'src/lib/axios';
 import { formatMoney } from 'src/lib/currency';
@@ -17,8 +17,8 @@ import { Card, CardContent } from 'src/shared/components/ui/card';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import { RegisterPaymentDrawer } from '../components/RegisterPaymentDrawer';
-import { invoiceService } from '../services/invoice.service';
 import { useSalesContext } from '../context/SalesContext';
+import { invoiceService } from '../services/invoice.service';
 import { STATUS_LABELS } from '../types/sales.types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

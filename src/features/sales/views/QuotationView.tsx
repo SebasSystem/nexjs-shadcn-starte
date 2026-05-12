@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { useProducts } from 'src/features/inventory/hooks/use-products';
 import { quotationService } from 'src/features/sales/services/quotation.service';

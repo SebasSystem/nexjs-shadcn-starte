@@ -70,7 +70,7 @@ export const AssignmentView = () => {
         });
       }
       return true;
-    } catch (err) {
+    } catch {
       toast.error('Error al guardar la asignación');
       return false;
     }
@@ -83,7 +83,13 @@ export const AssignmentView = () => {
         subtitle="Administra el plan de comisión activo de cada vendedor de tu equipo"
         action={
           <div className="flex items-center gap-2">
-            <Button color="primary" onClick={() => { setSelectedAsignacion(null); setIsDrawerOpen(true); }}>
+            <Button
+              color="primary"
+              onClick={() => {
+                setSelectedAsignacion(null);
+                setIsDrawerOpen(true);
+              }}
+            >
               <Icon name="Plus" size={16} />
               Nueva Asignación
             </Button>

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { localizationService } from 'src/features/settings/services/localization.service';
 import { formatMoney, getCurrencyPreferences } from 'src/lib/currency';
@@ -47,13 +47,6 @@ export function MultiCurrencyView() {
     },
     staleTime: 0,
   });
-
-  // Default to first currency option if preferences return undefined
-  useEffect(() => {
-    if (!baseCurrency && currencyOptions.length > 0) {
-      setBaseCurrency(currencyOptions[0].value);
-    }
-  }, [baseCurrency, currencyOptions]);
 
   const updateRate = useCallback(
     (code: string, value: string) => {
@@ -195,7 +188,13 @@ export function MultiCurrencyView() {
               searchable
             />
           </div>
-          <Button color="primary" onClick={() => guardarMonedaBase(baseCurrency)} disabled={!baseCurrency}>Guardar configuración</Button>
+          <Button
+            color="primary"
+            onClick={() => guardarMonedaBase(baseCurrency)}
+            disabled={!baseCurrency}
+          >
+            Guardar configuración
+          </Button>
         </div>
       </SectionCard>
 
