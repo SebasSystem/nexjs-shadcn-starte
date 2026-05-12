@@ -316,8 +316,8 @@ export function LostReasonsView() {
         title="¿Eliminar razón de pérdida?"
         description={
           <>
-            Vas a eliminar la razón de pérdida de <strong>{deleteTarget?.summary}</strong>.
-            Esta acción no se puede deshacer.
+            Vas a eliminar la razón de pérdida de <strong>{deleteTarget?.summary}</strong>. Esta
+            acción no se puede deshacer.
           </>
         }
         confirmLabel="Eliminar"

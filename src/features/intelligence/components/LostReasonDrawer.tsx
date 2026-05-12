@@ -60,7 +60,9 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
     queryKey: ['settings', 'localization', 'options', 'currencies'],
     queryFn: async () => {
       const res = (await localizationService.getOptions()) as Record<string, unknown>;
-      const data = (res?.data ?? res) as { currencies?: Array<{ code: string; label: string; symbol: string }> };
+      const data = (res?.data ?? res) as {
+        currencies?: Array<{ code: string; label: string; symbol: string }>;
+      };
       return (data.currencies ?? []).map((c) => ({
         value: c.code,
         label: `${c.code} - ${c.label}`,
@@ -111,7 +113,7 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
         reset(DEFAULT_VALUES);
       }
     }
-  }, [open, item, reset]);
+  }, [open, item, reset, currencyOptions]);
 
   const onSubmit = async (data: LostReasonFormData) => {
     const competitor = competitors.find((c) => c.uid === data.competitorId);

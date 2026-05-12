@@ -98,9 +98,9 @@ export function BattlecardDrawer({ open, item, competitors, onClose, onCreate, o
         reset({
           competitorId: item.competitor_uid,
           summary: item.summary,
-          ourStrengths: item.our_strengths.map((v) => ({ value: v })),
-          theirStrengths: item.their_strengths.map((v) => ({ value: v })),
-          objections: item.objections.map(({ id, objection, response }) => ({
+          ourStrengths: (item.our_strengths ?? []).map((v) => ({ value: v })),
+          theirStrengths: (item.their_strengths ?? []).map((v) => ({ value: v })),
+          objections: (item.objections ?? []).map(({ id, objection, response }) => ({
             id,
             objection,
             response,
@@ -119,8 +119,8 @@ export function BattlecardDrawer({ open, item, competitors, onClose, onCreate, o
       competitor_name: competitor?.name ?? '',
       title: item?.title ?? `${competitor?.name ?? 'Competidor'} — Battlecard`,
       summary: data.summary,
-      our_strengths: data.ourStrengths.map((s) => s.value),
-      their_strengths: data.theirStrengths.map((s) => s.value),
+      strengths: data.ourStrengths.map((s) => s.value),
+      weaknesses: data.theirStrengths.map((s) => s.value),
       objections: data.objections.map((o, i) => ({
         id: o.id ?? `obj-${Date.now()}-${i}`,
         objection: o.objection,

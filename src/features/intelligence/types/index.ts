@@ -25,14 +25,16 @@ export interface Battlecard {
   competitor_uid: string;
   competitor_name: string;
   summary: string;
-  our_strengths: string[];
-  their_strengths: string[];
-  objections: BattlecardObjection[];
-  win_rate: number;
-  deals_tracked: number;
-  deals_won: number;
-  updated_at: string;
-  created_at: string;
+  our_strengths?: string[];
+  their_strengths?: string[];
+  strengths?: string[];
+  weaknesses?: string[];
+  objections?: BattlecardObjection[];
+  win_rate?: number;
+  deals_tracked?: number;
+  deals_won?: number;
+  updated_at?: string;
+  created_at?: string;
   deals_value?: number;
 }
 

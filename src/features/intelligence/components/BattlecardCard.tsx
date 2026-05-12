@@ -60,7 +60,7 @@ export function BattlecardCard({ battlecard, onEdit, onDelete }: Props) {
       </div>
 
       {/* Win rate */}
-      <WinRateBar rate={battlecard.win_rate} />
+      <WinRateBar rate={battlecard.win_rate ?? 0} />
 
       {/* Deals */}
       <p className="text-caption text-muted-foreground">
@@ -73,16 +73,16 @@ export function BattlecardCard({ battlecard, onEdit, onDelete }: Props) {
           Nuestras ventajas
         </p>
         <ul className="space-y-1">
-          {battlecard.our_strengths.slice(0, 3).map((s, i) => (
+          {(battlecard.our_strengths ?? []).slice(0, 3).map((s, i) => (
             <li key={i} className="flex items-start gap-1.5 text-caption text-muted-foreground">
               <Icon name="CheckCircle2" size={13} className="text-success shrink-0 mt-0.5" />
               {s}
             </li>
           ))}
-          {battlecard.our_strengths.length > 3 && (
-            <li className="text-caption text-muted-foreground/60">
-              +{battlecard.our_strengths.length - 3} más...
-            </li>
+          {(battlecard.our_strengths ?? []).length > 3 && (
+            <span className="text-xs text-muted-foreground">
+              +{(battlecard.our_strengths ?? []).length - 3} más...
+            </span>
           )}
         </ul>
       </div>
