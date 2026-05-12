@@ -42,7 +42,7 @@ export function MaterialCard({ material, onDelete }: Props) {
   };
 
   return (
-    <SectionCard className="p-4 flex flex-col hover:shadow-md hover:bg-muted/10 transition-all">
+    <SectionCard className="p-4 flex flex-col border border-border/50 hover:shadow-card-hover hover:bg-muted/10 transition-all">
       <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', iconBg)}>
         <Icon name={typeConfig.icon as 'FileText'} size={18} />
       </div>
