@@ -9,9 +9,7 @@ export const assignmentService = {
     return res.data;
   },
 
-  async create(
-    data: Omit<AssignmentRule, 'uid' | 'created_at' | 'round_robin_index'>
-  ): Promise<AssignmentRule> {
+  async create(data: Omit<AssignmentRule, 'uid' | 'created_at'>): Promise<AssignmentRule> {
     const res = await axiosInstance.post(endpoints.automation.assignmentRules.create, data);
     return res.data?.data ?? res.data;
   },

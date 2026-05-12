@@ -2,16 +2,13 @@
 
 import { useState } from 'react';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
-import { Button } from 'src/shared/components/ui/button';
+import { Button, DeleteButton, EditButton, Icon } from 'src/shared/components/ui';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
-import { Icon } from 'src/shared/components/ui/icon';
 
 import { AssignmentRuleDrawer } from '../components/AssignmentRuleDrawer';
 import { RuleStatusBadge } from '../components/RuleStatusBadge';
 import { useAssignmentRules } from '../hooks/useAssignmentRules';
-import { useUsers } from '../hooks/useUsers';
 import type { AssignmentRule } from '../types';
-import { ASSIGNMENT_RULE_TYPE_LABELS } from '../types';
 
 export function AssignmentRulesView() {
   const {
@@ -21,7 +18,6 @@ export function AssignmentRulesView() {
     deleteAssignmentRule,
     isLoading,
   } = useAssignmentRules();
-  const { userMap } = useUsers();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<AssignmentRule | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AssignmentRule | null>(null);
@@ -58,7 +54,7 @@ export function AssignmentRulesView() {
                   Nombre
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  Tipo
+                  Lógica
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
                   Usuarios
@@ -98,15 +94,19 @@ export function AssignmentRulesView() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-sm text-foreground">
-                    {ASSIGNMENT_RULE_TYPE_LABELS[rule.type]}
+                    <span className="font-mono text-xs bg-muted/50 px-1.5 py-0.5 rounded">
+                      {rule.logic ?? 'AND'}
+                    </span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Icon name="Users" size={13} className="shrink-0" />
                       <span>
-                        {rule.user_ids.length === 0
-                          ? '—'
-                          : rule.user_ids.map((id) => userMap.get(id) ?? id).join(', ')}
+                        {rule.user_names?.length
+                          ? rule.user_names.join(', ')
+                          : rule.user_ids.length === 0
+                            ? '—'
+                            : rule.user_ids.join(', ')}
                       </span>
                     </div>
                   </td>
@@ -114,21 +114,12 @@ export function AssignmentRulesView() {
                     <RuleStatusBadge enabled={rule.is_active} />
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        title="Editar"
-                        onClick={() => handleEdit(rule)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      >
-                        <Icon name="Pencil" size={14} />
-                      </button>
-                      <button
-                        title="Eliminar"
-                        onClick={() => setDeleteTarget(rule)}
-                        className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                      >
-                        <Icon name="Trash2" size={14} />
-                      </button>
+                    <div
+                      className="flex items-center justify-end gap-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <EditButton onClick={() => handleEdit(rule)} />
+                      <DeleteButton onClick={() => setDeleteTarget(rule)} />
                     </div>
                   </td>
                 </tr>

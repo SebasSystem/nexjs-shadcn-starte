@@ -142,24 +142,19 @@ export interface AutomationRule {
   created_at: string;
 }
 
-export type AssignmentRuleType = 'round_robin' | 'geographic' | 'manual';
-
-export const ASSIGNMENT_RULE_TYPE_LABELS: Record<AssignmentRuleType, string> = {
-  round_robin: 'Round Robin',
-  geographic: 'Geográfico',
-  manual: 'Manual',
-};
-
 export interface AssignmentRule {
   uid: string;
   name: string;
-  type: AssignmentRuleType;
   is_active: boolean;
   description?: string;
+  logic: string;
+  conditions?: Record<string, unknown>[] | null;
   user_ids: string[];
-  geo_mapping?: Record<string, string[]>;
-  round_robin_index: number;
+  user_names?: string[];
+  assigned_to_uid?: string;
+  assigned_to_name?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export type ValidationStatus = 'unvalidated' | 'validated' | 'review_required';

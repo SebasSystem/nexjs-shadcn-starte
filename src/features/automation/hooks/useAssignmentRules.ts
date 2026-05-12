@@ -25,7 +25,7 @@ export function useAssignmentRules() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: Omit<AssignmentRule, 'uid' | 'created_at' | 'round_robin_index'>) =>
+    mutationFn: (data: Omit<AssignmentRule, 'uid' | 'created_at'>) =>
       assignmentService.create(data),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: queryKeys.automation.assignmentRules }),
@@ -51,7 +51,7 @@ export function useAssignmentRules() {
     assignmentRules,
     isLoading,
     createAssignmentRule: async (
-      data: Omit<AssignmentRule, 'uid' | 'created_at' | 'round_robin_index'>
+      data: Omit<AssignmentRule, 'uid' | 'created_at'>
     ): Promise<boolean> => {
       await createMutation.mutateAsync(data);
       return true;

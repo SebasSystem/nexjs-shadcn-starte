@@ -22,31 +22,13 @@ import { Textarea } from 'src/shared/components/ui/textarea';
 import { useUsers } from '../hooks/useUsers';
 import type { AssignmentRuleFormData } from '../schemas/assignment-rule.schema';
 import { assignmentRuleSchema } from '../schemas/assignment-rule.schema';
-import type { AssignmentRule, AssignmentRuleType } from '../types';
-import { ASSIGNMENT_RULE_TYPE_LABELS } from '../types';
-
-const TYPE_OPTIONS = (Object.keys(ASSIGNMENT_RULE_TYPE_LABELS) as AssignmentRuleType[]).map(
-  (key) => ({
-    value: key,
-    label: ASSIGNMENT_RULE_TYPE_LABELS[key],
-  })
-);
-
-/**
- * Countries list for geographic assignment rules.
- * TODO: Ideally fetch from `GET /settings/localization/options` or a dedicated
- * countries endpoint. The backend `SettingsController@localizationOptions` already
- * returns locale options (currency, date format, etc.). A `countries` field could
- * be added there. For now, keeping this hardcoded is acceptable — the country list
- * rarely changes and the endpoint doesn't yet expose a countries array.
- */
-const GEO_COUNTRIES = ['Colombia', 'México', 'Argentina', 'Perú', 'Chile', 'default'];
+import type { AssignmentRule } from '../types';
 
 interface AssignmentRuleDrawerProps {
   open: boolean;
   item: AssignmentRule | null;
   onClose: () => void;
-  onCreate: (rule: Omit<AssignmentRule, 'uid' | 'created_at' | 'round_robin_index'>) => void;
+  onCreate: (rule: Omit<AssignmentRule, 'uid' | 'created_at'>) => void;
   onUpdate: (uid: string, updates: Partial<AssignmentRule>) => void;
 }
 
@@ -63,10 +45,9 @@ export function AssignmentRuleDrawer({
     resolver: zodResolver(assignmentRuleSchema),
     defaultValues: {
       name: '',
-      type: 'round_robin',
       description: '',
       user_ids: [],
-      geo_mapping: {},
+      logic: 'AND',
       is_active: true,
     },
   });
@@ -75,27 +56,25 @@ export function AssignmentRuleDrawer({
     if (item) {
       form.reset({
         name: item.name,
-        type: item.type,
         description: item.description ?? '',
-        user_ids: item.user_ids,
-        geo_mapping: item.geo_mapping ?? {},
+        user_ids: item.user_ids ?? [],
+        logic: (item.logic as 'AND' | 'OR') ?? 'AND',
         is_active: item.is_active ?? true,
       });
     } else {
       form.reset({
         name: '',
-        type: 'round_robin',
         description: '',
         user_ids: [],
-        geo_mapping: {},
+        logic: 'AND',
+        is_active: true,
       });
     }
   }, [item, form]);
 
-  const watchedType = useWatch({ control: form.control, name: 'type' });
   const watchedUserIds = useWatch({ control: form.control, name: 'user_ids' });
-  const watchedGeoMapping = useWatch({ control: form.control, name: 'geo_mapping' });
   const watchedIsActive = useWatch({ control: form.control, name: 'is_active' });
+  const watchedLogic = useWatch({ control: form.control, name: 'logic' });
 
   const toggleUser = (userId: string) => {
     const current = watchedUserIds;
@@ -122,19 +101,17 @@ export function AssignmentRuleDrawer({
     if (isEditing && item) {
       onUpdate(item.uid, {
         name: data.name,
-        type: data.type,
         description: data.description,
         user_ids: data.user_ids,
-        geo_mapping: data.geo_mapping,
+        logic: data.logic ?? 'AND',
         is_active: data.is_active ?? true,
       });
     } else {
       onCreate({
         name: data.name,
-        type: data.type,
         description: data.description,
         user_ids: data.user_ids,
-        geo_mapping: data.geo_mapping,
+        logic: data.logic ?? 'AND',
         is_active: data.is_active ?? true,
       });
     }
@@ -162,18 +139,21 @@ export function AssignmentRuleDrawer({
             {...form.register('name')}
           />
 
-          <SelectField
-            label="Tipo"
-            options={TYPE_OPTIONS}
-            value={watchedType}
-            onChange={(v) => form.setValue('type', v as AssignmentRuleType)}
-          />
-
           <Textarea
             label="Descripción (opcional)"
             placeholder="Describí el propósito de esta regla..."
             rows={3}
             {...form.register('description')}
+          />
+
+          <SelectField
+            label="Lógica"
+            options={[
+              { value: 'AND', label: 'AND — Todas las condiciones' },
+              { value: 'OR', label: 'OR — Al menos una condición' },
+            ]}
+            value={watchedLogic ?? 'AND'}
+            onChange={(v) => form.setValue('logic', v as 'AND' | 'OR')}
           />
 
           <div className="flex items-center justify-between">
@@ -232,50 +212,6 @@ export function AssignmentRuleDrawer({
               )}
             </div>
           </div>
-
-          {watchedType === 'geographic' && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Mapeo geográfico</p>
-              <div className="rounded-xl border border-border/50 overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border/50 bg-muted/30">
-                      <th className="text-left px-3 py-2 text-xs font-bold text-muted-foreground">
-                        País / Región
-                      </th>
-                      <th className="text-left px-3 py-2 text-xs font-bold text-muted-foreground">
-                        Asignar a
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {GEO_COUNTRIES.map((country) => {
-                      const geoMapping = watchedGeoMapping ?? {};
-                      const currentUser = geoMapping[country]?.[0] ?? '';
-                      return (
-                        <tr key={country} className="border-b border-border/30 last:border-0">
-                          <td className="px-3 py-2 font-medium text-foreground">{country}</td>
-                          <td className="px-3 py-2">
-                            <SelectField
-                              options={[{ value: '', label: 'Sin asignar' }, ...userOptions]}
-                              value={currentUser}
-                              onChange={(v) => {
-                                const current = watchedGeoMapping ?? {};
-                                form.setValue('geo_mapping', {
-                                  ...current,
-                                  [country]: v ? [v as string] : [],
-                                });
-                              }}
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
         </div>
 
         <SheetFooter className="px-6 py-4 border-t border-border/40 shrink-0">
