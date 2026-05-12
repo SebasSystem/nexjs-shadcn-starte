@@ -18,7 +18,15 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+import {
+  Badge,
+  Button,
+  DeleteButton,
+  EditButton,
+  Icon,
+  Input,
+  SelectField,
+} from 'src/shared/components/ui';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 
 import { PartnerDrawer } from '../components/PartnerDrawer';
@@ -116,23 +124,15 @@ export function PartnersView() {
         id: 'actions',
         header: '',
         cell: (info) => (
-          <div className="flex items-center gap-1">
-            <button
-              className="text-muted-foreground hover:text-primary transition-colors"
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+            <EditButton
               onClick={() => {
                 setSelectedPartner(info.row.original);
                 setDrawerMode('edit');
                 setDrawerOpen(true);
               }}
-            >
-              <Icon name="Pencil" size={14} />
-            </button>
-            <button
-              className="text-muted-foreground hover:text-destructive transition-colors"
-              onClick={() => setDeleteTarget(info.row.original)}
-            >
-              <Icon name="Trash2" size={14} />
-            </button>
+            />
+            <DeleteButton onClick={() => setDeleteTarget(info.row.original)} />
           </div>
         ),
       }),

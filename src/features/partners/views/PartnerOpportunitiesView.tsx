@@ -20,7 +20,15 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
-import { Badge, Button, Icon, Input, SelectField } from 'src/shared/components/ui';
+import {
+  Badge,
+  Button,
+  DeleteButton,
+  EditButton,
+  Icon,
+  Input,
+  SelectField,
+} from 'src/shared/components/ui';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 
 import { PartnerOpportunityDrawer } from '../components/PartnerOpportunityDrawer';
@@ -173,22 +181,14 @@ export function PartnerOpportunitiesView() {
                   </Button>
                 </>
               )}
-              <button
-                className="text-muted-foreground hover:text-primary transition-colors ml-1"
+              <EditButton
                 onClick={() => {
                   setSelectedOpp(info.row.original);
                   setDrawerMode('edit');
                   setDrawerOpen(true);
                 }}
-              >
-                <Icon name="Pencil" size={14} />
-              </button>
-              <button
-                className="text-muted-foreground hover:text-destructive transition-colors ml-1"
-                onClick={() => setDeleteTarget(info.row.original)}
-              >
-                <Icon name="Trash2" size={14} />
-              </button>
+              />
+              <DeleteButton onClick={() => setDeleteTarget(info.row.original)} />
             </div>
           );
         },

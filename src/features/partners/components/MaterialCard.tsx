@@ -82,7 +82,12 @@ export function MaterialCard({ material, onDelete }: Props) {
         Descargar
       </Button>
       {onDelete && (
-        <Button variant="ghost" size="sm" color="error" className="w-full mt-1" onClick={onDelete}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full mt-1 border-red-200 text-red-600 hover:bg-red-50"
+          onClick={onDelete}
+        >
           <Icon name="Trash2" size={14} />
           Eliminar
         </Button>

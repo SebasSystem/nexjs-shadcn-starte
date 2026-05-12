@@ -115,6 +115,7 @@ export const AssignmentView = () => {
       </SectionCard>
 
       <AssignmentDrawer
+        key={isDrawerOpen ? (selectedAsignacion?.uid ?? 'new') : 'closed'}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         asignacion={selectedAsignacion}

@@ -24,6 +24,11 @@ export const TeamsView = () => {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Team | null>(null);
 
+  // Sync selectedTeam with latest data after mutations (e.g. addMember)
+  const currentTeam = selectedTeam
+    ? (teams.find((t) => t.uid === selectedTeam.uid) ?? selectedTeam)
+    : null;
+
   const handleOpenNew = () => {
     setSelectedTeam(null);
     setIsDrawerOpen(true);
@@ -96,7 +101,7 @@ export const TeamsView = () => {
         key={isDrawerOpen ? (selectedTeam?.uid ?? 'new') : 'closed'}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        team={selectedTeam}
+        team={currentTeam}
         onSave={handleSave}
         onAddMember={handleAddMember}
         onRemoveMember={handleRemoveMember}

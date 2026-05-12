@@ -17,6 +17,11 @@ export const PlansView = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<CommissionPlan | null>(null);
 
+  // Sync selectedPlan with latest data after mutations
+  const currentPlan = selectedPlan
+    ? (plans.find((p) => p.uid === selectedPlan.uid) ?? selectedPlan)
+    : null;
+
   const handleEdit = (plan: CommissionPlan) => {
     setSelectedPlan(plan);
     setIsDrawerOpen(true);
@@ -76,9 +81,10 @@ export const PlansView = () => {
       </SectionCard>
 
       <PlanDrawer
+        key={isDrawerOpen ? (selectedPlan?.uid ?? 'new') : 'closed'}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        plan={selectedPlan}
+        plan={currentPlan}
         onSave={handleSave}
       />
 

@@ -106,7 +106,7 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
           competitorId: item.competitor_uid ?? '',
           lostReasonCategory: item.reason_type,
           lostReasonDetail: item.lost_reason_detail,
-          lostDate: item.lost_at,
+          lostDate: (item.lost_at ?? '').substring(0, 10),
           salesRepName: item.sales_rep ?? '',
         });
       } else {
@@ -187,6 +187,7 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
                 render={({ field }) => (
                   <SelectField
                     label="Moneda"
+                    searchable
                     options={currencyOptions}
                     value={field.value}
                     onChange={(v) => field.onChange(v as string)}

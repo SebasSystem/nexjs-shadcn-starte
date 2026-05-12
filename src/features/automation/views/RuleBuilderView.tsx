@@ -20,6 +20,7 @@ import { useAssignmentRules } from '../hooks/useAssignmentRules';
 import { useAutomationRules } from '../hooks/useAutomationRules';
 import type { RuleFormData } from '../schemas/rule.schema';
 import { ruleSchema } from '../schemas/rule.schema';
+import { automationService } from '../services/automation.service';
 import type { TriggerEvent, TriggerSource } from '../types';
 
 interface RuleBuilderViewProps {
@@ -28,12 +29,19 @@ interface RuleBuilderViewProps {
 
 export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
   const router = useRouter();
-  const { rules, createRule, updateRule } = useAutomationRules();
+  const { createRule, updateRule } = useAutomationRules();
   const { assignmentRules } = useAssignmentRules();
   const defaultGroupId = useId();
   const conditionGroupInitialized = useRef(false);
   const isEditing = !!ruleId;
-  const existingRule = ruleId ? rules.find((r) => r.uid === ruleId) : undefined;
+
+  // Fetch single rule by ID for edit — NOT the paginated list
+  const { data: existingRule } = useQuery({
+    queryKey: ['automation', 'rule', ruleId],
+    queryFn: () => automationService.getById(ruleId!),
+    enabled: isEditing,
+    staleTime: 0,
+  });
 
   const form = useForm<RuleFormData>({
     resolver: zodResolver(ruleSchema),
@@ -57,16 +65,16 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
   useEffect(() => {
     if (existingRule && !conditionGroupInitialized.current) {
       form.reset({
-        name: existingRule.name,
+        name: existingRule.name ?? '',
         description: existingRule.description ?? '',
-        trigger_source: existingRule.trigger_source,
-        trigger_event: existingRule.trigger_event,
+        trigger_source: existingRule.trigger_source ?? 'crm',
+        trigger_event: existingRule.trigger_event ?? 'lead_created',
         trigger_config: existingRule.trigger_config ?? {},
         condition_groups:
-          existingRule.condition_groups.length > 0
+          (existingRule.condition_groups?.length ?? 0) > 0
             ? existingRule.condition_groups
             : [{ uid: `grp-${defaultGroupId}`, logic: 'AND', conditions: [] }],
-        actions: existingRule.actions,
+        actions: existingRule.actions ?? [],
       });
       conditionGroupInitialized.current = true;
     }

@@ -252,7 +252,11 @@ export function TasksView() {
       </SectionCard>
 
       {/* Drawer */}
-      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+      <Sheet
+        key={drawerOpen ? (editing?.uid ?? 'new') : 'closed'}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      >
         <SheetContent className="sm:max-w-md">
           <SheetHeader>
             <SheetTitle>{editing ? 'Editar Tarea' : 'Nueva Tarea'}</SheetTitle>

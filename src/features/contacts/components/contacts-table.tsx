@@ -12,17 +12,10 @@ import {
   TableRow,
   useTable,
 } from 'src/shared/components/table';
+import { DeleteButton, EditButton, Icon } from 'src/shared/components/ui';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Button } from 'src/shared/components/ui/button';
 import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from 'src/shared/components/ui/dropdown-menu';
-import { Icon } from 'src/shared/components/ui/icon';
 
 import type { Contact } from '../types/contacts.types';
 import { ContactStatusBadge } from './contact-status-badge';
@@ -128,11 +121,14 @@ export function ContactsTable({
       }),
       columnHelper.display({
         id: 'actions',
-        header: 'Acciones',
+        header: '',
         cell: (info) => {
           const c = info.row.original;
           return (
-            <div className="flex items-center gap-1">
+            <div
+              className="flex items-center justify-end gap-1"
+              onClick={(e) => e.stopPropagation()}
+            >
               <Button
                 variant="ghost"
                 size="icon"
@@ -141,36 +137,8 @@ export function ContactsTable({
               >
                 <Icon name="Eye" className="h-3.5 w-3.5" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 cursor-pointer"
-                onClick={() => onEdit(c)}
-              >
-                <Icon name="Pencil" className="h-3.5 w-3.5" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 cursor-pointer">
-                    <Icon name="MoreHorizontal" className="h-3.5 w-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onViewDetail(c)} className="cursor-pointer">
-                    Ver detalle
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onEdit(c)} className="cursor-pointer">
-                    Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-red-600 cursor-pointer"
-                    onClick={() => setDeleteTarget(c)}
-                  >
-                    Eliminar
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <EditButton onClick={() => onEdit(c)} />
+              <DeleteButton onClick={() => setDeleteTarget(c)} />
             </div>
           );
         },

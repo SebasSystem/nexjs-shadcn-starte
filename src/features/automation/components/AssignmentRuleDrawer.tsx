@@ -142,7 +142,7 @@ export function AssignmentRuleDrawer({
   });
 
   return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+    <Sheet key={item?.uid ?? 'new'} open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[480px] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40">
           <SheetTitle>
