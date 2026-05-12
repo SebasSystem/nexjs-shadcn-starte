@@ -121,7 +121,13 @@ const COLUMNS = (onEdit: (t: Task) => void, onDelete: (t: Task) => void) => [
 // ─── View ───────────────────────────────────────────────────────────────────
 
 export function TasksView() {
-  const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks();
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+
+  const { tasks, isLoading, createTask, updateTask, deleteTask } = useTasks({
+    search: search || undefined,
+    status: filterStatus || undefined,
+  });
 
   // ── Users for assignment ─────────────────────────────────────────────────
   const { data: usersList } = useQuery({
@@ -215,6 +221,30 @@ export function TasksView() {
           </Button>
         }
       />
+
+      <div className="flex flex-wrap items-end gap-3 mb-4">
+        <div className="flex-1 min-w-48">
+          <Input
+            label="Buscar"
+            placeholder="Buscar tareas..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            leftIcon={<Icon name="Search" size={15} />}
+          />
+        </div>
+        <SelectField
+          label="Estado"
+          options={[
+            { value: '', label: 'Todos los estados' },
+            { value: 'pending', label: 'Pendiente' },
+            { value: 'in_progress', label: 'En Progreso' },
+            { value: 'completed', label: 'Completada' },
+            { value: 'cancelled', label: 'Cancelada' },
+          ]}
+          value={filterStatus}
+          onChange={(v) => setFilterStatus(v as string)}
+        />
+      </div>
 
       <SectionCard noPadding>
         <TableContainer className="relative">

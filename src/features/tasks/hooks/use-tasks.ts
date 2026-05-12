@@ -9,14 +9,20 @@ import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
 const QUERY_KEY = ['tasks'] as const;
 
-export function useTasks() {
+export function useTasks(filters?: { search?: string; status?: string }) {
   const queryClient = useQueryClient();
   const pagination = usePaginationParams();
 
+  const serverParams = {
+    ...pagination.params,
+    ...(filters?.search ? { search: filters.search } : {}),
+    ...(filters?.status ? { status: filters.status } : {}),
+  };
+
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: [...QUERY_KEY, pagination.params],
+    queryKey: [...QUERY_KEY, serverParams],
     queryFn: async () => {
-      const res = await taskService.list(pagination.params);
+      const res = await taskService.list(serverParams);
       const meta = extractPaginationMeta(res);
       if (meta) pagination.setTotal(meta.total);
       return ((res as unknown as { data?: Task[] }).data ?? []) as Task[];

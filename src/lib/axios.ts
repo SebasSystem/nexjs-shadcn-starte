@@ -307,17 +307,17 @@ export const endpoints = {
       range: '/activities/range',
     },
     interactions: {
-      list: (contactUid: string) => `/contacts/${contactUid}/interactions`,
+      list: (contactUid: string) => `/interactions/contact/${contactUid}`,
       timeline: '/interactions/timeline',
-      notes: '/activities/notes',
-      calls: '/activities/calls',
-      emails: '/activities/emails',
+      notes: '/interactions/notes',
+      calls: '/interactions/calls',
+      emails: '/interactions/emails',
     },
     documents: {
-      list: (entityType: string, entityUid: string) => `/documents/${entityType}/${entityUid}`,
-      upload: (entityType: string, entityUid: string) => `/documents/${entityType}/${entityUid}`,
-      delete: (entityType: string, entityUid: string, docUid: string) =>
-        `/documents/${entityType}/${entityUid}/${docUid}`,
+      list: (entityType: string, entityUid: string) =>
+        `/documents/entity/${entityType}/${entityUid}`,
+      upload: '/documents',
+      delete: (docUid: string) => `/documents/${docUid}`,
     },
   },
   partners: {
@@ -403,6 +403,7 @@ export const endpoints = {
     assignments: {
       list: '/commissions/assignments',
       create: '/commissions/assignments',
+      bulk: '/commissions/assignments/bulk',
       update: (uid: string) => `/commissions/assignments/${uid}`,
     },
     targets: {

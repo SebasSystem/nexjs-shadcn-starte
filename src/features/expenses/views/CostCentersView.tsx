@@ -147,7 +147,7 @@ export function CostCentersView() {
       <SectionCard noPadding>
         <TableContainer>
           <Table>
-            <TableHeadCustom table={table} />{' '}
+            <TableHeadCustom table={table} />
             <TableBody>
               {table.getRowModel().rows.map((r) => (
                 <TableRow key={r.id}>

@@ -15,9 +15,18 @@ const STATUS_OPTIONS = [
 interface ContactDrawerBasicInfoProps {
   control: Control<ContactDrawerFormData>;
   type: ContactDrawerFormData['type'];
+  countryOptions: { value: string; label: string }[];
+  cityOptions: { value: string; label: string }[];
+  onCitySearch: (search: string) => void;
 }
 
-export function ContactDrawerBasicInfo({ control, type }: ContactDrawerBasicInfoProps) {
+export function ContactDrawerBasicInfo({
+  control,
+  type,
+  countryOptions,
+  cityOptions,
+  onCitySearch,
+}: ContactDrawerBasicInfoProps) {
   return (
     <>
       <FormInput
@@ -49,8 +58,24 @@ export function ContactDrawerBasicInfo({ control, type }: ContactDrawerBasicInfo
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <FormInput control={control} name="country" label="País" required placeholder="Colombia" />
-        <FormInput control={control} name="city" label="Ciudad" placeholder="Bogotá" />
+        <FormSelectField
+          control={control}
+          name="country"
+          label="País"
+          required
+          searchable
+          options={countryOptions}
+          placeholder="Seleccionar país..."
+        />
+        <FormSelectField
+          control={control}
+          name="city"
+          label="Ciudad"
+          searchable
+          onSearch={onCitySearch}
+          options={cityOptions}
+          placeholder="Seleccionar ciudad..."
+        />
       </div>
     </>
   );

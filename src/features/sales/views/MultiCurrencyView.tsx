@@ -1,8 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { localizationService } from 'src/features/settings/services/localization.service';
 import { formatMoney, getCurrencyPreferences } from 'src/lib/currency';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
@@ -47,6 +48,13 @@ export function MultiCurrencyView() {
     staleTime: 0,
   });
 
+  // Default to first currency option if preferences return undefined
+  useEffect(() => {
+    if (!baseCurrency && currencyOptions.length > 0) {
+      setBaseCurrency(currencyOptions[0].value);
+    }
+  }, [baseCurrency, currencyOptions]);
+
   const updateRate = useCallback(
     (code: string, value: string) => {
       const updated = rates.map((r) =>
@@ -56,6 +64,13 @@ export function MultiCurrencyView() {
     },
     [rates, setRates]
   );
+
+  // Save base currency preference
+  const { mutate: guardarMonedaBase } = useMutation({
+    mutationFn: (currency: string) => localizationService.update({ currency }),
+    onSuccess: () => toast.success('Moneda base actualizada'),
+    onError: () => toast.error('Error al guardar la moneda base'),
+  });
 
   const hasOutdated = rates.some((r) => r.status === 'outdated');
 
@@ -180,7 +195,7 @@ export function MultiCurrencyView() {
               searchable
             />
           </div>
-          <Button color="primary">Guardar configuración</Button>
+          <Button color="primary" onClick={() => guardarMonedaBase(baseCurrency)} disabled={!baseCurrency}>Guardar configuración</Button>
         </div>
       </SectionCard>
 

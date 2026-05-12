@@ -49,11 +49,11 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
     defaultValues: {
       name: '',
       type: 'sale',
-      base_percentage: 0,
+      base_percentage: 1,
       role_uids: [],
       starts_at: '',
       ends_at: '',
-      tiers: [{ threshold: 0, percent: 0 }],
+      tiers: [{ threshold: 0, percent: 1 }],
     },
     mode: 'onChange',
   });
@@ -67,11 +67,14 @@ export const PlanDrawer: React.FC<PlanDrawerProps> = ({ isOpen, onClose, plan, o
           uid: plan.uid,
           name: plan.name,
           type: plan.type,
-          base_percentage: plan.base_percentage,
+          base_percentage: Number(plan.base_percentage) || 1,
           role_uids: plan.role_uids ?? [],
-          starts_at: plan.starts_at || '',
-          ends_at: plan.ends_at || '',
-          tiers: plan.tiers,
+          starts_at: (plan.starts_at ?? '').substring(0, 10),
+          ends_at: (plan.ends_at ?? '').substring(0, 10),
+          tiers: (plan.tiers ?? []).map((t) => ({
+            threshold: Number(t.threshold) || 0,
+            percent: Number(t.percent) || 1,
+          })),
         });
       } else {
         reset({

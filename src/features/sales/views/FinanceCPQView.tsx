@@ -1,8 +1,9 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createColumnHelper, flexRender } from '@tanstack/react-table';
 import { useCallback, useMemo, useState } from 'react';
+import { localizationService } from 'src/features/settings/services/localization.service';
 import { formatMoney, getCurrencyPreferences } from 'src/lib/currency';
 import { formatDate } from 'src/lib/date';
 import { queryKeys } from 'src/lib/query-keys';
@@ -31,6 +32,7 @@ import {
 } from 'src/shared/components/ui/sheet';
 import { Textarea } from 'src/shared/components/ui/textarea';
 
+import { financeService } from '../services/finance.service';
 import { quotationService } from '../services/quotation.service';
 import type { QuotationItem } from '../types/sales.types';
 
@@ -47,19 +49,6 @@ const CLIENT_TYPE_OPTIONS = [
   { value: 'B2C', label: 'B2C' },
   { value: 'B2B', label: 'B2B' },
   { value: 'B2G', label: 'B2G' },
-];
-
-const CURRENCY_OPTIONS = [
-  { value: 'COP', label: 'COP – Peso colombiano' },
-  { value: 'USD', label: 'USD – Dólar estadounidense' },
-  { value: 'EUR', label: 'EUR – Euro' },
-  { value: 'MXN', label: 'MXN – Peso mexicano' },
-];
-
-const PRICE_LIST_OPTIONS = [
-  { value: 'standard', label: 'Estándar 2024' },
-  { value: 'premium', label: 'Premium' },
-  { value: 'gobierno', label: 'Gobierno' },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -257,6 +246,30 @@ export function FinanceCPQView() {
   const [quotationUid, setQuotationUid] = useState<string | null>(null);
   const [quoteNumber, setQuoteNumber] = useState('');
   const [invoiceDrawerOpen, setInvoiceDrawerOpen] = useState(false);
+
+  // Currency options from backend
+  const { data: currencyOptions = [] } = useQuery({
+    queryKey: ['settings', 'localization', 'currencies'],
+    queryFn: async () => {
+      const res = (await localizationService.getOptions()) as Record<string, unknown>;
+      const data = (res?.data ?? res) as { currencies?: Array<{ code: string; name: string }> };
+      return (data.currencies ?? []).map((c) => ({
+        value: c.code,
+        label: `${c.code} — ${c.name}`,
+      }));
+    },
+    staleTime: 0,
+  });
+
+  // Price lists from backend
+  const { data: priceListOptions = [] } = useQuery({
+    queryKey: ['price-books'],
+    queryFn: async () => {
+      const items = await financeService.getPriceBooks();
+      return items.map((p) => ({ value: p.uid, label: p.name }));
+    },
+    staleTime: 0,
+  });
 
   const subtotal = lines.reduce((s, l) => s + lineTotal(l), 0);
   const iva = subtotal * 0.16;
@@ -481,13 +494,13 @@ export function FinanceCPQView() {
               />
               <SelectField
                 label="Moneda"
-                options={CURRENCY_OPTIONS}
+                options={currencyOptions}
                 value={currency}
                 onChange={(v) => setCurrency(v as string)}
               />
               <SelectField
                 label="Lista de precios"
-                options={PRICE_LIST_OPTIONS}
+                options={priceListOptions}
                 value={priceList}
                 onChange={(v) => setPriceList(v as string)}
               />

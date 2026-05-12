@@ -2,13 +2,13 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useProducts } from 'src/features/inventory/hooks/use-products';
 import { quotationService } from 'src/features/sales/services/quotation.service';
 import type { Quotation, QuotationItem } from 'src/features/sales/types/sales.types';
 import { localizationService } from 'src/features/settings/services/localization.service';
-import { formatMoney } from 'src/lib/currency';
+import { formatMoney, getCurrencyPreferences } from 'src/lib/currency';
 import { paths } from 'src/routes/paths';
 import { PageContainer } from 'src/shared/components/layouts/page';
 import { Badge } from 'src/shared/components/ui/badge';
@@ -81,6 +81,10 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
     opportunities.find((o) => o.uid === quotationId) ??
     (apiQuotation ? opportunities.find((o) => o.uid === apiQuotation.quoteable_uid) : undefined);
 
+  // Default currency from tenant preferences or first option
+  const defaultCurrency =
+    getCurrencyPreferences('tenant').currency || (currencyOptions[0]?.value ?? '');
+
   // Load quotation from API or create a local draft — no useEffect needed
   const [localQuotation, setLocalQuotation] = useState<Quotation | null>(() => {
     if (apiQuotation) return apiQuotation;
@@ -90,7 +94,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
       quote_number: '',
       title: opp?.title ?? '',
       status: 'draft',
-      currency: 'USD',
+      currency: defaultCurrency,
       subtotal: 0,
       discount_total: 0,
       total: 0,
@@ -191,7 +195,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   };
 
   const handleSend = async () => {
-    if (!quotation) return;
+    if (!quotation?.uid) return;
     setIsSending(true);
     try {
       await quotationService.sendPdf(quotation.uid);

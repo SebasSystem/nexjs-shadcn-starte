@@ -2,11 +2,11 @@ export type PartnerType = 'distributor' | 'reseller' | 'ally';
 export type PartnerStatus = 'active' | 'inactive' | 'prospect';
 export type PartnerOpportunityStatus =
   | 'pending'
-  | 'approved'
-  | 'rejected'
-  | 'converted'
+  | 'validated'
+  | 'closed'
   | 'won'
-  | 'lost';
+  | 'lost'
+  | 'cancelled';
 export type MaterialType = 'sales' | 'training';
 
 // ─── Status configs ───────────────────────────────────────────────────────────
@@ -37,11 +37,11 @@ export const PARTNER_OPP_STATUS_CONFIG: Record<
   { label: string; color: 'default' | 'secondary' | 'info' | 'warning' | 'success' | 'error' }
 > = {
   pending: { label: 'Pendiente', color: 'warning' },
-  approved: { label: 'Aprobada', color: 'success' },
-  rejected: { label: 'Rechazada', color: 'error' },
-  converted: { label: 'Convertida', color: 'info' },
+  validated: { label: 'Validada', color: 'info' },
+  closed: { label: 'Cerrada', color: 'secondary' },
   won: { label: 'Ganada', color: 'success' },
-  lost: { label: 'Perdida', color: 'secondary' },
+  lost: { label: 'Perdida', color: 'error' },
+  cancelled: { label: 'Cancelada', color: 'secondary' },
 };
 
 export const MATERIAL_TYPE_CONFIG: Record<MaterialType, { label: string; icon: string }> = {
@@ -74,7 +74,7 @@ export interface PartnerOpportunity {
   client_email?: string;
   product: string;
   estimated_value: number | string;
-  currency: 'USD' | 'COP' | 'MXN';
+  currency: string;
   status: PartnerOpportunityStatus;
   registered_date: string;
   notes?: string;
@@ -116,7 +116,7 @@ export interface PartnerOpportunityPayload {
   client_email?: string;
   product: string;
   estimated_value: number;
-  currency: 'USD' | 'COP' | 'MXN';
+  currency: string;
   status: PartnerOpportunityStatus;
   registered_date: string;
   notes?: string;

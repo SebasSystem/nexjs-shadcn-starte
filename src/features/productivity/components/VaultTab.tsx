@@ -20,8 +20,8 @@ export const VaultTab = ({ contactoId }: { contactoId: string }) => {
   };
 
   return (
-    <div className="p-5 flex flex-col h-full bg-slate-50">
-      <div className="mb-4 bg-white p-4 rounded-xl border border-gray-100 flex items-center justify-between shadow-sm">
+    <div className="p-5 flex flex-col h-full bg-muted/10">
+      <div className="mb-4 bg-card p-4 rounded-xl border border-border/40 flex items-center justify-between shadow-sm">
         <div>
           <h3 className="text-sm font-semibold">Bóveda Documental</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -52,30 +52,32 @@ export const VaultTab = ({ contactoId }: { contactoId: string }) => {
         </div>
       </div>
 
-      <div className="flex-1 bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+      <div className="flex-1 bg-card border border-border/40 rounded-xl overflow-hidden shadow-sm">
         {isLoading ? (
-          <div className="p-6 text-center text-sm text-gray-500">Cargando documentos...</div>
+          <div className="p-6 text-center text-sm text-muted-foreground">
+            Cargando documentos...
+          </div>
         ) : data.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-gray-400">
+          <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
             <Icon name="FileText" size={32} className="mb-2 opacity-50" />
             <span className="text-sm">No hay documentos en la bóveda</span>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border/40">
             {data.map((doc) => (
               <div
                 key={doc.uid}
-                className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors group"
+                className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-red-50 text-red-500 rounded-lg flex items-center justify-center">
+                  <div className="h-10 w-10 bg-red-500/10 text-red-500 rounded-lg flex items-center justify-center">
                     <Icon name="File" size={20} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                    <h4 className="text-sm font-medium text-foreground group-hover:text-blue-600 transition-colors">
                       {doc.file_name}
                     </h4>
-                    <div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-500">
+                    <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
                       <span>{format(new Date(doc.uploaded_at), 'dd MMM yyyy')}</span>
                       <span>•</span>
                       <span>{(doc.size_bytes / 1024 / 1024).toFixed(2)} MB</span>
@@ -86,7 +88,7 @@ export const VaultTab = ({ contactoId }: { contactoId: string }) => {
                 </div>
                 <button
                   onClick={() => deleteFile(doc.uid)}
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                  className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                   title="Eliminar"
                 >
                   <Icon name="Trash2" size={16} />

@@ -1,8 +1,10 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { localizationService } from 'src/features/settings/services/localization.service';
 import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import {
@@ -79,6 +81,32 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
   const type = useWatch({ control, name: 'type' });
   const email = useWatch({ control, name: 'email' });
   const taxId = useWatch({ control, name: 'tax_id' });
+  const country = useWatch({ control, name: 'country' });
+
+  // Countries from backend
+  const { data: countryOptions = [] } = useQuery({
+    queryKey: ['settings', 'countries'],
+    queryFn: async () => {
+      const data = await localizationService.getCountries();
+      return data.map((c) => ({ value: c.name, label: c.name }));
+    },
+    staleTime: 0,
+  });
+
+  // Cities filtered by selected country
+  const [citySearch, setCitySearch] = useState('');
+  const { data: cityOptions = [] } = useQuery({
+    queryKey: ['settings', 'cities', country, citySearch],
+    queryFn: async () => {
+      const data = await localizationService.getCities({
+        country,
+        search: citySearch || undefined,
+      });
+      return data.map((c) => ({ value: c.name, label: c.name }));
+    },
+    enabled: !!country,
+    staleTime: 0,
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -170,7 +198,13 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
             <ContactDrawerTypeSelector register={register('type')} selected={type} />
 
             {/* Basic info */}
-            <ContactDrawerBasicInfo control={control} type={type} />
+            <ContactDrawerBasicInfo
+              control={control}
+              type={type}
+              countryOptions={countryOptions}
+              cityOptions={cityOptions}
+              onCitySearch={setCitySearch}
+            />
 
             {/* Duplicate warning */}
             {duplicateWarning && !errors.email && (

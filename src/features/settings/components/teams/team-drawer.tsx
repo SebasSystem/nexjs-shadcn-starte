@@ -157,6 +157,8 @@ export const TeamDrawer: React.FC<TeamDrawerProps> = ({
                     <SelectField
                       value={selectedUserId}
                       onChange={(val) => setSelectedUserId(val as string)}
+                      searchable
+                      onSearch={setUserSearch}
                       options={miembroOptions}
                       placeholder="Agregar miembro..."
                     />

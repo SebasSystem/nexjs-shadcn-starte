@@ -1,8 +1,10 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { isPast, isThisWeek, isToday, isTomorrow } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
+import { usersService } from 'src/features/settings/services/users.service';
 import { formatDate } from 'src/lib/date';
 import { PageContainer, PageHeader, SectionCard } from 'src/shared/components/layouts/page';
 import { Badge } from 'src/shared/components/ui/badge';
@@ -67,18 +69,36 @@ const GROUP_ORDERS = {
 
 export const ScheduleView = () => {
   const router = useRouter();
-  const { data, isLoading, updateStatus, addActivity } = useAgendaItems();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [filterTab, setFilterTab] = useState<'Pendientes' | 'Todas' | 'Completadas'>('Pendientes');
   const [filterSource, setFilterSource] = useState<'all' | ActivitySource>('all');
 
-  const usuarios = useMemo(
-    () => [
-      { id: '1', nombre: 'Juan Díaz' },
-      { id: '2', nombre: 'María Rodríguez' },
-    ],
-    []
-  );
+  // Build server-side status filter from tab
+  const serverStatus =
+    filterTab === 'Pendientes'
+      ? 'pending,in_progress,overdue'
+      : filterTab === 'Completadas'
+        ? 'completed'
+        : undefined;
+
+  const serverSource = filterSource !== 'all' ? filterSource : undefined;
+
+  const { data, isLoading, updateStatus, addActivity } = useAgendaItems({
+    status: serverStatus,
+    source: serverSource,
+  });
+
+  // Users from backend for activity assignment
+  const { data: usuarios = [] } = useQuery({
+    queryKey: ['users', 'list'],
+    queryFn: async () => {
+      const res = await usersService.getAll({ per_page: 500 });
+      return (
+        ((res as Record<string, unknown>).data ?? []) as Array<{ uid: string; name: string }>
+      ).map((u) => ({ id: u.uid, nombre: u.name }));
+    },
+    staleTime: 0,
+  });
 
   const filteredData = useMemo(() => {
     return data.filter((a) => {

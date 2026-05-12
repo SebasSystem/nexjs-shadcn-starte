@@ -21,8 +21,8 @@ import type { Milestone, MilestonePayload, MilestoneStatus } from '../types';
 const STATUS_OPTIONS: { value: MilestoneStatus; label: string }[] = [
   { value: 'pending', label: 'Pendiente' },
   { value: 'in_progress', label: 'En progreso' },
+  { value: 'done', label: 'Hecho' },
   { value: 'completed', label: 'Completado' },
-  { value: 'delayed', label: 'Vencido' },
 ];
 
 interface Props {

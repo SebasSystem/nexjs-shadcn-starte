@@ -19,6 +19,7 @@ import {
 
 import { teamsService } from '../../../settings/services/teams.service';
 import { usersService } from '../../../settings/services/users.service';
+import { assignmentService } from '../../services/assignment.service';
 import type { CommissionPlan } from '../../types/commissions.types';
 
 interface Props {
@@ -41,6 +42,7 @@ interface VendedorOption {
 export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesDisponibles }) => {
   const [paso, setPaso] = useState<1 | 2 | 3>(1);
   const [equipoFiltro, setEquipoFiltro] = useState('');
+  const [userSearch, setUserSearch] = useState('');
   const [selectedVendedores, setSelectedVendedores] = useState<string[]>([]);
   const [planId, setPlanId] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
@@ -56,14 +58,15 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
     },
     staleTime: 0,
   });
-  const equipos = (teamsData ?? []).map((t) => ({ value: t.uid, label: t.name }));
+  const equipos = [{ value: '', label: 'Todos los equipos' }, ...(teamsData ?? []).map((t) => ({ value: t.uid, label: t.name }))];
 
-  // ─── Users (GET /users?team_uid=) ───────────────────────────────────────
+  // ─── Users with server-side search ───────────────────────────────────────
   const { data: allUsers } = useQuery({
-    queryKey: ['users', equipoFiltro],
+    queryKey: ['users', equipoFiltro, userSearch],
     queryFn: async () => {
-      const params: Record<string, unknown> = {};
+      const params: Record<string, unknown> = { per_page: 25 };
       if (equipoFiltro) params.team_uid = equipoFiltro;
+      if (userSearch) params.search = userSearch;
       const res = await usersService.getAll(params);
       return (res as Record<string, unknown>).data as VendedorOption[];
     },
@@ -101,12 +104,19 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
 
   const handleConfirmar = async () => {
     setGuardando(true);
-    await new Promise((r) => setTimeout(r, 1200));
+    try {
+      await assignmentService.createBulkAssignments({
+        user_uids: selectedVendedores,
+        commission_plan_uid: planId,
+        starts_at: fechaInicio,
+        ends_at: fechaFin || undefined,
+      });
+      toast.success(`Plan asignado a ${selectedVendedores.length} vendedor(es).`);
+      handleClose();
+    } catch {
+      toast.error('Error al realizar la asignación masiva');
+    }
     setGuardando(false);
-    toast.success(
-      `Plan "${planSeleccionado?.name}" asignado a ${selectedVendedores.length} vendedor(es).`
-    );
-    handleClose();
   };
 
   const handleClose = () => {
@@ -183,6 +193,13 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
                 options={equipos}
               />
 
+              <Input
+                placeholder="Buscar vendedor..."
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                leftIcon={<Icon name="Search" size={15} />}
+              />
+
               <div className="border border-border rounded-lg overflow-hidden">
                 <div className="flex items-center gap-3 px-4 py-2.5 bg-muted/40 border-b border-border">
                   <Checkbox
@@ -220,10 +237,24 @@ export const BulkAssignmentDrawer: React.FC<Props> = ({ isOpen, onClose, planesD
               </div>
 
               {selectedVendedores.length > 0 && (
-                <p className="text-sm text-primary font-medium">
-                  {selectedVendedores.length} vendedor(es) seleccionado(s)
-                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {nombresSeleccionados.map((v) => (
+                    <span
+                      key={v.uid}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium"
+                    >
+                      {v.nombre}
+                      <button type="button" onClick={() => toggleVendedor(v.uid)}>
+                        <Icon name="X" size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
               )}
+
+              <p className="text-sm text-muted-foreground">
+                {selectedVendedores.length} vendedor(es) seleccionado(s)
+              </p>
             </div>
           )}
 

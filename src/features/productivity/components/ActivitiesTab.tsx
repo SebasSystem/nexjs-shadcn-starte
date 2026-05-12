@@ -30,12 +30,12 @@ export const ActivitiesTab = ({
     if (!title.trim() || !dueDate) return;
     setIsSubmitting(true);
     const success = await addActivity({
+      title: title.trim(),
+      description: description.trim() || undefined,
+      type,
       contact_uid: contactoId,
       contact_name: contactoNombre,
-      type,
-      title,
-      description,
-      due_date: new Date(dueDate).toISOString(),
+      due_date: dueDate,
     });
     setIsSubmitting(false);
     if (success) {
@@ -51,11 +51,11 @@ export const ActivitiesTab = ({
       case 'pending':
         return <Icon name="Circle" size={16} className="text-blue-500" />;
       case 'in_progress':
-        return <Icon name="Loader2" size={16} className="text-blue-500 animate-spin" />;
+        return <Icon name="Loader2" size={16} className="text-amber-500 animate-spin" />;
       case 'completed':
         return <Icon name="CheckCircle2" size={16} className="text-emerald-500" />;
       case 'cancelled':
-        return <Icon name="XCircle" size={16} className="text-gray-400" />;
+        return <Icon name="XCircle" size={16} className="text-muted-foreground" />;
       case 'overdue':
         return <Icon name="AlertCircle" size={16} className="text-red-500" />;
       default:
@@ -77,8 +77,8 @@ export const ActivitiesTab = ({
               : 'nota';
 
   return (
-    <div className="flex flex-col h-full bg-slate-50">
-      <div className="p-4 bg-white border-b border-gray-100 shadow-sm rounded-t-xl mx-4 mt-4 mb-2 border">
+    <div className="flex flex-col h-full bg-muted/10">
+      <div className="p-4 bg-card border border-border/40 shadow-sm rounded-t-xl mx-4 mt-4 mb-2">
         <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <Icon name="CalendarDays" size={16} className="text-blue-600" />
           Agendar nueva actividad
@@ -133,20 +133,22 @@ export const ActivitiesTab = ({
 
       <div className="flex-1 overflow-y-auto px-4 pb-4">
         {isLoading ? (
-          <div className="text-center text-sm text-gray-400 mt-10">Cargando agenda...</div>
+          <div className="text-center text-sm text-muted-foreground mt-10">Cargando agenda...</div>
         ) : data.length === 0 ? (
-          <div className="text-center text-sm text-gray-400 mt-10">Sin actividades agendadas.</div>
+          <div className="text-center text-sm text-muted-foreground mt-10">
+            Sin actividades agendadas.
+          </div>
         ) : (
           <div className="space-y-3">
             {data.map((activity) => (
               <div
                 key={activity.uid}
-                className={`bg-white p-4 rounded-lg border flex items-start gap-3 transition-colors ${
+                className={`bg-card p-4 rounded-lg border flex items-start gap-3 transition-colors ${
                   activity.status === 'completed'
-                    ? 'opacity-60 border-gray-100'
+                    ? 'opacity-60 border-border/40'
                     : activity.status === 'overdue'
                       ? 'border-red-200'
-                      : 'border-blue-100'
+                      : 'border-border/40'
                 }`}
               >
                 <button
@@ -165,13 +167,13 @@ export const ActivitiesTab = ({
                     <h5
                       className={`text-sm font-medium tracking-tight ${
                         activity.status === 'completed'
-                          ? 'line-through text-gray-500'
-                          : 'text-gray-900'
+                          ? 'line-through text-muted-foreground'
+                          : 'text-foreground'
                       }`}
                     >
                       {activity.title}
                     </h5>
-                    <span className="text-[10px] font-semibold tracking-wider text-gray-400 bg-gray-100 px-2 py-0.5 rounded uppercase">
+                    <span className="text-[10px] font-semibold tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded uppercase">
                       {activity.type === 'task'
                         ? 'Tarea'
                         : activity.type === 'reminder'
@@ -186,11 +188,11 @@ export const ActivitiesTab = ({
                     </span>
                   </div>
                   {activity.description && (
-                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                       {activity.description}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 mt-2 text-[11px] font-medium text-gray-500">
+                  <div className="flex items-center gap-2 mt-2 text-[11px] font-medium text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Icon
                         name="Clock"

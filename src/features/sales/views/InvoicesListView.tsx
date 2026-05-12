@@ -50,6 +50,7 @@ function isOverdue(invoice: Invoice): boolean {
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos los estados' },
+  { value: 'draft', label: 'Borrador' },
   { value: 'issued', label: 'Emitida' },
   { value: 'partial', label: 'Pago parcial' },
   { value: 'paid', label: 'Pagada' },

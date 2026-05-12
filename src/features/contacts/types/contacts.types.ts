@@ -25,7 +25,7 @@ interface ContactBase {
   country: string;
   city?: string;
   status: ContactStatus;
-  relations: ContactRelation[];
+  relations?: ContactRelation[];
   created_at: string;
 }
 

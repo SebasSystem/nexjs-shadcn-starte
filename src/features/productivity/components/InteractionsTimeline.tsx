@@ -11,13 +11,13 @@ import { Textarea } from 'src/shared/components/ui/textarea';
 import { useInteractions } from '../hooks/use-interactions';
 import type { InteractionType } from '../types/productivity.types';
 
-const FALLBACK_ICON = <Icon name="Circle" size={16} className="text-gray-400" />;
+const FALLBACK_ICON = <Icon name="Circle" size={16} className="text-muted-foreground" />;
 
 const ICONS: Record<string, React.ReactNode> = {
   NOTE: <Icon name="StickyNote" size={16} className="text-amber-500" />,
   CALL: <Icon name="PhoneCall" size={16} className="text-green-500" />,
   EMAIL: <Icon name="Mail" size={16} className="text-blue-500" />,
-  SYSTEM: <Icon name="Activity" size={16} className="text-gray-400" />,
+  SYSTEM: <Icon name="Activity" size={16} className="text-muted-foreground" />,
 };
 
 export const InteractionsTimeline = ({ contactoId }: { contactoId: string }) => {
@@ -38,8 +38,8 @@ export const InteractionsTimeline = ({ contactoId }: { contactoId: string }) => 
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+    <div className="flex flex-col h-full bg-background">
+      <div className="p-4 border-b border-border/40 bg-muted/20">
         <h4 className="text-sm font-semibold mb-3">Registrar interacción</h4>
         <div className="flex gap-2 mb-2">
           <SelectField
@@ -55,7 +55,7 @@ export const InteractionsTimeline = ({ contactoId }: { contactoId: string }) => 
         </div>
         <Textarea
           placeholder="Escribe los detalles aquí..."
-          className="text-sm min-h-[80px] bg-white resize-none"
+          className="text-sm min-h-[80px] resize-none"
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
@@ -73,21 +73,21 @@ export const InteractionsTimeline = ({ contactoId }: { contactoId: string }) => 
 
       <div className="flex-1 overflow-y-auto p-5">
         {isLoading ? (
-          <div className="text-center text-sm text-gray-500">Cargando historial...</div>
+          <div className="text-center text-sm text-muted-foreground">Cargando historial...</div>
         ) : data.length === 0 ? (
-          <div className="text-center text-sm text-gray-400 mt-10">
+          <div className="text-center text-sm text-muted-foreground mt-10">
             No hay interacciones registradas.
           </div>
         ) : (
-          <div className="relative border-l border-gray-200 ml-3 space-y-6 pb-6">
+          <div className="relative border-l border-border ml-3 space-y-6 pb-6">
             {data.map((item) => (
               <div key={item.uid} className="relative pl-6">
-                <div className="absolute -left-[13px] top-1 h-6 w-6 rounded-full bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+                <div className="absolute -left-[13px] top-1 h-6 w-6 rounded-full bg-background border border-border flex items-center justify-center shadow-sm">
                   {ICONS[item.type] ?? FALLBACK_ICON}
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-700">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-foreground">
                       {item.type === 'NOTE'
                         ? 'Nota'
                         : item.type === 'CALL'
@@ -96,18 +96,18 @@ export const InteractionsTimeline = ({ contactoId }: { contactoId: string }) => 
                             ? 'Correo'
                             : 'Sistema'}
                     </span>
-                    <span className="text-[11px] text-gray-400">•</span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-[11px] text-muted-foreground">•</span>
+                    <span className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(item.created_at), {
                         addSuffix: true,
                         locale: es,
                       })}
                     </span>
                   </div>
-                  <div className="text-sm text-gray-700 bg-white border border-gray-100 p-3 rounded-lg shadow-sm whitespace-pre-wrap">
+                  <div className="text-sm text-foreground bg-muted/30 border border-border/40 p-3 rounded-lg whitespace-pre-wrap">
                     {item.content}
                   </div>
-                  <div className="mt-1.5 text-[11px] text-gray-400">
+                  <div className="mt-1.5 text-[11px] text-muted-foreground">
                     Registrado por: {item.author}
                   </div>
                 </div>

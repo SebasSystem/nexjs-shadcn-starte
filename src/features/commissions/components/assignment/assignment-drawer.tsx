@@ -67,6 +67,8 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
     staleTime: 0,
   });
 
+  const watchUserUid = useWatch({ control, name: 'user_uid' });
+
   useEffect(() => {
     if (isOpen && asignacion) {
       reset({
@@ -114,6 +116,7 @@ export const AssignmentDrawer: React.FC<AssignmentDrawerProps> = ({
                 label="Vendedor"
                 required
                 searchable
+                value={watchUserUid ?? ''}
                 options={userOptions}
                 onChange={(v) => setValue('user_uid', v as string, { shouldValidate: true })}
               />

@@ -163,6 +163,8 @@ export function useContacts(filters?: {
     ...pagination.params,
     ...(searchParam ? { search: searchParam } : {}),
     ...(statusParam ? { status: statusParam } : {}),
+    // Send type filter for /contacts to differentiate B2C vs B2G
+    ...(typeFilter !== 'ALL' ? { type: typeFilter } : {}),
   };
 
   // ── Merge de /accounts + /contacts ──────────────────────────────────────
@@ -175,7 +177,7 @@ export function useContacts(filters?: {
     typeFilter === 'ALL' || typeFilter === 'person' || typeFilter === 'government';
 
   const { data: accountsData, isLoading: isLoadingAccounts } = useQuery({
-    queryKey: [...queryKeys.contacts.list, 'company', serverParams],
+    queryKey: [...queryKeys.contacts.list, 'company', typeFilter, serverParams],
     queryFn: () => contactsService.accounts.list(serverParams),
     staleTime: 0,
     placeholderData: keepPreviousData,
@@ -183,7 +185,7 @@ export function useContacts(filters?: {
   });
 
   const { data: contactsData, isLoading: isLoadingContacts } = useQuery({
-    queryKey: [...queryKeys.contacts.list, 'contact', serverParams],
+    queryKey: [...queryKeys.contacts.list, 'contact', typeFilter, serverParams],
     queryFn: () => contactsService.contacts.list(serverParams),
     staleTime: 0,
     placeholderData: keepPreviousData,

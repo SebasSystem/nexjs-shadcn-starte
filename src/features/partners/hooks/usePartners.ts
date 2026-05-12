@@ -101,12 +101,11 @@ export function usePartners(filters: PartnersFilters = {}) {
 
   const opportunityStats = useMemo(() => {
     // TODO: Backend no tiene endpoint de stats para oportunidades.
-    // PartnerOpportunityService::opportunities() acepta filtros pero no endpoint /stats.
     const pending = opportunities.filter((o) => o.status === 'pending').length;
-    const approved = opportunities.filter((o) => o.status === 'approved').length;
-    const rejected = opportunities.filter((o) => o.status === 'rejected').length;
-    const converted = opportunities.filter((o) => o.status === 'converted').length;
-    return { pending, approved, rejected, converted };
+    const validated = opportunities.filter((o) => o.status === 'validated').length;
+    const closed = opportunities.filter((o) => o.status === 'closed').length;
+    const won = opportunities.filter((o) => o.status === 'won').length;
+    return { pending, validated, closed, won };
   }, [opportunities]);
 
   const materialStats = useMemo(() => {

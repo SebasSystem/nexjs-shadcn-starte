@@ -66,7 +66,7 @@ export function PartnersView() {
   // El filtro de búsqueda está deshabilitado hasta que el backend lo implemente.
 
   const openOpps = useMemo(
-    () => opportunities.filter((o) => o.status === 'pending' || o.status === 'approved').length,
+    () => opportunities.filter((o) => o.status === 'pending' || o.status === 'validated').length,
     [opportunities]
   );
 

@@ -31,7 +31,7 @@ interface ContactDetailHeaderProps {
 
 export function ContactDetailHeader({ contacto, onClose, onEdit }: ContactDetailHeaderProps) {
   return (
-    <div className="flex items-start justify-between px-6 py-5 border-b shrink-0 bg-gray-50">
+    <div className="flex items-start justify-between px-6 py-5 border-b shrink-0 bg-muted/30">
       <div className="flex items-center gap-4">
         <Avatar className="h-14 w-14 shrink-0">
           <AvatarFallback className={`text-lg font-bold ${AVATAR_COLORS[contacto.type]}`}>
@@ -57,7 +57,7 @@ export function ContactDetailHeader({ contacto, onClose, onEdit }: ContactDetail
         </Button>
         <button
           onClick={onClose}
-          className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+          className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors cursor-pointer"
         >
           <svg
             width="20"

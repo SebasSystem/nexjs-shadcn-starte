@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { Payment } from 'src/features/sales/types/sales.types';
 import { endpoints } from 'src/lib/axios';
 import { formatMoney } from 'src/lib/currency';
@@ -16,6 +17,7 @@ import { Card, CardContent } from 'src/shared/components/ui/card';
 import { Icon } from 'src/shared/components/ui/icon';
 
 import { RegisterPaymentDrawer } from '../components/RegisterPaymentDrawer';
+import { invoiceService } from '../services/invoice.service';
 import { useSalesContext } from '../context/SalesContext';
 import { STATUS_LABELS } from '../types/sales.types';
 
@@ -45,13 +47,30 @@ interface InvoiceViewProps {
 
 export function InvoiceView({ invoiceId }: InvoiceViewProps) {
   const router = useRouter();
-  const { invoices, quotations, registerPayment } = useSalesContext();
+  const { quotations, registerPayment } = useSalesContext();
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false);
 
-  const invoice = invoices.find((inv) => inv.uid === invoiceId);
+  // Fetch single invoice by ID — NOT from paginated list
+  const { data: invoice, isLoading } = useQuery({
+    queryKey: ['invoice', invoiceId],
+    queryFn: () => invoiceService.getOne(invoiceId),
+    enabled: !!invoiceId,
+    staleTime: 0,
+  });
+
   // Resolve line items from source quotation
   const quotation = invoice ? quotations.find((q) => q.uid === invoice.quotation_uid) : undefined;
   const lineItems = quotation?.items ?? [];
+
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <div className="flex flex-col items-center justify-center py-20 gap-4 text-muted-foreground">
+          <p>Cargando factura...</p>
+        </div>
+      </PageContainer>
+    );
+  }
 
   if (!invoice) {
     return (

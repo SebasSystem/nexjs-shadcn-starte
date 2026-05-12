@@ -17,6 +17,13 @@ export interface UpdateAssignmentPayload {
   active?: boolean;
 }
 
+export interface BulkAssignmentPayload {
+  user_uids: string[];
+  commission_plan_uid: string;
+  starts_at: string;
+  ends_at?: string;
+}
+
 export const assignmentService = {
   async getAssignments(params?: PaginationParams): Promise<unknown> {
     const res = await axiosInstance.get(endpoints.commissions.assignments.list, { params });
@@ -26,6 +33,10 @@ export const assignmentService = {
   async createAssignment(data: CreateAssignmentPayload): Promise<CommissionAssignment> {
     const res = await axiosInstance.post(endpoints.commissions.assignments.create, data);
     return (res.data?.data ?? res.data) as CommissionAssignment;
+  },
+
+  async createBulkAssignments(data: BulkAssignmentPayload): Promise<void> {
+    await axiosInstance.post(endpoints.commissions.assignments.bulk, data);
   },
 
   async updateAssignment(

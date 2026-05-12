@@ -68,4 +68,9 @@ export const financeService = {
     const res = await axiosInstance.post(endpoints.sales.financeSyncOverdue);
     return res.data.data;
   },
+
+  async getPriceBooks(): Promise<Array<{ uid: string; name: string }>> {
+    const res = await axiosInstance.get('/api/price-books');
+    return (res.data?.data ?? []) as Array<{ uid: string; name: string }>;
+  },
 };

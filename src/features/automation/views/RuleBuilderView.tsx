@@ -194,29 +194,8 @@ export function RuleBuilderView({ ruleId }: RuleBuilderViewProps) {
           triggerSource={triggerSource}
           triggerEvent={triggerEvent}
           daysThreshold={daysThreshold}
-          sourceOptions={
-            sourceOptions.length > 0
-              ? sourceOptions
-              : [
-                  { value: 'crm', label: 'CRM' },
-                  { value: 'linkedin', label: 'LinkedIn' },
-                  { value: 'facebook', label: 'Facebook' },
-                  { value: 'time', label: 'Tiempo' },
-                ]
-          }
-          eventOptions={
-            eventOptions.length > 0
-              ? eventOptions
-              : [
-                  { value: 'lead_created', label: 'Lead creado' },
-                  { value: 'lead_stage_changed', label: 'Lead cambió de etapa' },
-                  { value: 'deal_won', label: 'Deal ganado' },
-                  { value: 'deal_lost', label: 'Deal perdido' },
-                  { value: 'contact_updated', label: 'Contacto actualizado' },
-                  { value: 'task_completed', label: 'Tarea completada' },
-                  { value: 'inactivity_days', label: 'Inactividad (días)' },
-                ]
-          }
+          sourceOptions={sourceOptions}
+          eventOptions={eventOptions}
           onSourceChange={(v: TriggerSource) => form.setValue('trigger_source', v)}
           onEventChange={(v: TriggerEvent) => form.setValue('trigger_event', v)}
           onDaysThresholdChange={(v) => form.setValue('trigger_config.days_threshold', v)}

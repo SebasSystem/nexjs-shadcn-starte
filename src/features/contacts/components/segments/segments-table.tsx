@@ -143,8 +143,9 @@ export const SegmentsTable: React.FC<SegmentsTableProps> = ({
   });
 
   const currentPageSize = table.getState().pagination.pageSize;
+  // No empty rows in server-side pagination — only when data < pageSize and no total
   const emptyRows =
-    total !== undefined && segments.length < currentPageSize
+    total === undefined && segments.length < currentPageSize
       ? currentPageSize - segments.length
       : 0;
 

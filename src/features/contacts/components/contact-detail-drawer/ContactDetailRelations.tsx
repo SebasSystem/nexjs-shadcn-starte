@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback } from 'src/shared/components/ui/avatar';
 import { Badge } from 'src/shared/components/ui/badge';
@@ -8,6 +9,7 @@ import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
 
+import { contactsService } from '../../services/contacts.service';
 import type { Contact } from '../../types/contacts.types';
 
 function getInitials(name: string) {
@@ -41,7 +43,14 @@ export function ContactDetailRelations({
   const [selectedRelId, setSelectedRelId] = useState('');
   const [linkingCargo, setLinkingCargo] = useState('');
 
-  const relacionIds = contacto.relations.map((r) => r.related_uid);
+  // Fetch relations from backend
+  const { data: relations = [] } = useQuery({
+    queryKey: ['relations', 'contact', contacto.uid],
+    queryFn: () => contactsService.getRelations(contacto.uid),
+    staleTime: 0,
+  });
+
+  const relacionIds = relations.map((r) => r.related_uid);
   const disponibles = todos.filter((c) => c.uid !== contacto.uid && !relacionIds.includes(c.uid));
 
   const handleAddRelacion = async () => {
@@ -53,17 +62,17 @@ export function ContactDetailRelations({
 
   return (
     <div className="space-y-4">
-      {contacto.relations.length === 0 ? (
+      {relations.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 text-muted-foreground text-sm text-center">
           <Icon name="Link2" className="h-8 w-8 mb-3 opacity-40" />
           <p>Sin relaciones vinculadas todavía.</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {contacto.relations.map((rel) => (
+          {relations.map((rel) => (
             <div
               key={rel.related_uid}
-              className="flex items-center justify-between gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100"
+              className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/40 border border-border/40"
             >
               <div className="flex items-center gap-3">
                 <Avatar className="h-8 w-8 shrink-0">
@@ -83,7 +92,7 @@ export function ContactDetailRelations({
               </div>
               <button
                 onClick={() => onRemoveRelacion(contacto.uid, rel.related_uid)}
-                className="p-1.5 text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
+                className="p-1.5 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                 title="Desvincular"
               >
                 <Icon name="Unlink" size={14} />

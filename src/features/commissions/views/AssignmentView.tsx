@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { AssignmentDrawer } from 'src/features/commissions/components/assignment/assignment-drawer';
 import { AssignmentsTable } from 'src/features/commissions/components/assignment/assignments-table';
 import { BulkAssignmentDrawer } from 'src/features/commissions/components/assignment/bulk-assignment-drawer';
@@ -69,7 +70,8 @@ export const AssignmentView = () => {
         });
       }
       return true;
-    } catch {
+    } catch (err) {
+      toast.error('Error al guardar la asignación');
       return false;
     }
   };
@@ -80,10 +82,16 @@ export const AssignmentView = () => {
         title="Asignación de Planes"
         subtitle="Administra el plan de comisión activo de cada vendedor de tu equipo"
         action={
-          <Button variant="outline" color="primary" onClick={() => setIsMasivaOpen(true)}>
-            <Icon name="Users" className="mr-2 h-4 w-4" />
-            Asignación Masiva
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button color="primary" onClick={() => { setSelectedAsignacion(null); setIsDrawerOpen(true); }}>
+              <Icon name="Plus" size={16} />
+              Nueva Asignación
+            </Button>
+            <Button variant="outline" color="primary" onClick={() => setIsMasivaOpen(true)}>
+              <Icon name="Users" className="mr-2 h-4 w-4" />
+              Asignación Masiva
+            </Button>
+          </div>
         }
       />
 

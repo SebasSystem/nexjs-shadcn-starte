@@ -40,12 +40,19 @@ export const productivityService = {
   },
 
   createActivity: async (payload: ActivityPayload): Promise<Activity> => {
-    const res = await axiosInstance.post(endpoints.productivity.activities.create, payload);
+    const body = { ...payload, scheduled_at: payload.due_date };
+    delete (body as Record<string, unknown>).due_date;
+    const res = await axiosInstance.post(endpoints.productivity.activities.create, body);
     return (res.data?.data ?? res.data) as Activity;
   },
 
   updateActivity: async (uid: string, payload: ActivityUpdatePayload): Promise<Activity> => {
-    const res = await axiosInstance.put(endpoints.productivity.activities.update(uid), payload);
+    const body: Record<string, unknown> = { ...payload };
+    if (payload.due_date) {
+      body.scheduled_at = payload.due_date;
+      delete body.due_date;
+    }
+    const res = await axiosInstance.put(endpoints.productivity.activities.update(uid), body);
     return (res.data?.data ?? res.data) as Activity;
   },
 
@@ -128,18 +135,16 @@ export const productivityService = {
   uploadDocument: async (entityType: string, entityUid: string, file: File): Promise<Document> => {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('entity_type', entityType);
+    formData.append('entity_uid', entityUid);
 
-    const res = await axiosInstance.post(
-      endpoints.productivity.documents.upload(entityType, entityUid),
-      formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
-    );
+    const res = await axiosInstance.post(endpoints.productivity.documents.upload, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return (res.data?.data ?? res.data) as Document;
   },
 
   deleteDocument: async (entityType: string, entityUid: string, docUid: string): Promise<void> => {
-    await axiosInstance.delete(
-      endpoints.productivity.documents.delete(entityType, entityUid, docUid)
-    );
+    await axiosInstance.delete(endpoints.productivity.documents.delete(docUid));
   },
 };

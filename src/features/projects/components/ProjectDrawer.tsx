@@ -22,9 +22,12 @@ import { useDebounce } from 'use-debounce';
 import type { Project, ProjectPayload, ProjectStatus } from '../types';
 
 const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
+  { value: 'pending', label: 'Pendiente' },
   { value: 'planning', label: 'Planificación' },
+  { value: 'active', label: 'Activo' },
   { value: 'in_progress', label: 'En progreso' },
   { value: 'on_hold', label: 'En pausa' },
+  { value: 'paused', label: 'Pausado' },
   { value: 'completed', label: 'Completado' },
   { value: 'cancelled', label: 'Cancelado' },
 ];

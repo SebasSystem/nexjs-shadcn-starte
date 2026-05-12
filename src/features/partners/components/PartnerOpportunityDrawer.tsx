@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { localizationService } from 'src/features/settings/services/localization.service';
 import { usersService } from 'src/features/settings/services/users.service';
 import {
   Button,
@@ -23,17 +24,6 @@ import type {
   PartnerOpportunityPayload,
   PartnerOpportunityStatus,
 } from '../types';
-
-const STATUS_OPTIONS: { value: PartnerOpportunityStatus; label: string }[] = [
-  { value: 'pending', label: 'Pendiente' },
-  { value: 'approved', label: 'Aprobada' },
-  { value: 'rejected', label: 'Rechazada' },
-  { value: 'converted', label: 'Convertida' },
-  { value: 'won', label: 'Ganada' },
-  { value: 'lost', label: 'Perdida' },
-];
-
-const CURRENCY_OPTIONS = ['USD', 'COP', 'MXN'] as const;
 
 interface Props {
   open: boolean;
@@ -70,9 +60,7 @@ function OpportunityForm({
   const [estimatedValue, setEstimatedValue] = useState(
     init ? String(opportunity.estimated_value) : ''
   );
-  const [currency, setCurrency] = useState<'USD' | 'COP' | 'MXN'>(
-    init ? opportunity.currency : 'USD'
-  );
+  const [currency, setCurrency] = useState(init ? opportunity.currency : '');
   const [status, setStatus] = useState<PartnerOpportunityStatus>(
     init ? opportunity.status : 'pending'
   );
@@ -102,8 +90,21 @@ function OpportunityForm({
     staleTime: 0,
   });
 
-  const resolvedStatusOptions =
-    (statusOptionsData?.length ?? 0) > 0 ? statusOptionsData! : STATUS_OPTIONS;
+  const resolvedStatusOptions = statusOptionsData ?? [];
+
+  // Currency options from backend
+  const { data: currencyOptions = [] } = useQuery({
+    queryKey: ['settings', 'localization', 'currencies'],
+    queryFn: async () => {
+      const res = (await localizationService.getOptions()) as Record<string, unknown>;
+      const data = (res?.data ?? res) as { currencies?: Array<{ code: string; name: string }> };
+      return (data.currencies ?? []).map((c: { code: string; name: string }) => ({
+        value: c.code,
+        label: `${c.code} — ${c.name}`,
+      }));
+    },
+    staleTime: 0,
+  });
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -215,9 +216,9 @@ function OpportunityForm({
           />
           <SelectField
             label="Moneda"
-            options={CURRENCY_OPTIONS.map((c) => ({ value: c, label: c }))}
+            options={currencyOptions}
             value={currency}
-            onChange={(v) => setCurrency(v as typeof currency)}
+            onChange={(v) => setCurrency(v as string)}
           />
         </div>
 

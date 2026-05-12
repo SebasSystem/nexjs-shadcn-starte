@@ -33,15 +33,18 @@ export const SOURCE_CONFIG: Record<
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useAgendaItems() {
-  // Manual activities (no contact filter → all activities)
+export function useAgendaItems(filters?: { status?: string; source?: string }) {
+  // Manual activities with server-side filters
+  const activityFilters =
+    filters?.source === 'agenda' || !filters?.source ? { status: filters?.status } : undefined;
+
   const {
     data: manualItems,
     isLoading: manualLoading,
     addActivity,
     updateStatus: updateManualStatus,
     refetch: refetchManual,
-  } = useActivities();
+  } = useActivities(undefined, activityFilters);
 
   // Project milestones (consumed cross-feature from useProjects)
   const { projects, isLoading: projectsLoading } = useProjects();

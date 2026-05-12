@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sheet, SheetContent } from 'src/shared/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from 'src/shared/components/ui/sheet';
 
 import { ActivitiesTab } from '../../productivity/components/ActivitiesTab';
 import { InteractionsTimeline } from '../../productivity/components/InteractionsTimeline';
@@ -40,6 +40,7 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
         className="sm:max-w-[520px] flex flex-col p-0"
         showCloseButton={false}
       >
+        <SheetTitle className="sr-only">{contacto?.name ?? 'Detalle de contacto'}</SheetTitle>
         {/* Header */}
         {contacto && <ContactDetailHeader contacto={contacto} onClose={onClose} onEdit={onEdit} />}
 
@@ -47,7 +48,7 @@ export const ContactDetailDrawer: React.FC<ContactDetailDrawerProps> = ({
         <ContactDetailTabs
           selected={tab}
           onChange={setTab}
-          relationshipsCount={contacto?.relations.length ?? 0}
+          relationshipsCount={contacto?.relations?.length ?? 0}
         />
 
         <div className="flex-1 overflow-y-auto px-6 py-5">

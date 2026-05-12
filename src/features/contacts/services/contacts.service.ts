@@ -63,6 +63,20 @@ export const contactsService = {
   },
 
   // Relations — thin wrappers
+  getRelations: async (
+    entityUid: string
+  ): Promise<
+    Array<{ related_uid: string; related_name: string; related_type: string; role?: string }>
+  > => {
+    const res = await axiosInstance.get(endpoints.relations.byEntity('contact', entityUid));
+    return (res.data?.data ?? []) as Array<{
+      related_uid: string;
+      related_name: string;
+      related_type: string;
+      role?: string;
+    }>;
+  },
+
   addRelacion: async (entityAUid: string, entityBUid: string, role?: string): Promise<void> => {
     await axiosInstance.post(endpoints.relations.create, {
       parent_type: 'contact',
