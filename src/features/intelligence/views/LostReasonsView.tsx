@@ -84,23 +84,20 @@ export function LostReasonsView() {
 
   const columns = useMemo(
     () => [
-      col.accessor('opportunity_name', {
+      col.accessor('summary', {
         header: 'Deal',
         cell: (info) => (
           <div>
             <p className="text-body2 font-medium text-foreground">{info.getValue()}</p>
-            <p className="text-caption text-muted-foreground">{info.row.original.client_name}</p>
+            <p className="text-caption text-muted-foreground">{info.row.original.account_name}</p>
           </div>
         ),
       }),
-      col.accessor('amount', {
+      col.accessor('deal_value', {
         header: 'Monto',
         cell: (info) => (
           <span className="text-body2 font-semibold text-foreground">
-            {formatMoney(info.getValue(), {
-              currency: info.row.original.currency,
-              maximumFractionDigits: 0,
-            })}
+            {formatMoney(info.getValue() ?? 0, { maximumFractionDigits: 0 })}
           </span>
         ),
       }),
@@ -129,7 +126,7 @@ export function LostReasonsView() {
           <span className="text-caption text-muted-foreground">{formatDate(info.getValue())}</span>
         ),
       }),
-      col.accessor('sales_rep_name', {
+      col.accessor('sales_rep', {
         header: 'Vendedor',
         cell: (info) => <span className="text-body2">{info.getValue()}</span>,
       }),
@@ -319,7 +316,7 @@ export function LostReasonsView() {
         title="¿Eliminar razón de pérdida?"
         description={
           <>
-            Vas a eliminar la razón de pérdida de <strong>{deleteTarget?.opportunity_name}</strong>.
+            Vas a eliminar la razón de pérdida de <strong>{deleteTarget?.summary}</strong>.
             Esta acción no se puede deshacer.
           </>
         }

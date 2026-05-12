@@ -42,18 +42,21 @@ export type LostReasonCategory = string;
 
 export interface LostReason {
   uid: string;
-  opportunity_name: string;
-  client_name: string;
-  amount: number;
-  currency: 'USD' | 'COP' | 'MXN';
+  summary: string;
+  details?: string;
+  reason_type: LostReasonCategory;
+  estimated_value: number;
+  deal_value?: number;
+  lost_at: string;
   competitor_uid?: string;
   competitor_name?: string;
+  account_name?: string;
   lost_reason_category: LostReasonCategory;
   lost_reason_detail: string;
-  lost_at: string;
-  sales_rep_name: string;
-  entity_type?: string;
-  entity_uid?: string;
+  sales_rep?: string;
+  closed_date?: string;
+  opportunity_uid?: string;
+  currency?: string;
 }
 
 // ─── Stats ────────────────────────────────────────────────────────────────────

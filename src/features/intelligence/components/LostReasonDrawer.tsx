@@ -1,12 +1,11 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useUsers } from 'src/features/automation/hooks/useUsers';
-import { contactsService } from 'src/features/contacts/services/contacts.service';
 import { localizationService } from 'src/features/settings/services/localization.service';
 import {
   Button,
@@ -23,7 +22,7 @@ import { Textarea } from 'src/shared/components/ui';
 import { useTenantOptions } from 'src/shared/hooks/useTenantOptions';
 
 import { type LostReasonFormData, lostReasonSchema } from '../schemas/lost-reason.schema';
-import type { Competitor, LostReason } from '../types';
+import type { Competitor, LostReason, LostReasonCategory } from '../types';
 
 interface Props {
   open: boolean;
@@ -61,10 +60,10 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
     queryKey: ['settings', 'localization', 'options', 'currencies'],
     queryFn: async () => {
       const res = (await localizationService.getOptions()) as Record<string, unknown>;
-      const data = (res?.data ?? res) as { currencies?: Array<{ code: string; name: string }> };
+      const data = (res?.data ?? res) as { currencies?: Array<{ code: string; label: string; symbol: string }> };
       return (data.currencies ?? []).map((c) => ({
         value: c.code,
-        label: `${c.code} - ${c.name}`,
+        label: `${c.code} - ${c.label}`,
       }));
     },
     staleTime: 0,
@@ -83,23 +82,6 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
     return data.map((opt) => ({ value: opt.key, label: opt.name }));
   }, [lostReasonCategories.data]);
 
-  const [accountSearch, setAccountSearch] = useState('');
-  const { data: accountOptions = [] } = useQuery({
-    queryKey: ['accounts', 'search', accountSearch],
-    queryFn: async () => {
-      const res = await contactsService.accounts.list({
-        page: 1,
-        per_page: 25,
-        search: accountSearch || undefined,
-      });
-      return (
-        ((res as Record<string, unknown>).data as Array<{ uid: string; name: string }>) ?? []
-      ).map((a) => ({ value: a.uid, label: a.name }));
-    },
-    staleTime: 0,
-    placeholderData: keepPreviousData,
-  });
-
   const {
     register,
     handleSubmit,
@@ -115,15 +97,15 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
     if (open) {
       if (item) {
         reset({
-          opportunityName: item.opportunity_name,
-          clientName: item.client_name,
-          amount: item.amount,
-          currency: item.currency,
+          opportunityName: item.summary,
+          clientName: item.account_name ?? '',
+          amount: item.deal_value ?? 0,
+          currency: currencyOptions[0]?.value ?? '',
           competitorId: item.competitor_uid ?? '',
-          lostReasonCategory: item.lost_reason_category,
+          lostReasonCategory: item.reason_type,
           lostReasonDetail: item.lost_reason_detail,
           lostDate: item.lost_at,
-          salesRepName: item.sales_rep_name,
+          salesRepName: item.sales_rep ?? '',
         });
       } else {
         reset(DEFAULT_VALUES);
@@ -133,20 +115,19 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
 
   const onSubmit = async (data: LostReasonFormData) => {
     const competitor = competitors.find((c) => c.uid === data.competitorId);
-    const account = accountOptions.find((a) => a.value === data.clientName);
     const payload: Omit<LostReason, 'uid'> = {
-      opportunity_name: data.opportunityName,
-      client_name: account?.label ?? data.clientName,
-      entity_type: account ? 'account' : undefined,
-      entity_uid: account ? account.value : undefined,
-      amount: data.amount,
+      summary: data.opportunityName,
+      account_name: data.clientName,
+      estimated_value: data.amount,
       currency: data.currency,
       competitor_uid: data.competitorId || undefined,
       competitor_name: competitor?.name,
-      lost_reason_category: data.lostReasonCategory,
+      reason_type: data.lostReasonCategory as LostReasonCategory,
+      lost_reason_category: data.lostReasonCategory as LostReasonCategory,
+      details: data.lostReasonDetail,
       lost_reason_detail: data.lostReasonDetail,
       lost_at: data.lostDate,
-      sales_rep_name: data.salesRepName,
+      sales_rep: data.salesRepName,
     };
 
     let success: boolean;
@@ -161,7 +142,7 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
   };
 
   return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+    <Sheet key={item?.uid ?? 'new'} open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[440px] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40">
           <SheetTitle>{isEdit ? 'Editar pérdida' : 'Registrar deal perdido'}</SheetTitle>
@@ -180,22 +161,12 @@ export function LostReasonDrawer({ open, item, competitors, onClose, onCreate, o
               error={errors.opportunityName?.message}
             />
 
-            <Controller
-              name="clientName"
-              control={control}
-              render={({ field }) => (
-                <SelectField
-                  label="Cliente"
-                  required
-                  searchable
-                  options={accountOptions}
-                  value={field.value}
-                  onChange={(v) => field.onChange(v as string)}
-                  onSearch={setAccountSearch}
-                  placeholder="Buscar empresa..."
-                  error={errors.clientName?.message}
-                />
-              )}
+            <Input
+              label="Cliente"
+              required
+              {...register('clientName')}
+              placeholder="Nombre de la empresa o persona"
+              error={errors.clientName?.message}
             />
 
             <div className="grid grid-cols-2 gap-3">

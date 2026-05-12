@@ -127,7 +127,7 @@ export function useIntelligence(filters: IntelligenceFilters = {}) {
           )
         : 0;
 
-    const total_lost_amount = lostReasons.reduce((acc, d) => acc + (Number(d.amount) || 0), 0);
+    const total_lost_amount = lostReasons.reduce((acc, d) => acc + (Number(d.deal_value) || 0), 0);
 
     const competitorCounts = lostReasons.reduce<Record<string, number>>((acc, d) => {
       if (d.competitor_name) {

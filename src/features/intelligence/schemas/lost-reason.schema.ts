@@ -4,7 +4,7 @@ export const lostReasonSchema = z.object({
   opportunityName: z.string().min(3, 'El nombre del deal es requerido'),
   clientName: z.string().min(2, 'El cliente es requerido'),
   amount: z.number({ error: 'Ingresá un monto válido' }).positive('El monto debe ser mayor a 0'),
-  currency: z.enum(['USD', 'COP', 'MXN']),
+  currency: z.string(),
   competitorId: z.string().optional(),
   lostReasonCategory: z.string().min(1, 'Seleccioná una razón'),
   lostReasonDetail: z.string().min(10, 'Detallá la razón con al menos 10 caracteres'),
