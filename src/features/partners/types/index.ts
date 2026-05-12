@@ -79,6 +79,7 @@ export interface PartnerOpportunity {
   registered_date: string;
   notes?: string;
   assigned_to_internal?: string;
+  assigned_to_internal_uid?: string;
 }
 
 export interface PortalMaterial {
@@ -119,7 +120,7 @@ export interface PartnerOpportunityPayload {
   status: PartnerOpportunityStatus;
   registered_date: string;
   notes?: string;
-  assigned_to_internal?: string;
+  assigned_to_internal_uid?: string;
 }
 
 export interface PortalMaterialPayload {

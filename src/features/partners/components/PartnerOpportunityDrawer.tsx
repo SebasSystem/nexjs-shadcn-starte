@@ -77,7 +77,7 @@ function OpportunityForm({
     init ? opportunity.status : 'pending'
   );
   const [assignedToInternal, setAssignedToInternal] = useState(
-    init ? (opportunity.assigned_to_internal ?? '') : ''
+    init ? (opportunity.assigned_to_internal_uid ?? '') : ''
   );
   const [notes, setNotes] = useState(init ? (opportunity.notes ?? '') : '');
   const [loading, setLoading] = useState(false);
@@ -132,7 +132,7 @@ function OpportunityForm({
       currency,
       status,
       registered_date: new Date().toISOString().split('T')[0],
-      assigned_to_internal: assignedToInternal || undefined,
+      assigned_to_internal_uid: assignedToInternal || undefined,
       notes: notes || undefined,
     };
 
