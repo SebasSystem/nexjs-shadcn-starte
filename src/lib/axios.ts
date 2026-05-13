@@ -338,7 +338,6 @@ export const endpoints = {
       update: (uid: string) => `/partners/${uid}`,
       delete: (uid: string) => `/partners/${uid}`,
       types: '/partners/types',
-      stats: '/partners?with=stats',
     },
     opportunities: {
       list: '/partners/opportunities',

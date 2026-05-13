@@ -4,7 +4,11 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { usePaginationParams } from 'src/shared/hooks/use-pagination';
 import { extractPaginationMeta } from 'src/shared/lib/pagination';
 
-import { scheduleService, type ScheduleItem, type ScheduleParams } from '../services/schedule.service';
+import {
+  type ScheduleItem,
+  type ScheduleParams,
+  scheduleService,
+} from '../services/schedule.service';
 
 // ─── Hook ──────────────────────────────────────────────────────────────────
 
@@ -30,7 +34,7 @@ export function useSchedule(filters: UseScheduleOptions = {}) {
       if (meta) pagination.setTotal(meta.total);
       return res as unknown as ScheduleItem[];
     },
-    staleTime: 30_000, // 30 seconds — schedule changes frequently
+    staleTime: 0,
     placeholderData: keepPreviousData,
   });
 

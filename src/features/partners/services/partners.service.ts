@@ -17,7 +17,7 @@ export const partnersService = {
   // ── Partners ────────────────────────────────────────────────────────────
 
   partners: {
-    list: async (params?: PaginationParams & { with?: string }): Promise<unknown> => {
+    list: async (params?: PaginationParams): Promise<unknown> => {
       const res = await axiosInstance.get(endpoints.partners.partners.list, { params });
       return res.data;
     },

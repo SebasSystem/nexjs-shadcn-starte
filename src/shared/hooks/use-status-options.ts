@@ -1,7 +1,8 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { statusService, type StatusOption } from '../services/status.service';
+
+import { statusService } from '../services/status.service';
 
 // ─── Query keys for status cache ───────────────────────────────────────────
 export const statusQueryKeys = {
@@ -21,7 +22,7 @@ export function useUserStatusOptions() {
   return useQuery({
     queryKey: statusQueryKeys.users,
     queryFn: () => statusService.userStatuses(),
-    staleTime: 5 * 60 * 1000, // 5 min — static values
+    staleTime: 0,
   });
 }
 
@@ -30,7 +31,7 @@ export function useTaskStatusOptions() {
   return useQuery({
     queryKey: statusQueryKeys.tasks,
     queryFn: () => statusService.taskStatuses(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 }
 
@@ -39,7 +40,7 @@ export function useTaskPriorityOptions() {
   return useQuery({
     queryKey: statusQueryKeys.taskPriorities,
     queryFn: () => statusService.taskPriorities(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 }
 
@@ -48,7 +49,7 @@ export function useProjectStatusOptions() {
   return useQuery({
     queryKey: statusQueryKeys.projects,
     queryFn: () => statusService.projectStatuses(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 }
 
@@ -57,7 +58,7 @@ export function useMilestoneStatusOptions() {
   return useQuery({
     queryKey: statusQueryKeys.milestones,
     queryFn: () => statusService.milestoneStatuses(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 }
 
@@ -66,7 +67,7 @@ export function useQuotationStatusOptions() {
   return useQuery({
     queryKey: statusQueryKeys.quotations,
     queryFn: () => statusService.quotationStatuses(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 }
 
@@ -75,6 +76,6 @@ export function useInvoiceStatusOptions() {
   return useQuery({
     queryKey: statusQueryKeys.invoices,
     queryFn: () => statusService.invoiceStatuses(),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 }

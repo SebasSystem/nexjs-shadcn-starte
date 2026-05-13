@@ -86,33 +86,20 @@ export function usePartners(filters: PartnersFilters = {}) {
     placeholderData: keepPreviousData,
   });
 
-  // ── Stats (server-side via ?with=stats) ──────────────────────────────────
-
-  const { data: serverStats } = useQuery({
-    queryKey: [...queryKeys.partners.partners.list, 'stats'],
-    queryFn: async () => {
-      const res = await partnersService.partners.list({ with: 'stats' });
-      return (res as Record<string, unknown>).stats as Record<string, number> | undefined;
-    },
-    staleTime: 30_000,
-  });
+  // ── Stats (computed client-side) ────────────────────────────────────────
+  // El backend soporta ?with=stats que devuelve { partners, stats, pagination }
+  // con keys: total_partners, active_partners, prospect_partners,
+  // pending_opportunities, converted_deals, total_materials.
+  // Requiere cambiar el response format del fetch principal para no duplicar.
+  // Mientras tanto, cálculo client-side es suficiente.
 
   const partnerStats = useMemo(() => {
-    if (serverStats) {
-      return {
-        active: serverStats.active ?? 0,
-        prospects: serverStats.prospects ?? 0,
-        pendingOpps: serverStats.pendingOpps ?? 0,
-        convertedDeals: serverStats.convertedDeals ?? 0,
-      };
-    }
-    // Fallback client-side cuando backend no devuelve stats
     const active = partners.filter((p) => p.status === 'active').length;
     const prospects = partners.filter((p) => p.status === 'prospect').length;
     const pendingOpps = opportunities.filter((o) => o.status === 'pending').length;
     const convertedDeals = partners.reduce((acc, p) => acc + p.converted_deals, 0);
     return { active, prospects, pendingOpps, convertedDeals };
-  }, [partners, opportunities, serverStats]);
+  }, [partners, opportunities]);
 
   const opportunityStats = useMemo(() => {
     // TODO: Backend no tiene endpoint de stats para oportunidades.
