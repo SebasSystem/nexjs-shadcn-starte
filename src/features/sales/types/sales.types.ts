@@ -51,8 +51,10 @@ export interface Quotation {
   price_book_uid?: string;
   notes?: string;
   items: QuotationItem[];
-  quoteable_type: string;
-  quoteable_uid: string;
+  quoteable_type?: string | null;
+  quoteable_uid?: string | null;
+  entity_type?: string;
+  entity_uid?: string;
   client_name?: string;
   created_at: string;
   updated_at: string;

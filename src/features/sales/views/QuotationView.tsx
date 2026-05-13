@@ -9,6 +9,7 @@ import { quotationService } from 'src/features/sales/services/quotation.service'
 import type { Quotation, QuotationItem } from 'src/features/sales/types/sales.types';
 import { localizationService } from 'src/features/settings/services/localization.service';
 import { formatMoney, getCurrencyPreferences } from 'src/lib/currency';
+import { toDate } from 'src/lib/date';
 import { paths } from 'src/routes/paths';
 import { PageContainer } from 'src/shared/components/layouts/page';
 import { Badge } from 'src/shared/components/ui/badge';
@@ -83,8 +84,8 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
       owner_user_uid: '',
       created_by_user_uid: '',
       items: [],
-      quoteable_type: 'opportunity',
-      quoteable_uid: quotationId,
+      entity_type: 'opportunity',
+      entity_uid: quotationId,
       notes: '',
       created_at: new Date().toISOString().split('T')[0],
       updated_at: new Date().toISOString(),
@@ -95,6 +96,12 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   if (byIdQuotation && byIdQuotation.uid !== localQuotation?.uid && !savedDraft) {
     setLocalQuotation(byIdQuotation);
   }
+
+  // Normalize API ISO date to YYYY-MM-DD for <input type="date">
+  const toInputDate = (value: string | null | undefined): string => {
+    if (!value) return '';
+    return toDate(value).toISOString().split('T')[0];
+  };
 
   const quotation = localQuotation;
 
@@ -428,7 +435,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                 <Input
                   label="Fecha de creación"
                   type="date"
-                  value={quotation.created_at}
+                  value={toInputDate(quotation.created_at)}
                   onChange={(e) =>
                     setLocalQuotation((p) => ({ ...p, created_at: e.target.value }) as Quotation)
                   }
@@ -437,7 +444,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                 <Input
                   label="Válido hasta"
                   type="date"
-                  value={quotation.valid_until ?? ''}
+                  value={toInputDate(quotation.valid_until)}
                   onChange={(e) =>
                     setLocalQuotation((p) => ({ ...p, valid_until: e.target.value }) as Quotation)
                   }
