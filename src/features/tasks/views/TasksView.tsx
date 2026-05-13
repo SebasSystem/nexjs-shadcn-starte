@@ -32,6 +32,7 @@ import {
   Textarea,
 } from 'src/shared/components/ui';
 import { Badge } from 'src/shared/components/ui/badge';
+import { useTaskPriorityOptions, useTaskStatusOptions } from 'src/shared/hooks/use-status-options';
 
 import { useTasks } from '../hooks/use-tasks';
 import type { Task, TaskPriority, TaskStatus } from '../types/task.types';
@@ -128,6 +129,9 @@ export function TasksView() {
     search: search || undefined,
     status: filterStatus || undefined,
   });
+
+  const { data: taskStatuses = [] } = useTaskStatusOptions();
+  const { data: taskPriorities = [] } = useTaskPriorityOptions();
 
   // ── Users for assignment ─────────────────────────────────────────────────
   const { data: usersList } = useQuery({
@@ -234,13 +238,7 @@ export function TasksView() {
         </div>
         <SelectField
           label="Estado"
-          options={[
-            { value: '', label: 'Todos los estados' },
-            { value: 'pending', label: 'Pendiente' },
-            { value: 'in_progress', label: 'En Progreso' },
-            { value: 'completed', label: 'Completada' },
-            { value: 'cancelled', label: 'Cancelada' },
-          ]}
+          options={[{ value: '', label: 'Todos los estados' }, ...taskStatuses]}
           value={filterStatus}
           onChange={(v) => setFilterStatus(v as string)}
         />
@@ -315,23 +313,13 @@ export function TasksView() {
             />
             <SelectField
               label="Prioridad"
-              options={[
-                { value: 'low', label: 'Baja' },
-                { value: 'medium', label: 'Media' },
-                { value: 'high', label: 'Alta' },
-                { value: 'urgent', label: 'Urgente' },
-              ]}
+              options={taskPriorities}
               value={priority}
               onChange={(v) => setPriority(v as TaskPriority)}
             />
             <SelectField
               label="Estado"
-              options={[
-                { value: 'pending', label: 'Pendiente' },
-                { value: 'in_progress', label: 'En Progreso' },
-                { value: 'completed', label: 'Completada' },
-                { value: 'cancelled', label: 'Cancelada' },
-              ]}
+              options={taskStatuses}
               value={status}
               onChange={(v) => setStatus(v as TaskStatus)}
             />

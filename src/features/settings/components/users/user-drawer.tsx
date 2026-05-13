@@ -14,6 +14,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from 'src/shared/components/ui/sheet';
+import { useUserStatusOptions } from 'src/shared/hooks/use-status-options';
 import { z } from 'zod';
 
 import type { SettingsUser, UserStatus } from '../../types/settings.types';
@@ -47,11 +48,6 @@ interface UserDrawerProps {
   ) => Promise<boolean>;
 }
 
-const STATUS_OPTIONS = [
-  { value: 'ACTIVO', label: 'Activo' },
-  { value: 'INACTIVO', label: 'Inactivo' },
-];
-
 export const UserDrawer: React.FC<UserDrawerProps> = ({
   isOpen,
   onClose,
@@ -60,6 +56,7 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
   equipos,
   onSave,
 }) => {
+  const { data: statusOptions = [] } = useUserStatusOptions();
   const {
     control,
     handleSubmit,
@@ -172,7 +169,7 @@ export const UserDrawer: React.FC<UserDrawerProps> = ({
               control={control}
               name="status"
               label="Estado"
-              options={STATUS_OPTIONS}
+              options={statusOptions}
             />
           </div>
         </div>

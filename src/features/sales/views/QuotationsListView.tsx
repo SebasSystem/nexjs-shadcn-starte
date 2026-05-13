@@ -21,6 +21,7 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
+import { useQuotationStatusOptions } from 'src/shared/hooks/use-status-options';
 
 import { SalesPageSkeleton } from '../components/SalesPageSkeleton';
 import { useSalesContext } from '../context/SalesContext';
@@ -28,15 +29,6 @@ import type { Quotation } from '../types/sales.types';
 import { STATUS_LABELS } from '../types/sales.types';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-
-const STATUS_OPTIONS = [
-  { value: '', label: 'Todos los estados' },
-  { value: 'draft', label: 'Borrador' },
-  { value: 'sent', label: 'Enviada' },
-  { value: 'approved', label: 'Aprobada' },
-  { value: 'rejected', label: 'Rechazada' },
-  { value: 'cancelled', label: 'Cancelada' },
-];
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   draft: { label: 'Borrador', className: 'bg-amber-500/10 text-amber-600' },
@@ -65,6 +57,8 @@ export function QuotationsListView() {
     onChangeQuotationStatus,
     quotationsPagination,
   } = useSalesContext();
+
+  const { data: quotationStatuses = [] } = useQuotationStatusOptions();
 
   const columns = useMemo(
     () => [
@@ -208,7 +202,7 @@ export function QuotationsListView() {
           label="Estado"
           value={quotationStatus}
           onChange={(v) => onChangeQuotationStatus(v as string)}
-          options={STATUS_OPTIONS}
+          options={[{ value: '', label: 'Todos los estados' }, ...quotationStatuses]}
           className="sm:w-52"
         />
       </div>

@@ -25,6 +25,7 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
+import { useInvoiceStatusOptions } from 'src/shared/hooks/use-status-options';
 
 import { SalesPageSkeleton } from '../components/SalesPageSkeleton';
 import { useSalesContext } from '../context/SalesContext';
@@ -47,15 +48,6 @@ function isOverdue(invoice: Invoice): boolean {
 }
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-
-const STATUS_OPTIONS = [
-  { value: '', label: 'Todos los estados' },
-  { value: 'draft', label: 'Borrador' },
-  { value: 'issued', label: 'Emitida' },
-  { value: 'partial', label: 'Pago parcial' },
-  { value: 'paid', label: 'Pagada' },
-  { value: 'overdue', label: 'Vencida' },
-];
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   issued: { label: 'Emitida', className: 'bg-amber-500/10 text-amber-600' },
@@ -88,6 +80,8 @@ export function InvoicesListView() {
     onChangeInvoiceStatus,
     invoicesPagination,
   } = useSalesContext();
+
+  const { data: invoiceStatuses = [] } = useInvoiceStatusOptions();
 
   const overdueCount = useMemo(() => invoices.filter(isOverdue).length, [invoices]);
   const pendingBalance = useMemo(
@@ -263,7 +257,7 @@ export function InvoicesListView() {
           label="Estado"
           value={invoiceStatus}
           onChange={(v) => onChangeInvoiceStatus(v as string)}
-          options={STATUS_OPTIONS}
+          options={[{ value: '', label: 'Todos los estados' }, ...invoiceStatuses]}
           className="sm:w-52"
         />
       </div>

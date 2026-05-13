@@ -15,15 +15,9 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
+import { useMilestoneStatusOptions } from 'src/shared/hooks/use-status-options';
 
 import type { Milestone, MilestonePayload, MilestoneStatus } from '../types';
-
-const STATUS_OPTIONS: { value: MilestoneStatus; label: string }[] = [
-  { value: 'pending', label: 'Pendiente' },
-  { value: 'in_progress', label: 'En progreso' },
-  { value: 'done', label: 'Hecho' },
-  { value: 'completed', label: 'Completado' },
-];
 
 interface Props {
   open: boolean;
@@ -47,6 +41,7 @@ function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
   const [assignedToUid, setAssignedToUid] = useState(init ? (milestone.assigned_to_uid ?? '') : '');
   const [dueDate, setDueDate] = useState(init ? milestone.due_date : '');
   const [status, setStatus] = useState<MilestoneStatus>(init ? milestone.status : 'pending');
+  const { data: statusOptions = [] } = useMilestoneStatusOptions();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -137,7 +132,7 @@ function MilestoneForm({ milestone, isEdit, onClose, onSave }: FormProps) {
         <SelectField
           label="Estado *"
           required
-          options={STATUS_OPTIONS}
+          options={statusOptions}
           value={status}
           onChange={(v) => setStatus(v as MilestoneStatus)}
         />

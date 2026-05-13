@@ -34,7 +34,10 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
   });
 
   const zonaOptions = (opts?.timezones ?? []).map((tz) => ({ value: tz, label: tz }));
-  const monedaOptions = (opts?.currencies ?? []).map((m) => ({ value: m.code, label: m.label }));
+  const monedaOptions = (opts?.currencies ?? []).map((m) => ({
+    value: m.code,
+    label: `${m.code} — ${m.label}`,
+  }));
   const fechaOptions = (opts?.date_formats ?? []).map((f) => ({ value: f, label: f }));
   const idiomaOptions = opts?.locales ?? [];
 
@@ -72,6 +75,7 @@ export function LocalizationForm({ config, isSaving, onSave }: LocalizationFormP
           name="currency"
           label="Moneda principal"
           options={monedaOptions}
+          searchable
         />
 
         <FormSelectField

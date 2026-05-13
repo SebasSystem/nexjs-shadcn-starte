@@ -17,20 +17,10 @@ import {
   SheetTitle,
 } from 'src/shared/components/ui';
 import { Textarea } from 'src/shared/components/ui';
+import { useProjectStatusOptions } from 'src/shared/hooks/use-status-options';
 import { useDebounce } from 'use-debounce';
 
 import type { Project, ProjectPayload, ProjectStatus } from '../types';
-
-const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
-  { value: 'pending', label: 'Pendiente' },
-  { value: 'planning', label: 'Planificación' },
-  { value: 'active', label: 'Activo' },
-  { value: 'in_progress', label: 'En progreso' },
-  { value: 'on_hold', label: 'En pausa' },
-  { value: 'paused', label: 'Pausado' },
-  { value: 'completed', label: 'Completado' },
-  { value: 'cancelled', label: 'Cancelado' },
-];
 
 interface Props {
   open: boolean;
@@ -60,6 +50,7 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
   const [managerSearch, setManagerSearch] = useState('');
   const [debouncedManagerSearch] = useDebounce(managerSearch, 300);
   const [status, setStatus] = useState<ProjectStatus>(init ? project.status : 'planning');
+  const { data: statusOptions = [] } = useProjectStatusOptions();
   const [startDate, setStartDate] = useState(init ? project.start_date : '');
   const [endDate, setEndDate] = useState(init ? project.end_date : '');
   const [description, setDescription] = useState(init ? (project.description ?? '') : '');
@@ -213,7 +204,7 @@ function ProjectForm({ project, isEdit, onClose, onCreate, onUpdate, onCancel }:
         <SelectField
           label="Estado"
           required
-          options={STATUS_OPTIONS}
+          options={statusOptions}
           value={status}
           onChange={(v) => setStatus(v as ProjectStatus)}
         />

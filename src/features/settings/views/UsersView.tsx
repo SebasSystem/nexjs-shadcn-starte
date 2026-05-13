@@ -12,6 +12,7 @@ import { ConfirmDialog } from 'src/shared/components/ui/confirm-dialog';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Input } from 'src/shared/components/ui/input';
 import { SelectField } from 'src/shared/components/ui/select-field';
+import { useUserStatusOptions } from 'src/shared/hooks/use-status-options';
 import { useDebounce } from 'use-debounce';
 
 import { UserDrawer } from '../components/users/user-drawer';
@@ -40,6 +41,7 @@ export const UsersView = () => {
 
   const { roles } = useRoles();
   const { teams } = useTeams();
+  const { data: userStatuses = [] } = useUserStatusOptions();
 
   // Fetch fresh user data (with role_uid/team_uid) when editing
   const { data: editingUser } = useUser(selectedUser?.uid);
@@ -132,11 +134,7 @@ export const UsersView = () => {
             />
             <SelectField
               label="Estado"
-              options={[
-                { value: '', label: 'Todos' },
-                { value: 'ACTIVO', label: 'Activo' },
-                { value: 'INACTIVO', label: 'Inactivo' },
-              ]}
+              options={[{ value: '', label: 'Todos' }, ...userStatuses]}
               value={filterStatus}
               onChange={(v) => setFilterStatus(v as string)}
             />

@@ -38,11 +38,11 @@ export function MultiCurrencyView() {
     queryFn: async () => {
       const res = (await localizationService.getOptions()) as Record<string, unknown>;
       const data = (res?.data ?? res) as {
-        currencies?: Array<{ code: string; name: string; symbol: string }>;
+        currencies?: Array<{ code: string; label: string; symbol: string }>;
       };
       return (data.currencies ?? []).map((c) => ({
         value: c.code,
-        label: `${c.code} — ${c.name}`,
+        label: c.label ? `${c.code} — ${c.label}` : c.code,
       }));
     },
     staleTime: 0,
@@ -82,7 +82,7 @@ export function MultiCurrencyView() {
               >
                 {row.code}
               </Badge>
-              <span className="text-foreground">{row.name}</span>
+              <span className="text-foreground">{row.name || row.code}</span>
             </div>
           );
         },
