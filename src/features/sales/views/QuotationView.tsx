@@ -20,7 +20,7 @@ import { SelectField } from 'src/shared/components/ui/select-field';
 
 import { OpportunityTimeline } from '../components/OpportunityTimeline';
 import { useSalesContext } from '../context/SalesContext';
-import { useQuotation, useQuotationById } from '../hooks/useQuotation';
+import { useQuotationById } from '../hooks/useQuotation';
 import { STATUS_LABELS } from '../types/sales.types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -58,16 +58,46 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   const router = useRouter();
   const { saveQuotation, convertQuotationToInvoice, invoices, opportunities } = useSalesContext();
 
-  // Try as quotation UID first (list view navigation)
+  // Track if a draft has been saved and redirected to a new URL
+  const [savedDraft, setSavedDraft] = useState<Quotation | null>(null);
+
+  // Use saved draft if URL matches the saved draft UID, otherwise fetch from API
   const {
     quotation: byIdQuotation,
     isLoading: idLoading,
-    error: idError,
-  } = useQuotationById(quotationId);
-  // Fallback: treat as opportunity UID (panel "Crear cotización" navigation)
-  const isOppFallback = !byIdQuotation && !idLoading && !!idError;
-  const { quotation: byOppQuotation } = useQuotation(isOppFallback ? quotationId : '');
-  const apiQuotation = byIdQuotation ?? byOppQuotation ?? null;
+  } = useQuotationById(savedDraft?.uid === quotationId ? '' : quotationId);
+
+  // Sync API result or saved draft into local state
+  const [localQuotation, setLocalQuotation] = useState<Quotation | null>(() => {
+    if (savedDraft?.uid === quotationId) return savedDraft;
+    if (byIdQuotation) return byIdQuotation;
+    const opp = opportunities.find((o) => o.uid === quotationId);
+    return {
+      uid: '',
+      quote_number: '',
+      title: opp?.title ?? '',
+      status: 'draft',
+      currency: '',
+      subtotal: 0,
+      discount_total: 0,
+      total: 0,
+      owner_user_uid: '',
+      created_by_user_uid: '',
+      items: [],
+      quoteable_type: 'opportunity',
+      quoteable_uid: quotationId,
+      notes: '',
+      created_at: new Date().toISOString().split('T')[0],
+      updated_at: new Date().toISOString(),
+    };
+  });
+
+  // When API returns quotation, update local state
+  if (byIdQuotation && byIdQuotation.uid !== localQuotation?.uid && !savedDraft) {
+    setLocalQuotation(byIdQuotation);
+  }
+
+  const quotation = localQuotation;
 
   const { items: products } = useProducts();
 
@@ -94,30 +124,6 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   // Default currency from tenant preferences or first option
   const defaultCurrency =
     getCurrencyPreferences('tenant').currency || (currencyOptions[0]?.value ?? '');
-
-  // Load quotation from API or create a local draft — no useEffect needed
-  const [localQuotation, setLocalQuotation] = useState<Quotation | null>(() => {
-    if (apiQuotation) return apiQuotation;
-    // If no API quotation yet, create a local draft
-    return {
-      uid: '',
-      quote_number: '',
-      title: opp?.title ?? '',
-      status: 'draft',
-      currency: defaultCurrency,
-      subtotal: 0,
-      discount_total: 0,
-      total: 0,
-      owner_user_uid: '',
-      created_by_user_uid: '',
-      items: [],
-      quoteable_type: 'opportunity',
-      quoteable_uid: quotationId,
-      notes: '',
-      created_at: new Date().toISOString().split('T')[0],
-      updated_at: new Date().toISOString(),
-    };
-  });
 
   const quotation = localQuotation;
 
@@ -190,11 +196,15 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
     setIsSaving(true);
     try {
       const saved = await saveQuotation(quotation);
-      setLocalQuotation(saved as Quotation);
-      // Navigate to the new quotation UID if it changed (first save)
-      const savedUid = (saved as Quotation)?.uid;
-      if (savedUid && savedUid !== quotationId) {
-        router.replace(paths.sales.quotation(savedUid));
+      const savedQuotation = saved as Quotation;
+      // Navigate to the new quotation UID so URL matches the saved quotation
+      if (savedQuotation.uid && savedQuotation.uid !== quotationId) {
+        router.replace(paths.sales.quotation(savedQuotation.uid));
+      } else {
+        // Refetch from API to maintain consistency
+        const fresh = await quotationService.getOne(savedQuotation.uid);
+        setLocalQuotation(fresh);
+        setSavedDraft(fresh);
       }
       toast.success('Cotización guardada como borrador');
     } catch {
