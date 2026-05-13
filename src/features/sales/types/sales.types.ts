@@ -3,11 +3,12 @@
 export interface Opportunity {
   uid: string;
   title: string;
+  email?: string;
   amount: number;
+  currency?: string;
   expected_close_date: string;
   stage_uid: string;
   stage_name: string;
-  currency: string;
   description?: string;
   won_at?: string;
   lost_at?: string;

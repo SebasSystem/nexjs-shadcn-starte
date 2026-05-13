@@ -23,8 +23,19 @@ export interface NewOpportunityPayload {
   stage_uid?: string;
   description?: string;
   currency?: string;
-  opportunityable_type?: string;
-  opportunityable_uid?: string;
+  email?: string;
+  entity_type?: string;
+  entity_uid?: string;
+}
+
+interface EditOpportunityData {
+  uid: string;
+  title: string;
+  amount: number;
+  stage_uid: string;
+  expected_close_date: string;
+  description?: string;
+  email?: string;
 }
 
 interface NewOpportunityDrawerProps {
@@ -32,19 +43,43 @@ interface NewOpportunityDrawerProps {
   onClose: () => void;
   onSave: (data: NewOpportunityPayload) => void;
   stages: PipelineStage[];
+  /** Edit mode — pre-populates form with existing opportunity data */
+  isEditing?: boolean;
+  editingData?: EditOpportunityData | null;
 }
 
-export function NewOpportunityDrawer({ open, onClose, onSave, stages }: NewOpportunityDrawerProps) {
+export function NewOpportunityDrawer({
+  open,
+  onClose,
+  onSave,
+  stages,
+  isEditing = false,
+  editingData = null,
+}: NewOpportunityDrawerProps) {
   const activeStages = stages.filter((s) => s.is_active && !s.is_won && !s.is_lost);
   const defaultStageUid = activeStages[0]?.uid ?? '';
 
-  const [form, setForm] = useState({
-    title: '',
-    amount: '',
-    stage_uid: defaultStageUid,
-    expected_close_date: '',
-    description: '',
-  });
+  // Initialize form from editing data — runs once per drawer open via key remount
+  const initialForm =
+    isEditing && editingData
+      ? {
+          title: editingData.title || '',
+          amount: editingData.amount ? String(editingData.amount) : '',
+          stage_uid: editingData.stage_uid || defaultStageUid,
+          expected_close_date: editingData.expected_close_date || '',
+          description: editingData.description || '',
+          email: editingData.email || '',
+        }
+      : {
+          title: '',
+          amount: '',
+          stage_uid: defaultStageUid,
+          expected_close_date: '',
+          description: '',
+          email: '',
+        };
+
+  const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const stageOptions = activeStages.map((s) => ({
@@ -55,6 +90,9 @@ export function NewOpportunityDrawer({ open, onClose, onSave, stages }: NewOppor
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!form.title.trim()) newErrors.title = 'El nombre es requerido';
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = 'Formato de correo inválido';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -65,14 +103,21 @@ export function NewOpportunityDrawer({ open, onClose, onSave, stages }: NewOppor
     const defaultCloseDate = new Date();
     defaultCloseDate.setDate(defaultCloseDate.getDate() + 30);
 
-    onSave({
+    const payload: NewOpportunityPayload = {
       title: form.title.trim(),
       amount: Number(form.amount) || 0,
       expected_close_date: form.expected_close_date || defaultCloseDate.toISOString().split('T')[0],
       stage_uid: form.stage_uid || activeStages[0]?.uid,
       description: form.description.trim() || undefined,
-    });
+      email: form.email.trim() || undefined,
+    };
 
+    if (isEditing && editingData) {
+      payload.entity_type = 'opportunity';
+      payload.entity_uid = editingData.uid;
+    }
+
+    onSave(payload);
     onClose();
   };
 
@@ -80,9 +125,13 @@ export function NewOpportunityDrawer({ open, onClose, onSave, stages }: NewOppor
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="sm:max-w-[540px] flex flex-col p-0">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border/40">
-          <SheetTitle className="text-h6">Crear Nuevo Lead u Oportunidad</SheetTitle>
+          <SheetTitle className="text-h6">
+            {isEditing ? 'Editar Lead / Oportunidad' : 'Crear Nuevo Lead u Oportunidad'}
+          </SheetTitle>
           <SheetDescription>
-            Registra una nueva posibilidad de venta en tu pipeline comercial.
+            {isEditing
+              ? 'Actualizá la información del lead u oportunidad.'
+              : 'Registra una nueva posibilidad de venta en tu pipeline comercial.'}
           </SheetDescription>
         </SheetHeader>
 
@@ -104,6 +153,15 @@ export function NewOpportunityDrawer({ open, onClose, onSave, stages }: NewOppor
                 onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
                 error={errors.title}
                 autoFocus
+              />
+
+              <Input
+                label="Correo electrónico (Opcional)"
+                type="email"
+                placeholder="contacto@ejemplo.com"
+                value={form.email}
+                onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                error={errors.email}
               />
             </div>
 
@@ -160,7 +218,7 @@ export function NewOpportunityDrawer({ open, onClose, onSave, stages }: NewOppor
             Cancelar
           </Button>
           <Button color="primary" onClick={handleSubmit} className="flex-1">
-            Guardar Lead
+            {isEditing ? 'Guardar cambios' : 'Guardar Lead'}
           </Button>
         </SheetFooter>
       </SheetContent>

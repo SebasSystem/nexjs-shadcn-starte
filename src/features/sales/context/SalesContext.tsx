@@ -23,6 +23,7 @@ interface SalesContextValue {
   error: Error | null;
 
   addOpportunity: (data: Partial<Opportunity>) => Promise<Opportunity>;
+  updateOpportunity: (uid: string, data: Partial<Opportunity>) => Promise<Opportunity>;
   moveOpportunity: (uid: string, stageUid: string) => Promise<void>;
 
   saveQuotation: (data: Partial<Quotation>) => Promise<unknown>;
@@ -158,6 +159,20 @@ export function SalesProvider({ children }: { children: ReactNode }) {
     [refreshOpportunities]
   );
 
+  const updateOpportunity = useCallback(
+    async (uid: string, data: Partial<Opportunity>): Promise<Opportunity> => {
+      try {
+        const updated = await opportunityService.update(uid, data);
+        await refreshOpportunities();
+        return updated;
+      } catch (error) {
+        toast.error(extractApiError(error));
+        throw error;
+      }
+    },
+    [refreshOpportunities]
+  );
+
   const moveOpportunity = useCallback(
     async (uid: string, stageUid: string) => {
       try {
@@ -237,6 +252,7 @@ export function SalesProvider({ children }: { children: ReactNode }) {
         isLoading,
         error,
         addOpportunity,
+        updateOpportunity,
         moveOpportunity,
         saveQuotation,
         convertQuotationToInvoice,

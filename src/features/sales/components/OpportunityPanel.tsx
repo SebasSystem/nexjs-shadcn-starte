@@ -16,12 +16,14 @@ import { Button } from 'src/shared/components/ui/button';
 import { Icon } from 'src/shared/components/ui/icon';
 import { Sheet, SheetContent, SheetTitle } from 'src/shared/components/ui/sheet';
 
+import { useSalesContext } from '../context/SalesContext';
 import type { AgingLevel } from '../hooks/useOpportunityPanel';
 import { invoiceService } from '../services/invoice.service';
 import { quotationService } from '../services/quotation.service';
 import type { Invoice, Opportunity, Quotation } from '../types/sales.types';
 import { STATUS_LABELS } from '../types/sales.types';
 import { DealAvatar } from './DealAvatar';
+import { NewOpportunityDrawer } from './NewOpportunityDrawer';
 import { OpportunityQuotationsTab } from './OpportunityQuotationsTab';
 import { OpportunityTimeline } from './OpportunityTimeline';
 import { StageProgressBar } from './StageProgressBar';
@@ -163,9 +165,10 @@ function InvoiceTab({ opportunity, stages: _stages }: InvoiceTabProps) {
 interface ResumenTabProps {
   opportunity: Opportunity;
   stages: PipelineStage[];
+  onEdit: (opportunity: Opportunity) => void;
 }
 
-function ResumenTab({ opportunity, stages }: ResumenTabProps) {
+function ResumenTab({ opportunity, stages, onEdit }: ResumenTabProps) {
   const router = useRouter();
 
   // Fetch quotations linked to this opportunity
@@ -348,20 +351,41 @@ function ResumenTab({ opportunity, stages }: ResumenTabProps) {
         </div>
       ) : null}
 
-      {/* Meta info */}
-      <div className="space-y-2">
-        {opportunity.opportunityable_type && (
-          <div className="flex items-center gap-2 text-body2">
-            <Icon name="Tag" size={13} className="text-muted-foreground shrink-0" />
-            <span className="text-muted-foreground">Tipo:</span>
-            <span className="text-foreground font-medium">{opportunity.opportunityable_type}</span>
-          </div>
-        )}
-        {opportunity.description && (
-          <div className="flex items-start gap-2 text-body2">
-            <Icon name="FileText" size={13} className="text-muted-foreground shrink-0 mt-0.5" />
-            <span className="text-muted-foreground">{opportunity.description}</span>
-          </div>
+      {/* Meta info + Edit button */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-2 flex-1">
+          {opportunity.opportunityable_type && (
+            <div className="flex items-center gap-2 text-body2">
+              <Icon name="Tag" size={13} className="text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">Tipo:</span>
+              <span className="text-foreground font-medium">
+                {opportunity.opportunityable_type}
+              </span>
+            </div>
+          )}
+          {opportunity.description && (
+            <div className="flex items-start gap-2 text-body2">
+              <Icon name="FileText" size={13} className="text-muted-foreground shrink-0 mt-0.5" />
+              <span className="text-muted-foreground">{opportunity.description}</span>
+            </div>
+          )}
+          {opportunity.email && (
+            <div className="flex items-center gap-2 text-body2">
+              <Icon name="Mail" size={13} className="text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">Email:</span>
+              <span className="text-foreground font-medium">{opportunity.email}</span>
+            </div>
+          )}
+        </div>
+        {!isTerminal && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="shrink-0 ml-2 text-muted-foreground hover:text-foreground"
+            onClick={() => onEdit(opportunity)}
+          >
+            <Icon name="Pencil" size={14} />
+          </Button>
         )}
       </div>
 
@@ -427,7 +451,10 @@ export function OpportunityPanel({
   stages,
   opportunity,
 }: OpportunityPanelProps) {
+  const { updateOpportunity } = useSalesContext();
   const [activeTab, setActiveTab] = useState<TabId>('resumen');
+  const [editDrawerOpen, setEditDrawerOpen] = useState(false);
+  const [editingOpportunity, setEditingOpportunity] = useState<Opportunity | null>(null);
 
   const agingStyle = AGING_STYLES[agingLevel];
   const currentStage = opportunity
@@ -499,9 +526,18 @@ export function OpportunityPanel({
               ))}
             </div>
 
-            {/* Tab content */}
+            {/* Tabs content */}
             <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
-              {activeTab === 'resumen' && <ResumenTab opportunity={opportunity} stages={stages} />}
+              {activeTab === 'resumen' && (
+                <ResumenTab
+                  opportunity={opportunity}
+                  stages={stages}
+                  onEdit={(opp) => {
+                    setEditingOpportunity(opp);
+                    setEditDrawerOpen(true);
+                  }}
+                />
+              )}
               {activeTab === 'actividades' && <OpportunityTimeline opportunity={opportunity} />}
               {activeTab === 'cotizaciones' && (
                 <OpportunityQuotationsTab opportunity={opportunity} stages={stages} />
@@ -515,6 +551,37 @@ export function OpportunityPanel({
           </div>
         )}
       </SheetContent>
+
+      {/* Edit drawer */}
+      <NewOpportunityDrawer
+        key={editingOpportunity?.uid ?? 'new'}
+        open={editDrawerOpen}
+        onClose={() => {
+          setEditDrawerOpen(false);
+          setEditingOpportunity(null);
+        }}
+        onSave={(payload) => {
+          if (!editingOpportunity) return;
+          updateOpportunity(editingOpportunity.uid, payload as Partial<Opportunity>);
+          setEditDrawerOpen(false);
+          setEditingOpportunity(null);
+        }}
+        stages={stages}
+        isEditing={true}
+        editingData={
+          editingOpportunity
+            ? {
+                uid: editingOpportunity.uid,
+                title: editingOpportunity.title,
+                amount: editingOpportunity.amount,
+                stage_uid: editingOpportunity.stage_uid,
+                expected_close_date: editingOpportunity.expected_close_date,
+                description: editingOpportunity.description,
+                email: editingOpportunity.email,
+              }
+            : null
+        }
+      />
     </Sheet>
   );
 }
