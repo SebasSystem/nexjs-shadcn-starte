@@ -20,7 +20,7 @@ import { SelectField } from 'src/shared/components/ui/select-field';
 
 import { OpportunityTimeline } from '../components/OpportunityTimeline';
 import { useSalesContext } from '../context/SalesContext';
-import { useQuotationById } from '../hooks/useQuotation';
+import { useQuotation, useQuotationById } from '../hooks/useQuotation';
 import { STATUS_LABELS } from '../types/sales.types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -57,7 +57,17 @@ interface QuotationViewProps {
 export function QuotationView({ quotationId }: QuotationViewProps) {
   const router = useRouter();
   const { saveQuotation, convertQuotationToInvoice, invoices, opportunities } = useSalesContext();
-  const { quotation: apiQuotation } = useQuotationById(quotationId);
+
+  // Try as quotation UID first (list view navigation)
+  const {
+    quotation: byIdQuotation,
+    isLoading: idLoading,
+    error: idError,
+  } = useQuotationById(quotationId);
+  // Fallback: treat as opportunity UID (panel "Crear cotización" navigation)
+  const isOppFallback = !byIdQuotation && !idLoading && !!idError;
+  const { quotation: byOppQuotation } = useQuotation(isOppFallback ? quotationId : '');
+  const apiQuotation = byIdQuotation ?? byOppQuotation ?? null;
 
   const { items: products } = useProducts();
 
@@ -66,11 +76,11 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
     queryFn: async () => {
       const res = (await localizationService.getOptions()) as Record<string, unknown>;
       const data = (res?.data ?? res) as {
-        currencies?: Array<{ code: string; name: string; symbol: string }>;
+        currencies?: Array<{ code: string; label: string; symbol: string }>;
       };
       return (data.currencies ?? []).map((c) => ({
         value: c.code,
-        label: `${c.code} - ${c.name}`,
+        label: `${c.code} - ${c.label}`,
       }));
     },
     staleTime: 0,
