@@ -73,13 +73,14 @@ export interface PartnerOpportunity {
   client_name: string;
   client_email?: string;
   product: string;
-  estimated_value: number | string;
+  estimated_value: number;
   currency: string;
   status: PartnerOpportunityStatus;
   registered_date: string;
   notes?: string;
   assigned_to_internal?: string;
   assigned_to_internal_uid?: string;
+  created_at: string;
 }
 
 export interface PortalMaterial {

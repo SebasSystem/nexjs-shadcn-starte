@@ -86,18 +86,33 @@ export function usePartners(filters: PartnersFilters = {}) {
     placeholderData: keepPreviousData,
   });
 
-  // ── Stats (computed client-side) ────────────────────────────────────────
-  // TODO: Backend soporta ?with=stats en PartnerService::getPartners() que
-  // devuelve { partners, stats, pagination }. Requiere query separado y
-  // adaptar response format para no duplicar fetching de partners.
+  // ── Stats (server-side via ?with=stats) ──────────────────────────────────
+
+  const { data: serverStats } = useQuery({
+    queryKey: [...queryKeys.partners.partners.list, 'stats'],
+    queryFn: async () => {
+      const res = await partnersService.partners.list({ with: 'stats' });
+      return (res as Record<string, unknown>).stats as Record<string, number> | undefined;
+    },
+    staleTime: 30_000,
+  });
 
   const partnerStats = useMemo(() => {
+    if (serverStats) {
+      return {
+        active: serverStats.active ?? 0,
+        prospects: serverStats.prospects ?? 0,
+        pendingOpps: serverStats.pendingOpps ?? 0,
+        convertedDeals: serverStats.convertedDeals ?? 0,
+      };
+    }
+    // Fallback client-side cuando backend no devuelve stats
     const active = partners.filter((p) => p.status === 'active').length;
     const prospects = partners.filter((p) => p.status === 'prospect').length;
     const pendingOpps = opportunities.filter((o) => o.status === 'pending').length;
     const convertedDeals = partners.reduce((acc, p) => acc + p.converted_deals, 0);
     return { active, prospects, pendingOpps, convertedDeals };
-  }, [partners, opportunities]);
+  }, [partners, opportunities, serverStats]);
 
   const opportunityStats = useMemo(() => {
     // TODO: Backend no tiene endpoint de stats para oportunidades.

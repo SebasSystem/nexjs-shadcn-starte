@@ -19,15 +19,12 @@ export const localizationService = {
   },
 
   async getCountries(): Promise<Array<{ name: string }>> {
-    const res = await axiosInstance.get('/api/settings/countries');
+    const res = await axiosInstance.get(endpoints.settings.countries);
     return (res.data?.data ?? []) as Array<{ name: string }>;
   },
 
   async getCities(params: { country?: string; search?: string }): Promise<Array<{ name: string }>> {
-    const searchParams = new URLSearchParams();
-    if (params.country) searchParams.set('country', params.country);
-    if (params.search) searchParams.set('search', params.search);
-    const res = await axiosInstance.get(`/api/settings/cities?${searchParams.toString()}`);
+    const res = await axiosInstance.get(endpoints.settings.cities, { params });
     return (res.data?.data ?? []) as Array<{ name: string }>;
   },
 };

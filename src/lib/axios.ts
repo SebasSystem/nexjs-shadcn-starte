@@ -83,6 +83,7 @@ export const endpoints = {
     assignPermission: (uid: string) => `/users/${uid}/permissions`,
     removePermission: (uid: string, permUid: string) => `/users/${uid}/permissions/${permUid}`,
     assignManager: (uid: string) => `/users/${uid}/manager`,
+    statuses: '/users/statuses',
   },
   rbac: {
     roles: '/rbac/roles',
@@ -176,6 +177,8 @@ export const endpoints = {
       update: '/settings/localization',
       options: '/settings/localization/options',
     },
+    countries: '/settings/countries',
+    cities: '/settings/cities',
   },
   relations: {
     list: '/relations',
@@ -227,6 +230,8 @@ export const endpoints = {
     quotationSend: (uid: string) => `/quotations/${uid}/send`,
     quotationItems: (uid: string) => `/quotations/${uid}/items`,
     quotationItem: (itemUid: string) => `/quotations/items/${itemUid}`,
+    quotationStatuses: '/quotations/statuses',
+    invoiceStatuses: '/invoices/statuses',
     quotes: '/quotes',
     quote: (uid: string) => `/quotes/${uid}`,
     financeDashboard: '/finance/dashboard',
@@ -251,6 +256,7 @@ export const endpoints = {
     create: '/projects',
     update: (uid: string) => `/projects/${uid}`,
     delete: (uid: string) => `/projects/${uid}`,
+    statuses: '/projects/statuses',
     milestones: {
       list: (projectUid: string) => `/projects/${projectUid}/milestones`,
       create: (projectUid: string) => `/projects/${projectUid}/milestones`,
@@ -258,6 +264,7 @@ export const endpoints = {
         `/projects/${projectUid}/milestones/${milestoneUid}`,
       delete: (projectUid: string, milestoneUid: string) =>
         `/projects/${projectUid}/milestones/${milestoneUid}`,
+      statuses: '/milestones/statuses',
     },
     resources: {
       list: (projectUid: string) => `/projects/${projectUid}/assignments`,
@@ -287,6 +294,8 @@ export const endpoints = {
     create: '/tasks',
     update: (uid: string) => `/tasks/${uid}`,
     delete: (uid: string) => `/tasks/${uid}`,
+    statuses: '/tasks/statuses',
+    priorities: '/tasks/priorities',
   },
   purchases: {
     list: '/purchases/orders',
@@ -298,6 +307,7 @@ export const endpoints = {
     payables: '/purchases/payables',
   },
   productivity: {
+    schedule: '/schedule',
     activities: {
       list: '/activities',
       detail: (uid: string) => `/activities/${uid}`,
@@ -328,6 +338,7 @@ export const endpoints = {
       update: (uid: string) => `/partners/${uid}`,
       delete: (uid: string) => `/partners/${uid}`,
       types: '/partners/types',
+      stats: '/partners?with=stats',
     },
     opportunities: {
       list: '/partners/opportunities',
