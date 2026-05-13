@@ -167,6 +167,14 @@ interface ResumenTabProps {
 
 function ResumenTab({ opportunity, stages }: ResumenTabProps) {
   const router = useRouter();
+
+  // Fetch quotations linked to this opportunity
+  const { data: linkedQuotations = [], isLoading: quotesLoading } = useQuery<Quotation[]>({
+    queryKey: queryKeys.sales.quotationsByOpportunity(opportunity.uid),
+    queryFn: () => quotationService.getByOpportunity(opportunity.uid),
+    staleTime: 0,
+  });
+
   const currentStage = stages.find((s) => s.uid === opportunity.stage_uid);
   const isWon = currentStage?.is_won ?? false;
   const isLost = currentStage?.is_lost ?? false;
@@ -175,6 +183,23 @@ function ResumenTab({ opportunity, stages }: ResumenTabProps) {
   const weightedAmount = opportunity.amount * (probability / 100);
 
   const lostReasons = opportunity.lost_reasons;
+
+  // First linked quotation for summary
+  const quotation = linkedQuotations[0];
+  const quotationTotal = quotation
+    ? quotation.items.reduce(
+        (s, item) => s + item.list_unit_price * item.quantity * (1 - item.discount_percent / 100),
+        0
+      )
+    : 0;
+  const quotationStatusLabel = quotation ? STATUS_LABELS[quotation.status] ?? quotation.status : '';
+  const QUOTATION_STATUS_COLOR: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info'> = {
+    draft: 'default',
+    sent: 'info',
+    approved: 'success',
+    rejected: 'error',
+    cancelled: 'error',
+  };
 
   return (
     <div className="space-y-5">
@@ -278,6 +303,46 @@ function ResumenTab({ opportunity, stages }: ResumenTabProps) {
         )}
       </div>
 
+      {/* Quotation summary — shown when opportunity has at least one quotation */}
+      {quotesLoading ? (
+        <div className="rounded-xl bg-indigo-500/5 border border-indigo-500/20 p-3 animate-pulse">
+          <div className="h-4 bg-indigo-500/20 rounded w-24 mb-2" />
+          <div className="h-3 bg-indigo-500/10 rounded w-16" />
+        </div>
+      ) : quotation ? (
+        <div className="rounded-xl bg-indigo-500/5 border border-indigo-500/20 p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <Icon name="FileText" size={13} className="text-indigo-500" />
+              <span className="text-caption font-bold text-indigo-600 dark:text-indigo-400">
+                {quotation.quote_number}
+              </span>
+              <Badge variant="soft" color={QUOTATION_STATUS_COLOR[quotation.status] ?? 'default'}>
+                {quotationStatusLabel}
+              </Badge>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-auto p-1 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-500/10"
+              onClick={() => router.push(paths.sales.quotation(quotation.uid))}
+            >
+              <Icon name="Eye" size={13} />
+              Ver
+            </Button>
+          </div>
+          <p className="text-body2 font-bold text-foreground">
+            {formatMoney(quotationTotal, { scope: 'tenant', maximumFractionDigits: 0 })}
+          </p>
+        </div>
+      ) : !isTerminal ? (
+        <div className="rounded-xl bg-muted/20 border border-dashed border-border/60 p-3 text-center">
+          <p className="text-caption text-muted-foreground">
+            Sin cotización — creá una para avanzar en el cierre
+          </p>
+        </div>
+      ) : null}
+
       {/* Meta info */}
       <div className="space-y-2">
         {opportunity.opportunityable_type && (
@@ -295,27 +360,40 @@ function ResumenTab({ opportunity, stages }: ResumenTabProps) {
         )}
       </div>
 
-      {/* Stage-aware CTA */}
+      {/* CTA — route to existing quotation or create new one */}
       {!isTerminal && (
-        <div className="border-t border-border/40 pt-4 flex flex-col gap-2">
-          <Button
-            color="primary"
-            className="w-full"
-            onClick={() => router.push(paths.sales.quotation(opportunity.uid))}
-          >
-            Crear cotización
-          </Button>
+        <div className="border-t border-border/40 pt-4">
+          {quotation ? (
+            <Button
+              color="primary"
+              className="w-full"
+              onClick={() => router.push(paths.sales.quotation(quotation.uid))}
+            >
+              <Icon name="Eye" size={14} />
+              Ver cotización
+            </Button>
+          ) : (
+            <Button
+              color="primary"
+              className="w-full"
+              onClick={() => router.push(paths.sales.quotation(opportunity.uid))}
+            >
+              <Icon name="Plus" size={14} />
+              Crear cotización
+            </Button>
+          )}
         </div>
       )}
 
-      {isWon && (
-        <div className="border-t border-border/40 pt-4">
+      {isWon && quotation && !isTerminal && (
+        <div className="pt-2">
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => router.push(paths.sales.quotation(opportunity.uid))}
+            onClick={() => router.push(paths.sales.quotation(quotation.uid))}
           >
-            Ver cotizaciones
+            <Icon name="Eye" size={14} />
+            Ver cotización
           </Button>
         </div>
       )}
