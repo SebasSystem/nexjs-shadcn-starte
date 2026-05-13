@@ -192,8 +192,13 @@ function ResumenTab({ opportunity, stages }: ResumenTabProps) {
         0
       )
     : 0;
-  const quotationStatusLabel = quotation ? STATUS_LABELS[quotation.status] ?? quotation.status : '';
-  const QUOTATION_STATUS_COLOR: Record<string, 'default' | 'success' | 'warning' | 'error' | 'info'> = {
+  const quotationStatusLabel = quotation
+    ? (STATUS_LABELS[quotation.status] ?? quotation.status)
+    : '';
+  const QUOTATION_STATUS_COLOR: Record<
+    string,
+    'default' | 'success' | 'warning' | 'error' | 'info'
+  > = {
     draft: 'default',
     sent: 'info',
     approved: 'success',

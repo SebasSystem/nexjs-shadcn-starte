@@ -11,26 +11,28 @@ export interface ListQuotationsParams extends PaginationParams {
 }
 
 export const quotationService = {
-  async getList(params?: ListQuotationsParams): Promise<Quotation[]> {
+  async getList(params?: ListQuotationsParams): Promise<Record<string, unknown>> {
     const res = await axiosInstance.get(endpoints.sales.quotations, { params });
-    return res.data; // full response — callers extract .data for the array
+    return res.data as Record<string, unknown>;
   },
 
   async getByOpportunity(uid: string): Promise<Quotation[]> {
     const res = await axiosInstance.get(endpoints.sales.quotations, {
       params: { opportunity_uid: uid },
     });
-    return res.data.data ?? [];
+    // Guard against ModelNotFoundException when no quotations exist
+    const data = (res.data as { data?: Quotation[] }).data;
+    return Array.isArray(data) ? data : [];
   },
 
   async getOne(uid: string): Promise<Quotation> {
     const res = await axiosInstance.get(endpoints.sales.quotation(uid));
-    return res.data.data;
+    return (res.data as { data: Quotation }).data;
   },
 
   async create(data: Partial<Quotation>): Promise<Quotation> {
     const res = await axiosInstance.post(endpoints.sales.quotations, data);
-    return res.data.data;
+    return (res.data as { data: Quotation }).data;
   },
 
   async update(uid: string, data: Partial<Quotation>): Promise<Quotation> {

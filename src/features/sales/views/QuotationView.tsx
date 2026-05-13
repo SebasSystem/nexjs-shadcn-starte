@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useProducts } from 'src/features/inventory/hooks/use-products';
 import { quotationService } from 'src/features/sales/services/quotation.service';
@@ -62,10 +62,9 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   const [savedDraft, setSavedDraft] = useState<Quotation | null>(null);
 
   // Use saved draft if URL matches the saved draft UID, otherwise fetch from API
-  const {
-    quotation: byIdQuotation,
-    isLoading: idLoading,
-  } = useQuotationById(savedDraft?.uid === quotationId ? '' : quotationId);
+  const { quotation: byIdQuotation } = useQuotationById(
+    savedDraft?.uid === quotationId ? '' : quotationId
+  );
 
   // Sync API result or saved draft into local state
   const [localQuotation, setLocalQuotation] = useState<Quotation | null>(() => {
@@ -116,16 +115,22 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
     staleTime: 0,
   });
 
-  // Find linked opportunity for timeline
-  const opp =
-    opportunities.find((o) => o.uid === quotationId) ??
-    (apiQuotation ? opportunities.find((o) => o.uid === apiQuotation.quoteable_uid) : undefined);
-
-  // Default currency from tenant preferences or first option
+  // Default currency from tenant preferences
   const defaultCurrency =
     getCurrencyPreferences('tenant').currency || (currencyOptions[0]?.value ?? '');
 
-  const quotation = localQuotation;
+  // Sync default currency into local draft on mount
+  useEffect(() => {
+    if (quotation && !quotation.currency && defaultCurrency) {
+      setLocalQuotation((prev) => (prev ? { ...prev, currency: defaultCurrency } : prev));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultCurrency, quotation?.uid]); // only on mount / first render
+
+  // Find linked opportunity for timeline
+  const opp =
+    opportunities.find((o) => o.uid === quotationId) ??
+    (byIdQuotation ? opportunities.find((o) => o.uid === byIdQuotation.quoteable_uid) : undefined);
 
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
