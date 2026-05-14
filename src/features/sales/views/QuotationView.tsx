@@ -363,7 +363,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             </Button>
           )}
 
-          {/* Draft: save + send */}
+          {/* Draft: save + send + approve directo (aprobación verbal) */}
           {isDraft && (
             <>
               <Button variant="outline" onClick={handleSave} loading={isSaving}>
@@ -377,6 +377,16 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
               >
                 <Icon name="XCircle" size={16} />
                 Rechazar
+              </Button>
+              <Button
+                variant="outline"
+                className="border-emerald-400 text-emerald-600 hover:bg-emerald-500/10"
+                onClick={handleApprove}
+                loading={isApproving}
+                disabled={quotation.items.length === 0}
+              >
+                <Icon name="CheckCircle2" size={16} />
+                Aprobar
               </Button>
               <Button
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold"
