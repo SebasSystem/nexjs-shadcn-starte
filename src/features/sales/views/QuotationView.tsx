@@ -141,6 +141,7 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
 
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
 
   // ── Items ────────────────────────────────────────────────────────────────────
@@ -250,6 +251,36 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
     toast.info('Cotización marcada como rechazada');
   };
 
+  const handleApprove = async () => {
+    if (!quotation?.uid) return;
+    setIsApproving(true);
+    try {
+      const updated = await quotationService.update(quotation.uid, { status: 'approved' });
+      setLocalQuotation(updated);
+      saveQuotation(updated);
+      toast.success('Cotización aprobada');
+    } catch {
+      toast.error('Error al aprobar la cotización');
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!quotation?.uid) return;
+    try {
+      const blob = await quotationService.getPdf(quotation.uid);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${quotation.quote_number ?? 'cotizacion'}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Error al descargar el PDF');
+    }
+  };
+
   const handleConvert = async () => {
     if (!quotation) return;
     setIsConverting(true);
@@ -278,7 +309,8 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
   }
 
   const isDraft = quotation.status === 'draft';
-  const isSent = quotation.status === 'sent' || quotation.status === 'approved';
+  const isSent = quotation.status === 'sent';
+  const isApproved = quotation.status === 'approved';
   const isCancelled = quotation.status === 'cancelled';
   const isRejected = quotation.status === 'rejected';
   const isEditable = isDraft;
@@ -323,6 +355,14 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             Volver
           </Button>
 
+          {/* PDF download — always available once saved */}
+          {quotation.uid && (
+            <Button variant="outline" onClick={handleDownloadPdf}>
+              <Icon name="Download" size={16} />
+              Descargar PDF
+            </Button>
+          )}
+
           {/* Draft: save + send */}
           {isDraft && (
             <>
@@ -350,16 +390,9 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
             </>
           )}
 
-          {/* Sent/Approved: preview + convert to invoice */}
+          {/* Sent: esperando respuesta del cliente */}
           {isSent && (
             <>
-              <Button
-                variant="outline"
-                onClick={() => toast.info('Vista previa de cotización próximamente...')}
-              >
-                <Icon name="Eye" size={16} />
-                Ver cotización
-              </Button>
               <Button
                 variant="outline"
                 className="border-red-300 text-red-500 hover:bg-red-500/10"
@@ -369,14 +402,26 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                 Rechazar
               </Button>
               <Button
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
-                onClick={handleConvert}
-                loading={isConverting}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
+                onClick={handleApprove}
+                loading={isApproving}
               >
                 <Icon name="CheckCircle2" size={16} />
-                Convertir a Factura
+                Marcar como aprobada
               </Button>
             </>
+          )}
+
+          {/* Approved: convertir a factura */}
+          {isApproved && (
+            <Button
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+              onClick={handleConvert}
+              loading={isConverting}
+            >
+              <Icon name="Receipt" size={16} />
+              Convertir a Factura
+            </Button>
           )}
 
           {/* Cancelled: view invoice */}
