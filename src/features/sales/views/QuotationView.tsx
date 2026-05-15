@@ -578,14 +578,11 @@ export function QuotationView({ quotationId }: QuotationViewProps) {
                               if (product) {
                                 updateLine(item.uid, 'description', product.name);
                                 updateLine(item.uid, 'sku', product.sku ?? '');
-                                // Auto-fill price if available (backend needs sale_price on products)
-                                const price =
-                                  (product as unknown as Record<string, unknown>).sale_price ??
-                                  (product as unknown as Record<string, unknown>).unit_price ??
-                                  (product as unknown as Record<string, unknown>).cost_price ??
-                                  (product as unknown as Record<string, unknown>).price;
-                                if (price) {
-                                  updateLine(item.uid, 'list_unit_price', String(price));
+                                if (product.sale_price) {
+                                  updateLine(item.uid, 'list_unit_price', String(product.sale_price));
+                                }
+                                if (product.discount_percent) {
+                                  updateLine(item.uid, 'discount_percent', String(product.discount_percent));
                                 }
                               }
                             }}

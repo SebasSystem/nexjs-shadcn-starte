@@ -50,6 +50,9 @@ export interface InventoryMasterItem {
   category_name: string | null;
   reorder_point: number;
   is_active: boolean;
+  cost_price: number | null;
+  sale_price: number | null;
+  discount_percent: number | null;
   stock_physical_total: number;
   stock_reserved_total: number;
   stock_available_total: number;
@@ -129,6 +132,9 @@ export interface CreateProductPayload {
   description?: string;
   reorder_point?: number;
   is_active?: boolean;
+  cost_price?: number;
+  sale_price?: number;
+  discount_percent?: number;
   warehouse_stocks?: { warehouse_uid: string; quantity: number }[];
 }
 

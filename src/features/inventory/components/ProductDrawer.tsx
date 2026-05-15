@@ -50,6 +50,9 @@ export function ProductDrawer({
   const [description, setDescription] = useState(product?.description ?? '');
   const [categoryUid, setCategoryUid] = useState(product?.category_uid ?? '');
   const [reorderPoint, setReorderPoint] = useState(String(product?.reorder_point ?? 0));
+  const [costPrice, setCostPrice] = useState(String(product?.cost_price ?? ''));
+  const [salePrice, setSalePrice] = useState(String(product?.sale_price ?? ''));
+  const [discountPercent, setDiscountPercent] = useState(String(product?.discount_percent ?? ''));
   const [active, setActive] = useState(product ? product.is_active : true);
   const [warehouseStocks, setWarehouseStocks] = useState<
     { warehouse_uid: string; quantity: string }[]
@@ -63,6 +66,9 @@ export function ProductDrawer({
     setDescription(product?.description ?? '');
     setCategoryUid(product?.category_uid ?? '');
     setReorderPoint(String(product?.reorder_point ?? 0));
+    setCostPrice(String(product?.cost_price ?? ''));
+    setSalePrice(String(product?.sale_price ?? ''));
+    setDiscountPercent(String(product?.discount_percent ?? ''));
     setActive(product ? product.is_active : true);
     setWarehouseStocks([]);
     setErrors({});
@@ -87,6 +93,9 @@ export function ProductDrawer({
         category_uid: categoryUid || undefined,
         reorder_point: Number(reorderPoint),
         is_active: active,
+        cost_price: costPrice !== '' ? Number(costPrice) : undefined,
+        sale_price: salePrice !== '' ? Number(salePrice) : undefined,
+        discount_percent: discountPercent !== '' ? Number(discountPercent) : undefined,
       };
       if (mode === 'create') {
         payload.warehouse_stocks = warehouseStocks
@@ -142,6 +151,36 @@ export function ProductDrawer({
             value={categoryUid}
             onChange={(v) => setCategoryUid(v as string)}
           />
+          <div className="grid grid-cols-3 gap-3">
+            <Input
+              label="Costo"
+              type="number"
+              min={0}
+              step={0.01}
+              value={costPrice}
+              onChange={(e) => setCostPrice(e.target.value)}
+              placeholder="0.00"
+            />
+            <Input
+              label="Precio de venta"
+              type="number"
+              min={0}
+              step={0.01}
+              value={salePrice}
+              onChange={(e) => setSalePrice(e.target.value)}
+              placeholder="0.00"
+            />
+            <Input
+              label="Descuento %"
+              type="number"
+              min={0}
+              max={100}
+              step={0.1}
+              value={discountPercent}
+              onChange={(e) => setDiscountPercent(e.target.value)}
+              placeholder="0"
+            />
+          </div>
           <Input
             label="Stock mínimo (umbral de alerta)"
             type="number"
